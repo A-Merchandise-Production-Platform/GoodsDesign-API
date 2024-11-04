@@ -1,0 +1,38 @@
+services:
+  goodsdesignapi:
+    image: ${DOCKER_REGISTRY-}goodsdesignapi
+    build:
+      context: .
+      dockerfile: GoodsDesignAPI/Dockerfile
+    container_name: goodsdesignapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "ConnectionStrings__DefaultConnection=Server=goodsdesignapi-database;Database=goodsdesignapi-database;User Id=sa;Password=YourStrong!Passw0rd;Encrypt=False;TrustServerCertificate=True"
+    ports:
+      - "2000:8080"
+    depends_on:
+      - goodsdesignapi-database
+
+  goodsdesignapi-database:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: goodsdesignapi-database
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong!Passw0rd"
+    ports:
+      - "2433:1433"
+    volumes:
+      - ./.containers/goodsdesignapi-database-database:/var/opt/mssql/data
+
+  goodsdesignapi-unittest:
+    build:
+      context: .
+      dockerfile: UnitTest/Dockerfile
+    container_name: unit-tests
+    depends_on:
+      - goodsdesignapi
+      - goodsdesignapi-database
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    entrypoint: ["dotnet", "test", "--no-build", "--verbosity", "normal"]  

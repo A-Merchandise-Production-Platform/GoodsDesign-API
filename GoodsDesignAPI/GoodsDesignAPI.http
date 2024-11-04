@@ -1,0 +1,6 @@
+@GoodsDesignAPI_HostAddress = http://localhost:5198
+
+GET {{GoodsDesignAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
