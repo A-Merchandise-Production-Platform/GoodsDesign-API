@@ -1,16 +1,18 @@
-﻿namespace GoodsDesignAPI.Middlewares
+﻿using Services.Interfaces;
+
+namespace GoodsDesignAPI.Middlewares
 {
     public class UserStatusMiddleware : IMiddleware
     {
-        private readonly ILogger<UserStatusMiddleware> logger;
+        private readonly ILoggerService _loggerService;
         private readonly IConfiguration configuration;
         private readonly IHttpContextAccessor httpContextAccessor;
 
-        public UserStatusMiddleware(ILogger<UserStatusMiddleware> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+        public UserStatusMiddleware(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILoggerService loggerService)
         {
-            this.logger = logger;
             this.configuration = configuration;
             this.httpContextAccessor = httpContextAccessor;
+            _loggerService = loggerService;
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -21,12 +23,12 @@
             if (user?.Identity?.IsAuthenticated == true)
             {
                 // Ghi log người dùng đã xác thực truy cập vào endpoint
-                logger.LogInformation($"User {user.Identity.Name} is accessing {context.Request.Path}");
+                _loggerService.Info($"UserStatusMiddleware - User {user.Identity.Name} is accessing {context.Request.Path}");
             }
             else
             {
                 // Ghi log người dùng chưa xác thực
-                logger.LogWarning("An unauthenticated user tried to access a protected resource.");
+                _loggerService.Info("UserStatusMiddleware - An unauthenticated user tried to access a protected resource.");
             }
 
             // Tiếp tục pipeline

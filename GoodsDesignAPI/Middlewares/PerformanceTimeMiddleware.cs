@@ -29,7 +29,7 @@ namespace GoodsDesignAPI.Middlewares
 
             Console.ForegroundColor = ConsoleColor.Cyan;
             _loggerService.Info("=== End Performance Record ===");
-            _loggerService.Info($"Time Taken: {timeTaken:mm\\:ss\\.fff} (minutes:seconds.milliseconds) + \n");
+            _loggerService.Info($"Time Taken: {timeTaken:mm\\:ss\\.fff} \n");
             Console.ResetColor();
         }
     }

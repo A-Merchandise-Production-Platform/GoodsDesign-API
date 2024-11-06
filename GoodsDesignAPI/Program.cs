@@ -1,4 +1,5 @@
 using GoodsDesignAPI.Architecture;
+using GoodsDesignAPI.Middlewares;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -22,12 +23,20 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseRouting();
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseMiddleware<PerformanceTimeMiddleware>();
+app.UseMiddleware<UserStatusMiddleware>();
+app.UseMiddleware<ApiLoggerMiddleware>();
+
+app.UseSwagger();
+
+app.UseSwaggerUI();
+
+app.UseCors("CorsPolicy");
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

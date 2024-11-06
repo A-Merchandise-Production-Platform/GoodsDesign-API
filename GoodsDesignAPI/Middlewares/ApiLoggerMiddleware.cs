@@ -15,35 +15,30 @@ namespace GoodsDesignAPI.Middlewares
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            var request = context.Request;
-            var originalResponseBody = context.Response.Body;
-
             try
             {
-                // Log request information
+                var request = context.Request;
+
+                // Log API call information
                 var apiCall = new ApiCallModel
                 {
                     Method = request.Method,
                     Path = request.Path,
                     QueryString = request.QueryString.ToString(),
                     RequestBody = await GetRequestBody(request),
-                    Timestamp = DateTime.Now
                 };
 
-                _loggerService.Info($"API Call Request:\n{JsonSerializer.Serialize(apiCall, new JsonSerializerOptions { WriteIndented = true })}");
+                _loggerService.Info($"API Call Request: {request.Method} - {request.Path} \n{JsonSerializer.Serialize(apiCall, new JsonSerializerOptions { WriteIndented = true })}");
 
-                using var responseBody = new MemoryStream();
-                context.Response.Body = responseBody;
+                // Get the response body after invoking the next middleware
+                await next(context);
 
-                await next(context); // Call the next middleware
-
-                // Log response information after the response has been processed
-                apiCall.ResponseBody = await GetResponseBody(responseBody);
+                apiCall.ResponseBody = await GetResponseBody(context);
 
                 // Skip logging for Swagger requests
                 if (!apiCall.Path.Contains("swagger"))
                 {
-                    _loggerService.Info($"API Call Response:\n{JsonSerializer.Serialize(apiCall, new JsonSerializerOptions { WriteIndented = true })}");
+                    _loggerService.Info($"API Call Response: {request.Method} - {request.Path} \n{JsonSerializer.Serialize(apiCall, new JsonSerializerOptions { WriteIndented = true })}");
                 }
             }
             catch (Exception e)
@@ -52,25 +47,34 @@ namespace GoodsDesignAPI.Middlewares
                 _loggerService.Error($"API Call Error StackTrace: {e.StackTrace}");
                 throw;
             }
-            finally
-            {
-                context.Response.Body = originalResponseBody; // Restore the original response body
-            }
         }
 
-        private async Task<string> GetResponseBody(MemoryStream responseBody)
+        private async Task<string> GetResponseBody(HttpContext context)
         {
-            responseBody.Seek(0, SeekOrigin.Begin);
-            var text = await new StreamReader(responseBody).ReadToEndAsync();
-            responseBody.Seek(0, SeekOrigin.Begin);
-            return text;
+            // Intercept the response body
+            var originalBodyStream = context.Response.Body;
+            using var responseBody = new MemoryStream();
+            context.Response.Body = responseBody;
+
+            await Task.CompletedTask;
+
+            // Retrieve the response body as a string
+            context.Response.Body.Seek(0, SeekOrigin.Begin);
+            var responseBodyString = await new StreamReader(context.Response.Body).ReadToEndAsync();
+            context.Response.Body.Seek(0, SeekOrigin.Begin);
+
+            // Restore the original response body stream
+            await responseBody.CopyToAsync(originalBodyStream);
+
+            return responseBodyString;
         }
 
         private static async Task<string> GetRequestBody(HttpRequest request)
         {
             if (request.Method != HttpMethods.Post && request.Method != HttpMethods.Put) return string.Empty;
 
-            request.EnableBuffering(); // Enable buffering to allow reading the request body multiple times
+            request.EnableBuffering(); // Allow the request body to be read multiple times
+
             using var reader = new StreamReader(request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
             var requestBody = await reader.ReadToEndAsync();
             request.Body.Seek(0, SeekOrigin.Begin); // Reset the stream position
@@ -85,7 +89,6 @@ namespace GoodsDesignAPI.Middlewares
             public string QueryString { get; init; } = null!;
             public string RequestBody { get; init; } = null!;
             public string ResponseBody { get; set; } = null!;
-            public DateTime Timestamp { get; set; }
         }
     }
 }

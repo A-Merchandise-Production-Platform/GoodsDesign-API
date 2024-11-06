@@ -15,30 +15,48 @@ namespace GoodsDesignAPI.Architecture
             //Add Services
             services.SetupDBContext();
             services.SetupMiddleware();
+            services.SetupCORS();
 
-
+            Console.WriteLine("=== Done setup IOC Container ===");
             return services;
         }
 
-        private static void SetupDBContext(this IServiceCollection services)
+        private static IServiceCollection SetupDBContext(this IServiceCollection services)
         {
             //services.AddDbContext<GoodsDesignContext>(options =>
             //{
             //    options.UseSqlServer(configuration["ConnectionStrings:DefaultConnectionString"]);
             //});
+
+            return services;
         }
 
-        private static void SetupMiddleware(this IServiceCollection services)
+        private static IServiceCollection SetupCORS(this IServiceCollection services)
+        {
+            services.AddCors(opt =>
+            {
+                opt.AddPolicy("CorsPolicy", policy =>
+                {
+                    policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
+                });
+            });
+
+            return services;
+        }
+
+        private static IServiceCollection SetupMiddleware(this IServiceCollection services)
         {
             //Setup For UserStatusMiddleware
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             //Setup For PerformanceTimeMiddleware
-            services.AddTransient(_ => new Stopwatch());
+            services.AddSingleton<Stopwatch>();
 
             services.AddScoped<ApiLoggerMiddleware>();
             services.AddSingleton<GlobalExceptionMiddleware>();
             services.AddTransient<PerformanceTimeMiddleware>();
             services.AddScoped<UserStatusMiddleware>();
+
+            return services;
         }
 
 
