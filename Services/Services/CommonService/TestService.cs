@@ -1,6 +1,6 @@
 ﻿using Services.Interfaces;
 
-namespace Services.Services
+namespace Services.Services.CommonService
 {
     public class TestService : ITestService
     {
