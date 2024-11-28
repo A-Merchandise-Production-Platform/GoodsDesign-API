@@ -1,4 +1,4 @@
-﻿namespace DataTransferObjects.Authentication
+﻿namespace DataTransferObjects.Auth
 {
     public class LoginRequestDTO
     {

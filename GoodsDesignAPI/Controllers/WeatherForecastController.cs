@@ -27,6 +27,7 @@ namespace GoodsDesignAPI.Controllers
             _logger.Info("Returning weather forecast data");
             _logger.Success("Weather forecast data returned successfully");
             _logger.Error("Failed to fetch weather forecast data");
+
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),

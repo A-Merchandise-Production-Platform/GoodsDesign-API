@@ -1,4 +1,7 @@
-﻿using GoodsDesignAPI.Middlewares;
+﻿using BusinessObjects;
+using GoodsDesignAPI.Middlewares;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Services.Interfaces;
 using Services.Services.CommonService;
 using System.Diagnostics;
@@ -14,6 +17,7 @@ namespace GoodsDesignAPI.Architecture
 
             //Add Services
             services.SetupDBContext();
+            services.SetupIdentity();
             services.SetupMiddleware();
             services.SetupCORS();
 
@@ -23,10 +27,32 @@ namespace GoodsDesignAPI.Architecture
 
         private static IServiceCollection SetupDBContext(this IServiceCollection services)
         {
-            //services.AddDbContext<GoodsDesignContext>(options =>
-            //{
-            //    options.UseSqlServer(configuration["ConnectionStrings:DefaultConnectionString"]);
-            //});
+            IConfiguration configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true).Build();
+
+            services.AddDbContext<GoodsDesignDbContext>(options =>
+            {
+                options.UseNpgsql(configuration["ConnectionStrings:DefaultConnection"]);
+            });
+
+            return services;
+        }
+
+        private static IServiceCollection SetupIdentity(this IServiceCollection services)
+        {
+            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 6;
+
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<GoodsDesignDbContext>()
+            .AddDefaultTokenProviders();
 
             return services;
         }
