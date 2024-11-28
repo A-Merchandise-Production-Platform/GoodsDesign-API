@@ -7,5 +7,7 @@ namespace BusinessObjects.Entities
         public bool Gender { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? ImageUrl { get; set; } = "";
+
+        public virtual ICollection<Role> Roles { get; set; }
     }
 }

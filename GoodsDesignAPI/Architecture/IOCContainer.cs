@@ -44,7 +44,7 @@ namespace GoodsDesignAPI.Architecture
 
         private static IServiceCollection SetupIdentity(this IServiceCollection services)
         {
-            services.AddIdentity<User, IdentityRole<Guid>>(options =>
+            services.AddIdentity<User, Role>(options =>
             {
                 options.Password.RequireDigit = false;
                 options.Password.RequireLowercase = false;

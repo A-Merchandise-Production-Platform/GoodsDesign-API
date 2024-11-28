@@ -70,6 +70,13 @@ static IEdmModel GetEdmModel()
 {
     var builder = new ODataConventionModelBuilder();
 
-    builder.EntitySet<User>("Users");
+    // Configure entity sets
+    var users = builder.EntitySet<User>("Users");
+    var roles = builder.EntitySet<Role>("Roles");
+
+    // Define navigation properties
+    users.EntityType.HasMany(u => u.Roles);
+    roles.EntityType.HasMany(r => r.Users);
+
     return builder.GetEdmModel();
 }
