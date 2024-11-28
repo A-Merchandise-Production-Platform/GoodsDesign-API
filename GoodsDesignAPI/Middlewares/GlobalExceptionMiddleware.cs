@@ -23,7 +23,7 @@ namespace GoodsDesignAPI.Middlewares
                 {
                     data = (object)null,
                     success = false,
-                    message = ex.Message
+                    message = ex.Message + " - " + ex.InnerException?.Message
                 };
 
                 var jsonResponse = JsonSerializer.Serialize(response);

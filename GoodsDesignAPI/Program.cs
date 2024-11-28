@@ -1,5 +1,9 @@
+using BusinessObjects.Entities;
 using GoodsDesignAPI.Architecture;
 using GoodsDesignAPI.Middlewares;
+using Microsoft.AspNetCore.OData;
+using Microsoft.OData.Edm;
+using Microsoft.OData.ModelBuilder;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -13,6 +17,11 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    })
+    .AddOData(opt =>
+    {
+        opt.Select().Filter().Expand().OrderBy().SetMaxTop(100).Count()
+           .AddRouteComponents("odata", GetEdmModel());
     });
 
 // Setup IOC Container
@@ -23,6 +32,15 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
+try
+{
+    app.ApplyMigrations(app.Logger);
+}
+catch (Exception e)
+{
+    app.Logger.LogError(e, "An problem occurred during migration!");
+}
+
 app.UseRouting();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
@@ -32,7 +50,11 @@ app.UseMiddleware<ApiLoggerMiddleware>();
 
 app.UseSwagger();
 
-app.UseSwaggerUI();
+app.UseSwaggerUI(c =>
+{
+    c.InjectJavascript("/custom-swagger.js");
+    c.InjectStylesheet("/custom-swagger.css");
+});
 
 app.UseCors("CorsPolicy");
 
@@ -43,3 +65,11 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static IEdmModel GetEdmModel()
+{
+    var builder = new ODataConventionModelBuilder();
+
+    builder.EntitySet<User>("Users");
+    return builder.GetEdmModel();
+}

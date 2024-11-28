@@ -1,4 +1,5 @@
 ﻿using BusinessObjects;
+using BusinessObjects.Entities;
 using GoodsDesignAPI.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +30,9 @@ namespace GoodsDesignAPI.Architecture
         {
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, true).Build();
+                .AddJsonFile("appsettings.json", true, true)
+                .AddEnvironmentVariables()
+                .Build();
 
             services.AddDbContext<GoodsDesignDbContext>(options =>
             {
@@ -41,7 +44,7 @@ namespace GoodsDesignAPI.Architecture
 
         private static IServiceCollection SetupIdentity(this IServiceCollection services)
         {
-            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            services.AddIdentity<User, IdentityRole<Guid>>(options =>
             {
                 options.Password.RequireDigit = false;
                 options.Password.RequireLowercase = false;

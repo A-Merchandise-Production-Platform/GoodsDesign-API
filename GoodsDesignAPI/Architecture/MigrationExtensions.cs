@@ -1,4 +1,7 @@
-﻿namespace GoodsDesignAPI.Architecture
+﻿using BusinessObjects;
+using Microsoft.EntityFrameworkCore;
+
+namespace GoodsDesignAPI.Architecture
 {
     public static class MigrationExtensions
     {
@@ -6,12 +9,12 @@
         {
             try
             {
-                //using IServiceScope scope = app.ApplicationServices.CreateScope();
+                using IServiceScope scope = app.ApplicationServices.CreateScope();
 
-                //using DbContext dbContext =
-                //    scope.ServiceProvider.GetRequiredService<DbContext>();
+                using GoodsDesignDbContext dbContext =
+                    scope.ServiceProvider.GetRequiredService<GoodsDesignDbContext>();
 
-                //dbContext.Database.Migrate();
+                dbContext.Database.Migrate();
             }
             catch (Exception e)
             {
