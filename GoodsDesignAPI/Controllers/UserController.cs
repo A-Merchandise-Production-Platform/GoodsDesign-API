@@ -1,6 +1,7 @@
 ﻿using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using DataTransferObjects.Auth;
+using DataTransferObjects.UserDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -56,5 +57,8 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(500, ApiResult<object>.Error("500 - An error occurred while retrieving user information."));
             }
         }
+
+
+
     }
 }

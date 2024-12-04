@@ -1,4 +1,5 @@
 ﻿using DataTransferObjects.Auth;
+using DataTransferObjects.UserDTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,8 @@ namespace Services.Interfaces
 {
     public interface IUserService
     {
+        Task<GetCurrentUserResponseDTO?> CreateUserAsync(UserCreateDTO userCreateDTO, string roleName);
         Task<GetCurrentUserResponseDTO> GetCurrentUser(string userId);
+        Task<UserDTO?> UpdateUserAsync(Guid userId, UserUpdateDTO userUpdateDTO);
     }
 }

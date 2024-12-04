@@ -80,7 +80,9 @@ namespace GoodsDesignAPI.Controllers
                         DateOfBirth = dateOfBirth?.ToUniversalTime(),
                         ImageUrl = imageUrl,
                         RoleId = roleDict[roleName].Id,
+                        IsActive = true,
                         Role = roleDict[roleName]
+                        
                     };
 
                     var result = await _userManager.CreateAsync(user, "123456");

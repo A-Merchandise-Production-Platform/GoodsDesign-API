@@ -87,7 +87,7 @@ namespace GoodsDesignAPI.Controllers
                     return BadRequest(ApiResult<object>.Error("400 - Invalid registration data."));
                 }
 
-                Role role = await _roleManager.FindByNameAsync(Roles.Customer.ToString());
+                Role role = await _roleManager.FindByNameAsync(Roles.CUSTOMER.ToString());
 
                 var user = new User
                 {
@@ -97,7 +97,8 @@ namespace GoodsDesignAPI.Controllers
                     PhoneNumber = registerDTO.PhoneNumber,
                     Gender = (bool)registerDTO.Gender,
                     DateOfBirth = registerDTO.DateOfBirth,
-                    ImageUrl = registerDTO.ImageUrl
+                    ImageUrl = registerDTO.ImageUrl,
+                    IsActive=true,
                 };
 
                 var result = await _userManager.CreateAsync(user, registerDTO.Password);
