@@ -4,6 +4,7 @@ using GoodsDesignAPI.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Services.Interfaces;
@@ -106,13 +107,13 @@ namespace GoodsDesignAPI.Architecture
 
         private static IServiceCollection SetupCORS(this IServiceCollection services)
         {
-            services.AddCors(opt =>
-            {
-                opt.AddPolicy("CorsPolicy", policy =>
-                {
-                    policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
-                });
-            });
+            //services.AddCors(opt =>
+            //{
+            //    opt.AddPolicy("CorsPolicy", policy =>
+            //    {
+            //        policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
+            //    });
+            //});
 
             return services;
         }
@@ -141,9 +142,11 @@ namespace GoodsDesignAPI.Architecture
                 .Build();
 
             services
-                .AddAuthentication(x =>
+                .AddAuthentication(options =>
                 {
-                    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                 })
                 .AddJwtBearer(x =>
                 {
@@ -158,6 +161,7 @@ namespace GoodsDesignAPI.Architecture
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]))
                     };
                 });
+            services.AddAuthorization();
 
             return services;
         }
