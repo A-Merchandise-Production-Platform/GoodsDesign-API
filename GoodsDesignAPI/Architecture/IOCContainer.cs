@@ -107,13 +107,13 @@ namespace GoodsDesignAPI.Architecture
 
         private static IServiceCollection SetupCORS(this IServiceCollection services)
         {
-            //services.AddCors(opt =>
-            //{
-            //    opt.AddPolicy("CorsPolicy", policy =>
-            //    {
-            //        policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
-            //    });
-            //});
+            services.AddCors(opt =>
+            {
+                opt.AddPolicy("CorsPolicy", policy =>
+                {
+                    policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
+                });
+            });
 
             return services;
         }
