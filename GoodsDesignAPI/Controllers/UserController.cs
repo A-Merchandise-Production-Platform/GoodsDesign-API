@@ -14,15 +14,14 @@ namespace GoodsDesignAPI.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
-        private readonly RoleManager<Role> _roleManager;
+    
         private readonly ILoggerService _logger;
+        private readonly IUserService _userService;
 
-        public UserController(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService logger)
+        public UserController(ILoggerService logger, IUserService userService)
         {
-            _userManager = userManager;
-            _roleManager = roleManager;
             _logger = logger;
+            _userService = userService;
         }
 
         [Authorize]
@@ -39,7 +38,7 @@ namespace GoodsDesignAPI.Controllers
                     return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
                 }
 
-                var user = await _userManager.FindByIdAsync(userId);
+                var user = await _userService.GetCurrentUser(userId);
                 if (user == null)
                 {
                     _logger.Warn("User not found.");
@@ -48,18 +47,8 @@ namespace GoodsDesignAPI.Controllers
 
                 _logger.Success("Fetched current user info successfully.");
 
-                Role role = await _roleManager.FindByNameAsync(Roles.Customer.ToString());
-                return Ok(ApiResult<object>.Success(new GetCurrentUserResponseDTO
-                {
-                    Id = user.Id,
-                    Email = user.Email,
-                    UserName = user.UserName,
-                    PhoneNumber = user.PhoneNumber,
-                    Gender = user.Gender,
-                    DateOfBirth = user.DateOfBirth,
-                    ImageUrl = user.ImageUrl,
-                    Role = role.Name
-                }, "User information retrieved successfully."));
+               // Role role = await _roleManager.FindByNameAsync(Roles.Customer.ToString());
+                return Ok(ApiResult<object>.Success(user, "User information retrieved successfully."));
             }
             catch (Exception ex)
             {

@@ -4,6 +4,8 @@ using GoodsDesignAPI.Middlewares;
 using Microsoft.AspNetCore.OData;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
+using Services.Interfaces;
+using Services.Services;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -26,11 +28,13 @@ builder.Services.AddControllers()
 
 // Setup IOC Container
 builder.Services.SetupIOCContainer();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
+app.UseRouting();
 
 try
 {
@@ -42,12 +46,7 @@ catch (Exception e)
 }
 
 app.UseStaticFiles();
-app.UseRouting();
 
-app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseMiddleware<PerformanceTimeMiddleware>();
-app.UseMiddleware<UserStatusMiddleware>();
-app.UseMiddleware<ApiLoggerMiddleware>();
 
 app.UseSwagger();
 
@@ -64,6 +63,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseMiddleware<PerformanceTimeMiddleware>();
+app.UseMiddleware<UserStatusMiddleware>();
+app.UseMiddleware<ApiLoggerMiddleware>();
 
 app.Run();
 
