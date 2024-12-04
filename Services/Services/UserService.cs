@@ -166,5 +166,67 @@ namespace Services.Services
             }
         }
 
+        public async Task<bool> DeleteUserAsync(Guid userId)
+        {
+            _logger.Info($"Deleting user with ID: {userId}");
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                {
+                    _logger.Warn($"User with ID: {userId} not found.");
+                    return false;
+                }
+
+                user.IsDeleted = true;
+                var result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    _logger.Warn($"Failed to delete user: {errors}");
+                    return false;
+                }
+
+                _logger.Success($"User with ID: {userId} deleted successfully.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error deleting user: {ex.Message}");
+                throw new Exception($"Error deleting user: {ex.Message}");
+            }
+        }
+
+        public async Task<bool> BanUserAsync(Guid userId)
+        {
+            _logger.Info($"Banning/unbanning user with ID: {userId}");
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                {
+                    _logger.Warn($"User with ID: {userId} not found.");
+                    return false;
+                }
+
+                user.IsActive = !user.IsActive;
+                var result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    _logger.Warn($"Failed to ban/unban user: {errors}");
+                    return false;
+                }
+
+                _logger.Success($"User with ID: {userId} ban/unban action completed successfully.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error banning/unbanning user: {ex.Message}");
+                throw new Exception($"Error banning/unbanning user: {ex.Message}");
+            }
+        }
+
     }
 }

@@ -7,8 +7,9 @@ namespace BusinessObjects.Entities
         public bool Gender { get; set; } = false;
         public DateTime? DateOfBirth { get; set; }
         public string? ImageUrl { get; set; } = "";
-        public bool? IsActive {  get; set; }    
-        
+        public bool? IsActive {  get; set; }
+        public bool? IsDeleted { get; set; } = false;
+
         // One-to-Many: A user belongs to one role
         public Guid RoleId { get; set; } // Foreign Key
         public Role Role { get; set; } // Navigation Property
