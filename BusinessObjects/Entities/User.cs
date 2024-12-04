@@ -8,6 +8,8 @@ namespace BusinessObjects.Entities
         public DateTime? DateOfBirth { get; set; }
         public string? ImageUrl { get; set; } = "";
 
-        public virtual ICollection<Role> Roles { get; set; }
+        // One-to-Many: A user belongs to one role
+        public Guid RoleId { get; set; } // Foreign Key
+        public Role Role { get; set; } // Navigation Property
     }
 }

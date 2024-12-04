@@ -26,7 +26,7 @@ namespace GoodsDesignAPI.Controllers
         {
             try
             {
-                var users = await _context.Users.Include(x => x.Roles).ToListAsync();
+                var users = await _context.Users.Include(x => x.UserRoles).ToListAsync();
                 return Ok(users);
             }
             catch (Exception ex)

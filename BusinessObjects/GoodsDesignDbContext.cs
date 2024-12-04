@@ -16,7 +16,7 @@ namespace BusinessObjects
         {
             base.OnModelCreating(modelBuilder);
 
-
+            // Map Identity tables to custom table names
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<Role>().ToTable("Roles");
             modelBuilder.Entity<IdentityUserRole<Guid>>().ToTable("UserRoles");
@@ -25,24 +25,27 @@ namespace BusinessObjects
             modelBuilder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
             modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens");
 
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.Roles)
-                .WithMany(r => r.Users)
-                .UsingEntity<IdentityUserRole<Guid>>(
-                    userRole => userRole
-                        .HasOne<Role>()
-                        .WithMany()
-                        .HasForeignKey(ur => ur.RoleId)
-                        .OnDelete(DeleteBehavior.Cascade),
-                    userRole => userRole
-                        .HasOne<User>()
-                        .WithMany()
-                        .HasForeignKey(ur => ur.UserId)
-                        .OnDelete(DeleteBehavior.Cascade),
-                    userRole =>
-                    {
-                        userRole.ToTable("UserRoles");
-                    });
+            // Configure composite primary key for UserRoles
+            modelBuilder.Entity<IdentityUserRole<Guid>>(userRole =>
+            {
+                userRole.HasKey(ur => new { ur.UserId, ur.RoleId });
+
+                // Configure foreign key for Role
+                userRole
+                    .HasOne<Role>()
+                    .WithMany(r => r.UserRoles)
+                    .HasForeignKey(ur => ur.RoleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Configure foreign key for User
+                userRole
+                    .HasOne<User>()
+                    .WithMany(u => u.UserRoles)
+                    .HasForeignKey(ur => ur.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                userRole.ToTable("UserRoles");
+            });
         }
     }
 }
