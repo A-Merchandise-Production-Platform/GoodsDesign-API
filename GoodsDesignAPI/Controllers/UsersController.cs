@@ -1,6 +1,7 @@
 ﻿using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using DataTransferObjects.UserDTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
@@ -94,6 +95,59 @@ namespace GoodsDesignAPI.Controllers
             catch (Exception ex)
             {
                 _logger.Error($"Error during updating user: {ex.Message}");
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            _logger.Info($"Attempting to delete user with ID: {id}");
+            try
+            {
+                var result = await _userService.DeleteUserAsync(id);
+                if (!result)
+                {
+                    _logger.Warn("User deletion failed.");
+                    return NotFound(ApiResult<object>.Error("User deletion failed. User not found."));
+                }
+
+                _logger.Success("User deleted successfully via controller.");
+                return Ok(ApiResult<object>.Success(null, "User deleted successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error during deleting user: {ex.Message}");
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+       // [Authorize(Roles = "Admin")]
+        [HttpPut("/api/ban-user/{id}")]
+        public async Task<IActionResult> BanUser(Guid id)
+        {
+            _logger.Info($"Attempting to ban/unban user with ID: {id}");
+            try
+            {
+                var result = await _userService.BanUserAsync(id);
+                if (!result)
+                {
+                    _logger.Warn("User ban/unban failed.");
+                    return NotFound(ApiResult<object>.Error("User ban/unban failed. User not found."));
+                }
+
+                _logger.Success("User ban/unban action completed successfully via controller.");
+                return Ok(ApiResult<object>.Success(null, "User ban/unban action completed successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error during banning/unbanning user: {ex.Message}");
                 int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
                 var errorResponse = ApiResult<object>.Error(ex.Message);
 
