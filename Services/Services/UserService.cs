@@ -1,4 +1,5 @@
-﻿using BusinessObjects.Entities;
+﻿using AutoMapper;
+using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using DataTransferObjects.Auth;
 using DataTransferObjects.UserDTOs;
@@ -20,12 +21,14 @@ namespace Services.Services
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
         private readonly ILoggerService _logger;
+        private readonly IMapper _mapper;
 
-        public UserService(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService logger)
+        public UserService(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService logger, IMapper mapper)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
+            _mapper = mapper;
         }
 
         public async Task<GetCurrentUserResponseDTO> GetCurrentUser(string userId)
@@ -43,7 +46,7 @@ namespace Services.Services
 
                 _logger.Success("Fetched current user info successfully.");
 
-                Role role = await _roleManager.FindByNameAsync(Roles.Customer.ToString());
+                Role role = await _roleManager.FindByNameAsync(Roles.CUSTOMER.ToString());
                 return new GetCurrentUserResponseDTO
                 {
                     Id = user.Id,
@@ -72,7 +75,7 @@ namespace Services.Services
                 if (role == null)
                 {
                     _logger.Warn($"Role '{roleName}' not found.");
-                    return null; // Role does not exist
+                    throw new Exception("494-Invalid role name");
                 }
 
                 // Create user entity from DTO
@@ -84,7 +87,8 @@ namespace Services.Services
                     Gender = userCreateDTO.Gender.Value,
                     DateOfBirth = userCreateDTO.DateOfBirth,
                     ImageUrl = userCreateDTO.ImageUrl,
-                    EmailConfirmed = true // Optional: Automatically confirm email
+                    IsActive = true,
+                    Role=role // add many -many role
                 };
 
                 // Create user in UserManager
@@ -126,7 +130,41 @@ namespace Services.Services
         }
 
 
+        public async Task<UserDTO?> UpdateUserAsync(Guid userId, UserUpdateDTO userUpdateDTO)
+        {
+            _logger.Info($"Updating user with ID: {userId}");
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                {
+                    _logger.Warn($"User with ID: {userId} not found.");
+                    return null;
+                }
 
+                // Map updated properties from DTO to the User entity
+                _mapper.Map(userUpdateDTO, user);
+
+                // Update user in UserManager
+                var result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    _logger.Warn($"Failed to update user: {errors}");
+                    return null;
+                }
+
+                _logger.Success($"User with ID: {userId} updated successfully.");
+
+                // Return updated user as DTO
+                return _mapper.Map<UserDTO>(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error updating user: {ex.Message}");
+                throw new Exception($"Error updating user: {ex.Message}");
+            }
+        }
 
     }
 }

@@ -1,13 +1,14 @@
-﻿using BusinessObjects;
+﻿using AutoMapper;
+using BusinessObjects;
 using BusinessObjects.Entities;
 using GoodsDesignAPI.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Services.Interfaces;
+using Services.Mapper;
 using Services.Services.CommonService;
 using System.Diagnostics;
 using System.Text;
@@ -20,7 +21,7 @@ namespace GoodsDesignAPI.Architecture
         {
             //Add Logger
             services.AddScoped<ILoggerService, LoggerService>();
-
+            services.AddAutoMapper(typeof(MapperConfigProfile).Assembly);
             //Add Services
             services.SetupDBContext();
             services.SetupIdentity();

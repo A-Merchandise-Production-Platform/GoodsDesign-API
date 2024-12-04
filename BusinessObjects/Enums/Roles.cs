@@ -2,10 +2,10 @@
 {
     public enum Roles
     {
-        Admin = 1,
-        Manager = 2,
-        Staff = 3,
-        FactoryOwner = 4,
-        Customer = 5
+        ADMIN = 1,
+        MANAGER = 2,
+        STAFF = 3,
+        FACTORYOWNER = 4,
+        CUSTOMER = 5
     }
 }
