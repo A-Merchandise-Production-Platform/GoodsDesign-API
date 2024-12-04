@@ -19,33 +19,17 @@ namespace BusinessObjects
             // Map Identity tables to custom table names
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<Role>().ToTable("Roles");
-            modelBuilder.Entity<IdentityUserRole<Guid>>().ToTable("UserRoles");
             modelBuilder.Entity<IdentityUserClaim<Guid>>().ToTable("UserClaims");
             modelBuilder.Entity<IdentityUserLogin<Guid>>().ToTable("UserLogins");
             modelBuilder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
             modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens");
 
-            // Configure composite primary key for UserRoles
-            modelBuilder.Entity<IdentityUserRole<Guid>>(userRole =>
-            {
-                userRole.HasKey(ur => new { ur.UserId, ur.RoleId });
-
-                // Configure foreign key for Role
-                userRole
-                    .HasOne<Role>()
-                    .WithMany(r => r.UserRoles)
-                    .HasForeignKey(ur => ur.RoleId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                // Configure foreign key for User
-                userRole
-                    .HasOne<User>()
-                    .WithMany(u => u.UserRoles)
-                    .HasForeignKey(ur => ur.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                userRole.ToTable("UserRoles");
-            });
+            // One-to-Many relationship between User and Role
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Role) // A User has one Role
+                .WithMany(r => r.Users) // A Role has many Users
+                .HasForeignKey(u => u.RoleId) // Foreign Key in User
+                .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete users when a role is deleted
         }
     }
 }

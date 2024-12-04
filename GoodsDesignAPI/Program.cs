@@ -1,7 +1,6 @@
 using BusinessObjects.Entities;
 using GoodsDesignAPI.Architecture;
 using GoodsDesignAPI.Middlewares;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.OData;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
@@ -42,6 +41,7 @@ catch (Exception e)
     app.Logger.LogError(e, "An problem occurred during migration!");
 }
 
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
@@ -74,11 +74,10 @@ static IEdmModel GetEdmModel()
     // Configure entity sets
     var users = builder.EntitySet<User>("Users");
     var roles = builder.EntitySet<Role>("Roles");
-    var userRoles = builder.EntitySet<IdentityUserRole<Guid>>("UserRoles");
 
-    // Define navigation properties
-    users.EntityType.HasMany(u => u.UserRoles);
-    roles.EntityType.HasMany(r => r.UserRoles);
+    // Define relationships
+    users.EntityType.HasOptional(u => u.Role); // User has one Role
+    roles.EntityType.HasMany(r => r.Users); // Role has many Users
 
     return builder.GetEdmModel();
 }

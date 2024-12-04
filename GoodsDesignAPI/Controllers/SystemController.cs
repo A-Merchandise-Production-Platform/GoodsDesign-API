@@ -1,6 +1,8 @@
 ﻿using BusinessObjects.Entities; // Include your namespace for the custom User entity
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Services.Utils;
 
 namespace GoodsDesignAPI.Controllers
 {
@@ -9,9 +11,9 @@ namespace GoodsDesignAPI.Controllers
     public class SystemController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
-        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+        private readonly RoleManager<Role> _roleManager;
 
-        public SystemController(UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager)
+        public SystemController(UserManager<User> userManager, RoleManager<Role> roleManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -38,46 +40,36 @@ namespace GoodsDesignAPI.Controllers
 
                 // Seed roles: admin, manager, staff, factoryOwner, customer
                 var roleNames = new[] { "admin", "manager", "staff", "factoryOwner", "customer" };
+                var roleDict = new Dictionary<string, Role>();
+
                 foreach (var roleName in roleNames)
                 {
                     if (!await _roleManager.RoleExistsAsync(roleName))
                     {
-                        await _roleManager.CreateAsync(new IdentityRole<Guid> { Name = roleName });
+                        var role = new Role { Name = roleName };
+                        var result = await _roleManager.CreateAsync(role);
+                        if (result.Succeeded)
+                        {
+                            roleDict.Add(roleName, role);
+                        }
+                        else
+                        {
+                            return BadRequest(new { message = $"Failed to create role {roleName}", errors = result.Errors });
+                        }
                     }
                 }
 
-                // Create an admin user and assign to admin role
-                var adminUser = new User
-                {
-                    UserName = "admin",
-                    Email = "admin@gmail.com",
-                    EmailConfirmed = true,
-                    Gender = true,
-                    DateOfBirth = new DateTime(1990, 1, 1).ToUniversalTime(),
-                    ImageUrl = "https://scontent.fsgn15-1.fna.fbcdn.net/v/t39.30808-1/430878538_2206677789683723_4464660377243750146_n.jpg?stp=dst-jpg_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=50d2ac&_nc_eui2=AeE_Vr1x6BHZ_S__ovdDg7zS5W9udhABzaHlb252EAHNoS38q_urtNeTErRYpa0zqYNo-vOAf49-zjjLBslYOw-p&_nc_ohc=-pR_sm46Xo0Q7kNvgENuKqW&_nc_zt=24&_nc_ht=scontent.fsgn15-1.fna&_nc_gid=AyOScuqnRIdDJw0yqlJ1OJE&oh=00_AYBRYtKe7HUGoF1imuyPohv5Wi3mnCKz-GF0YsTBc9lMzw&oe=674E895B"
-                };
-
-                var adminPassword = "123456";
-                var result = await _userManager.CreateAsync(adminUser, adminPassword);
-
-                if (!result.Succeeded)
-                {
-                    return BadRequest(new { message = "Failed to create admin user", errors = result.Errors });
-                }
-
-                // Assign admin user to the admin role
-                await _userManager.AddToRoleAsync(adminUser, "admin");
-
-                // Seed additional users for each role
-                var additionalUsers = new List<(string UserName, string Email, string Role, bool Gender, DateTime? DateOfBirth, string ImageUrl)>
+                // Seed users for each role
+                var usersToSeed = new List<(string UserName, string Email, string RoleName, bool Gender, DateTime? DateOfBirth, string ImageUrl)>
         {
-            ("manager", "manager@gmail.com", "manager", false, new DateTime(1985, 5, 15), "https://scontent.fsgn15-1.fna.fbcdn.net/v/t39.30808-1/430878538_2206677789683723_4464660377243750146_n.jpg?stp=dst-jpg_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=50d2ac&_nc_eui2=AeE_Vr1x6BHZ_S__ovdDg7zS5W9udhABzaHlb252EAHNoS38q_urtNeTErRYpa0zqYNo-vOAf49-zjjLBslYOw-p&_nc_ohc=-pR_sm46Xo0Q7kNvgENuKqW&_nc_zt=24&_nc_ht=scontent.fsgn15-1.fna&_nc_gid=AyOScuqnRIdDJw0yqlJ1OJE&oh=00_AYBRYtKe7HUGoF1imuyPohv5Wi3mnCKz-GF0YsTBc9lMzw&oe=674E895B"),
-            ("staff", "staff@gmail.com", "staff", true, new DateTime(1995, 3, 10), "https://scontent.fsgn15-1.fna.fbcdn.net/v/t39.30808-1/430878538_2206677789683723_4464660377243750146_n.jpg?stp=dst-jpg_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=50d2ac&_nc_eui2=AeE_Vr1x6BHZ_S__ovdDg7zS5W9udhABzaHlb252EAHNoS38q_urtNeTErRYpa0zqYNo-vOAf49-zjjLBslYOw-p&_nc_ohc=-pR_sm46Xo0Q7kNvgENuKqW&_nc_zt=24&_nc_ht=scontent.fsgn15-1.fna&_nc_gid=AyOScuqnRIdDJw0yqlJ1OJE&oh=00_AYBRYtKe7HUGoF1imuyPohv5Wi3mnCKz-GF0YsTBc9lMzw&oe=674E895B"),
-            ("factoryOwner", "factoryowner@gmail.com", "factoryOwner", true, new DateTime(1980, 7, 20), "https://scontent.fsgn15-1.fna.fbcdn.net/v/t39.30808-1/430878538_2206677789683723_4464660377243750146_n.jpg?stp=dst-jpg_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=50d2ac&_nc_eui2=AeE_Vr1x6BHZ_S__ovdDg7zS5W9udhABzaHlb252EAHNoS38q_urtNeTErRYpa0zqYNo-vOAf49-zjjLBslYOw-p&_nc_ohc=-pR_sm46Xo0Q7kNvgENuKqW&_nc_zt=24&_nc_ht=scontent.fsgn15-1.fna&_nc_gid=AyOScuqnRIdDJw0yqlJ1OJE&oh=00_AYBRYtKe7HUGoF1imuyPohv5Wi3mnCKz-GF0YsTBc9lMzw&oe=674E895B"),
-            ("customer", "customer@gmail.com", "customer", false, new DateTime(2000, 1, 1), "https://scontent.fsgn15-1.fna.fbcdn.net/v/t39.30808-1/430878538_2206677789683723_4464660377243750146_n.jpg?stp=dst-jpg_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=50d2ac&_nc_eui2=AeE_Vr1x6BHZ_S__ovdDg7zS5W9udhABzaHlb252EAHNoS38q_urtNeTErRYpa0zqYNo-vOAf49-zjjLBslYOw-p&_nc_ohc=-pR_sm46Xo0Q7kNvgENuKqW&_nc_zt=24&_nc_ht=scontent.fsgn15-1.fna&_nc_gid=AyOScuqnRIdDJw0yqlJ1OJE&oh=00_AYBRYtKe7HUGoF1imuyPohv5Wi3mnCKz-GF0YsTBc9lMzw&oe=674E895B")
+            ("admin", "admin@gmail.com", "admin", true, new DateTime(1990, 1, 1), "https://example.com/admin.jpg"),
+            ("manager", "manager@gmail.com", "manager", false, new DateTime(1985, 5, 15), "https://example.com/manager.jpg"),
+            ("staff", "staff@gmail.com", "staff", true, new DateTime(1995, 3, 10), "https://example.com/staff.jpg"),
+            ("factoryOwner", "factoryowner@gmail.com", "factoryOwner", true, new DateTime(1980, 7, 20), "https://example.com/factoryowner.jpg"),
+            ("customer", "customer@gmail.com", "customer", false, new DateTime(2000, 1, 1), "https://example.com/customer.jpg")
         };
 
-                foreach (var (userName, email, role, gender, dateOfBirth, imageUrl) in additionalUsers)
+                foreach (var (userName, email, roleName, gender, dateOfBirth, imageUrl) in usersToSeed)
                 {
                     var user = new User
                     {
@@ -86,15 +78,13 @@ namespace GoodsDesignAPI.Controllers
                         EmailConfirmed = true,
                         Gender = gender,
                         DateOfBirth = dateOfBirth?.ToUniversalTime(),
-                        ImageUrl = imageUrl
+                        ImageUrl = imageUrl,
+                        RoleId = roleDict[roleName].Id,
+                        Role = roleDict[roleName]
                     };
 
-                    result = await _userManager.CreateAsync(user, "123456");
-                    if (result.Succeeded)
-                    {
-                        await _userManager.AddToRoleAsync(user, role);
-                    }
-                    else
+                    var result = await _userManager.CreateAsync(user, "123456");
+                    if (!result.Succeeded)
                     {
                         return BadRequest(new { message = $"Failed to create user {userName}", errors = result.Errors });
                     }
@@ -108,27 +98,46 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-
-        [HttpPost("register")]
-        public async Task<IActionResult> Register(string email, string password, bool gender, DateTime? dateOfBirth, string? imageUrl)
+        [Authorize(Roles = "admin")]
+        [HttpGet("admin-test-authorize")]
+        public IActionResult AdminEndpoint()
         {
-            var user = new User
-            {
-                UserName = email,
-                Email = email,
-                Gender = gender,
-                DateOfBirth = dateOfBirth?.ToUniversalTime(),
-                ImageUrl = imageUrl ?? ""
-            };
+            return Ok(ApiResult<object>.Success(null, "Hello, Admin!"));
+        }
 
-            var result = await _userManager.CreateAsync(user, password);
+        [Authorize(Roles = "manager")]
+        [HttpGet("manager-test-authorize")]
+        public IActionResult ManagerEndpoint()
+        {
+            return Ok(ApiResult<object>.Success(null, "Hello, Manager!"));
+        }
 
-            if (!result.Succeeded)
-            {
-                return BadRequest(result.Errors);
-            }
+        [Authorize(Roles = "staff")]
+        [HttpGet("staff-test-authorize")]
+        public IActionResult StaffEndpoint()
+        {
+            return Ok(ApiResult<object>.Success(null, "Hello, Staff!"));
+        }
 
-            return Ok("User registered successfully!");
+        [Authorize(Roles = "factoryOwner")]
+        [HttpGet("factory-owner-test-authorize")]
+        public IActionResult FactoryOwnerEndpoint()
+        {
+            return Ok(ApiResult<object>.Success(null, "Hello, Factory Owner!"));
+        }
+
+        [Authorize(Roles = "customer")]
+        [HttpGet("customer-test-authorize")]
+        public IActionResult CustomerEndpoint()
+        {
+            return Ok(ApiResult<object>.Success(null, "Hello, Customer!"));
+        }
+
+        [Authorize(Roles = "admin, manager")]
+        [HttpGet("admin-manager-test-authorize")]
+        public IActionResult AdminManagerEndpoint()
+        {
+            return Ok(ApiResult<object>.Success(null, "Hello, Admin or Manager!"));
         }
     }
 }

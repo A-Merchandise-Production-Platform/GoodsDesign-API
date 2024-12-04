@@ -8,6 +8,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - "ConnectionStrings__DefaultConnection=Host=goodsdesignapi-database;Port=5432;Database=goodsdesignapi;Username=postgres;Password=YourStrong!Passw0rd;"
+      - "JWT__SecretKey=GoodsDesign_SECRETKEY_SIEUCAPBAOMAT_VAYMACHUADU16KYTU"
+      - "JWT__Issuer=GoodsDesign_Issuer"
+      - "JWT__Audience=GoodsDesign_Audience"
     ports:
       - "9000:8080"
     depends_on:
