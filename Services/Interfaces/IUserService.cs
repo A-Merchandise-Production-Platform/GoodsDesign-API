@@ -10,9 +10,9 @@ namespace Services.Interfaces
 {
     public interface IUserService
     {
-        Task<bool> BanUserAsync(Guid userId);
+        Task<UserDTO> BanUserAsync(Guid userId);
         Task<GetCurrentUserResponseDTO?> CreateUserAsync(UserCreateDTO userCreateDTO, string roleName);
-        Task<bool> DeleteUserAsync(Guid userId);
+        Task<UserDTO> DeleteUserAsync(Guid userId);
         Task<GetCurrentUserResponseDTO> GetCurrentUser(string userId);
         Task<UserDTO?> UpdateUserAsync(Guid userId, UserUpdateDTO userUpdateDTO);
     }

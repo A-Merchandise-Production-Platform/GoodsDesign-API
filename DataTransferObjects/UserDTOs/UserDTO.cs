@@ -16,5 +16,7 @@ namespace DataTransferObjects.UserDTOs
         public DateTime? DateOfBirth { get; set; }
         public string? ImageUrl { get; set; }
         public string? Role { get; set; }
+        public bool? IsActive { get; set; }
+        public bool? IsDeleted { get; set; } = false;
     }
 }

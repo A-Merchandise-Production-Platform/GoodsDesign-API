@@ -75,7 +75,7 @@ namespace Services.Services
                 if (role == null)
                 {
                     _logger.Warn($"Role '{roleName}' not found.");
-                    throw new Exception("494-Invalid role name");
+                    throw new Exception("400 - Invalid role name");
                 }
 
                 // Create user entity from DTO
@@ -125,7 +125,7 @@ namespace Services.Services
             catch (Exception ex)
             {
                 _logger.Error($"Error creating user: {ex.Message}");
-                throw new Exception($"Error creating user: {ex.Message}");
+                throw new Exception($"400 - Error creating user: {ex.Message}");
             }
         }
 
@@ -144,6 +144,25 @@ namespace Services.Services
 
                 // Map updated properties from DTO to the User entity
                 _mapper.Map(userUpdateDTO, user);
+
+                if (!string.IsNullOrEmpty(userUpdateDTO.Password))
+                {
+                    var removePasswordResult = await _userManager.RemovePasswordAsync(user);
+                    if (!removePasswordResult.Succeeded)
+                    {
+                        var removePasswordErrors = string.Join(", ", removePasswordResult.Errors.Select(e => e.Description));
+                        _logger.Warn($"Failed to remove current password: {removePasswordErrors}");
+                        throw new Exception($"400 - {removePasswordErrors}");
+                    }
+
+                    var addPasswordResult = await _userManager.AddPasswordAsync(user, userUpdateDTO.Password);
+                    if (!addPasswordResult.Succeeded)
+                    {
+                        var addPasswordErrors = string.Join(", ", addPasswordResult.Errors.Select(e => e.Description));
+                        _logger.Warn($"Failed to update password: {addPasswordErrors}");
+                        throw new Exception($"400 - {addPasswordErrors}");
+                    }
+                }
 
                 // Update user in UserManager
                 var result = await _userManager.UpdateAsync(user);
@@ -166,7 +185,7 @@ namespace Services.Services
             }
         }
 
-        public async Task<bool> DeleteUserAsync(Guid userId)
+        public async Task<UserDTO?> DeleteUserAsync(Guid userId)
         {
             _logger.Info($"Deleting user with ID: {userId}");
             try
@@ -175,7 +194,7 @@ namespace Services.Services
                 if (user == null)
                 {
                     _logger.Warn($"User with ID: {userId} not found.");
-                    return false;
+                    throw new Exception($"404 - User with ID: {userId} not found.");
                 }
 
                 user.IsDeleted = true;
@@ -184,20 +203,20 @@ namespace Services.Services
                 {
                     var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                     _logger.Warn($"Failed to delete user: {errors}");
-                    return false;
+                    return null;
                 }
 
                 _logger.Success($"User with ID: {userId} deleted successfully.");
-                return true;
+                return _mapper.Map<UserDTO>(user);
             }
             catch (Exception ex)
             {
                 _logger.Error($"Error deleting user: {ex.Message}");
-                throw new Exception($"Error deleting user: {ex.Message}");
+                throw new Exception($"404 - Error deleting user: {ex.Message}");
             }
         }
 
-        public async Task<bool> BanUserAsync(Guid userId)
+        public async Task<UserDTO?> BanUserAsync(Guid userId)
         {
             _logger.Info($"Banning/unbanning user with ID: {userId}");
             try
@@ -206,7 +225,7 @@ namespace Services.Services
                 if (user == null)
                 {
                     _logger.Warn($"User with ID: {userId} not found.");
-                    return false;
+                    return null;
                 }
 
                 user.IsActive = !user.IsActive;
@@ -215,11 +234,11 @@ namespace Services.Services
                 {
                     var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                     _logger.Warn($"Failed to ban/unban user: {errors}");
-                    return false;
+                    return null;
                 }
 
                 _logger.Success($"User with ID: {userId} ban/unban action completed successfully.");
-                return true;
+                return _mapper.Map<UserDTO>(user);
             }
             catch (Exception ex)
             {
