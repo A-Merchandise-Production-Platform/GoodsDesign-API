@@ -109,14 +109,14 @@ namespace GoodsDesignAPI.Controllers
             try
             {
                 var result = await _userService.DeleteUserAsync(id);
-                if (!result)
+                if (result==null)
                 {
                     _logger.Warn("User deletion failed.");
                     return NotFound(ApiResult<object>.Error("User deletion failed. User not found."));
                 }
 
                 _logger.Success("User deleted successfully via controller.");
-                return Ok(ApiResult<object>.Success(null, "User deleted successfully."));
+                return Ok(ApiResult<object>.Success(result, "User deleted successfully."));
             }
             catch (Exception ex)
             {
@@ -129,21 +129,21 @@ namespace GoodsDesignAPI.Controllers
         }
 
        // [Authorize(Roles = "Admin")]
-        [HttpPut("/api/ban-user/{id}")]
+        [HttpPut("{id}/active")]
         public async Task<IActionResult> BanUser(Guid id)
         {
             _logger.Info($"Attempting to ban/unban user with ID: {id}");
             try
             {
                 var result = await _userService.BanUserAsync(id);
-                if (!result)
+                if (result == null)
                 {
                     _logger.Warn("User ban/unban failed.");
                     return NotFound(ApiResult<object>.Error("User ban/unban failed. User not found."));
                 }
 
                 _logger.Success("User ban/unban action completed successfully via controller.");
-                return Ok(ApiResult<object>.Success(null, "User ban/unban action completed successfully."));
+                return Ok(ApiResult<object>.Success(result, "User ban/unban action completed successfully."));
             }
             catch (Exception ex)
             {
