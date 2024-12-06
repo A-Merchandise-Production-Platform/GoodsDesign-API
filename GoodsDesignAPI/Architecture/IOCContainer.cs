@@ -7,8 +7,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Repositories;
+using Repositories.Interfaces;
+using Repositories.Repositories;
 using Services.Interfaces;
 using Services.Mapper;
+using Services.Services;
 using Services.Services.CommonService;
 using System.Diagnostics;
 using System.Text;
@@ -21,18 +25,34 @@ namespace GoodsDesignAPI.Architecture
         {
             //Add Logger
             services.AddScoped<ILoggerService, LoggerService>();
+            //Add Infrastructure
             services.AddAutoMapper(typeof(MapperConfigProfile).Assembly);
-            //Add Services
+            //Add Project Services
             services.SetupDBContext();
             services.SetupIdentity();
             services.SetupSwagger();
             services.SetupMiddleware();
             services.SetupCORS();
             services.SetupJWT();
+            //Add generic repositories
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            //Add business services
+            services.SetupBusinessServicesLayer();
+
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             Console.WriteLine("=== Done setup IOC Container ===");
             return services;
         }
+
+        public static IServiceCollection SetupBusinessServicesLayer(this IServiceCollection services)
+        {
+            services.AddScoped<IUserService, UserService>();
+            return services;
+
+
+        }
+
 
         private static IServiceCollection SetupSwagger(this IServiceCollection services)
         {
