@@ -7,9 +7,9 @@ namespace BusinessObjects.Entities
         public bool Gender { get; set; } = false;
         public DateTime? DateOfBirth { get; set; }
         public string? ImageUrl { get; set; } = "";
-        public bool? IsActive {  get; set; }
-        public bool? IsDeleted { get; set; } = false;
-
+        public bool IsActive { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
+        public string? Address { get; set; } = "";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow.AddHours(7);
         public Guid? CreatedBy { get; set; }
