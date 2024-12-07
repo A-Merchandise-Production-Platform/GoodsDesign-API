@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BusinessObjects.Entities;
+using DataTransferObjects.AreaDTOs;
 using DataTransferObjects.UserDTOs;
 
 
@@ -20,7 +21,8 @@ namespace Services.Mapper
  .ReverseMap()
  .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender != null && src.Gender.ToLower() == "male"));
 
-
+            CreateMap<Area, AreaDTO>()
+                .ReverseMap();
         }
     }
 }

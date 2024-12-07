@@ -34,5 +34,20 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(500, new { Message = "An error occurred while fetching users.", Details = ex.Message });
             }
         }
+
+        [EnableQuery]
+        [HttpGet("/api/areas")]
+        public async Task<ActionResult<IEnumerable<Area>>> GetAreas()
+        {
+            try
+            {
+                var result = await _context.Areas.ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while fetching users.", Details = ex.Message });
+            }
+        }
     }
 }
