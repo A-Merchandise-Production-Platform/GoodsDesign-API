@@ -130,7 +130,7 @@ namespace Services.Services
         }
 
 
-        public async Task<UserDTO?> UpdateUserAsync(Guid userId, UserUpdateDTO userUpdateDTO)
+        public async Task<UserDTO> UpdateUserAsync(Guid userId, UserUpdateDTO userUpdateDTO)
         {
             _logger.Info($"Updating user with ID: {userId}");
             try
@@ -139,28 +139,27 @@ namespace Services.Services
                 if (user == null)
                 {
                     _logger.Warn($"User with ID: {userId} not found.");
-                    return null;
+                    throw new KeyNotFoundException($"User with ID: {userId} not found."); // Có thể bắt KeyNotFoundException để trả 404.
                 }
 
                 // Map updated properties from DTO to the User entity
                 _mapper.Map(userUpdateDTO, user);
 
+                // Handle password update if provided
                 if (!string.IsNullOrEmpty(userUpdateDTO.Password))
                 {
                     var removePasswordResult = await _userManager.RemovePasswordAsync(user);
                     if (!removePasswordResult.Succeeded)
                     {
                         var removePasswordErrors = string.Join(", ", removePasswordResult.Errors.Select(e => e.Description));
-                        _logger.Warn($"Failed to remove current password: {removePasswordErrors}");
-                        throw new Exception($"400 - {removePasswordErrors}");
+                        throw new InvalidOperationException($"Failed to remove current password: {removePasswordErrors}"); // Lỗi nghiệp vụ.
                     }
 
                     var addPasswordResult = await _userManager.AddPasswordAsync(user, userUpdateDTO.Password);
                     if (!addPasswordResult.Succeeded)
                     {
                         var addPasswordErrors = string.Join(", ", addPasswordResult.Errors.Select(e => e.Description));
-                        _logger.Warn($"Failed to update password: {addPasswordErrors}");
-                        throw new Exception($"400 - {addPasswordErrors}");
+                        throw new InvalidOperationException($"Failed to update password: {addPasswordErrors}"); // Lỗi nghiệp vụ.
                     }
                 }
 
@@ -169,19 +168,26 @@ namespace Services.Services
                 if (!result.Succeeded)
                 {
                     var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                    _logger.Warn($"Failed to update user: {errors}");
-                    return null;
+                    throw new InvalidOperationException($"Failed to update user: {errors}"); // Lỗi nghiệp vụ.
                 }
 
                 _logger.Success($"User with ID: {userId} updated successfully.");
-
-                // Return updated user as DTO
                 return _mapper.Map<UserDTO>(user);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.Warn(ex.Message);
+                throw; // Để controller trả mã lỗi 404.
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.Warn(ex.Message);
+                throw; // Để controller trả mã lỗi 400.
             }
             catch (Exception ex)
             {
-                _logger.Error($"Error updating user: {ex.Message}");
-                throw new Exception($"Error updating user: {ex.Message}");
+                _logger.Error($"Unexpected error updating user: {ex.Message}");
+                throw new Exception("An unexpected error occurred while updating the user.", ex); // Mặc định 500.
             }
         }
 
