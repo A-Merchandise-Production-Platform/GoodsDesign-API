@@ -19,7 +19,7 @@ namespace GoodsDesignAPI.Controllers
             _roleManager = roleManager;
         }
 
-        [HttpPost("seed")]
+        [HttpPost("seed-user")]
         public async Task<IActionResult> Seed()
         {
             try
@@ -81,8 +81,9 @@ namespace GoodsDesignAPI.Controllers
                         ImageUrl = imageUrl,
                         RoleId = roleDict[roleName].Id,
                         IsActive = true,
+                        Address = "HCM",
                         Role = roleDict[roleName]
-                        
+
                     };
 
                     var result = await _userManager.CreateAsync(user, "123456");
