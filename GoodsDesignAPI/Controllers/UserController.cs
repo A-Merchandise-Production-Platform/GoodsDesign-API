@@ -58,6 +58,34 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPut("me")]
+        public async Task<IActionResult> UpdateCurrentUser(UserUpdateDTO userUpdateDTO)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!Guid.TryParse(userId, out var guid))
+                    return BadRequest(ApiResult<object>.Error("Invalid User ID."));
+
+                var updatedUser = await _userService.UpdateUserAsync(guid, userUpdateDTO);
+                return Ok(ApiResult<object>.Success(updatedUser, "User updated successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error("An unexpected error occurred."));
+            }
+        }
+
+
 
 
     }
