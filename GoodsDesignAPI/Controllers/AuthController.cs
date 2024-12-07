@@ -55,7 +55,7 @@ namespace GoodsDesignAPI.Controllers
                     return BadRequest(ApiResult<object>.Error("400 - User does not have an assigned role."));
                 }
 
-                var accessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(5));
+                var accessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(15));
                 var refreshToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromDays(7));
 
                 _logger.Success("Login successful.");
@@ -92,7 +92,7 @@ namespace GoodsDesignAPI.Controllers
                 var user = new User
                 {
                     Email = registerDTO.Email,
-                    UserName = registerDTO.Email,
+                    UserName = registerDTO.UserName ,
                     RoleId = role.Id,
                     PhoneNumber = registerDTO.PhoneNumber,
                     Gender = (bool)registerDTO.Gender,
@@ -104,8 +104,10 @@ namespace GoodsDesignAPI.Controllers
                 var result = await _userManager.CreateAsync(user, registerDTO.Password);
                 if (!result.Succeeded)
                 {
-                    _logger.Warn("User registration failed.");
-                    return BadRequest(ApiResult<object>.Error("400 - User registration failed."));
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    _logger.Warn($"500 - Failed to register user: {errors}");
+                    return BadRequest(ApiResult<object>.Error(errors));
+
                 }
 
                 _logger.Success("User registered successfully.");
