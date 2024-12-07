@@ -5,7 +5,7 @@ namespace BusinessObjects.Entities
     public class BaseEntity
     {
         [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow.AddHours(7);
         public Guid? CreatedBy { get; set; }

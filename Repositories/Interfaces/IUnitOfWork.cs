@@ -1,13 +1,9 @@
-﻿using BusinessObjects.Entities;
-
-
-namespace Repositories.Interfaces
+﻿namespace Repositories.Interfaces
 {
     public interface IUnitOfWork
     {
-        
-    //   IGenericRepository<User> UserGenericRepository { get; }
 
+        //IGenericRepository<Area> AreaGenericRepository { get; }
         Task<int> SaveChangeAsync();
     }
 }
