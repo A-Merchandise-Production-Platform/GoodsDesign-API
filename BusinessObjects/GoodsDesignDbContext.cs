@@ -14,6 +14,11 @@ namespace BusinessObjects
 
         //Add table
         public DbSet<Area> Areas { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<ProductPositionType> ProductPositionTypes { get; set; }
+        public DbSet<ProductVariance> ProductVariances { get; set; }
+        public DbSet<BlankProductInStock> BlankProductsInStock { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,6 +38,43 @@ namespace BusinessObjects
                 .WithMany(r => r.Users) // A Role has many Users
                 .HasForeignKey(u => u.RoleId) // Foreign Key in User
                 .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete users when a role is deleted
+
+
+            // Configure relationships for custom tables
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProductPositionType>()
+                .HasOne(ppt => ppt.Product)
+                .WithMany()
+                .HasForeignKey(ppt => ppt.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProductVariance>()
+                .HasOne(pv => pv.Product)
+                .WithMany()
+                .HasForeignKey(pv => pv.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BlankProductInStock>()
+                .HasOne(bp => bp.ProductVariance)
+                .WithMany()
+                .HasForeignKey(bp => bp.ProductVarianceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BlankProductInStock>()
+                .HasOne(bp => bp.Area)
+                .WithMany()
+                .HasForeignKey(bp => bp.PlaceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Optional: Configure jsonb column (if needed)
+            modelBuilder.Entity<ProductVariance>()
+                .Property(pv => pv.Information)
+                .HasColumnType("jsonb");
         }
     }
 }
