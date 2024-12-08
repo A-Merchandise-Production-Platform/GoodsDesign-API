@@ -1,11 +1,7 @@
-﻿using BusinessObjects.Entities;
-using BusinessObjects.Enums;
+﻿using BusinessObjects.Enums;
 using DataTransferObjects.UserDTOs;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
-using Services.Services;
 using Services.Utils;
 
 namespace GoodsDesignAPI.Controllers
@@ -109,7 +105,7 @@ namespace GoodsDesignAPI.Controllers
             try
             {
                 var result = await _userService.DeleteUserAsync(id);
-                if (result==null)
+                if (result == null)
                 {
                     _logger.Warn("User deletion failed.");
                     return NotFound(ApiResult<object>.Error("User deletion failed. User not found."));
@@ -128,7 +124,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-       // [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpPut("{id}/active")]
         public async Task<IActionResult> BanUser(Guid id)
         {

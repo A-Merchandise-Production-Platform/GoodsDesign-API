@@ -1,7 +1,9 @@
-﻿using BusinessObjects.Entities; // Include your namespace for the custom User entity
+﻿using BusinessObjects;
+using BusinessObjects.Entities; // Include your namespace for the custom User entity
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Services.Interfaces;
 using Services.Utils;
 
 namespace GoodsDesignAPI.Controllers
@@ -12,15 +14,17 @@ namespace GoodsDesignAPI.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
+        private readonly ILoggerService _logger;
 
-        public SystemController(UserManager<User> userManager, RoleManager<Role> roleManager)
+        public SystemController(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService loggerService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _logger = loggerService;
         }
 
         [HttpPost("seed-user")]
-        public async Task<IActionResult> Seed()
+        public async Task<IActionResult> SeedUser()
         {
             try
             {
@@ -98,6 +102,46 @@ namespace GoodsDesignAPI.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "An error occurred during seeding.", error = ex.Message });
+            }
+        }
+
+        [HttpPost("seed-areas")]
+        public async Task<IActionResult> SeedAreas([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                // Log seed operation
+                _logger.Info("Seed areas request initiated.");
+
+                // Remove all existing areas
+                var existingAreas = context.Areas.ToList();
+                if (existingAreas.Any())
+                {
+                    context.Areas.RemoveRange(existingAreas);
+                    await context.SaveChangesAsync();
+                    _logger.Info("Existing areas removed successfully.");
+                }
+
+                // Seed new areas
+                var areasToSeed = new List<Area>
+        {
+            new Area { Id = Guid.NewGuid(), Name = "Area 1", Position = "North", Code = "A001" },
+            new Area { Id = Guid.NewGuid(), Name = "Area 2", Position = "South", Code = "A002" },
+            new Area { Id = Guid.NewGuid(), Name = "Area 3", Position = "East", Code = "A003" },
+            new Area { Id = Guid.NewGuid(), Name = "Area 4", Position = "West", Code = "A004" },
+            new Area { Id = Guid.NewGuid(), Name = "Area 5", Position = "Central", Code = "A005" }
+        };
+
+                await context.Areas.AddRangeAsync(areasToSeed);
+                await context.SaveChangesAsync();
+                _logger.Success("Areas seeded successfully.");
+
+                return Ok(new { message = "Seeding areas completed successfully!", seededAreas = areasToSeed });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"An error occurred during area seeding: {ex.Message}");
+                return StatusCode(500, new { message = "An error occurred during area seeding.", error = ex.Message });
             }
         }
 

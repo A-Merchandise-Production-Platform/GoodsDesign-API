@@ -12,6 +12,9 @@ namespace BusinessObjects
         {
         }
 
+        //Add table
+        public DbSet<Area> Areas { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

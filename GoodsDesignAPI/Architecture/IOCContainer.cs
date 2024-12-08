@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Repositories;
+using Repositories.Commons;
 using Repositories.Interfaces;
 using Repositories.Repositories;
 using Services.Interfaces;
@@ -48,9 +49,8 @@ namespace GoodsDesignAPI.Architecture
         public static IServiceCollection SetupBusinessServicesLayer(this IServiceCollection services)
         {
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAreaService, AreaService>();
             return services;
-
-
         }
 
 
@@ -145,6 +145,8 @@ namespace GoodsDesignAPI.Architecture
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             //Setup For PerformanceTimeMiddleware
             services.AddSingleton<Stopwatch>();
+            services.AddScoped<ICurrentTime, CurrentTime>();
+            services.AddScoped<IClaimsService, ClaimsService>();
 
             services.AddScoped<ApiLoggerMiddleware>();
             services.AddSingleton<GlobalExceptionMiddleware>();
