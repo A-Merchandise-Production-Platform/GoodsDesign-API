@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BusinessObjects.Entities
 {
-    public class ProductVariance
+    public class ProductVariance : BaseEntity
     {
         public Guid ProductId { get; set; }
         public string Information { get; set; } // JSONB equivalent
