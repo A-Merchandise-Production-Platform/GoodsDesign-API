@@ -1,11 +1,12 @@
-﻿using DataTransferObjects.AreaDTOs;
+﻿using BusinessObjects.Entities;
+using DataTransferObjects.AreaDTOs;
 
 namespace Services.Interfaces
 {
     public interface IAreaService
     {
-        Task<AreaDTO> CreateArea(AreaDTO areaDTO);
-        Task<AreaDTO> UpdateArea(Guid id, AreaDTO areaDTO);
-        Task<AreaDTO> DeleteArea(Guid areaId);
+        Task<Area> CreateArea(AreaDTO areaDTO);
+        Task<Area> UpdateArea(Guid id, AreaDTO areaDTO);
+        Task<Area> DeleteArea(Guid areaId);
     }
 }

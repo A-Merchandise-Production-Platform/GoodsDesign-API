@@ -7,8 +7,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Repositories;
 using Repositories.Commons;
 using Repositories.Interfaces;
+using Repositories.Repositories;
 using Services.Interfaces;
 using Services.Mapper;
 using Services.Services;
@@ -34,11 +36,11 @@ namespace GoodsDesignAPI.Architecture
             services.SetupCORS();
             services.SetupJWT();
             //Add generic repositories
-            //services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             //Add business services
             services.SetupBusinessServicesLayer();
 
-            //services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             Console.WriteLine("=== Done setup IOC Container ===");
             return services;
@@ -144,6 +146,7 @@ namespace GoodsDesignAPI.Architecture
             //Setup For PerformanceTimeMiddleware
             services.AddSingleton<Stopwatch>();
             services.AddScoped<ICurrentTime, CurrentTime>();
+            services.AddScoped<IClaimsService, ClaimsService>();
 
             services.AddScoped<ApiLoggerMiddleware>();
             services.AddSingleton<GlobalExceptionMiddleware>();

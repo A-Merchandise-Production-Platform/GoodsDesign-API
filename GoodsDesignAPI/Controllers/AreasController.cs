@@ -1,4 +1,5 @@
-﻿using DataTransferObjects.AreaDTOs;
+﻿using BusinessObjects.Entities;
+using DataTransferObjects.AreaDTOs;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Utils;
@@ -11,9 +12,10 @@ namespace GoodsDesignAPI.Controllers
     {
         private readonly ILoggerService _logger;
         private readonly IAreaService _areaService;
-        public AreasController(ILoggerService logger, IUserService userService)
+        public AreasController(ILoggerService logger, IAreaService areaService)
         {
             _logger = logger;
+            _areaService = areaService;
         }
 
         // Create
@@ -24,7 +26,7 @@ namespace GoodsDesignAPI.Controllers
             try
             {
                 var createdArea = await _areaService.CreateArea(areaDTO);
-                return Ok(ApiResult<AreaDTO>.Success(createdArea, "Area created successfully."));
+                return Ok(ApiResult<Area>.Success(createdArea, "Area created successfully."));
             }
             catch (Exception ex)
             {
@@ -42,7 +44,7 @@ namespace GoodsDesignAPI.Controllers
             try
             {
                 var updatedArea = await _areaService.UpdateArea(id, areaDTO);
-                return Ok(ApiResult<AreaDTO>.Success(updatedArea, "Area updated successfully."));
+                return Ok(ApiResult<Area>.Success(updatedArea, "Area updated successfully."));
             }
             catch (Exception ex)
             {
@@ -60,7 +62,7 @@ namespace GoodsDesignAPI.Controllers
             try
             {
                 var deletedArea = await _areaService.DeleteArea(id);
-                return Ok(ApiResult<AreaDTO>.Success(deletedArea, "Area deleted successfully."));
+                return Ok(ApiResult<Area>.Success(deletedArea, "Area deleted successfully."));
             }
             catch (Exception ex)
             {

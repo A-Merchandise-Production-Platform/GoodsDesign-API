@@ -8,7 +8,7 @@ namespace Repositories
     {
         private readonly GoodsDesignDbContext _dbContext;
         //  private readonly IGenericRepository<User> _userGenericRepository;
-        //private readonly IGenericRepository<Area> _areaGenericRepository;
+        private readonly IGenericRepository<Area> _areaGenericRepository;
 
         public UnitOfWork(GoodsDesignDbContext dbContext
         //    ,IGenericRepository<User> userGenericRepository
@@ -17,13 +17,13 @@ namespace Repositories
         {
             _dbContext = dbContext;
             //    _userGenericRepository = userGenericRepository;
-            //_areaGenericRepository = areaGenericRepository;
+            _areaGenericRepository = areaGenericRepository;
         }
 
         //   public IGenericRepository<User> UserGenericRepository => _userGenericRepository;
-        //public IGenericRepository<Area> AreaGenericRepository => _areaGenericRepository;
+        public IGenericRepository<Area> AreaGenericRepository => _areaGenericRepository;
 
-        public Task<int> SaveChangeAsync()
+        public Task<int> SaveChangesAsync()
         {
             try
             {
