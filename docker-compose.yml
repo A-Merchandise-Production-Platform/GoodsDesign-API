@@ -1,5 +1,6 @@
 services:
   goodsdesignapi:
+    user: "1000:1000"
     image: ${DOCKER_REGISTRY-}goodsdesignapi
     build:
       context: .

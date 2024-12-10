@@ -42,7 +42,11 @@ catch (Exception e)
     app.Logger.LogError(e, "An problem occurred during migration!");
 }
 
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider("/srv/goodsdesign"),
+    RequestPath = "/files/goodsdesign"
+});
 
 
 app.UseSwagger();
