@@ -55,7 +55,7 @@ namespace GoodsDesignAPI.Controllers
                 }
 
                 // Return the public URL
-                string fileUrl = $"http://217.15.164.128/files/goodsdesign/{fileName}";
+                string fileUrl = $"https://api.goodsdesign.uydev.id.vn/files/goodsdesign/{fileName}";
                 return Ok(new { fileUrl });
             }
             catch (Exception ex)
