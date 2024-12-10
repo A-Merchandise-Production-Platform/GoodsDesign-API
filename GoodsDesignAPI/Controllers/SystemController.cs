@@ -170,14 +170,14 @@ namespace GoodsDesignAPI.Controllers
                         Id = Guid.NewGuid(),
                         Name = "Clothes",
                         Description = "A wide variety of clothing for men, women, and children, including casual wear, formal attire, and accessories.",
-                        ImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqLgMiBpP596RNgc6pSxJioqhiHCRvJn14BPYbxFU8XAd7PBSs"
+                        ImageUrl = "https://uk.tilley.com/cdn/shop/products/M01BA1001_Black_b.jpg?v=1701806262"
                     },
                     new Category
                     {
                         Id = Guid.NewGuid(),
                         Name = "Phone cases",
                         Description = "Durable and stylish phone cases designed to protect your device while showcasing your personality.",
-                        ImageUrl = "https://www.wrappz.com/media/categoryimage/clear-case-designs-various.jpg"
+                        ImageUrl = "https://www.fidlock.com/consumer/media/98/12/7c/1675256834/fidlock_website_vacuum_case_iphone11pro_vorn_1500x1500px_201026-2.jpg"
                     },
                 };
 
