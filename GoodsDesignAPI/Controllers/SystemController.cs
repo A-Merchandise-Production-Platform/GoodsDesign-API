@@ -23,7 +23,7 @@ namespace GoodsDesignAPI.Controllers
             _logger = loggerService;
         }
 
-        [HttpPost("seed-user")]
+        [HttpPost("seed-users")]
         public async Task<IActionResult> SeedUser()
         {
             try
@@ -144,6 +144,57 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(500, new { message = "An error occurred during area seeding.", error = ex.Message });
             }
         }
+
+        [HttpPost("seed-categories")]
+        public async Task<IActionResult> SeedCategories([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                // Log seed operation
+                _logger.Info("Seed categories request initiated.");
+
+                // Remove all existing categories
+                var existingCategories = context.Categories.ToList();
+                if (existingCategories.Any())
+                {
+                    context.Categories.RemoveRange(existingCategories);
+                    await context.SaveChangesAsync();
+                    _logger.Info("Existing categories removed successfully.");
+                }
+
+                // Seed new categories
+                var categoriesToSeed = new List<Category>
+                {
+                    new Category
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Clothes",
+                        Description = "A wide variety of clothing for men, women, and children, including casual wear, formal attire, and accessories.",
+                        ImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqLgMiBpP596RNgc6pSxJioqhiHCRvJn14BPYbxFU8XAd7PBSs"
+                    },
+                    new Category
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Phone cases",
+                        Description = "Durable and stylish phone cases designed to protect your device while showcasing your personality.",
+                        ImageUrl = "https://www.wrappz.com/media/categoryimage/clear-case-designs-various.jpg"
+                    },
+                };
+
+
+                await context.Categories.AddRangeAsync(categoriesToSeed);
+                await context.SaveChangesAsync();
+                _logger.Success("Categories seeded successfully.");
+
+                return Ok(new { message = "Seeding categories completed successfully!", seededCategories = categoriesToSeed });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"An error occurred during category seeding: {ex.Message}");
+                return StatusCode(500, new { message = "An error occurred during category seeding.", error = ex.Message });
+            }
+        }
+
 
         [Authorize(Roles = "admin")]
         [HttpGet("admin-test-authorize")]
