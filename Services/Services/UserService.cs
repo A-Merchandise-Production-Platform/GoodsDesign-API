@@ -1,18 +1,9 @@
 ﻿using AutoMapper;
 using BusinessObjects.Entities;
-using BusinessObjects.Enums;
 using DataTransferObjects.Auth;
 using DataTransferObjects.UserDTOs;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
-using Services.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services.Services
 {
@@ -36,7 +27,7 @@ namespace Services.Services
             _logger.Info("Fetching current user info.");
             try
             {
-                
+
 
                 var user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
@@ -46,7 +37,7 @@ namespace Services.Services
 
                 _logger.Success("Fetched current user info successfully.");
 
-                Role role = await _roleManager.FindByNameAsync(Roles.CUSTOMER.ToString());
+                Role role = await _roleManager.FindByIdAsync(user.RoleId.ToString());
                 return new GetCurrentUserResponseDTO
                 {
                     Id = user.Id,
@@ -88,7 +79,7 @@ namespace Services.Services
                     DateOfBirth = userCreateDTO.DateOfBirth,
                     ImageUrl = userCreateDTO.ImageUrl,
                     IsActive = true,
-                    Role=role // add many -many role
+                    Role = role // add many -many role
                 };
 
                 // Create user in UserManager
