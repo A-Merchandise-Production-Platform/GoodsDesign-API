@@ -78,6 +78,7 @@ static IEdmModel GetEdmModel()
     var users = builder.EntitySet<User>("Users");
     var roles = builder.EntitySet<Role>("Roles");
     builder.EntitySet<Area>("Areas");
+    builder.EntitySet<Category>("Categories");
 
     // Define relationships
     users.EntityType.HasOptional(u => u.Role); // User has one Role
