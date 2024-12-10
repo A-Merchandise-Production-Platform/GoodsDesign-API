@@ -42,7 +42,22 @@ namespace GoodsDesignAPI.Architecture
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+            services.SetupThirdParty();
+
             Console.WriteLine("=== Done setup IOC Container ===");
+            return services;
+        }
+
+        public static IServiceCollection SetupThirdParty(this IServiceCollection services)
+        {
+            IConfiguration configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true)
+                .AddEnvironmentVariables()
+                .Build();
+            var accessKey = configuration["Minio:AccessKey"];
+            var secretKey = configuration["Minio:SecretKey"];
+            //services.AddMinio(accessKey, secretKey);
             return services;
         }
 

@@ -11,6 +11,8 @@ services:
       - "JWT__SecretKey=GoodsDesign_SECRETKEY_SIEUCAPBAOMAT_VAYMACHUADU16KYTU"
       - "JWT__Issuer=GoodsDesign_Issuer"
       - "JWT__Audience=GoodsDesign_Audience"
+      - "Minio__AccessKey=CX2A6aRmIQxH4rrDmL8S"
+      - "Minio__SecretKey=TlP25JEHKQESROCMvXQnEpTzfhhpqNltHokV2ODK"
     ports:
       - "9000:8080"
     depends_on:
