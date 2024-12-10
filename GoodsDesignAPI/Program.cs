@@ -4,8 +4,6 @@ using GoodsDesignAPI.Middlewares;
 using Microsoft.AspNetCore.OData;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
-using Services.Interfaces;
-using Services.Services;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -23,7 +21,7 @@ builder.Services.AddControllers()
     .AddOData(opt =>
     {
         opt.Select().Filter().Expand().OrderBy().SetMaxTop(100).Count()
-           .AddRouteComponents("odata", GetEdmModel());
+           .AddRouteComponents("api", GetEdmModel());
     });
 
 // Setup IOC Container
@@ -74,10 +72,12 @@ app.Run();
 static IEdmModel GetEdmModel()
 {
     var builder = new ODataConventionModelBuilder();
+    builder.EnableLowerCamelCase();
 
     // Configure entity sets
     var users = builder.EntitySet<User>("Users");
     var roles = builder.EntitySet<Role>("Roles");
+    builder.EntitySet<Area>("Areas");
 
     // Define relationships
     users.EntityType.HasOptional(u => u.Role); // User has one Role

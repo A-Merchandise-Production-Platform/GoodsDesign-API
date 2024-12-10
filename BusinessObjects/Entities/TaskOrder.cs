@@ -11,7 +11,7 @@ namespace BusinessObjects.Entities
         public Guid ParentTaskId { get; set; }
 
         // Navigation properties
-        public Task Task { get; set; }
-        public Task ParentTask { get; set; }
+        public ProductionTask Task { get; set; }
+        public ProductionTask ParentTask { get; set; }
     }
 }

@@ -18,6 +18,6 @@ namespace BusinessObjects.Entities
 
         // Navigation properties
         public User User { get; set; }
-        public Task Task { get; set; }
+        public ProductionTask Task { get; set; }
     }
 }

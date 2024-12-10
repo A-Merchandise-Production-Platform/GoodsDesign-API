@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BusinessObjects.Entities
+﻿namespace BusinessObjects.Entities
 {
-    public class Task : BaseEntity
+    public class ProductionTask : BaseEntity
     {
         public Guid ProductionFlowId { get; set; }
         public string TaskName { get; set; }

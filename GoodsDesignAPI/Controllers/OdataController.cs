@@ -3,11 +3,10 @@ using BusinessObjects.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
+using Services.Utils;
 
 namespace GoodsDesignAPI.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
     public class OdataController : Microsoft.AspNetCore.OData.Routing.Controllers.ODataController
     {
         private readonly GoodsDesignDbContext _context;
@@ -31,7 +30,10 @@ namespace GoodsDesignAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "An error occurred while fetching users.", Details = ex.Message });
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
             }
         }
 
@@ -46,7 +48,28 @@ namespace GoodsDesignAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "An error occurred while fetching users.", Details = ex.Message });
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+        [EnableQuery]
+        [HttpGet("/api/categories")]
+        public async Task<ActionResult<IEnumerable<Area>>> GetCategories()
+        {
+            try
+            {
+                var result = await _context.Categories.ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
             }
         }
     }
