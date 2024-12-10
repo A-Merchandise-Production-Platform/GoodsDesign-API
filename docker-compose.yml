@@ -17,6 +17,8 @@ services:
       - "9000:8080"
     depends_on:
       - goodsdesignapi-database
+    volumes:
+      - ./images:/srv/goodsdesign
 
   goodsdesignapi-database:
       image: postgres:latest
