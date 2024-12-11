@@ -1,6 +1,7 @@
 ﻿using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using DataTransferObjects.Auth;
+using DataTransferObjects.NotificationDTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
@@ -15,12 +16,14 @@ namespace GoodsDesignAPI.Controllers
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
         private readonly ILoggerService _logger;
+        private readonly INotificationService _notificationService;
 
-        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService logger)
+        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService logger, INotificationService notificationService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
+            _notificationService = notificationService;
         }
 
         [HttpPost("login")]
@@ -92,13 +95,13 @@ namespace GoodsDesignAPI.Controllers
                 var user = new User
                 {
                     Email = registerDTO.Email,
-                    UserName = registerDTO.UserName ,
+                    UserName = registerDTO.UserName,
                     RoleId = role.Id,
                     PhoneNumber = registerDTO.PhoneNumber,
                     Gender = (bool)registerDTO.Gender,
                     DateOfBirth = registerDTO.DateOfBirth,
                     ImageUrl = registerDTO.ImageUrl,
-                    IsActive=true,
+                    IsActive = true,
                 };
 
                 var result = await _userManager.CreateAsync(user, registerDTO.Password);
@@ -107,8 +110,17 @@ namespace GoodsDesignAPI.Controllers
                     var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                     _logger.Warn($"500 - Failed to register user: {errors}");
                     return BadRequest(ApiResult<object>.Error(errors));
-
                 }
+
+                var notificationDTO = new NotificationDTO
+                {
+                    Title = "Welcome!",
+                    Content = $"Thank {user.Email} for registering with us. We hope you enjoy your stay.",
+                    Url = "/",
+                    UserId = user.Id
+                };
+
+                await _notificationService.PushNotificationToUser(user.Id, notificationDTO);
 
                 _logger.Success("User registered successfully.");
                 return Ok(ApiResult<object>.Success(null, "User registered successfully."));

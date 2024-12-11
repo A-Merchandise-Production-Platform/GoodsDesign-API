@@ -72,5 +72,23 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(statusCode, errorResponse);
             }
         }
+
+        [EnableQuery]
+        [HttpGet("/api/notifications")]
+        public async Task<ActionResult<IEnumerable<Area>>> GetNotifications()
+        {
+            try
+            {
+                var result = await _context.Notifications.Include(x => x.User).ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
     }
 }

@@ -19,6 +19,7 @@ namespace BusinessObjects
         public DbSet<ProductPositionType> ProductPositionTypes { get; set; }
         public DbSet<ProductVariance> ProductVariances { get; set; }
         public DbSet<BlankProductInStock> BlankProductsInStock { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
