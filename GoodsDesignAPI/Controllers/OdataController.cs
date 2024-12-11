@@ -90,5 +90,24 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(statusCode, errorResponse);
             }
         }
+
+
+        [EnableQuery]
+        [HttpGet("/api/products")]
+        public async Task<ActionResult<IEnumerable<Area>>> GetProducts()
+        {
+            try
+            {
+                var result = await _context.Products.ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
     }
 }

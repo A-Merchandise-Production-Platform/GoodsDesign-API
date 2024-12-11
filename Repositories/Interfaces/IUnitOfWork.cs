@@ -6,6 +6,8 @@ namespace Repositories.Interfaces
     {
         IGenericRepository<Area> AreaGenericRepository { get; }
         IGenericRepository<Category> CategoryGenericRepository { get; }
+        IGenericRepository<Product> ProductGenericRepository { get; }
+
         IGenericRepository<Notification> NotificationRepository { get; }
         Task<int> SaveChangesAsync();
     }
