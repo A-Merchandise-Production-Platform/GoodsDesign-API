@@ -196,6 +196,82 @@ namespace GoodsDesignAPI.Controllers
         }
 
 
+        [HttpPost("seed-products")]
+        public async Task<IActionResult> SeedProducts([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                // Log seed operation
+                _logger.Info("Seed products request initiated.");
+
+                // Remove all existing products
+                var existingProducts = context.Products.ToList();
+                if (existingProducts.Any())
+                {
+                    context.Products.RemoveRange(existingProducts);
+                    await context.SaveChangesAsync();
+                    _logger.Info("Existing products removed successfully.");
+                }
+
+                // Get existing categories for assigning to products
+                var existingCategories = context.Categories.ToList();
+                if (!existingCategories.Any())
+                {
+                    _logger.Warn("No categories found. Please seed categories before seeding products.");
+                    return BadRequest(new { message = "Please seed categories before seeding products." });
+                }
+
+                // Seed new products
+                var productsToSeed = new List<Product>
+        {
+            new Product
+            {
+                Id = Guid.NewGuid(),
+                Name = "T-Shirt",
+                Description = "A comfortable cotton T-shirt, perfect for casual wear.",
+                CategoryId = existingCategories.First().Id, // Assigning to the first category
+                ImageUrl = "https://example.com/tshirt.jpg",
+                Model3DUrl = "https://example.com/tshirt-3d-model",
+                CreatedAt = DateTime.UtcNow.AddHours(7)
+            },
+            new Product
+            {
+                Id = Guid.NewGuid(),
+                Name = "Phone Case",
+                Description = "A durable phone case that protects your device and looks great.",
+                CategoryId = existingCategories.Last().Id, // Assigning to the last category
+                ImageUrl = "https://example.com/phone-case.jpg",
+                Model3DUrl = "https://example.com/phone-case-3d-model",
+                CreatedAt = DateTime.UtcNow.AddHours(7)
+            },
+            new Product
+            {
+                Id = Guid.NewGuid(),
+                Name = "Formal Shirt",
+                Description = "Elegant and stylish shirt for formal occasions.",
+                CategoryId = existingCategories.First().Id, // Assigning to the first category
+                ImageUrl = "https://example.com/formal-shirt.jpg",
+                Model3DUrl = "https://example.com/formal-shirt-3d-model",
+                CreatedAt = DateTime.UtcNow.AddHours(7)
+            }
+        };
+
+                await context.Products.AddRangeAsync(productsToSeed);
+                await context.SaveChangesAsync();
+
+                _logger.Success("Products seeded successfully.");
+
+                return Ok(new { message = "Seeding products completed successfully!", seededProducts = productsToSeed });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"An error occurred during product seeding: {ex.Message}");
+                return StatusCode(500, new { message = "An error occurred during product seeding.", error = ex.Message });
+            }
+        }
+
+
+
         [Authorize(Roles = "admin")]
         [HttpGet("admin-test-authorize")]
         public IActionResult AdminEndpoint()
