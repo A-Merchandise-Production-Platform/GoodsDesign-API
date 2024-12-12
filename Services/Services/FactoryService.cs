@@ -128,7 +128,7 @@ namespace Services.Services
                     throw new KeyNotFoundException("404 - Factory not found.");
                 }
                 factory.IsActive = !factory.IsActive ;
-                if (factory.IsActive)
+                if (factory.IsActive.Value)
                 {
                     var owner = await _userService.GetCurrentUser(factory.FactoryOwnerId.ToString());
                     if (owner == null)

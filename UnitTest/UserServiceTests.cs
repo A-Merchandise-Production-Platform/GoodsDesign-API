@@ -182,7 +182,7 @@ namespace UnitTest
             _mapperMock.Setup(m => m.Map<UserDTO>(user)).Returns(new UserDTO { Id = user.Id });
 
             // Act
-            var result = await _userService.BanUserAsync(userId);
+            var result = await _userService.UpdateActiveStatusUser(userId);
 
             // Assert
             Assert.NotNull(result);
