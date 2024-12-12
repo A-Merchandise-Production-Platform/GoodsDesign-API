@@ -270,6 +270,148 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
+        [HttpPost("seed-factories")]
+        public async Task<IActionResult> SeedFactories([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                // Log seed operation
+                _logger.Info("Seed factories request initiated.");
+
+                // Remove all existing factories
+                var existingFactories = context.Factories.ToList();
+                if (existingFactories.Any())
+                {
+                    context.Factories.RemoveRange(existingFactories);
+                    await context.SaveChangesAsync();
+                    _logger.Info("Existing factories removed successfully.");
+                }
+
+                // Get users with FactoryOwner role
+                var factoryOwnerRole = context.Roles.FirstOrDefault(r => r.Name == "factoryOwner");
+                if (factoryOwnerRole == null)
+                {
+                    _logger.Warn("FactoryOwner role not found. Please seed roles and users before seeding factories.");
+                    return BadRequest(new { message = "Please seed roles and users before seeding factories." });
+                }
+
+                var factoryOwners = context.Users
+                    .Where(u => u.RoleId == factoryOwnerRole.Id)
+                    .ToList();
+
+                if (!factoryOwners.Any())
+                {
+                    _logger.Warn("No users with FactoryOwner role found. Please seed users with FactoryOwner role before seeding factories.");
+                    return BadRequest(new { message = "Please seed users with FactoryOwner role before seeding factories." });
+                }
+
+                // Seed new factories
+                var factoriesToSeed = new List<Factory>
+        {
+            new Factory
+            {
+                Id = Guid.NewGuid(),
+                FactoryOwnerId = factoryOwners[0].Id, // Assigning the first FactoryOwner
+                Information = "{\"size\":\"large\",\"location\":\"HCM\"}", // JSON string
+                Contract = "{\"duration\":\"2 years\",\"status\":\"active\"}" // JSON string
+            },
+            new Factory
+            {
+                Id = Guid.NewGuid(),
+                FactoryOwnerId = factoryOwners[0].Id, // Assigning the second FactoryOwner
+                Information = "{\"size\":\"medium\",\"location\":\"HN\"}",
+                Contract = "{\"duration\":\"3 years\",\"status\":\"active\"}"
+            },
+            new Factory
+            {
+                Id = Guid.NewGuid(),
+                FactoryOwnerId = factoryOwners[0].Id, // Assigning the third FactoryOwner
+                Information = "{\"size\":\"small\",\"location\":\"Da Nang\"}",
+                Contract = "{\"duration\":\"1 year\",\"status\":\"inactive\"}"
+            }
+        };
+
+                await context.Factories.AddRangeAsync(factoriesToSeed);
+                await context.SaveChangesAsync();
+                _logger.Success("Factories seeded successfully.");
+
+                return Ok(new { message = "Seeding factories completed successfully!", seededFactories = factoriesToSeed });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"An error occurred during factory seeding: {ex.Message}");
+                return StatusCode(500, new { message = "An error occurred during factory seeding.", error = ex.Message });
+            }
+        }
+
+
+        [HttpPost("seed-factory-products")]
+        public async Task<IActionResult> SeedFactoryProducts([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                // Log seed operation
+                _logger.Info("Seed factory products request initiated.");
+
+                // Remove all existing factory products
+                var existingFactoryProducts = context.FactoryProducts.ToList();
+                if (existingFactoryProducts.Any())
+                {
+                    context.FactoryProducts.RemoveRange(existingFactoryProducts);
+                    await context.SaveChangesAsync();
+                    _logger.Info("Existing factory products removed successfully.");
+                }
+
+                // Get existing factories and products
+                var existingFactories = context.Factories.ToList();
+                var existingProducts = context.Products.ToList();
+
+                if (!existingFactories.Any() || !existingProducts.Any())
+                {
+                    _logger.Warn("No factories or products found. Please seed factories and products before seeding factory products.");
+                    return BadRequest(new { message = "Please seed factories and products before seeding factory products." });
+                }
+
+                // Seed new factory products
+                var factoryProductsToSeed = new List<FactoryProduct>
+        {
+            new FactoryProduct
+            {
+                FactoryId = existingFactories[0].Id, // Assigning to the first factory
+                ProductId = existingProducts[0].Id, // Assigning to the first product
+                ProductionCapacity = 500,
+                EstimatedProductionTimwe = 10
+            },
+            new FactoryProduct
+            {
+                FactoryId = existingFactories[1].Id, // Assigning to the second factory
+                ProductId = existingProducts[1].Id, // Assigning to the second product
+                ProductionCapacity = 300,
+                EstimatedProductionTimwe = 7
+            },
+            new FactoryProduct
+            {
+                FactoryId = existingFactories[2].Id,
+                ProductId = existingProducts[0].Id,
+                ProductionCapacity = 200,
+                EstimatedProductionTimwe = 5
+            }
+        };
+
+                await context.FactoryProducts.AddRangeAsync(factoryProductsToSeed);
+                await context.SaveChangesAsync();
+
+                _logger.Success("Factory products seeded successfully.");
+
+                return Ok(new { message = "Seeding factory products completed successfully!", seededFactoryProducts = factoryProductsToSeed });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"An error occurred during factory product seeding: {ex.Message}");
+                return StatusCode(500, new { message = "An error occurred during factory product seeding.", error = ex.Message });
+            }
+        }
+
 
 
         [Authorize(Roles = "admin")]

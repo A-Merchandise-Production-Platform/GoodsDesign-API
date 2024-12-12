@@ -68,6 +68,7 @@ namespace GoodsDesignAPI.Architecture
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IFactoryService, FactoryService>();
             return services;
         }
 

@@ -12,6 +12,8 @@ namespace Repositories
         private readonly IGenericRepository<Category> _categoryGenericRepository;
         private readonly IGenericRepository<Product> _productGenericRepository;
         private readonly IGenericRepository<Notification> _notificationRepository;
+        private readonly IGenericRepository<Factory> _factoryRepository;
+
 
         public UnitOfWork(GoodsDesignDbContext dbContext
         //    ,IGenericRepository<User> userGenericRepository
@@ -20,6 +22,9 @@ namespace Repositories
             , IGenericRepository<Product> productGenericRepository
 
             , IGenericRepository<Notification> notificationRepository
+            , IGenericRepository<Factory> factoryRepository
+
+
 
             )
         {
@@ -29,6 +34,7 @@ namespace Repositories
             _categoryGenericRepository = categoryGenericRepository;
             _productGenericRepository = productGenericRepository;
             _notificationRepository = notificationRepository;
+            _factoryRepository = factoryRepository;
         }
 
         //   public IGenericRepository<User> UserGenericRepository => _userGenericRepository;
@@ -36,6 +42,8 @@ namespace Repositories
         public IGenericRepository<Category> CategoryGenericRepository => _categoryGenericRepository;
         public IGenericRepository<Product> ProductGenericRepository => _productGenericRepository;
         public IGenericRepository<Notification> NotificationRepository => _notificationRepository;
+        public IGenericRepository<Factory> FactoryRepository => _factoryRepository;
+
 
         public Task<int> SaveChangesAsync()
         {

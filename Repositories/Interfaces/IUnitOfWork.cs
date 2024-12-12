@@ -9,6 +9,8 @@ namespace Repositories.Interfaces
         IGenericRepository<Product> ProductGenericRepository { get; }
 
         IGenericRepository<Notification> NotificationRepository { get; }
+        IGenericRepository<Factory> FactoryRepository { get; }
+
         Task<int> SaveChangesAsync();
     }
 }

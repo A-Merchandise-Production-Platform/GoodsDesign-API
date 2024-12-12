@@ -14,5 +14,8 @@ namespace BusinessObjects.Entities
 
         // Navigation property
         public User FactoryOwner { get; set; }
+        public virtual ICollection<FactoryProduct> FactoryProducts { get; set; } // Many-to-Many through FactoryProduct
+
+
     }
 }
