@@ -163,7 +163,7 @@ namespace BusinessObjects.Migrations
 
                     b.Property<string>("Contract")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -182,7 +182,7 @@ namespace BusinessObjects.Migrations
 
                     b.Property<string>("Information")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<bool?>("IsActive")
                         .HasColumnType("boolean");

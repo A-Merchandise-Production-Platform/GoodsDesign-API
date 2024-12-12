@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BusinessObjects.Migrations
 {
     [DbContext(typeof(GoodsDesignDbContext))]
-    [Migration("20241211054721_add noti")]
-    partial class addnoti
+    [Migration("20241212181737_INITIAL_DB")]
+    partial class INITIAL_DB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -156,6 +156,99 @@ namespace BusinessObjects.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Entities.Factory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Contract")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FactoryOwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Information")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<bool?>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FactoryOwnerId");
+
+                    b.ToTable("Factories");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Entities.FactoryProduct", b =>
+                {
+                    b.Property<Guid>("FactoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("EstimatedProductionTimwe")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("ProductionCapacity")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("FactoryId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("FactoryProducts");
                 });
 
             modelBuilder.Entity("BusinessObjects.Entities.Notification", b =>
@@ -604,6 +697,36 @@ namespace BusinessObjects.Migrations
                     b.Navigation("ProductVariance");
                 });
 
+            modelBuilder.Entity("BusinessObjects.Entities.Factory", b =>
+                {
+                    b.HasOne("BusinessObjects.Entities.User", "FactoryOwner")
+                        .WithMany()
+                        .HasForeignKey("FactoryOwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FactoryOwner");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Entities.FactoryProduct", b =>
+                {
+                    b.HasOne("BusinessObjects.Entities.Factory", "Factory")
+                        .WithMany("FactoryProducts")
+                        .HasForeignKey("FactoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObjects.Entities.Product", "Product")
+                        .WithMany("FactoryProducts")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Factory");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("BusinessObjects.Entities.Notification", b =>
                 {
                     b.HasOne("BusinessObjects.Entities.User", "User")
@@ -711,6 +834,16 @@ namespace BusinessObjects.Migrations
             modelBuilder.Entity("BusinessObjects.Entities.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Entities.Factory", b =>
+                {
+                    b.Navigation("FactoryProducts");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Entities.Product", b =>
+                {
+                    b.Navigation("FactoryProducts");
                 });
 
             modelBuilder.Entity("BusinessObjects.Entities.Role", b =>
