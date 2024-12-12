@@ -38,6 +38,10 @@ namespace Services.Mapper
 
             CreateMap<FactoryDTO, Factory>()
                .ReverseMap();
+
+
+            CreateMap<FactoryProductDTO, FactoryProduct>()
+               .ReverseMap();
         }
     }
 }
