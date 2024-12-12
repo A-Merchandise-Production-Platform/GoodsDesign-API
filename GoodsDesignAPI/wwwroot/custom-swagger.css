@@ -1,5 +1,4 @@
-﻿
-.swagger-ui::after {
+﻿.swagger-ui::after {
     content: "";
     position: absolute;
     top: 0;
@@ -12,3 +11,76 @@
     background-image: linear-gradient(#4551f7 1.4000000000000001px, transparent 1.4000000000000001px), linear-gradient(to right, #4551f7 1.4000000000000001px, #e5e5f7 1.4000000000000001px);
     background-size: 28px 28px;
 }
+
+.swagger-ui.dark-mode {
+    background-color: #1e293b; /* Dark background */
+    color: #f8fafc; /* Light text */
+}
+
+    .swagger-ui.dark-mode * {
+        color: #f8fafc !important; /* Ensure all text is light */
+    }
+
+    .swagger-ui.dark-mode .opblock {
+        background-color: #334155; /* Darker background for sections */
+        color: #f8fafc;
+    }
+
+    .swagger-ui.dark-mode .opblock-summary {
+        background-color: #475569; /* Summary section background */
+        color: #f8fafc;
+    }
+
+        .swagger-ui.dark-mode .opblock-summary:hover {
+            background-color: #64748b; /* Hover effect */
+        }
+
+    .swagger-ui.dark-mode input[type="text"],
+    .swagger-ui.dark-mode input[type="checkbox"] {
+        background-color: #334155;
+        color: #f8fafc;
+        border: 1px solid #475569;
+    }
+
+        .swagger-ui.dark-mode input[type="text"]:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+
+    .swagger-ui.dark-mode .btn {
+        background-color: #475569;
+        color: #f8fafc;
+        border: 1px solid #64748b;
+    }
+
+        .swagger-ui.dark-mode .btn:hover {
+            background-color: #64748b;
+        }
+
+    /* Headers and Titles */
+    .swagger-ui.dark-mode h1,
+    .swagger-ui.dark-mode h2,
+    .swagger-ui.dark-mode h3,
+    .swagger-ui.dark-mode h4,
+    .swagger-ui.dark-mode h5,
+    .swagger-ui.dark-mode h6 {
+        color: #f8fafc !important;
+    }
+
+    /* Links */
+    .swagger-ui.dark-mode a {
+        color: #3b82f6; /* Light blue for links */
+    }
+
+        .swagger-ui.dark-mode a:hover {
+            color: #60a5fa; /* Lighter blue for hover */
+        }
+
+    /* Code blocks */
+    .swagger-ui.dark-mode pre,
+    .swagger-ui.dark-mode code {
+        background-color: #475569; /* Dark background for code blocks */
+        color: #f8fafc;
+        border-radius: 4px;
+        padding: 4px;
+    }
