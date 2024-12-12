@@ -11,6 +11,8 @@ namespace BusinessObjects.Entities
         public Guid FactoryOwnerId { get; set; }
         public string Information { get; set; } // JSONB equivalent
         public string Contract { get; set; } // JSONB equivalent
+        public bool IsActive { get; set; } = false;
+
 
         // Navigation property
         public User FactoryOwner { get; set; }

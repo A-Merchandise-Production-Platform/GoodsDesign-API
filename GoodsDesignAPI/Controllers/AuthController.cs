@@ -55,6 +55,11 @@ namespace GoodsDesignAPI.Controllers
                     _logger.Warn("Invalid credentials.");
                     return Unauthorized(ApiResult<object>.Error("401 - Invalid email or password."));
                 }
+                if (!user.IsActive)
+                {
+                    _logger.Warn("User hasn't been activated to access");
+                    return BadRequest(ApiResult<object>.Error("400 - User active is still disableb (inapprove), cannot login"));
+                }
 
                 var role = await _roleManager.FindByIdAsync(user.RoleId.ToString());
                 if (role == null)
@@ -62,6 +67,9 @@ namespace GoodsDesignAPI.Controllers
                     _logger.Warn("User has no assigned role.");
                     return BadRequest(ApiResult<object>.Error("400 - User does not have an assigned role."));
                 }
+
+              
+
 
                 var accessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(15));
                 var refreshToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromDays(7));

@@ -313,21 +313,26 @@ namespace GoodsDesignAPI.Controllers
                 Id = Guid.NewGuid(),
                 FactoryOwnerId = factoryOwners[0].Id, // Assigning the first FactoryOwner
                 Information = "{\"size\":\"large\",\"location\":\"HCM\"}", // JSON string
-                Contract = "{\"duration\":\"2 years\",\"status\":\"active\"}" // JSON string
+                Contract = "{\"duration\":\"2 years\",\"status\":\"active\"}", // JSON string
+                                                IsActive = true
+
             },
             new Factory
             {
                 Id = Guid.NewGuid(),
                 FactoryOwnerId = factoryOwners[0].Id, // Assigning the second FactoryOwner
                 Information = "{\"size\":\"medium\",\"location\":\"HN\"}",
-                Contract = "{\"duration\":\"3 years\",\"status\":\"active\"}"
+                Contract = "{\"duration\":\"3 years\",\"status\":\"active\"}",
+                                IsActive = true
+
             },
             new Factory
             {
                 Id = Guid.NewGuid(),
                 FactoryOwnerId = factoryOwners[0].Id, // Assigning the third FactoryOwner
                 Information = "{\"size\":\"small\",\"location\":\"Da Nang\"}",
-                Contract = "{\"duration\":\"1 year\",\"status\":\"inactive\"}"
+                Contract = "{\"duration\":\"1 year\",\"status\":\"inactive\"}",
+                IsActive = true
             }
         };
 

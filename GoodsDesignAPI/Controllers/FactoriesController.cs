@@ -3,6 +3,7 @@ using DataTransferObjects.FactoryDTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
+using Services.Services;
 using Services.Utils;
 
 namespace GoodsDesignAPI.Controllers
@@ -66,6 +67,30 @@ namespace GoodsDesignAPI.Controllers
             catch (Exception ex)
             {
                 _logger.Error($"Error during factory deletion: {ex.Message}");
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        [HttpPut("{id}/active")]
+        public async Task<IActionResult> ActiveFactory(Guid id)
+        {
+            _logger.Info($"Request to update active status for factory with ID: {id} received.");
+            try
+            {
+                var result = await _factoryService.UpdateActiveStatusFactory(id);
+
+                _logger.Success($"Factory with ID: {id} has been successfully updated (activated/inactivated).");
+                return Ok(ApiResult<object>.Success(result, "Factory active/inactive status updated successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.Warn($"Factory not found: {ex.Message}");
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error during updating factory active status: {ex.Message}");
                 int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
                 return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
             }

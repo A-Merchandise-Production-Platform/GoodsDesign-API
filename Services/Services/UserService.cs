@@ -213,7 +213,7 @@ namespace Services.Services
             }
         }
 
-        public async Task<UserDTO?> BanUserAsync(Guid userId)
+        public async Task<UserDTO?> UpdateActiveStatusUser(Guid userId)
         {
             _logger.Info($"Banning/unbanning user with ID: {userId}");
             try

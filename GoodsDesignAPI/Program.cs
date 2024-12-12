@@ -83,13 +83,19 @@ static IEdmModel GetEdmModel()
     // Configure entity sets
     var users = builder.EntitySet<User>("Users");
     var roles = builder.EntitySet<Role>("Roles");
+   
     builder.EntitySet<Area>("Areas");
     builder.EntitySet<Category>("Categories");
     builder.EntitySet<Notification>("Notifications");
+    var products = builder.EntitySet<Product>("Products");
+    var factories = builder.EntitySet<Factory>("Factories");
 
     // Define relationships
     users.EntityType.HasOptional(u => u.Role); // User has one Role
     roles.EntityType.HasMany(r => r.Users); // Role has many Users
+    roles.EntityType.HasMany(r => r.Users); // Role has many Users
+    products.EntityType.HasMany(r => r.FactoryProducts); // Role has many Users
+    factories.EntityType.HasMany(r => r.FactoryProducts); // Role has many Users
 
     return builder.GetEdmModel();
 }

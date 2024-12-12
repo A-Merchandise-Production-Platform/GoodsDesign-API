@@ -95,6 +95,10 @@ namespace BusinessObjects
                 .HasForeignKey(fp => fp.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Factory>()
+             .Property(f => f.Information)
+             .HasColumnType("jsonb");
+
 
 
         }

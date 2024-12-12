@@ -116,6 +116,46 @@ namespace Services.Services
             }
         }
 
+        public async Task<Factory> UpdateActiveStatusFactory(Guid factoryId)
+        {
+            _logger.Info($"Approve factory with ID: {factoryId}");
+            try
+            {
+                var factory = await _unitOfWork.FactoryRepository.GetByIdAsync(factoryId);
+                if (factory == null)
+                {
+                    _logger.Warn($"Factory with ID: {factoryId} not found.");
+                    throw new KeyNotFoundException("404 - Factory not found.");
+                }
+                factory.IsActive = !factory.IsActive ;
+                if (factory.IsActive)
+                {
+                    var owner = await _userService.GetCurrentUser(factory.FactoryOwnerId.ToString());
+                    if (owner == null)
+                    {
+                        _logger.Warn($"User with ID: {factory.FactoryOwnerId} not found.");
+                        throw new KeyNotFoundException("400 - User (FactoryOwner) not found. Cannot approve this factory owner.");
+                    }
+                    if (!owner.IsActive)
+                    {
+                        await _userService.UpdateActiveStatusUser(factory.FactoryOwnerId);
+                    } 
+                    
+                }
+
+                await _unitOfWork.FactoryRepository.Update(factory);
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.Success("Factory has been approved to be activated successfully.");
+                return factory;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"500 - Error during factory deletion: {ex.Message}");
+                throw;
+            }
+        }
+
 
     }
 }

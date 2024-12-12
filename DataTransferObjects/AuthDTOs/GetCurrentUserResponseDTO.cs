@@ -9,6 +9,8 @@
         public bool? Gender { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? ImageUrl { get; set; }
+        public bool IsActive { get; set; }
+
         public string? Role { get; set; }
     }
 }

@@ -12,6 +12,7 @@ namespace Services.Interfaces
     {
         Task<Factory> CreateFactory(FactoryDTO factoryDTO);
         Task<Factory> DeleteFactory(Guid factoryId);
+        Task<Factory> UpdateActiveStatusFactory(Guid factoryId);
         Task<Factory> UpdateFactory(Guid id, FactoryDTO factoryDTO);
     }
 }
