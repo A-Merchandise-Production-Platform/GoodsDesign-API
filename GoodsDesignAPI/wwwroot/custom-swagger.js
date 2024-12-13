@@ -94,4 +94,50 @@
     checkboxContainer.addEventListener("change", filterContent);
 };
 
-setTimeout(myInitFunction, 4000);
+const addDarkModeToggle = () => {
+    const authWrapper = document.querySelector(".auth-wrapper");
+
+    if (!authWrapper) {
+        console.error("Cannot find .auth-wrapper element to add the dark mode toggle.");
+        return;
+    } else {
+        console.log("Adding dark mode toggle...")
+    }
+
+    const toggleDiv = document.createElement("span");
+    toggleDiv.style.margin = "10px 0";
+    toggleDiv.style.textAlign = "right";
+    toggleDiv.innerHTML = `
+        <label style="cursor: pointer; font-size: 16px; font-weight: 700;">
+            <input type="checkbox" id="darkModeToggle" style="margin-right: 8px;">
+            Dark Mode
+        </label>
+    `;
+
+    // Append the toggle button to the main container
+    authWrapper.prepend(toggleDiv);
+
+    const toggleCheckbox = document.getElementById("darkModeToggle");
+
+    // Function to toggle dark mode
+    const toggleDarkMode = () => {
+        const isDarkMode = toggleCheckbox.checked;
+        const swaggerUI = document.querySelector(".swagger-ui");
+        if (isDarkMode) {
+            swaggerUI.classList.add("dark-mode");
+        } else {
+            swaggerUI.classList.remove("dark-mode");
+        }
+    };
+
+    // Add event listener to toggle button
+    toggleCheckbox.addEventListener("change", toggleDarkMode);
+};
+
+// Add the dark mode toggle after initialization
+setTimeout(() => {
+    myInitFunction();
+    setTimeout(() => {
+        addDarkModeToggle();
+    }, 1000);
+}, 4000);
