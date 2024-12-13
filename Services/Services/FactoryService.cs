@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Services.Services
@@ -26,7 +27,7 @@ namespace Services.Services
             _userService = userService;
         }
 
-        public async Task<Factory> CreateFactory(FactoryDTO factoryDTO)
+        public async Task<Factory> CreateFactory(FactoryCreateDTO factoryDTO)
         {
             _logger.Info("Create factory attempt initiated.");
             try
@@ -38,7 +39,54 @@ namespace Services.Services
                     throw new KeyNotFoundException("400 - User (FactoryOwner) not found. Cannot create factory.");
                 }
 
-                var factory = _mapper.Map<Factory>(factoryDTO);
+                // Gom các field thành JSON cho "Information"
+                var informationJson = new
+                {
+                    FactoryName = factoryDTO.FactoryName,
+                    FactoryContactPerson = factoryDTO.FactoryContactPerson,
+                    FactoryContactPhone = factoryDTO.FactoryContactPhone,
+                    FacetoryAddress = factoryDTO.FacetoryAddress
+                };
+
+                // Gom các field thành JSON cho "Contract"
+                var contractJson = new
+                {
+                    ContractName = factoryDTO.ContractName,
+                    ContractPaperUrl = factoryDTO.ContractPaperUrl
+                };
+
+                var factory = new Factory
+                {
+                    FactoryOwnerId = factoryDTO.FactoryOwnerId.Value,
+                    Information = JsonSerializer.Serialize(informationJson), // Serialize object to JSON string
+                    Contract = JsonSerializer.Serialize(contractJson), // Serialize object to JSON string
+                    IsActive = false,
+                    FactoryProducts = new List<FactoryProduct>()
+                };
+
+                if (factoryDTO.SelectedProducts != null && factoryDTO.SelectedProducts.Any())
+                {
+                    foreach (var selectedProduct in factoryDTO.SelectedProducts)
+                    {
+                        // Kiểm tra sản phẩm có tồn tại không
+                        var product = await _unitOfWork.ProductGenericRepository.GetByIdAsync(selectedProduct.ProductId);
+                        if (product == null)
+                        {
+                            _logger.Warn($"Product with ID: {selectedProduct.ProductId} not found. Skipping this product.");
+                            continue;
+                        }
+
+                        // Thêm FactoryProduct vào danh sách
+                        factory.FactoryProducts.Add(new FactoryProduct
+                        {
+                            Factory = factory,
+                            Product = product,
+                            ProductionCapacity = selectedProduct.ProductionCapacity ?? 0,
+                            EstimatedProductionTimwe = selectedProduct.EstimatedProductionTimwe ?? 0
+                        });
+                    }
+                }
+
                 var result = await _unitOfWork.FactoryRepository.AddAsync(factory);
                 await _unitOfWork.SaveChangesAsync();
                 _logger.Success("Factory created successfully.");
@@ -51,6 +99,44 @@ namespace Services.Services
             }
         }
 
+
+        public async Task<Factory> CreateFactory(FactoryDTO factoryDTO)
+        {
+            _logger.Info("Create factory attempt initiated.");
+            try
+            {
+                var owner = await _userService.GetCurrentUser(factoryDTO.FactoryOwnerId.ToString());
+                if (owner == null)
+                {
+                    _logger.Warn($"User with ID: {factoryDTO.FactoryOwnerId} not found.");
+                    throw new KeyNotFoundException("400 - User (FactoryOwner) not found. Cannot create factory.");
+                }
+
+                
+
+                var factory = new Factory
+                {
+                    FactoryOwnerId = factoryDTO.FactoryOwnerId.Value,
+                    Information = factoryDTO.Information, // Serialize object to JSON string
+                    Contract = factoryDTO.Contract, // Serialize object to JSON string
+                    IsActive = false,
+                    //FactoryProducts = new List<FactoryProduct>()
+
+                };
+
+
+                
+                var result = await _unitOfWork.FactoryRepository.AddAsync(factory);
+                await _unitOfWork.SaveChangesAsync();
+                _logger.Success("Factory created successfully.");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"500 - Error during factory creation: {ex.Message}");
+                throw;
+            }
+        }
         public async Task<Factory> UpdateFactory(Guid id, FactoryDTO factoryDTO)
         {
             _logger.Info($"Updating factory with ID: {id}");

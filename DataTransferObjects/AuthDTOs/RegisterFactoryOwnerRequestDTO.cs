@@ -16,9 +16,21 @@ namespace DataTransferObjects.AuthDTOs
         public DateTime? DateOfBirth { get; set; } = DateTime.UtcNow.AddYears(-18);
         public string? ImageUrl { get; set; } = "https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671142.jpg";
         // FACTORY
-        public string Information { get; set; } // JSONB equivalent
-        public string Contract { get; set; } // JSONB equivalent
+        public string FactoryName { get; set; } // ten nha may
+        public string FactoryContactPerson { get; set; } //chu nha may
+        public string FactoryContactPhone { get; set; } // sdt
+        public string FacetoryAddress { get; set; } //dia chi
+        public string ContractName { get; set; }
+        public string ContractPaperUrl { get; set; }
 
-        //public List<Guid> ProductSelectIds {  get; set; }
+        public List<SelectedProductDTO> SelectedProducts {  get; set; }
     }
+
+    public class SelectedProductDTO
+    {
+        public Guid ProductId { get; set; }
+        public int? ProductionCapacity { get; set; }
+        public int? EstimatedProductionTimwe { get; set; }
+    }
+
 }

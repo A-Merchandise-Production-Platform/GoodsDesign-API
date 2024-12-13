@@ -191,11 +191,15 @@ namespace GoodsDesignAPI.Controllers
                 }
 
 
-                var factory = new FactoryDTO
+                var factory = new FactoryCreateDTO
                 {
                     FactoryOwnerId = user.Id,
-                    Information = registerDTO.Information,
-                    Contract = registerDTO.Contract
+                    FactoryName = registerDTO.FactoryName,
+                    FactoryContactPerson = registerDTO.FactoryContactPerson,
+                    FactoryContactPhone = registerDTO.FactoryContactPhone,
+                    FacetoryAddress = registerDTO.FacetoryAddress,
+                    ContractName = registerDTO.ContractName,
+                    ContractPaperUrl = registerDTO.ContractPaperUrl,                  
                 };
 
                 await _factoryService.CreateFactory(factory);

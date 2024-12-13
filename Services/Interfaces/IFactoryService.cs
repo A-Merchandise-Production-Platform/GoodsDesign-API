@@ -10,6 +10,7 @@ namespace Services.Interfaces
 {
     public interface IFactoryService
     {
+        Task<Factory> CreateFactory(FactoryCreateDTO factoryDTO);
         Task<Factory> CreateFactory(FactoryDTO factoryDTO);
         Task<Factory> DeleteFactory(Guid factoryId);
         Task<Factory> UpdateActiveStatusFactory(Guid factoryId);
