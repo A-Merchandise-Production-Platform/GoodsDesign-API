@@ -2,6 +2,7 @@
 using BusinessObjects.Entities;
 using DataTransferObjects.AreaDTOs;
 using DataTransferObjects.CategoryDTOs;
+using DataTransferObjects.FactoryDTOs;
 using DataTransferObjects.ProductDTOs;
 using DataTransferObjects.UserDTOs;
 
@@ -33,6 +34,13 @@ namespace Services.Mapper
                .ReverseMap();
 
             CreateMap<Product, ProductDetailDTO>()
+               .ReverseMap();
+
+            CreateMap<FactoryDTO, Factory>()
+               .ReverseMap();
+
+
+            CreateMap<FactoryProductDTO, FactoryProduct>()
                .ReverseMap();
         }
     }

@@ -3,11 +3,6 @@ using BusinessObjects.Entities;
 using DataTransferObjects.ProductDTOs;
 using Repositories.Interfaces;
 using Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services.Services
 {
@@ -29,6 +24,13 @@ namespace Services.Services
             _logger.Info("Create product attempt initiated.");
             try
             {
+                var category = await _unitOfWork.CategoryGenericRepository.GetByIdAsync(productDTO.CategoryId.Value);
+                if(category == null)
+                {
+                    _logger.Warn($"Category with ID: {productDTO.CategoryId} not found.");
+                    throw new KeyNotFoundException("400 - Category not found. cannot create");
+                }
+
                 var product = _mapper.Map<Product>(productDTO);
                 var result = await _unitOfWork.ProductGenericRepository.AddAsync(product);
                 await _unitOfWork.SaveChangesAsync();
@@ -37,7 +39,7 @@ namespace Services.Services
             }
             catch (Exception ex)
             {
-                _logger.Error($"Error during product creation: {ex.Message}");
+                _logger.Error($"500 - Error during product creation: {ex.Message}");
                 throw;
             }
         }
@@ -55,7 +57,18 @@ namespace Services.Services
                 if (product == null)
                 {
                     _logger.Warn($"Product with ID: {id} not found.");
-                    throw new KeyNotFoundException("400 - Product not found.");
+                    throw new KeyNotFoundException("404 - Product not found.");
+                }
+
+                if (productDTO.CategoryId.HasValue)
+                {
+                    var category = await _unitOfWork.CategoryGenericRepository.GetByIdAsync(productDTO.CategoryId.Value);
+
+                    if (category == null)
+                    {
+                        _logger.Warn($"Category with ID: {productDTO.CategoryId} not found.");
+                        throw new KeyNotFoundException("400 - Category not found cannot update.");
+                    }
                 }
 
                 _mapper.Map(productDTO, product);
@@ -67,7 +80,7 @@ namespace Services.Services
             }
             catch (Exception ex)
             {
-                _logger.Error($"Error during product update: {ex.Message}");
+                _logger.Error($"500 - Error during product update: {ex.Message}");
                 throw;
             }
         }
@@ -81,7 +94,7 @@ namespace Services.Services
                 if (product == null)
                 {
                     _logger.Warn($"Product with ID: {productId} not found.");
-                    throw new KeyNotFoundException("400 - Product not found.");
+                    throw new KeyNotFoundException("404 - Product not found.");
                 }
 
                 await _unitOfWork.ProductGenericRepository.SoftRemove(product);

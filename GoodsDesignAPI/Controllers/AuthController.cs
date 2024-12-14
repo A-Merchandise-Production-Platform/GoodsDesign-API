@@ -1,6 +1,8 @@
 ﻿using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using DataTransferObjects.Auth;
+using DataTransferObjects.AuthDTOs;
+using DataTransferObjects.FactoryDTOs;
 using DataTransferObjects.NotificationDTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,13 +19,16 @@ namespace GoodsDesignAPI.Controllers
         private readonly RoleManager<Role> _roleManager;
         private readonly ILoggerService _logger;
         private readonly INotificationService _notificationService;
+        private readonly IFactoryService _factoryService;
 
-        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService logger, INotificationService notificationService)
+        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager
+            , ILoggerService logger, INotificationService notificationService, IFactoryService factoryService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
             _notificationService = notificationService;
+            _factoryService = factoryService;
         }
 
         [HttpPost("login")]
@@ -50,6 +55,11 @@ namespace GoodsDesignAPI.Controllers
                     _logger.Warn("Invalid credentials.");
                     return Unauthorized(ApiResult<object>.Error("401 - Invalid email or password."));
                 }
+                if (!user.IsActive)
+                {
+                    _logger.Warn("User hasn't been activated to access");
+                    return BadRequest(ApiResult<object>.Error("400 - User active is still disableb (inapprove), cannot login"));
+                }
 
                 var role = await _roleManager.FindByIdAsync(user.RoleId.ToString());
                 if (role == null)
@@ -57,6 +67,9 @@ namespace GoodsDesignAPI.Controllers
                     _logger.Warn("User has no assigned role.");
                     return BadRequest(ApiResult<object>.Error("400 - User does not have an assigned role."));
                 }
+
+              
+
 
                 var accessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(15));
                 var refreshToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromDays(7));
@@ -134,5 +147,84 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(statusCode, errorResponse);
             }
         }
+
+        [HttpPost("register-factory-owner")]
+        public async Task<IActionResult> Register([FromBody] RegisterFactoryOwnerRequestDTO registerDTO)
+        {
+            _logger.Info("Factory owner registration attempt initiated.");
+            try
+            {
+                // Kiểm tra dữ liệu đầu vào
+                if (registerDTO == null || string.IsNullOrWhiteSpace(registerDTO.Email) || string.IsNullOrWhiteSpace(registerDTO.Password))
+                {
+                    _logger.Warn("Invalid registration request.");
+                    return BadRequest(ApiResult<object>.Error("400 - Invalid registration data."));
+                }
+
+                // Tìm vai trò "factoryOwner"
+                var role = await _roleManager.FindByNameAsync(Roles.FACTORYOWNER.ToString());
+                if (role == null)
+                {
+                    _logger.Warn("FactoryOwner role not found.");
+                    return BadRequest(ApiResult<object>.Error("500 - FactoryOwner role not found."));
+                }
+
+                // Tạo user
+                var user = new User
+                {
+                    Email = registerDTO.Email,
+                    UserName = registerDTO.UserName,
+                    RoleId = role.Id,
+                    PhoneNumber = registerDTO.PhoneNumber,
+                    Gender = registerDTO.Gender ?? false,
+                    DateOfBirth = registerDTO.DateOfBirth,
+                    ImageUrl = registerDTO.ImageUrl,
+                    IsActive = true
+                };
+
+                var userCreationResult = await _userManager.CreateAsync(user, registerDTO.Password);
+                if (!userCreationResult.Succeeded)
+                {
+                    var errors = string.Join(", ", userCreationResult.Errors.Select(e => e.Description));
+                    _logger.Warn($"500 - Failed to register user: {errors}");
+                    return BadRequest(ApiResult<object>.Error(errors));
+                }
+
+
+                var factory = new FactoryCreateDTO
+                {
+                    FactoryOwnerId = user.Id,
+                    FactoryName = registerDTO.FactoryName,
+                    FactoryContactPerson = registerDTO.FactoryContactPerson,
+                    FactoryContactPhone = registerDTO.FactoryContactPhone,
+                    FacetoryAddress = registerDTO.FacetoryAddress,
+                    ContractName = registerDTO.ContractName,
+                    ContractPaperUrl = registerDTO.ContractPaperUrl,                  
+                };
+
+                await _factoryService.CreateFactory(factory);
+                // Gửi thông báo chào mừng
+                var notificationDTO = new NotificationDTO
+                {
+                    Title = "Welcome!",
+                    Content = $"Thank you {user.Email} for registering as a Factory Owner.",
+                    Url = "/",
+                    UserId = user.Id
+                };
+
+                await _notificationService.PushNotificationToUser(user.Id, notificationDTO);
+
+                _logger.Success("Factory owner registered successfully.");
+                return Ok(ApiResult<object>.Success(new { userCreationResult , factory}, "Factory owner registered successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error during factory owner registration: {ex.Message}");
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+
     }
 }

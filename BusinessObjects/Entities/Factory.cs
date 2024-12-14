@@ -9,10 +9,16 @@ namespace BusinessObjects.Entities
     public class Factory : BaseEntity
     {
         public Guid FactoryOwnerId { get; set; }
+        public bool? IsActive { get; set; } = false;
+
         public string Information { get; set; } // JSONB equivalent
         public string Contract { get; set; } // JSONB equivalent
 
+
         // Navigation property
         public User FactoryOwner { get; set; }
+        public virtual ICollection<FactoryProduct> FactoryProducts { get; set; } // Many-to-Many through FactoryProduct
+
+
     }
 }

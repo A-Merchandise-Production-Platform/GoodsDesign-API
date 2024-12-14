@@ -20,6 +20,8 @@ namespace BusinessObjects
         public DbSet<ProductVariance> ProductVariances { get; set; }
         public DbSet<BlankProductInStock> BlankProductsInStock { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Factory> Factories { get; set; }
+        public DbSet<FactoryProduct> FactoryProducts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -76,6 +78,31 @@ namespace BusinessObjects
             modelBuilder.Entity<ProductVariance>()
                 .Property(pv => pv.Information)
                 .HasColumnType("jsonb");
+
+            // Configure Many-to-Many relationship using FactoryProduct
+            modelBuilder.Entity<FactoryProduct>()
+                .HasKey(fp => new { fp.FactoryId, fp.ProductId }); // Composite primary key
+
+            modelBuilder.Entity<FactoryProduct>()
+                .HasOne(fp => fp.Factory)
+                .WithMany(f => f.FactoryProducts) // Factory -> FactoryProducts
+                .HasForeignKey(fp => fp.FactoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FactoryProduct>()
+                .HasOne(fp => fp.Product)
+                .WithMany(p => p.FactoryProducts) // Product -> FactoryProducts
+                .HasForeignKey(fp => fp.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Factory>()
+                .Property(f => f.Information)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<Factory>()
+                .Property(f => f.Contract)
+                .HasColumnType("jsonb");
+
         }
     }
 }

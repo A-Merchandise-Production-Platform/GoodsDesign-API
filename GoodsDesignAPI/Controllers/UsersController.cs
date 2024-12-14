@@ -131,7 +131,7 @@ namespace GoodsDesignAPI.Controllers
             _logger.Info($"Attempting to ban/unban user with ID: {id}");
             try
             {
-                var result = await _userService.BanUserAsync(id);
+                var result = await _userService.UpdateActiveStatusUser(id);
                 if (result == null)
                 {
                     _logger.Warn("User ban/unban failed.");
