@@ -61,7 +61,7 @@ namespace GoodsDesignAPI.Controllers
         {
             try
             {
-                var result = await _context.Categories.ToListAsync();
+                var result = await _context.Categories.Include(x=>x.Products).ToListAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -98,7 +98,7 @@ namespace GoodsDesignAPI.Controllers
         {
             try
             {
-                var result = await _context.Products.ToListAsync();
+                var result = await _context.Products.Include(x=>x.Category).ToListAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -116,7 +116,7 @@ namespace GoodsDesignAPI.Controllers
         {
             try
             {
-                var result = await _context.Factories.ToListAsync();
+                var result = await _context.Factories.Include(x=>x.FactoryProducts).ThenInclude(x=>x.Product).ToListAsync();
                 return Ok(result);
             }
             catch (Exception ex)
