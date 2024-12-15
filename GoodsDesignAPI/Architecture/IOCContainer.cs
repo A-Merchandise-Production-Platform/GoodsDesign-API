@@ -39,7 +39,7 @@ namespace GoodsDesignAPI.Architecture
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             //Add business services
             services.SetupBusinessServicesLayer();
-
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.SetupThirdParty();

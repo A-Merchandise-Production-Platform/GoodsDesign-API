@@ -45,7 +45,7 @@ namespace Services.Services
                     FactoryName = factoryDTO.FactoryName,
                     FactoryContactPerson = factoryDTO.FactoryContactPerson,
                     FactoryContactPhone = factoryDTO.FactoryContactPhone,
-                    FacetoryAddress = factoryDTO.FacetoryAddress
+                    FactoryAddress = factoryDTO.FactoryAddress
                 };
 
                 // Gom các field thành JSON cho "Contract"

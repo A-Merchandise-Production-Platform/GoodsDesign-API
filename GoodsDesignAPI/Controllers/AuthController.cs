@@ -20,15 +20,16 @@ namespace GoodsDesignAPI.Controllers
         private readonly ILoggerService _logger;
         private readonly INotificationService _notificationService;
         private readonly IFactoryService _factoryService;
+        private readonly IEmailService _emailService;
 
-        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager
-            , ILoggerService logger, INotificationService notificationService, IFactoryService factoryService)
+        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService logger, INotificationService notificationService, IFactoryService factoryService, IEmailService emailService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
             _notificationService = notificationService;
             _factoryService = factoryService;
+            _emailService = emailService;
         }
 
         [HttpPost("login")]
@@ -179,7 +180,7 @@ namespace GoodsDesignAPI.Controllers
                     Gender = registerDTO.Gender ?? false,
                     DateOfBirth = registerDTO.DateOfBirth,
                     ImageUrl = registerDTO.ImageUrl,
-                    IsActive = true
+                    IsActive = false
                 };
 
                 var userCreationResult = await _userManager.CreateAsync(user, registerDTO.Password);
@@ -197,12 +198,15 @@ namespace GoodsDesignAPI.Controllers
                     FactoryName = registerDTO.FactoryName,
                     FactoryContactPerson = registerDTO.FactoryContactPerson,
                     FactoryContactPhone = registerDTO.FactoryContactPhone,
-                    FacetoryAddress = registerDTO.FacetoryAddress,
+                    FactoryAddress = registerDTO.FactoryAddress,
                     ContractName = registerDTO.ContractName,
-                    ContractPaperUrl = registerDTO.ContractPaperUrl,                  
+                    ContractPaperUrl = registerDTO.ContractPaperUrl,          
+                    SelectedProducts = registerDTO.SelectedProducts,
                 };
 
                 await _factoryService.CreateFactory(factory);
+                await _emailService.SendFactoryOwnerPendingApprovalEmail(user.Email, registerDTO.UserName);
+
                 // Gửi thông báo chào mừng
                 var notificationDTO = new NotificationDTO
                 {
@@ -220,6 +224,31 @@ namespace GoodsDesignAPI.Controllers
             catch (Exception ex)
             {
                 _logger.Error($"Error during factory owner registration: {ex.Message}");
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        [HttpPut("factories/{id}/approve-factory-owner")]
+        public async Task<IActionResult> ApproveActiveFactory(Guid id)
+        {
+            _logger.Info($"Request to update active status for factory with ID: {id} received.");
+            try
+            {
+                var result = await _factoryService.UpdateActiveStatusFactory(id);
+                await _emailService.SendFactoryApprovalEmailAsync(result.FactoryOwner.Email, result.Information);
+
+                _logger.Success($"Factory with ID: {id} has been successfully updated (activated/inactivated).");
+                return Ok(ApiResult<object>.Success(result, "Factory active/inactive status updated successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.Warn($"Factory not found: {ex.Message}");
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error during updating factory active status: {ex.Message}");
                 int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
                 return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
             }
