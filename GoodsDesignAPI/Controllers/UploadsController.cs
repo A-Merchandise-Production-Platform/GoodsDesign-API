@@ -98,7 +98,7 @@ namespace GoodsDesignAPI.Controllers
                 }
 
                 // Return the public URL
-                string fileUrl = $"https://api.goodsdesign.uydev.id.vn/files/goodsdesign/3dmodels/{fileName}";
+                string fileUrl = $"https://api.goodsdesign.uydev.id.vn/files/goodsdesign/{fileName}";
                 return Ok(new { fileUrl });
             }
             catch (Exception ex)
