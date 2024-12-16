@@ -1,8 +1,6 @@
 ﻿using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using DataTransferObjects.Auth;
-using DataTransferObjects.AuthDTOs;
-using DataTransferObjects.FactoryDTOs;
 using DataTransferObjects.NotificationDTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -26,8 +24,9 @@ namespace GoodsDesignAPI.Controllers
         private readonly IFactoryService _factoryService;
         private readonly IUserService _userService;
 
-        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager
-            , ILoggerService logger, INotificationService notificationService, IFactoryService factoryService, IUserService userService)
+        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager,
+            ILoggerService logger, INotificationService notificationService,
+            IFactoryService factoryService, IUserService userService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -37,7 +36,23 @@ namespace GoodsDesignAPI.Controllers
             _userService = userService;
         }
 
+        /// <summary>
+        /// User login
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// {
+        ///     "email": "admin@gmail.com",
+        ///     "password": "123456"
+        /// }
+        /// </remarks>
+        /// <response code="200">Returns Access Token & Refresh Token</response>
+        /// <response code="400">Invalid login request</response>
+        /// <response code="401">Invalid credentials</response>
         [HttpPost("login")]
+        [ProducesResponseType(typeof(ApiResult<LoginResponseDTO>), 200)]
+        [ProducesResponseType(typeof(ApiResult<object>), 400)]
+        [ProducesResponseType(typeof(ApiResult<object>), 401)]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginDTO)
         {
             _logger.Info("Login attempt initiated.");
@@ -64,7 +79,7 @@ namespace GoodsDesignAPI.Controllers
                 if (!user.IsActive)
                 {
                     _logger.Warn("User hasn't been activated to access");
-                    return BadRequest(ApiResult<object>.Error("400 - User active is still disableb (inapprove), cannot login"));
+                    return BadRequest(ApiResult<object>.Error("400 - User is not activated, cannot login."));
                 }
 
                 var role = await _roleManager.FindByIdAsync(user.RoleId.ToString());
@@ -75,7 +90,6 @@ namespace GoodsDesignAPI.Controllers
                 }
 
                 var accessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(15));
-                // Generate Refresh Token
                 var refreshToken = await _userManager.GenerateUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken");
 
                 _logger.Success("Login successful.");
@@ -89,13 +103,32 @@ namespace GoodsDesignAPI.Controllers
             {
                 _logger.Error($"Error during login: {ex.Message}");
                 int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
-                var errorResponse = ApiResult<object>.Error(ex.Message);
-
-                return StatusCode(statusCode, errorResponse);
+                return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
             }
         }
 
+        /// <summary>
+        /// Register a new customer
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// {
+        ///     "email": "user@gmail.com",
+        ///     "password": "123456",
+        ///     "userName": "John Doe",
+        ///     "phoneNumber": "123456789",
+        ///     "gender": true,
+        ///     "dateOfBirth": "2000-01-01",
+        ///     "imageUrl": "http://example.com/image.png"
+        /// }
+        /// </remarks>
+        /// <response code="200">Registration successful</response>
+        /// <response code="400">Invalid registration data</response>
+        /// <response code="500">Error during registration</response>
         [HttpPost("register")]
+        [ProducesResponseType(typeof(ApiResult<object>), 200)]
+        [ProducesResponseType(typeof(ApiResult<object>), 400)]
+        [ProducesResponseType(typeof(ApiResult<object>), 500)]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDTO registerDTO)
         {
             _logger.Info("Registration attempt initiated.");
@@ -115,7 +148,7 @@ namespace GoodsDesignAPI.Controllers
                     UserName = registerDTO.UserName,
                     RoleId = role.Id,
                     PhoneNumber = registerDTO.PhoneNumber,
-                    Gender = (bool)registerDTO.Gender,
+                    Gender = registerDTO.Gender ?? false,
                     DateOfBirth = registerDTO.DateOfBirth,
                     ImageUrl = registerDTO.ImageUrl,
                     IsActive = true,
@@ -132,7 +165,7 @@ namespace GoodsDesignAPI.Controllers
                 var notificationDTO = new NotificationDTO
                 {
                     Title = "Welcome!",
-                    Content = $"Thank {user.Email} for registering with us. We hope you enjoy your stay.",
+                    Content = $"Thank you {user.Email} for registering with us.",
                     Url = "/",
                     UserId = user.Id
                 };
@@ -146,90 +179,19 @@ namespace GoodsDesignAPI.Controllers
             {
                 _logger.Error($"Error during registration: {ex.Message}");
                 int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
-                var errorResponse = ApiResult<object>.Error(ex.Message);
-
-                return StatusCode(statusCode, errorResponse);
-            }
-        }
-
-        [HttpPost("register-factory-owner")]
-        public async Task<IActionResult> Register([FromBody] RegisterFactoryOwnerRequestDTO registerDTO)
-        {
-            _logger.Info("Factory owner registration attempt initiated.");
-            try
-            {
-                // Kiểm tra dữ liệu đầu vào
-                if (registerDTO == null || string.IsNullOrWhiteSpace(registerDTO.Email) || string.IsNullOrWhiteSpace(registerDTO.Password))
-                {
-                    _logger.Warn("Invalid registration request.");
-                    return BadRequest(ApiResult<object>.Error("400 - Invalid registration data."));
-                }
-
-                // Tìm vai trò "factoryOwner"
-                var role = await _roleManager.FindByNameAsync(Roles.FACTORYOWNER.ToString());
-                if (role == null)
-                {
-                    _logger.Warn("FactoryOwner role not found.");
-                    return BadRequest(ApiResult<object>.Error("500 - FactoryOwner role not found."));
-                }
-
-                // Tạo user
-                var user = new User
-                {
-                    Email = registerDTO.Email,
-                    UserName = registerDTO.UserName,
-                    RoleId = role.Id,
-                    PhoneNumber = registerDTO.PhoneNumber,
-                    Gender = registerDTO.Gender ?? false,
-                    DateOfBirth = registerDTO.DateOfBirth,
-                    ImageUrl = registerDTO.ImageUrl,
-                    IsActive = true
-                };
-
-                var userCreationResult = await _userManager.CreateAsync(user, registerDTO.Password);
-                if (!userCreationResult.Succeeded)
-                {
-                    var errors = string.Join(", ", userCreationResult.Errors.Select(e => e.Description));
-                    _logger.Warn($"500 - Failed to register user: {errors}");
-                    return BadRequest(ApiResult<object>.Error(errors));
-                }
-
-
-                var factory = new FactoryCreateDTO
-                {
-                    FactoryOwnerId = user.Id,
-                    FactoryName = registerDTO.FactoryName,
-                    FactoryContactPerson = registerDTO.FactoryContactPerson,
-                    FactoryContactPhone = registerDTO.FactoryContactPhone,
-                    FacetoryAddress = registerDTO.FacetoryAddress,
-                    ContractName = registerDTO.ContractName,
-                    ContractPaperUrl = registerDTO.ContractPaperUrl,
-                };
-
-                await _factoryService.CreateFactory(factory);
-                // Gửi thông báo chào mừng
-                var notificationDTO = new NotificationDTO
-                {
-                    Title = "Welcome!",
-                    Content = $"Thank you {user.Email} for registering as a Factory Owner.",
-                    Url = "/",
-                    UserId = user.Id
-                };
-
-                await _notificationService.PushNotificationToUser(user.Id, notificationDTO);
-
-                _logger.Success("Factory owner registered successfully.");
-                return Ok(ApiResult<object>.Success(new { userCreationResult, factory }, "Factory owner registered successfully."));
-            }
-            catch (Exception ex)
-            {
-                _logger.Error($"Error during factory owner registration: {ex.Message}");
-                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
                 return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
             }
         }
 
+        /// <summary>
+        /// Logout the user
+        /// </summary>
+        /// <remarks>Invalidates the current session of the user</remarks>
+        /// <response code="200">Logout successful</response>
+        /// <response code="401">User not authenticated</response>
         [HttpPost("logout")]
+        [ProducesResponseType(typeof(ApiResult<object>), 200)]
+        [ProducesResponseType(typeof(ApiResult<object>), 401)]
         public async Task<IActionResult> Logout()
         {
             _logger.Info("Logout attempt initiated.");
@@ -241,12 +203,14 @@ namespace GoodsDesignAPI.Controllers
                     _logger.Warn("User ID not found in token.");
                     return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
                 }
+
                 var user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
                 {
                     _logger.Warn("User not found to logout");
                     return NotFound(ApiResult<object>.Error("404 - User not found."));
                 }
+
                 await _userManager.UpdateSecurityStampAsync(user);
 
                 _logger.Success("Logout successful.");
@@ -260,7 +224,15 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Refresh JWT Token
+        /// </summary>
+        /// <remarks>Generates new Access Token and Refresh Token for the authenticated user</remarks>
+        /// <response code="200">Token refreshed successfully</response>
+        /// <response code="401">Invalid or expired refresh token</response>
         [HttpPost("refresh-token")]
+        [ProducesResponseType(typeof(ApiResult<LoginResponseDTO>), 200)]
+        [ProducesResponseType(typeof(ApiResult<object>), 401)]
         public async Task<IActionResult> RefreshToken([FromBody] LoginResponseDTO request)
         {
             _logger.Info("Token refresh attempt initiated.");
@@ -272,7 +244,6 @@ namespace GoodsDesignAPI.Controllers
                     .AddEnvironmentVariables()
                     .Build();
 
-                // Validate the access token without checking its expiration
                 var tokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateAudience = false,
@@ -284,7 +255,6 @@ namespace GoodsDesignAPI.Controllers
 
                 var principal = new JwtSecurityTokenHandler().ValidateToken(request.AccessToken, tokenValidationParameters, out SecurityToken securityToken);
 
-                // Ensure the token is a valid JWT
                 if (securityToken is not JwtSecurityToken jwtSecurityToken ||
                     !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -330,7 +300,5 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
             }
         }
-
-
     }
 }

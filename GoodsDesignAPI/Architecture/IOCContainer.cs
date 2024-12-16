@@ -16,6 +16,7 @@ using Services.Mapper;
 using Services.Services;
 using Services.Services.CommonService;
 using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 
 namespace GoodsDesignAPI.Architecture
@@ -78,6 +79,19 @@ namespace GoodsDesignAPI.Architecture
         {
             services.AddSwaggerGen(c =>
             {
+                // Loại bỏ MetadataController của OData khỏi tài liệu Swagger
+                c.DocInclusionPredicate((docName, apiDesc) =>
+                {
+                    // Loại bỏ tất cả các API từ Microsoft.AspNetCore.OData.Routing.Controllers
+                    return !apiDesc.ActionDescriptor.DisplayName.Contains("MetadataController");
+                });
+
+                // Thêm quy ước tùy chỉnh cho schemaId
+                c.CustomSchemaIds(type => type.FullName);
+
+                // Xử lý các enum kiểu inline để tránh lỗi
+                c.UseInlineDefinitionsForEnums();
+
                 c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "GoodsDesignAPI", Version = "v1" });
                 var jwtSecurityScheme = new OpenApiSecurityScheme
                 {
@@ -107,7 +121,15 @@ namespace GoodsDesignAPI.Architecture
                     };
 
                 c.AddSecurityRequirement(securityRequirement);
+
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+
+                // Cấu hình Swagger để sử dụng Newtonsoft.Json
+                c.UseAllOfForInheritance();
+
             });
+
 
             return services;
         }
