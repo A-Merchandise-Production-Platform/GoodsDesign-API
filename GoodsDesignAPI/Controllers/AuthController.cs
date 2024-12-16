@@ -27,9 +27,7 @@ namespace GoodsDesignAPI.Controllers
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
 
-        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService logger, INotificationService notificationService, IFactoryService factoryService, IEmailService emailService)
-        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager
-            , ILoggerService logger, INotificationService notificationService, IFactoryService factoryService, IUserService userService)
+        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService logger, INotificationService notificationService, IFactoryService factoryService, IEmailService emailService, IUserService userService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -208,7 +206,6 @@ namespace GoodsDesignAPI.Controllers
                     ContractName = registerDTO.ContractName,
                     ContractPaperUrl = registerDTO.ContractPaperUrl,          
                     SelectedProducts = registerDTO.SelectedProducts,
-                    ContractPaperUrl = registerDTO.ContractPaperUrl,
                 };
 
                 await _factoryService.CreateFactory(factory);
