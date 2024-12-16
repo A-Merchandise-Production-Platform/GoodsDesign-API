@@ -14,6 +14,8 @@ namespace Repositories
         private readonly IGenericRepository<Notification> _notificationRepository;
         private readonly IGenericRepository<Factory> _factoryRepository;
         private readonly IGenericRepository<FactoryProduct> _factoryProductRepository;
+        private readonly IGenericRepository<ProductVariance> _productVarianceRepository;
+        private readonly IGenericRepository<BlankProductInStock> _blankProductInStockRepository;
 
 
         public UnitOfWork(GoodsDesignDbContext dbContext
@@ -24,7 +26,8 @@ namespace Repositories
             , IGenericRepository<Notification> notificationRepository
             , IGenericRepository<Factory> factoryRepository
             , IGenericRepository<FactoryProduct> factoryProductRepository
-
+            , IGenericRepository<ProductVariance> productVarianceRepository
+            , IGenericRepository<BlankProductInStock> blankProductInStockRepository
 
             )
         {
@@ -36,6 +39,8 @@ namespace Repositories
             _notificationRepository = notificationRepository;
             _factoryRepository = factoryRepository;
             _factoryProductRepository = factoryProductRepository;
+            _productVarianceRepository = productVarianceRepository;
+            _blankProductInStockRepository = blankProductInStockRepository;
         }
 
         //   public IGenericRepository<User> UserGenericRepository => _userGenericRepository;
@@ -45,6 +50,8 @@ namespace Repositories
         public IGenericRepository<Notification> NotificationRepository => _notificationRepository;
         public IGenericRepository<Factory> FactoryRepository => _factoryRepository;
         public IGenericRepository<FactoryProduct> FactoryProductRepository => _factoryProductRepository;
+        public IGenericRepository<ProductVariance> ProductVarianceRepository => _productVarianceRepository;
+        public IGenericRepository<BlankProductInStock> BlankProductInStockRepository => _blankProductInStockRepository;
 
 
         public Task<int> SaveChangesAsync()

@@ -40,7 +40,7 @@ namespace GoodsDesignAPI.Architecture
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             //Add business services
             services.SetupBusinessServicesLayer();
-
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.SetupThirdParty();
@@ -71,6 +71,8 @@ namespace GoodsDesignAPI.Architecture
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IFactoryService, FactoryService>();
             services.AddScoped<IFactoryProductService, FactoryProductService>();
+            services.AddScoped<IProductVarianceService, ProductVarianceService>();
+            services.AddScoped<IBlankProductInStockService, BlankProductInStockService>();
             return services;
         }
 
