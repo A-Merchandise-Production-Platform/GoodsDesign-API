@@ -204,5 +204,25 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(statusCode, errorResponse);
             }
         }
+
+    
+        [EnableQuery]
+        [HttpGet("/api/product-position-types")]
+        public async Task<ActionResult<IEnumerable<Area>>> GetProductPositionTypes()
+        {
+            try
+            {
+                var result = await _context.ProductPositionTypes.Include(x => x.Product).ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
     }
 }

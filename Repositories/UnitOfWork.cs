@@ -16,6 +16,7 @@ namespace Repositories
         private readonly IGenericRepository<FactoryProduct> _factoryProductRepository;
         private readonly IGenericRepository<ProductVariance> _productVarianceRepository;
         private readonly IGenericRepository<BlankProductInStock> _blankProductInStockRepository;
+        private readonly IGenericRepository<ProductPositionType> _productPositionTypeRepository;
 
 
         public UnitOfWork(GoodsDesignDbContext dbContext
@@ -28,6 +29,9 @@ namespace Repositories
             , IGenericRepository<FactoryProduct> factoryProductRepository
             , IGenericRepository<ProductVariance> productVarianceRepository
             , IGenericRepository<BlankProductInStock> blankProductInStockRepository
+            , IGenericRepository<ProductPositionType> productPositionTypeRepository
+
+
 
             )
         {
@@ -41,6 +45,7 @@ namespace Repositories
             _factoryProductRepository = factoryProductRepository;
             _productVarianceRepository = productVarianceRepository;
             _blankProductInStockRepository = blankProductInStockRepository;
+            _productPositionTypeRepository = productPositionTypeRepository;
         }
 
         //   public IGenericRepository<User> UserGenericRepository => _userGenericRepository;
@@ -52,6 +57,8 @@ namespace Repositories
         public IGenericRepository<FactoryProduct> FactoryProductRepository => _factoryProductRepository;
         public IGenericRepository<ProductVariance> ProductVarianceRepository => _productVarianceRepository;
         public IGenericRepository<BlankProductInStock> BlankProductInStockRepository => _blankProductInStockRepository;
+        public IGenericRepository<ProductPositionType> ProductPositionTypeRepository => _productPositionTypeRepository;
+
 
 
         public Task<int> SaveChangesAsync()

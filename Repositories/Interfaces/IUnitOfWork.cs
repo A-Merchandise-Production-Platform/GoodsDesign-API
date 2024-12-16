@@ -13,6 +13,7 @@ namespace Repositories.Interfaces
         IGenericRepository<FactoryProduct> FactoryProductRepository { get; }
         IGenericRepository<ProductVariance> ProductVarianceRepository { get; }
         IGenericRepository<BlankProductInStock> BlankProductInStockRepository { get; }
+        IGenericRepository<ProductPositionType> ProductPositionTypeRepository { get; }
 
         Task<int> SaveChangesAsync();
     }
