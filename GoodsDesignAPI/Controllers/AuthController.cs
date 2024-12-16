@@ -6,8 +6,12 @@ using DataTransferObjects.FactoryDTOs;
 using DataTransferObjects.NotificationDTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Services.Interfaces;
 using Services.Utils;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace GoodsDesignAPI.Controllers
 {
@@ -21,8 +25,11 @@ namespace GoodsDesignAPI.Controllers
         private readonly INotificationService _notificationService;
         private readonly IFactoryService _factoryService;
         private readonly IEmailService _emailService;
+        private readonly IUserService _userService;
 
         public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService logger, INotificationService notificationService, IFactoryService factoryService, IEmailService emailService)
+        public AuthController(UserManager<User> userManager, RoleManager<Role> roleManager
+            , ILoggerService logger, INotificationService notificationService, IFactoryService factoryService, IUserService userService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -30,6 +37,7 @@ namespace GoodsDesignAPI.Controllers
             _notificationService = notificationService;
             _factoryService = factoryService;
             _emailService = emailService;
+            _userService = userService;
         }
 
         [HttpPost("login")]
@@ -69,11 +77,9 @@ namespace GoodsDesignAPI.Controllers
                     return BadRequest(ApiResult<object>.Error("400 - User does not have an assigned role."));
                 }
 
-              
-
-
                 var accessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(15));
-                var refreshToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromDays(7));
+                // Generate Refresh Token
+                var refreshToken = await _userManager.GenerateUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken");
 
                 _logger.Success("Login successful.");
                 return Ok(ApiResult<LoginResponseDTO>.Success(new LoginResponseDTO
@@ -202,6 +208,7 @@ namespace GoodsDesignAPI.Controllers
                     ContractName = registerDTO.ContractName,
                     ContractPaperUrl = registerDTO.ContractPaperUrl,          
                     SelectedProducts = registerDTO.SelectedProducts,
+                    ContractPaperUrl = registerDTO.ContractPaperUrl,
                 };
 
                 await _factoryService.CreateFactory(factory);
@@ -219,7 +226,7 @@ namespace GoodsDesignAPI.Controllers
                 await _notificationService.PushNotificationToUser(user.Id, notificationDTO);
 
                 _logger.Success("Factory owner registered successfully.");
-                return Ok(ApiResult<object>.Success(new { userCreationResult , factory}, "Factory owner registered successfully."));
+                return Ok(ApiResult<object>.Success(new { userCreationResult, factory }, "Factory owner registered successfully."));
             }
             catch (Exception ex)
             {
@@ -249,6 +256,108 @@ namespace GoodsDesignAPI.Controllers
             catch (Exception ex)
             {
                 _logger.Error($"Error during updating factory active status: {ex.Message}");
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            _logger.Info("Logout attempt initiated.");
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.Warn("User ID not found in token.");
+                    return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
+                }
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    _logger.Warn("User not found to logout");
+                    return NotFound(ApiResult<object>.Error("404 - User not found."));
+                }
+                await _userManager.UpdateSecurityStampAsync(user);
+
+                _logger.Success("Logout successful.");
+                return Ok(ApiResult<object>.Success(null, "User logged out successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error during logout: {ex.Message}");
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] LoginResponseDTO request)
+        {
+            _logger.Info("Token refresh attempt initiated.");
+            try
+            {
+                IConfiguration configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", true, true)
+                    .AddEnvironmentVariables()
+                    .Build();
+
+                // Validate the access token without checking its expiration
+                var tokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateAudience = false,
+                    ValidateIssuer = false,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])),
+                    ValidateLifetime = true
+                };
+
+                var principal = new JwtSecurityTokenHandler().ValidateToken(request.AccessToken, tokenValidationParameters, out SecurityToken securityToken);
+
+                // Ensure the token is a valid JWT
+                if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+                    !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    throw new SecurityTokenException("Invalid token.");
+                }
+
+                var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+                var user = await _userManager.FindByEmailAsync(email);
+
+                if (user == null)
+                {
+                    _logger.Warn("User not found for token refresh.");
+                    return Unauthorized(ApiResult<object>.Error("401 - User not found."));
+                }
+
+                if (!await _userManager.VerifyUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken", request.RefreshToken))
+                {
+                    _logger.Warn("Refresh token invalid or expired.");
+                    return Unauthorized(ApiResult<object>.Error("401 - Refresh token invalid or expired."));
+                }
+
+                var role = await _roleManager.FindByIdAsync(user.RoleId.ToString());
+                if (role == null)
+                {
+                    _logger.Warn("User has no assigned role.");
+                    return BadRequest(ApiResult<object>.Error("400 - User does not have an assigned role."));
+                }
+
+                var newAccessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(15));
+                var newRefreshToken = await _userManager.GenerateUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken");
+
+                _logger.Success("Token refresh successful.");
+                return Ok(ApiResult<LoginResponseDTO>.Success(new LoginResponseDTO
+                {
+                    AccessToken = newAccessToken,
+                    RefreshToken = newRefreshToken
+                }, "Token refreshed successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error during token refresh: {ex.Message}");
                 int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
                 return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
             }
