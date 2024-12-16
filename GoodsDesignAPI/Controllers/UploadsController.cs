@@ -11,6 +11,7 @@ namespace GoodsDesignAPI.Controllers
     {
         // Đường dẫn thư mục lưu trữ file
         private readonly string _fileStoragePath = "/srv/goodsdesign";
+        private readonly string _fileThreeDModelPath = "/srv/goodsdesign/3dmodels";
 
         [HttpPost]
         public async Task<IActionResult> UploadImage(IFormFile file)

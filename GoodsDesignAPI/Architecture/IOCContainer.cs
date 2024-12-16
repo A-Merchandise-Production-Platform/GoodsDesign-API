@@ -141,7 +141,8 @@ namespace GoodsDesignAPI.Architecture
                 options.User.RequireUniqueEmail = true;
             })
             .AddEntityFrameworkStores<GoodsDesignDbContext>()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddTokenProvider<DataProtectorTokenProvider<User>>("REFRESHTOKENPROVIDER");
 
             return services;
         }
@@ -198,7 +199,7 @@ namespace GoodsDesignAPI.Architecture
                     {
                         ValidateIssuer = false,
                         ValidateAudience = false,
-                        ValidateLifetime = false,
+                        ValidateLifetime = true,
                         ValidIssuer = configuration["JWT:Issuer"],
                         ValidAudience = configuration["JWT:Audience"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]))
