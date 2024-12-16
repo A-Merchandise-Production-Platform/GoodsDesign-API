@@ -64,5 +64,48 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
+
+        [HttpPost("3dmodel")]
+        public async Task<IActionResult> UploadThreeDModel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { message = "No file uploaded." });
+            }
+
+            try
+            {
+                // Validate file type (e.g., .obj, .fbx, .gltf)
+                var validExtensions = new[] { ".obj", ".fbx", ".gltf", ".glb" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLower();
+                if (!validExtensions.Contains(fileExtension))
+                {
+                    return BadRequest(new { message = "Invalid file type. Only 3D model files are allowed." });
+                }
+
+                // Ensure directory exists
+                if (!Directory.Exists(_fileThreeDModelPath))
+                {
+                    Directory.CreateDirectory(_fileThreeDModelPath);
+                }
+
+                // Save the 3D model file
+                string fileName = $"{Guid.NewGuid()}{fileExtension}";
+                string filePath = Path.Combine(_fileThreeDModelPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Return the public URL
+                string fileUrl = $"https://api.goodsdesign.uydev.id.vn/files/goodsdesign/3dmodels/{fileName}";
+                return Ok(new { fileUrl });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+            }
+        }
     }
 }
