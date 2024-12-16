@@ -85,7 +85,7 @@ namespace GoodsDesignAPI.Controllers
                     return BadRequest(ApiResult<object>.Error("400 - User does not have an assigned role."));
                 }
 
-                var accessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(15));
+                var accessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(60));
                 var refreshToken = await _userManager.GenerateUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken");
 
                 _logger.Success("Login successful.");
