@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using BusinessObjects.Entities;
 using DataTransferObjects.AreaDTOs;
+using DataTransferObjects.BlankProductInStockDTOs;
 using DataTransferObjects.CategoryDTOs;
 using DataTransferObjects.FactoryDTOs;
 using DataTransferObjects.ProductDTOs;
+using DataTransferObjects.ProductVarianceDTOs;
 using DataTransferObjects.UserDTOs;
 
 
@@ -41,6 +43,12 @@ namespace Services.Mapper
 
 
             CreateMap<FactoryProductDTO, FactoryProduct>()
+               .ReverseMap();
+
+            CreateMap<ProductVarianceDTO, ProductVariance>()
+               .ReverseMap();
+
+            CreateMap<BlankProductInStockDTO, BlankProductInStock>()
                .ReverseMap();
         }
     }

@@ -127,5 +127,41 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(statusCode, errorResponse);
             }
         }
+
+        [EnableQuery]
+        [HttpGet("/api/product-variances")]
+        public async Task<ActionResult<IEnumerable<Area>>> GetProductVariances()
+        {
+            try
+            {
+                var result = await _context.ProductVariances.Include(x => x.Product).ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+        [EnableQuery]
+        [HttpGet("/api/blank-products-in-stock")]
+        public async Task<ActionResult<IEnumerable<Area>>> GetBlankProductsInStock()
+        {
+            try
+            {
+                var result = await _context.BlankProductsInStock.Include(x => x.ProductVariance).ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
     }
 }
