@@ -1,15 +1,13 @@
 using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using DataTransferObjects.Auth;
+using DataTransferObjects.AuthDTOs;
+using DataTransferObjects.FactoryDTOs;
 using DataTransferObjects.NotificationDTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using Services.Interfaces;
 using Services.Utils;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace GoodsDesignAPI.Controllers
 {
@@ -173,7 +171,7 @@ namespace GoodsDesignAPI.Controllers
         [ProducesResponseType(typeof(ApiResult<object>), 200)]
         [ProducesResponseType(typeof(ApiResult<object>), 400)]
         [ProducesResponseType(typeof(ApiResult<object>), 500)]
-        public async Task<IActionResult> RegisterFactoryOwner([FromBody] RegisterFactoryOwnerRequestDTO registerDTO)
+        public async Task<IActionResult> Register([FromBody] RegisterFactoryOwnerRequestDTO registerDTO)
         {
             _logger.Info("Factory owner registration attempt initiated.");
             try
@@ -200,7 +198,7 @@ namespace GoodsDesignAPI.Controllers
                     Gender = registerDTO.Gender ?? false,
                     DateOfBirth = registerDTO.DateOfBirth,
                     ImageUrl = registerDTO.ImageUrl,
-                    IsActive = false // Needs approval
+                    IsActive = false
                 };
 
                 var userCreationResult = await _userManager.CreateAsync(user, registerDTO.Password);
@@ -211,6 +209,7 @@ namespace GoodsDesignAPI.Controllers
                     return BadRequest(ApiResult<object>.Error(errors));
                 }
 
+
                 var factory = new FactoryCreateDTO
                 {
                     FactoryOwnerId = user.Id,
@@ -219,14 +218,25 @@ namespace GoodsDesignAPI.Controllers
                     FactoryContactPhone = registerDTO.FactoryContactPhone,
                     FactoryAddress = registerDTO.FactoryAddress,
                     ContractName = registerDTO.ContractName,
-                    ContractPaperUrl = registerDTO.ContractPaperUrl
+                    ContractPaperUrl = registerDTO.ContractPaperUrl,
+                    SelectedProducts = registerDTO.SelectedProducts,
                 };
 
                 await _factoryService.CreateFactory(factory);
-                await _emailService.SendFactoryOwnerPendingApprovalEmail(user.Email, user.UserName);
+                await _emailService.SendFactoryOwnerPendingApprovalEmail(user.Email, registerDTO.UserName);
+
+                var notificationDTO = new NotificationDTO
+                {
+                    Title = "Welcome!",
+                    Content = $"Thank you {user.Email} for registering as a Factory Owner.",
+                    Url = "/",
+                    UserId = user.Id
+                };
+
+                await _notificationService.PushNotificationToUser(user.Id, notificationDTO);
 
                 _logger.Success("Factory owner registered successfully.");
-                return Ok(ApiResult<object>.Success(null, "Factory owner registered successfully."));
+                return Ok(ApiResult<object>.Success(new { userCreationResult, factory }, "Factory owner registered successfully."));
             }
             catch (Exception ex)
             {
