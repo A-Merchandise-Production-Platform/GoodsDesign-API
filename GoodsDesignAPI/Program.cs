@@ -2,6 +2,8 @@ using BusinessObjects.Entities;
 using GoodsDesignAPI.Architecture;
 using GoodsDesignAPI.Middlewares;
 using Microsoft.AspNetCore.OData;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
 using System.Text.Json;
@@ -44,10 +46,15 @@ catch (Exception e)
 
 app.UseStaticFiles();
 
+var provider = new FileExtensionContentTypeProvider();
+provider.Mappings[".gltf"] = "model/gltf+json"; // MIME type for GLTF
+provider.Mappings[".glb"] = "model/gltf-binary"; // MIME type for GLB
+
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider("/srv/goodsdesign"),
-    RequestPath = "/files/goodsdesign"
+    FileProvider = new PhysicalFileProvider("/srv/goodsdesign"),
+    RequestPath = "/files/goodsdesign",
+    ContentTypeProvider = provider
 });
 
 app.UseSwagger();
