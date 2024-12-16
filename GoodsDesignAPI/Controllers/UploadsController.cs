@@ -11,7 +11,6 @@ namespace GoodsDesignAPI.Controllers
     {
         // Đường dẫn thư mục lưu trữ file
         private readonly string _fileStoragePath = "/srv/goodsdesign";
-        private readonly string _fileThreeDModelPath = "/srv/goodsdesign/3dmodels";
 
         [HttpPost]
         public async Task<IActionResult> UploadImage(IFormFile file)
@@ -84,14 +83,14 @@ namespace GoodsDesignAPI.Controllers
                 }
 
                 // Ensure directory exists
-                if (!Directory.Exists(_fileThreeDModelPath))
+                if (!Directory.Exists(_fileStoragePath))
                 {
-                    Directory.CreateDirectory(_fileThreeDModelPath);
+                    Directory.CreateDirectory(_fileStoragePath);
                 }
 
                 // Save the 3D model file
                 string fileName = $"{Guid.NewGuid()}{fileExtension}";
-                string filePath = Path.Combine(_fileThreeDModelPath, fileName);
+                string filePath = Path.Combine(_fileStoragePath, fileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
@@ -99,7 +98,7 @@ namespace GoodsDesignAPI.Controllers
                 }
 
                 // Return the public URL
-                string fileUrl = $"https://api.goodsdesign.uydev.id.vn/files/goodsdesign/3dmodels/{fileName}";
+                string fileUrl = $"https://api.goodsdesign.uydev.id.vn/files/goodsdesign/{fileName}";
                 return Ok(new { fileUrl });
             }
             catch (Exception ex)

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DataTransferObjects.AuthDTOs
+﻿namespace DataTransferObjects.AuthDTOs
 {
     public class RegisterFactoryOwnerRequestDTO
     {
@@ -23,7 +17,7 @@ namespace DataTransferObjects.AuthDTOs
         public string ContractName { get; set; }
         public string ContractPaperUrl { get; set; }
 
-        public List<SelectedProductDTO> SelectedProducts {  get; set; }
+        public List<SelectedProductDTO> SelectedProducts { get; set; }
     }
 
     public class SelectedProductDTO
