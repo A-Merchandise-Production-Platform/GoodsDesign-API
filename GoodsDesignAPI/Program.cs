@@ -29,7 +29,7 @@ builder.Services.SetupIOCContainer();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 app.UseRouting();
 
@@ -49,7 +49,6 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider("/srv/goodsdesign"),
     RequestPath = "/files/goodsdesign"
 });
-
 
 app.UseSwagger();
 
@@ -83,7 +82,7 @@ static IEdmModel GetEdmModel()
     // Configure entity sets
     var users = builder.EntitySet<User>("Users");
     var roles = builder.EntitySet<Role>("Roles");
-   
+
     builder.EntitySet<Area>("Areas");
     var categories = builder.EntitySet<Category>("Categories");
     builder.EntitySet<Notification>("Notifications");
