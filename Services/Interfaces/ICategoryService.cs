@@ -1,7 +1,7 @@
 ﻿using BusinessObjects.Entities;
 using DataTransferObjects.CategoryDTOs;
 
-namespace Services.Services
+namespace Services.Interfaces
 {
     public interface ICategoryService
     {
