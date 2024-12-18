@@ -96,10 +96,6 @@ namespace Services.Services
             return await _unitOfWork.ProductPositionTypeRepository.GetByIdAsync(id);
         }
 
-        public async Task<IEnumerable<ProductPositionType>> GetAllProductPositionTypes()
-        {
-            _logger.Info("Fetch all ProductPositionTypes request received.");
-            return await _unitOfWork.ProductPositionTypeRepository.GetAllAsync();
-        }
+ 
     }
 }
