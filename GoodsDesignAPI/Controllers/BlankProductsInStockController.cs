@@ -69,22 +69,22 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetBlankProductById(Guid id)
-        {
-            _logger.Info($"Fetch Blank Product In Stock with ID {id} request received.");
-            try
-            {
-                var product = await _blankProductService.GetBlankProductInStockById(id);
-                return Ok(ApiResult<object>.Success(product, "Blank Product In Stock fetched successfully."));
-            }
-            catch (Exception ex)
-            {
-                _logger.Error($"Error during fetch: {ex.Message}");
-                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
-                return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
-            }
-        }
+        //[HttpGet("{id:guid}")]
+        //public async Task<IActionResult> GetBlankProductById(Guid id)
+        //{
+        //    _logger.Info($"Fetch Blank Product In Stock with ID {id} request received.");
+        //    try
+        //    {
+        //        var product = await _blankProductService.GetBlankProductInStockById(id);
+        //        return Ok(ApiResult<object>.Success(product, "Blank Product In Stock fetched successfully."));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.Error($"Error during fetch: {ex.Message}");
+        //        int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+        //        return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
+        //    }
+        //}
 
      
     }
