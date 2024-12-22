@@ -22,7 +22,7 @@ namespace GoodsDesignAPI.Controllers
             _roleManager = roleManager;
             _logger = loggerService;
         }
-
+        [Authorize(Roles = "admin")]
         [HttpPost("seed-users")]
         public async Task<IActionResult> SeedUser()
         {
@@ -104,7 +104,7 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(500, new { message = "An error occurred during seeding.", error = ex.Message });
             }
         }
-
+        [Authorize(Roles = "admin")]
         [HttpPost("seed-areas")]
         public async Task<IActionResult> SeedAreas([FromServices] GoodsDesignDbContext context)
         {
@@ -144,7 +144,7 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(500, new { message = "An error occurred during area seeding.", error = ex.Message });
             }
         }
-
+        [Authorize(Roles = "admin")]
         [HttpPost("seed-categories")]
         public async Task<IActionResult> SeedCategories([FromServices] GoodsDesignDbContext context)
         {
@@ -195,7 +195,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-
+        [Authorize(Roles = "admin")]
         [HttpPost("seed-products")]
         public async Task<IActionResult> SeedProducts([FromServices] GoodsDesignDbContext context)
         {
@@ -269,6 +269,7 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(500, new { message = "An error occurred during product seeding.", error = ex.Message });
             }
         }
+        [Authorize(Roles = "admin")]
 
         [HttpPost("seed-factories")]
         public async Task<IActionResult> SeedFactories([FromServices] GoodsDesignDbContext context)
@@ -349,7 +350,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-
+        [Authorize(Roles = "admin")]
         [HttpPost("seed-factory-products")]
         public async Task<IActionResult> SeedFactoryProducts([FromServices] GoodsDesignDbContext context)
         {
