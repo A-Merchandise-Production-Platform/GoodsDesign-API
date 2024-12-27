@@ -3,6 +3,7 @@ using BusinessObjects.Entities; // Include your namespace for the custom User en
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Services.Interfaces;
 using Services.Utils;
 
@@ -22,6 +23,94 @@ namespace GoodsDesignAPI.Controllers
             _roleManager = roleManager;
             _logger = loggerService;
         }
+
+    //    [Authorize(Roles = "admin")]
+        [HttpPost("seed-all-data")]
+        public async Task<IActionResult> SeedAllData([FromServices] GoodsDesignDbContext context)
+        {
+            using var transaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                _logger.Info("Seeding all data initiated.");
+
+                // Clear all data
+                await ClearDatabase(context);
+
+                // Seed data in the correct order using existing methods
+                _logger.Info("Seeding users...");
+                var usersResult = await SeedUser();
+
+                _logger.Info("Seeding areas...");
+                var areasResult = await SeedAreas(context);
+
+                _logger.Info("Seeding categories...");
+                var categoriesResult = await SeedCategories(context);
+
+                _logger.Info("Seeding products...");
+                var productsResult = await SeedProducts(context);
+
+                _logger.Info("Seeding factories...");
+                var factoriesResult = await SeedFactories(context);
+
+                _logger.Info("Seeding factory products...");
+                var factoryProductsResult = await SeedFactoryProducts(context);
+
+                await transaction.CommitAsync();
+
+                _logger.Success("All data seeded successfully.");
+                return Ok(new
+                {
+                    message = "Seeding all data completed successfully!",
+                    details = new
+                    {
+                        usersResult,
+                        areasResult,
+                        categoriesResult,
+                        productsResult,
+                        factoriesResult,
+                        factoryProductsResult
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.Error($"An error occurred during seeding all data: {ex.Message}");
+                return StatusCode(500, new { message = "An error occurred during seeding all data.", error = ex.Message });
+            }
+        }
+
+        private async Task ClearDatabase(GoodsDesignDbContext context)
+        {
+            _logger.Info("Clearing all data in database...");
+
+            // Use ExecuteDeleteAsync for faster deletions (requires EF Core >= 7.0)
+            await context.FactoryProducts.ExecuteDeleteAsync();
+            await context.Factories.ExecuteDeleteAsync();
+            await context.Products.ExecuteDeleteAsync();
+            await context.Categories.ExecuteDeleteAsync();
+            await context.Areas.ExecuteDeleteAsync();
+            await context.Notifications.ExecuteDeleteAsync();
+
+            // Remove users and roles (users first due to FK constraint)
+            var users = _userManager.Users.ToList();
+            foreach (var user in users)
+            {
+                await _userManager.DeleteAsync(user);
+            }
+
+            var roles = _roleManager.Roles.ToList();
+            foreach (var role in roles)
+            {
+                await _roleManager.DeleteAsync(role);
+            }
+
+            _logger.Success("All data cleared successfully.");
+        }
+
+
+
+
         [Authorize(Roles = "admin")]
         [HttpPost("seed-users")]
         public async Task<IActionResult> SeedUser()
