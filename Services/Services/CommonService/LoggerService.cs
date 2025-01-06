@@ -1,4 +1,4 @@
-﻿using Services.Interfaces;
+﻿using Services.Interfaces.CommonService;
 
 namespace Services.Services.CommonService
 {

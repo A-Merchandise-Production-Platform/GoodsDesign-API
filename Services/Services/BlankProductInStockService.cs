@@ -3,6 +3,7 @@ using BusinessObjects.Entities;
 using DataTransferObjects.BlankProductInStockDTOs;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using Services.Interfaces.CommonService;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -2,6 +2,7 @@
 using DataTransferObjects.UserDTOs;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
+using Services.Interfaces.CommonService;
 using Services.Utils;
 
 namespace GoodsDesignAPI.Controllers

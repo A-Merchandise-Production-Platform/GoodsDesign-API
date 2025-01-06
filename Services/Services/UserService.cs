@@ -4,6 +4,7 @@ using DataTransferObjects.Auth;
 using DataTransferObjects.UserDTOs;
 using Microsoft.AspNetCore.Identity;
 using Services.Interfaces;
+using Services.Interfaces.CommonService;
 
 namespace Services.Services
 {

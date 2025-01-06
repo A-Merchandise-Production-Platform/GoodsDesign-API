@@ -3,7 +3,7 @@ using BusinessObjects.Entities;
 using DataTransferObjects.UserDTOs;
 using Microsoft.AspNetCore.Identity;
 using Moq;
-using Services.Interfaces;
+using Services.Interfaces.CommonService;
 using Services.Services;
 using System;
 using System.Collections.Generic;
