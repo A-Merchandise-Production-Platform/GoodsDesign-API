@@ -22,6 +22,10 @@ namespace BusinessObjects
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Factory> Factories { get; set; }
         public DbSet<FactoryProduct> FactoryProducts { get; set; }
+        public DbSet<CustomerOrder> CustomerOrders { get; set; }
+        public DbSet<ProductDesign> ProductDesigns { get; set; }
+        public DbSet<DesignComponentPosition> DesignComponentPositions { get; set; }
+        public DbSet<DesignPosition> DesignPositions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
