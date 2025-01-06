@@ -24,7 +24,7 @@
     {
         public Guid ProductId { get; set; }
         public int? ProductionCapacity { get; set; }
-        public int? EstimatedProductionTimwe { get; set; }
+        public int? EstimatedProductionTime { get; set; }
     }
 
 }

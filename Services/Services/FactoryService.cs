@@ -4,12 +4,7 @@ using DataTransferObjects.FactoryDTOs;
 using Repositories.Interfaces;
 using Services.Interfaces;
 using Services.Interfaces.CommonService;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Services.Services
 {
@@ -83,7 +78,7 @@ namespace Services.Services
                             Factory = factory,
                             Product = product,
                             ProductionCapacity = selectedProduct.ProductionCapacity ?? 0,
-                            EstimatedProductionTimwe = selectedProduct.EstimatedProductionTimwe ?? 0
+                            EstimatedProductionTimwe = selectedProduct.EstimatedProductionTime ?? 0
                         });
                     }
                 }
@@ -113,7 +108,7 @@ namespace Services.Services
                     throw new KeyNotFoundException("400 - User (FactoryOwner) not found. Cannot create factory.");
                 }
 
-                
+
 
                 var factory = new Factory
                 {
@@ -126,7 +121,7 @@ namespace Services.Services
                 };
 
 
-                
+
                 var result = await _unitOfWork.FactoryRepository.AddAsync(factory);
                 await _unitOfWork.SaveChangesAsync();
                 _logger.Success("Factory created successfully.");
@@ -214,7 +209,7 @@ namespace Services.Services
                     _logger.Warn($"Factory with ID: {factoryId} not found.");
                     throw new KeyNotFoundException("404 - Factory not found.");
                 }
-                factory.IsActive = !factory.IsActive ;
+                factory.IsActive = !factory.IsActive;
                 if (factory.IsActive.Value)
                 {
                     var owner = await _userService.GetCurrentUser(factory.FactoryOwnerId.ToString());
@@ -226,8 +221,8 @@ namespace Services.Services
                     if (!owner.IsActive)
                     {
                         await _userService.UpdateActiveStatusUser(factory.FactoryOwnerId);
-                    } 
-                    
+                    }
+
                 }
 
                 await _unitOfWork.FactoryRepository.Update(factory);
