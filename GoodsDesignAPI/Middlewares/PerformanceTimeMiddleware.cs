@@ -1,4 +1,4 @@
-﻿using Services.Interfaces;
+﻿using Services.Interfaces.CommonService;
 using System.Diagnostics;
 
 namespace GoodsDesignAPI.Middlewares

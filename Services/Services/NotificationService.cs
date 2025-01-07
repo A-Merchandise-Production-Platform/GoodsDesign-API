@@ -3,6 +3,7 @@ using BusinessObjects.Enums;
 using DataTransferObjects.NotificationDTOs;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using Services.Interfaces.CommonService;
 
 namespace Services.Services
 {

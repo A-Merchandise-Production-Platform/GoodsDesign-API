@@ -5,7 +5,7 @@ using BusinessObjects.Entities;
 using DataTransferObjects.ProductVarianceDTOs;
 using Moq;
 using Repositories.Interfaces;
-using Services.Interfaces;
+using Services.Interfaces.CommonService;
 using Services.Services;
 using Xunit;
 

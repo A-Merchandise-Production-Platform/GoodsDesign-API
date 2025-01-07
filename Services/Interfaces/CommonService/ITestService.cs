@@ -1,4 +1,4 @@
-﻿namespace Services.Interfaces
+﻿namespace Services.Interfaces.CommonService
 {
     public interface ITestService
     {

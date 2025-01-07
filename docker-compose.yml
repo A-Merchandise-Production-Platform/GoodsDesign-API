@@ -1,7 +1,7 @@
 services:
   goodsdesignapi:
     user: "1000:1000"
-    image: ${DOCKER_REGISTRY-}goodsdesignapi
+    image: lequocuy/goodsdesignapi
     build:
       context: .
       dockerfile: GoodsDesignAPI/Dockerfile
@@ -14,6 +14,14 @@ services:
       - "JWT__Audience=GoodsDesign_Audience"
       - "Minio__AccessKey=CX2A6aRmIQxH4rrDmL8S"
       - "Minio__SecretKey=TlP25JEHKQESROCMvXQnEpTzfhhpqNltHokV2ODK"
+      - "Payment__PayOS__ClientId=a0e15555-4f76-4d37-851b-1964695a4e7d"
+      - "Payment__PayOS__ApiKey=458d9765-bc31-443a-858b-266cf1906714"
+      - "Payment__PayOS__ChecksumKey=1151ff11ce940d58039148d9d8670a4d99305dc89cc698572dedb53999c97729"
+      - "Payment__VnPay__ReturnUrl=https://api.goodsdesign.uydev.id.vn/api/v1/payment/vnpay-ipn-receive"
+      - "Payment__VnPay__PaymentUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+      - "Payment__VnPay__TmnCode=0RZLO13S"
+      - "Payment__VnPay__HashSecret=IKNZLEFKQ6QGFJU6TXO4DOSLB58XEI63"
+      - "Payment__VnPay__Version=2.1.0"
     ports:
       - "9000:8080"
     depends_on:

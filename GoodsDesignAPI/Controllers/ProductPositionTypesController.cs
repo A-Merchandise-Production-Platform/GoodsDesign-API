@@ -1,8 +1,7 @@
 ﻿using DataTransferObjects.ProductPositionTypeDTOs;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
-using Services.Services;
+using Services.Interfaces.CommonService;
 using Services.Utils;
 
 namespace GoodsDesignAPI.Controllers
@@ -67,12 +66,5 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(500, ApiResult<object>.Error(ex.Message));
             }
         }
-
-        //[HttpGet("{id:guid}")]
-        //public async Task<IActionResult> GetById(Guid id)
-        //{
-        //    var result = await _service.GetProductPositionTypeById(id);
-        //    return Ok(ApiResult<object>.Success(result, "ProductPositionType fetched successfully."));
-        //}
     }
 }

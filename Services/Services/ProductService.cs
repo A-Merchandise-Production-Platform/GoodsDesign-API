@@ -3,6 +3,7 @@ using BusinessObjects.Entities;
 using DataTransferObjects.ProductDTOs;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using Services.Interfaces.CommonService;
 
 namespace Services.Services
 {

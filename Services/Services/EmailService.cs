@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using System.Text.Json;
+using Services.Interfaces.CommonService;
 
 namespace Services.Services
 {

@@ -7,11 +7,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
 using Repositories;
 using Repositories.Commons;
 using Repositories.Interfaces;
 using Repositories.Repositories;
 using Services.Interfaces;
+using Services.Interfaces.CommonService;
 using Services.Mapper;
 using Services.Services;
 using Services.Services.CommonService;
@@ -59,6 +61,19 @@ namespace GoodsDesignAPI.Architecture
             var accessKey = configuration["Minio:AccessKey"];
             var secretKey = configuration["Minio:SecretKey"];
             //services.AddMinio(accessKey, secretKey);
+
+            //PayOS
+            services.AddSingleton<PayOS>(provider =>
+            {
+                string clientId = configuration["Payment:PayOS:ClientId"] ?? throw new Exception("Cannot find PAYOS_CLIENT_ID");
+                string apiKey = configuration["Payment:PayOS:ApiKey"] ?? throw new Exception("Cannot find PAYOS_API_KEY");
+                string checksumKey = configuration["Payment:PayOS:ChecksumKey"] ?? throw new Exception("Cannot find PAYOS_CHECKSUM_KEY");
+
+                return new PayOS(clientId, apiKey, checksumKey);
+            });
+            //VnPay
+
+
             return services;
         }
 

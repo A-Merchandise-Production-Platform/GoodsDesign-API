@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Services.Interfaces;
+using Services.Interfaces.CommonService;
 using Services.Utils;
 
 namespace GoodsDesignAPI.Controllers

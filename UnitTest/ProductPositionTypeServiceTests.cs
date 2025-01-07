@@ -3,7 +3,7 @@ using BusinessObjects.Entities;
 using DataTransferObjects.ProductPositionTypeDTOs;
 using Moq;
 using Repositories.Interfaces;
-using Services.Interfaces;
+using Services.Interfaces.CommonService;
 using Services.Services;
 
 namespace UnitTest
