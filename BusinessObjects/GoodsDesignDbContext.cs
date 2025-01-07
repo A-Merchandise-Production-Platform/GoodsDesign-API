@@ -25,7 +25,9 @@ namespace BusinessObjects
         public DbSet<CustomerOrder> CustomerOrders { get; set; }
         public DbSet<ProductDesign> ProductDesigns { get; set; }
         public DbSet<DesignComponentPosition> DesignComponentPositions { get; set; }
-        public DbSet<DesignPosition> DesignPositions { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+       
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

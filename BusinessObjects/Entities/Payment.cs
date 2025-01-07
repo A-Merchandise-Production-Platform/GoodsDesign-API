@@ -8,7 +8,7 @@ namespace BusinessObjects.Entities
 {
     public class Payment : BaseEntity
     {
-        public Guid OrderId { get; set; }
+        public Guid CustomerOrderId { get; set; }
         public Guid CustomerId { get; set; }
         public decimal Amount { get; set; }
         public string Type { get; set; } // Enum: Deposit, Withdrawn
