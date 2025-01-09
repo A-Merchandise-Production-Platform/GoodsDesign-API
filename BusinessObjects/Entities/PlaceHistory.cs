@@ -9,11 +9,10 @@ namespace BusinessObjects.Entities
 {
     public class PlaceHistory : BaseEntity
     {
-        public Guid PlaceId { get; set; }
+        public Guid AreaId { get; set; }
         public string Note { get; set; }
 
         // Navigation property
-        [ForeignKey(nameof(PlaceId))] // Chỉ định PlaceId là khóa ngoại
 
         public Area Area { get; set; }
     }

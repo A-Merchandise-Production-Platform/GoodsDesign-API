@@ -139,6 +139,45 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves personal factories owned by the current user.
+        /// </summary>
+        /// <response code="200">Returns the list of factories owned by the current user.</response>
+        /// <response code="500">Internal server error.</response>
+        [EnableQuery]
+        [HttpGet("/api/cart-items/me")]
+        public async Task<ActionResult<CartItem>> GetMyCart()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.Warn("User ID not found in token.");
+                    return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
+                }
+
+                var userExists = await _context.CartItems.AnyAsync(u => u.Id == Guid.Parse(userId) && !u.IsDeleted);
+                if (!userExists)
+                {
+                    _logger.Warn("User not found or deleted.");
+                    return Unauthorized(ApiResult<object>.Error("401 - User not found or deleted."));
+                }
+
+                var factories = await _context.CartItems
+                    .Where(f => f.UserId == Guid.Parse(userId))
+                    .ToListAsync();
+
+                return Ok(factories);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error retrieving factories: {ex.Message}");
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
 
     }
 }
