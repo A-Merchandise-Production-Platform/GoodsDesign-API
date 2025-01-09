@@ -40,7 +40,7 @@ namespace Services.Services
                 var blankProduct = new BlankProductInStock
                 {
                     ProductVarianceId = dto.ProductVarianceId,
-                    PlaceId = dto.PlaceId,
+                    AreaId = dto.PlaceId,
                     QuantityInStock = dto.QuantityInStock
                 };
 

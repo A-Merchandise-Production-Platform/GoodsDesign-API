@@ -17,6 +17,7 @@ namespace Repositories
         private readonly IGenericRepository<ProductVariance> _productVarianceRepository;
         private readonly IGenericRepository<BlankProductInStock> _blankProductInStockRepository;
         private readonly IGenericRepository<ProductPositionType> _productPositionTypeRepository;
+        private readonly IGenericRepository<CartItem> _cartItemGenericRepository;
 
 
         public UnitOfWork(GoodsDesignDbContext dbContext
@@ -30,6 +31,7 @@ namespace Repositories
             , IGenericRepository<ProductVariance> productVarianceRepository
             , IGenericRepository<BlankProductInStock> blankProductInStockRepository
             , IGenericRepository<ProductPositionType> productPositionTypeRepository
+            , IGenericRepository<CartItem> cartItemGenericRepository
 
 
 
@@ -46,6 +48,7 @@ namespace Repositories
             _productVarianceRepository = productVarianceRepository;
             _blankProductInStockRepository = blankProductInStockRepository;
             _productPositionTypeRepository = productPositionTypeRepository;
+            _cartItemGenericRepository = cartItemGenericRepository;
         }
 
         //   public IGenericRepository<User> UserGenericRepository => _userGenericRepository;
@@ -58,6 +61,8 @@ namespace Repositories
         public IGenericRepository<ProductVariance> ProductVarianceRepository => _productVarianceRepository;
         public IGenericRepository<BlankProductInStock> BlankProductInStockRepository => _blankProductInStockRepository;
         public IGenericRepository<ProductPositionType> ProductPositionTypeRepository => _productPositionTypeRepository;
+        public IGenericRepository<CartItem> CartItemGenericRepository => _cartItemGenericRepository;
+
 
 
 

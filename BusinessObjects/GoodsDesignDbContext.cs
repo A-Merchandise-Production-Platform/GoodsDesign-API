@@ -27,6 +27,7 @@ namespace BusinessObjects
         public DbSet<DesignComponentPosition> DesignComponentPositions { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -63,10 +64,10 @@ namespace BusinessObjects
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ProductVariance>()
-                .HasOne(pv => pv.Product)
-                .WithMany()
-                .HasForeignKey(pv => pv.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
+     .HasOne(pv => pv.Product)
+     .WithMany(p => p.ProductVariances)
+     .HasForeignKey(pv => pv.ProductId)
+     .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<BlankProductInStock>()
                 .HasOne(bp => bp.ProductVariance)
@@ -77,7 +78,7 @@ namespace BusinessObjects
             modelBuilder.Entity<BlankProductInStock>()
                 .HasOne(bp => bp.Area)
                 .WithMany()
-                .HasForeignKey(bp => bp.PlaceId)
+                .HasForeignKey(bp => bp.AreaId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Optional: Configure jsonb column (if needed)
@@ -108,6 +109,9 @@ namespace BusinessObjects
             modelBuilder.Entity<Factory>()
                 .Property(f => f.Contract)
                 .HasColumnType("jsonb");
+
+       
+
 
         }
     }

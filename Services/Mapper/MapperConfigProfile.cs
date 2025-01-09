@@ -2,6 +2,7 @@
 using BusinessObjects.Entities;
 using DataTransferObjects.AreaDTOs;
 using DataTransferObjects.BlankProductInStockDTOs;
+using DataTransferObjects.CartDTOs;
 using DataTransferObjects.CategoryDTOs;
 using DataTransferObjects.FactoryDTOs;
 using DataTransferObjects.ProductDTOs;
@@ -50,6 +51,14 @@ namespace Services.Mapper
 
             CreateMap<BlankProductInStockDTO, BlankProductInStock>()
                .ReverseMap();
+
+            CreateMap<CartItem, CartItemDTO>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+               .ReverseMap();
+
+            CreateMap<CartItem, CartItemDTO>()
+   .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.Quantity * src.UnitPrice)).ReverseMap();
+
         }
     }
 }

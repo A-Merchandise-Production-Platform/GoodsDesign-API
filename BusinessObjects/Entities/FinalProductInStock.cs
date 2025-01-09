@@ -10,7 +10,7 @@ namespace BusinessObjects.Entities
     {
         public Guid OrderId { get; set; }
         public Guid ProductDesignId { get; set; }
-        public Guid PlaceId { get; set; }
+        public Guid AreaId { get; set; }
         public int QuantityInStock { get; set; }
 
         // Navigation properties
