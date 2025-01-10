@@ -9,7 +9,7 @@ namespace BusinessObjects.Entities
     public class PaymentTransaction : BaseEntity
     {
         public Guid PaymentId { get; set; }
-        public Guid OrderId { get; set; }
+        public Guid CustomerOrderId { get; set; }
         public Guid CustomerId { get; set; }
         public string PaymentGatewayTransactionId { get; set; }
         public decimal Amount { get; set; }

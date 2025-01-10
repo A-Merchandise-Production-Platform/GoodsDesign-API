@@ -139,6 +139,65 @@ namespace Repositories.Repositories
             return _dbSet;
         }
 
+        public async Task<TEntity?> FirstOrDefaultAsync(
+    Expression<Func<TEntity, bool>> predicate = null,
+    params Expression<Func<TEntity, object>>[] includes)
+        {
+            IQueryable<TEntity> query = _dbSet;
+
+            // Include các navigation properties
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            // Áp dụng predicate (nếu có)
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            // Lấy bản ghi đầu tiên
+            return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> HardRemove(Expression<Func<TEntity, bool>> predicate)
+        {
+            try
+            {
+                var entities = await _dbSet.Where(predicate).ToListAsync();
+                if (entities.Any())
+                {
+                    _dbSet.RemoveRange(entities);
+                    return true;
+                }
+                return false; // Không có gì để xóa
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while performing hard remove: {ex.Message}");
+            }
+        }
+
+        public async Task<bool> HardRemoveRange(List<TEntity> entities)
+        {
+            try
+            {
+                if (entities.Any())
+                {
+                    _dbSet.RemoveRange(entities);
+                    return true;
+                }
+                return false; // Không có gì để xóa
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while performing hard remove range: {ex.Message}");
+            }
+        }
+
+
+
         //private readonly StudentEventForumDbContext _dbContext;
         //private readonly DbSet<TEntity> _dbSet;
 

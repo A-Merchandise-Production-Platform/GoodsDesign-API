@@ -3,6 +3,7 @@ using System;
 using BusinessObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BusinessObjects.Migrations
 {
     [DbContext(typeof(GoodsDesignDbContext))]
-    partial class GoodsDesignDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250107035054_updatedb")]
+    partial class updatedb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,9 +75,6 @@ namespace BusinessObjects.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("AreaId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -89,6 +89,9 @@ namespace BusinessObjects.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
+
+                    b.Property<Guid>("PlaceId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("ProductVarianceId")
                         .HasColumnType("uuid");
@@ -104,59 +107,11 @@ namespace BusinessObjects.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AreaId");
+                    b.HasIndex("PlaceId");
 
                     b.HasIndex("ProductVarianceId");
 
                     b.ToTable("BlankProductsInStock");
-                });
-
-            modelBuilder.Entity("BusinessObjects.Entities.CartItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("BusinessObjects.Entities.Category", b =>
@@ -1064,7 +1019,7 @@ namespace BusinessObjects.Migrations
                 {
                     b.HasOne("BusinessObjects.Entities.Area", "Area")
                         .WithMany()
-                        .HasForeignKey("AreaId")
+                        .HasForeignKey("PlaceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1077,25 +1032,6 @@ namespace BusinessObjects.Migrations
                     b.Navigation("Area");
 
                     b.Navigation("ProductVariance");
-                });
-
-            modelBuilder.Entity("BusinessObjects.Entities.CartItem", b =>
-                {
-                    b.HasOne("BusinessObjects.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BusinessObjects.Entities.User", "User")
-                        .WithMany("CartItems")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BusinessObjects.Entities.CustomerOrder", b =>
@@ -1268,9 +1204,9 @@ namespace BusinessObjects.Migrations
             modelBuilder.Entity("BusinessObjects.Entities.ProductVariance", b =>
                 {
                     b.HasOne("BusinessObjects.Entities.Product", "Product")
-                        .WithMany("ProductVariances")
+                        .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Product");
@@ -1351,18 +1287,11 @@ namespace BusinessObjects.Migrations
             modelBuilder.Entity("BusinessObjects.Entities.Product", b =>
                 {
                     b.Navigation("FactoryProducts");
-
-                    b.Navigation("ProductVariances");
                 });
 
             modelBuilder.Entity("BusinessObjects.Entities.Role", b =>
                 {
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("BusinessObjects.Entities.User", b =>
-                {
-                    b.Navigation("CartItems");
                 });
 #pragma warning restore 612, 618
         }

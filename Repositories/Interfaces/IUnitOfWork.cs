@@ -14,6 +14,7 @@ namespace Repositories.Interfaces
         IGenericRepository<ProductVariance> ProductVarianceRepository { get; }
         IGenericRepository<BlankProductInStock> BlankProductInStockRepository { get; }
         IGenericRepository<ProductPositionType> ProductPositionTypeRepository { get; }
+        IGenericRepository<CartItem> CartItemGenericRepository { get; }
 
         Task<int> SaveChangesAsync();
     }
