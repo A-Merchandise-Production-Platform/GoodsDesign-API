@@ -465,7 +465,7 @@ namespace GoodsDesignAPI.Controllers
         {
             try
             {
-                var result = await _context.BlankProductsInStock.Include(x => x.ProductVariance).ToListAsync();
+                var result = await _context.BlankProductsInStocks.Include(x => x.ProductVariance).ToListAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -544,7 +544,7 @@ namespace GoodsDesignAPI.Controllers
             try
             {
                 var itemId = Guid.TryParse(id, out var guid) ? guid : Guid.Empty;
-                var item = await _context.BlankProductsInStock.Include(x => x.ProductVariance).FirstOrDefaultAsync(d => d.Id.Equals(itemId));
+                var item = await _context.BlankProductsInStocks.Include(x => x.ProductVariance).FirstOrDefaultAsync(d => d.Id.Equals(itemId));
 
                 if (item == null)
                 {
