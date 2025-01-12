@@ -18,7 +18,7 @@ namespace BusinessObjects
         public DbSet<Category> Categories { get; set; }
         public DbSet<ProductPositionType> ProductPositionTypes { get; set; }
         public DbSet<ProductVariance> ProductVariances { get; set; }
-        public DbSet<BlankProductInStock> BlankProductsInStock { get; set; }
+        public DbSet<BlankProductInStock> BlankProductsInStocks { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Factory> Factories { get; set; }
         public DbSet<FactoryProduct> FactoryProducts { get; set; }
@@ -28,7 +28,9 @@ namespace BusinessObjects
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
-       
+        public DbSet<SystemConfig> SystemConfigs { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -110,8 +112,18 @@ namespace BusinessObjects
                 .Property(f => f.Contract)
                 .HasColumnType("jsonb");
 
-       
 
+            // Configure SystemConfig
+            modelBuilder.Entity<SystemConfig>()
+                .HasKey(sc => sc.Id); // Primary Key
+
+            modelBuilder.Entity<SystemConfig>()
+                .Property(sc => sc.Bank)
+                .HasColumnType("jsonb"); // JSONB for PostgreSQL
+
+            modelBuilder.Entity<SystemConfig>()
+                .Property(sc => sc.Color)
+                .HasColumnType("jsonb");
 
         }
     }
