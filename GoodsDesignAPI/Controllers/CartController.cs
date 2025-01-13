@@ -38,7 +38,7 @@ namespace GoodsDesignAPI.Controllers
                     return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
                 }
 
-                var cart = await _cartItemService.GetCart();
+                var cart = await _cartItemService.GetCart(Guid.Parse(userId));
                 return Ok(ApiResult<CartDTO>.Success(cart, "Cart retrieved successfully."));
             }
             catch (Exception ex)
@@ -54,7 +54,7 @@ namespace GoodsDesignAPI.Controllers
         /// <param name="cartItemDTO">The cart item to be added.</param>
         /// <returns>The updated cart item.</returns>
         [HttpPost("me/cart-items")]
-        public async Task<IActionResult> AddCartItem([FromBody] CartItemDTO cartItemDTO)
+        public async Task<IActionResult> AddCartItem([FromBody] CartItemCreateDTO cartItemDTO)
         {
             _logger.Info("Adding item to cart.");
             try
@@ -65,7 +65,7 @@ namespace GoodsDesignAPI.Controllers
                     _logger.Warn("User ID not found in token.");
                     return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
                 }
-                var updatedCartItem = await _cartItemService.AddCartItem(cartItemDTO);
+                var updatedCartItem = await _cartItemService.AddCartItem(cartItemDTO, Guid.Parse(userId));
                 return Ok(ApiResult<CartItemDTO>.Success(updatedCartItem, "Cart item added successfully."));
             }
             catch (KeyNotFoundException ex)

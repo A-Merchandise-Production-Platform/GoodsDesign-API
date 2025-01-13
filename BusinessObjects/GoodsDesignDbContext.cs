@@ -29,6 +29,10 @@ namespace BusinessObjects
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<SystemConfig> SystemConfigs { get; set; }
+        public DbSet<CustomerOrderDetail> CustomerOrderDetails { get; set; }
+        public DbSet<FactoryOrder> FactoryOrders { get; set; }
+        public DbSet<FactoryOrderDetail> FactoryOrderDetails { get; set; }
+
 
 
 

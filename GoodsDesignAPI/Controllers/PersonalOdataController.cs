@@ -72,14 +72,21 @@ namespace GoodsDesignAPI.Controllers
         {
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userId))
+                _logger.Info("Fetching orders for current user.");
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdString))
                 {
                     _logger.Warn("User ID not found in token.");
                     return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
                 }
 
-                var userExists = await _context.Users.AnyAsync(u => u.Id == Guid.Parse(userId) && !u.IsDeleted);
+                if (!Guid.TryParse(userIdString, out var userId))
+                {
+                    _logger.Warn("Invalid User ID format.");
+                    return BadRequest(ApiResult<object>.Error("400 - Invalid User ID format."));
+                }
+
+                var userExists = await _context.Users.AnyAsync(u => u.Id == userId && !u.IsDeleted);
                 if (!userExists)
                 {
                     _logger.Warn("User not found or deleted.");
@@ -87,7 +94,7 @@ namespace GoodsDesignAPI.Controllers
                 }
 
                 var orders = await _context.CustomerOrders
-                    .Where(o => o.CustomerId == Guid.Parse(userId))
+                    .Where(o => o.CustomerId == userId)
                     .ToListAsync();
 
                 return Ok(orders);

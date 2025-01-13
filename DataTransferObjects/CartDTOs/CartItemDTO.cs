@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataTransferObjects.ProductDTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,8 @@ namespace DataTransferObjects.CartDTOs
         public string? ProductName { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal TotalPrice => Quantity * UnitPrice; // Tính tổng giá trị sản phẩm
+
+        public virtual ProductDTO Product { get; set; }
 
     }
 }

@@ -89,6 +89,7 @@ namespace GoodsDesignAPI.Architecture
             services.AddScoped<IProductVarianceService, ProductVarianceService>();
             services.AddScoped<IBlankProductInStockService, BlankProductInStockService>();
             services.AddScoped<ICartItemService, CartItemService>();
+            services.AddScoped<ICustomerOrderService, CustomerOrderService>();
             return services;
         }
 
