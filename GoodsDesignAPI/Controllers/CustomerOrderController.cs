@@ -63,14 +63,14 @@ namespace GoodsDesignAPI.Controllers
         /// <param name="orderId">The ID of the order to update.</param>
         /// <param name="status">The new status for the order.</param>
         /// <returns>The updated order.</returns>
-        [HttpPatch("{orderId:guid}/status")]
-        public async Task<IActionResult> UpdateOrderStatus(Guid orderId, [FromBody] string status)
+        [HttpPatch("{id:guid}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(Guid id, [FromBody] string status)
         {
-            _logger.Info($"Updating status for order ID: {orderId}");
+            _logger.Info($"Updating status for order ID: {id}");
 
             try
             {
-                var updatedOrder = await _orderService.UpdateOrderStatus(orderId, status);
+                var updatedOrder = await _orderService.UpdateOrderStatus(id, status);
                 return Ok(ApiResult<CustomerOrderDTO>.Success(updatedOrder, "Order status updated successfully."));
             }
             catch (KeyNotFoundException ex)

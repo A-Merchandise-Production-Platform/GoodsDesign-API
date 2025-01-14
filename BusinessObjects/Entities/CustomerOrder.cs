@@ -19,6 +19,7 @@ namespace BusinessObjects.Entities
         public User Customer { get; set; }
 
         public ICollection<CustomerOrderDetail> CustomerOrderDetails { get; set; }
+        public ICollection<Payment> Payments { get; set; }
 
     }
 }

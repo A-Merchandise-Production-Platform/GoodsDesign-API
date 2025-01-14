@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataTransferObjects.PaymentDTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +15,7 @@ namespace DataTransferObjects.OrderDTOs
         public decimal ShippingPrice { get; set; }
         public decimal DepositPaid { get; set; }
         public DateTime OrderDate { get; set; }
+
+        public ICollection<PaymentDTO>? Payments {  get; set; }
     }
 }

@@ -22,8 +22,7 @@ namespace GoodsDesignAPI.Controllers
             _logger = logger;
         }
 
-
-        //   [Authorize(Roles = "admin")]
+        #region Seed SystemConfig
         [HttpPost("seed-system-config")]
         public async Task<ApiResult<List<SystemConfig>>> SeedSystemConfig([FromServices] GoodsDesignDbContext context)
         {
@@ -31,114 +30,57 @@ namespace GoodsDesignAPI.Controllers
             {
                 _logger.Info("Seeding SystemConfig initiated.");
 
-                // Kiểm tra nếu dữ liệu đã tồn tại
                 var existingConfigs = await context.SystemConfigs.ToListAsync();
                 if (existingConfigs.Any())
                 {
                     return ApiResult<List<SystemConfig>>.Error("SystemConfig already seeded.");
                 }
 
-                // Hard code danh sách Bank
                 var banks = new List<BankDTO>
-        {
-            new BankDTO
-            {
-                Id = 17,
-                Name = "Ngân hàng TMCP Công thương Việt Nam",
-                Code = "ICB",
-                Bin = "970415",
-                ShortName = "VietinBank",
-                Logo = "https://api.vietqr.io/img/ICB.png",
-                TransferSupported = true,
-                LookupSupported = true,
-                Short_Name = "VietinBank",
-                Support = 3,
-                IsTransfer = true,
-                SwiftCode = "ICBVVNVX"
-            },
-            new BankDTO
-            {
-                Id = 43,
-                Name = "Ngân hàng TMCP Ngoại Thương Việt Nam",
-                Code = "VCB",
-                Bin = "970436",
-                ShortName = "Vietcombank",
-                Logo = "https://api.vietqr.io/img/VCB.png",
-                TransferSupported = true,
-                LookupSupported = true,
-                Short_Name = "Vietcombank",
-                Support = 3,
-                IsTransfer = true,
-                SwiftCode = "BFTVVNVX"
-            },
-            new BankDTO
-            {
-                Id = 4,
-                Name = "Ngân hàng TMCP Đầu tư và Phát triển Việt Nam",
-                Code = "BIDV",
-                Bin = "970418",
-                ShortName = "BIDV",
-                Logo = "https://api.vietqr.io/img/BIDV.png",
-                TransferSupported = true,
-                LookupSupported = true,
-                Short_Name = "BIDV",
-                Support = 3,
-                IsTransfer = true,
-                SwiftCode = "BIDVVNVX"
-            },
-            new BankDTO
-            {
-                Id = 42,
-                Name = "Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam",
-                Code = "VBA",
-                Bin = "970405",
-                ShortName = "Agribank",
-                Logo = "https://api.vietqr.io/img/VBA.png",
-                TransferSupported = true,
-                LookupSupported = true,
-                Short_Name = "Agribank",
-                Support = 3,
-                IsTransfer = true,
-                SwiftCode = "VBAAVNVX"
-            }
-        };
+                {
+                    new BankDTO
+                    {
+                        Id = 17, Name = "Ngân hàng TMCP Công thương Việt Nam", Code = "ICB",
+                        Bin = "970415", ShortName = "VietinBank",
+                        Logo = "https://api.vietqr.io/img/ICB.png",
+                        TransferSupported = true, LookupSupported = true,
+                        Support = 3, IsTransfer = true, SwiftCode = "ICBVVNVX"
+                    },
+                    new BankDTO
+                    {
+                        Id = 43, Name = "Ngân hàng TMCP Ngoại Thương Việt Nam", Code = "VCB",
+                        Bin = "970436", ShortName = "Vietcombank",
+                        Logo = "https://api.vietqr.io/img/VCB.png",
+                        TransferSupported = true, LookupSupported = true,
+                        Support = 3, IsTransfer = true, SwiftCode = "BFTVVNVX"
+                    }
+                };
 
-                // Hard code danh sách Color
                 var colors = new List<object>
-        {
-            new { Name = "Red", Code = "#FF0000" },
-            new { Name = "Green", Code = "#00FF00" },
-            new { Name = "Blue", Code = "#0000FF" },
-            new { Name = "Yellow", Code = "#FFFF00" }
-        };
+                {
+                    new { Name = "Red", Code = "#FF0000" },
+                    new { Name = "Green", Code = "#00FF00" }
+                };
 
-                // Tạo danh sách SystemConfig để seed
                 var systemConfigsToSeed = new List<SystemConfig>
-        {
-            new SystemConfig
-            {
-                Id = "BANK",
-                Bank = JsonConvert.SerializeObject(banks),
-                Color = null,
-                Size = "M"
-            },
-            new SystemConfig
-            {
-                Id = "COLOR",
-                Bank = null,
-                Color = JsonConvert.SerializeObject(colors),
-                Size = "XL"
-            },
-            new SystemConfig
-            {
-                Id = "SIZE",
-                Bank = JsonConvert.SerializeObject(banks),
-                Color = JsonConvert.SerializeObject(colors),
-                Size = "XXL"
-            }
-        };
+                {
+                    new SystemConfig
+                    {
+                        Id = "BANK", Bank = JsonConvert.SerializeObject(banks),
+                        Color = null, Size = "M"
+                    },
+                    new SystemConfig
+                    {
+                        Id = "COLOR", Bank = null,
+                        Color = JsonConvert.SerializeObject(colors), Size = "L"
+                    },
+                    new SystemConfig
+                    {
+                        Id = "SIZE", Bank = null,
+                        Color = null, Size = "XL"
+                    }
+                };
 
-                // Thêm vào database
                 await context.SystemConfigs.AddRangeAsync(systemConfigsToSeed);
                 await context.SaveChangesAsync();
 
@@ -151,7 +93,9 @@ namespace GoodsDesignAPI.Controllers
                 throw;
             }
         }
+        #endregion
 
+        #region Add Data
         [Authorize(Roles = "admin")]
         [HttpPost("add-banks")]
         public async Task<IActionResult> AddBanks([FromBody] List<BankDTO> banksToAdd, [FromServices] GoodsDesignDbContext context)
@@ -159,32 +103,20 @@ namespace GoodsDesignAPI.Controllers
             try
             {
                 _logger.Info("Adding banks to SystemConfig initiated.");
-
-                // Lấy SystemConfig với Id là "BANK"
                 var systemConfig = await context.SystemConfigs.FirstOrDefaultAsync(sc => sc.Id == "BANK");
                 if (systemConfig == null)
                 {
                     throw new KeyNotFoundException("SystemConfig with Id 'BANK' not found.");
                 }
 
-                // Lấy danh sách bank hiện tại từ trường Bank (JSONB)
                 var existingBanks = string.IsNullOrEmpty(systemConfig.Bank)
                     ? new List<BankDTO>()
                     : JsonConvert.DeserializeObject<List<BankDTO>>(systemConfig.Bank);
 
-                // Thêm các bank mới vào danh sách hiện tại
                 existingBanks.AddRange(banksToAdd);
+                var distinctBanks = existingBanks.GroupBy(b => b.Id).Select(g => g.First()).ToList();
 
-                // Loại bỏ các bank trùng lặp theo Id
-                var distinctBanks = existingBanks
-                    .GroupBy(b => b.Id)
-                    .Select(g => g.First())
-                    .ToList();
-
-                // Cập nhật lại trường Bank với JSON đã được làm sạch
                 systemConfig.Bank = JsonConvert.SerializeObject(distinctBanks);
-
-                // Lưu thay đổi vào database
                 await context.SaveChangesAsync();
 
                 _logger.Success("Banks added successfully.");
@@ -197,26 +129,83 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
+        [Authorize(Roles = "admin")]
+        [HttpPost("add-colors")]
+        public async Task<IActionResult> AddColors([FromBody] List<object> colorsToAdd, [FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                _logger.Info("Adding colors to SystemConfig initiated.");
+                var systemConfig = await context.SystemConfigs.FirstOrDefaultAsync(sc => sc.Id == "COLOR");
+                if (systemConfig == null)
+                {
+                    throw new KeyNotFoundException("SystemConfig with Id 'COLOR' not found.");
+                }
+
+                var existingColors = string.IsNullOrEmpty(systemConfig.Color)
+                    ? new List<object>()
+                    : JsonConvert.DeserializeObject<List<object>>(systemConfig.Color);
+
+                existingColors.AddRange(colorsToAdd);
+                var distinctColors = existingColors.Distinct().ToList();
+
+                systemConfig.Color = JsonConvert.SerializeObject(distinctColors);
+                await context.SaveChangesAsync();
+
+                _logger.Success("Colors added successfully.");
+                return Ok(ApiResult<object>.Success(distinctColors, "Colors added successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error adding colors: {ex.Message}");
+                return StatusCode(500, ApiResult<object>.Error($"An error occurred while adding colors: {ex.Message}"));
+            }
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpPost("add-sizes")]
+        public async Task<IActionResult> AddSize([FromBody] string sizeToAdd, [FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                _logger.Info("Adding size to SystemConfig initiated.");
+                var systemConfig = await context.SystemConfigs.FirstOrDefaultAsync(sc => sc.Id == "SIZE");
+                if (systemConfig == null)
+                {
+                    throw new KeyNotFoundException("SystemConfig with Id 'SIZE' not found.");
+                }
+
+                systemConfig.Size = sizeToAdd;
+                await context.SaveChangesAsync();
+
+                _logger.Success("Size added successfully.");
+                return Ok(ApiResult<string>.Success(sizeToAdd, "Size added successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error adding size: {ex.Message}");
+                return StatusCode(500, ApiResult<object>.Error($"An error occurred while adding size: {ex.Message}"));
+            }
+        }
+        #endregion
+
+        #region Get Data
         [HttpGet("get-banks")]
         public async Task<IActionResult> GetBanks([FromServices] GoodsDesignDbContext context)
         {
             try
             {
                 _logger.Info("Fetching list of banks from SystemConfig.");
-
-                // Lấy SystemConfig với Id là "BANK"
                 var systemConfig = await context.SystemConfigs.FirstOrDefaultAsync(sc => sc.Id == "BANK");
                 if (systemConfig == null)
                 {
                     throw new KeyNotFoundException("SystemConfig with Id 'BANK' not found.");
                 }
 
-                // Lấy danh sách bank từ trường Bank (JSONB)
                 var existingBanks = string.IsNullOrEmpty(systemConfig.Bank)
                     ? new List<BankDTO>()
                     : JsonConvert.DeserializeObject<List<BankDTO>>(systemConfig.Bank);
 
-                _logger.Success("Fetched list of banks successfully.");
                 return Ok(ApiResult<object>.Success(existingBanks, "Fetched list of banks successfully."));
             }
             catch (Exception ex)
@@ -226,5 +215,138 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
+        [HttpGet("get-colors")]
+        public async Task<IActionResult> GetColors([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                _logger.Info("Fetching list of colors from SystemConfig.");
+                var systemConfig = await context.SystemConfigs.FirstOrDefaultAsync(sc => sc.Id == "COLOR");
+                if (systemConfig == null)
+                {
+                    throw new KeyNotFoundException("SystemConfig with Id 'COLOR' not found.");
+                }
+
+                var existingColors = string.IsNullOrEmpty(systemConfig.Color)
+                    ? new List<object>()
+                    : JsonConvert.DeserializeObject<List<object>>(systemConfig.Color);
+
+                return Ok(ApiResult<object>.Success(existingColors, "Fetched list of colors successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error fetching colors: {ex.Message}");
+                return StatusCode(500, ApiResult<object>.Error($"An error occurred while fetching colors: {ex.Message}"));
+            }
+        }
+
+        [HttpGet("get-sizes")]
+        public async Task<IActionResult> GetSizes([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                _logger.Info("Fetching size from SystemConfig.");
+                var systemConfig = await context.SystemConfigs.FirstOrDefaultAsync(sc => sc.Id == "SIZE");
+                if (systemConfig == null)
+                {
+                    throw new KeyNotFoundException("SystemConfig with Id 'SIZE' not found.");
+                }
+
+                return Ok(ApiResult<object>.Success(systemConfig.Size, "Fetched size successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error fetching size: {ex.Message}");
+                return StatusCode(500, ApiResult<object>.Error($"An error occurred while fetching size: {ex.Message}"));
+            }
+        }
+        #endregion
+
+        #region Delete Data
+        [Authorize(Roles = "admin")]
+        [HttpDelete("delete-banks")]
+        public async Task<IActionResult> DeleteBanks([FromBody] List<int> bankIdsToDelete, [FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                _logger.Info("Deleting banks from SystemConfig initiated.");
+                var systemConfig = await context.SystemConfigs.FirstOrDefaultAsync(sc => sc.Id == "BANK");
+                if (systemConfig == null)
+                {
+                    throw new KeyNotFoundException("SystemConfig with Id 'BANK' not found.");
+                }
+
+                var existingBanks = string.IsNullOrEmpty(systemConfig.Bank)
+                    ? new List<BankDTO>()
+                    : JsonConvert.DeserializeObject<List<BankDTO>>(systemConfig.Bank);
+
+                var updatedBanks = existingBanks.Where(b => !bankIdsToDelete.Contains(b.Id)).ToList();
+                systemConfig.Bank = JsonConvert.SerializeObject(updatedBanks);
+
+                await context.SaveChangesAsync();
+                return Ok(ApiResult<object>.Success(updatedBanks, "Banks deleted successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error deleting banks: {ex.Message}");
+                return StatusCode(500, ApiResult<object>.Error($"An error occurred while deleting banks: {ex.Message}"));
+            }
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpDelete("delete-colors")]
+        public async Task<IActionResult> DeleteColors([FromBody] List<string> colorsToDelete, [FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                _logger.Info("Deleting colors from SystemConfig initiated.");
+                var systemConfig = await context.SystemConfigs.FirstOrDefaultAsync(sc => sc.Id == "COLOR");
+                if (systemConfig == null)
+                {
+                    throw new KeyNotFoundException("SystemConfig with Id 'COLOR' not found.");
+                }
+
+                var existingColors = string.IsNullOrEmpty(systemConfig.Color)
+                    ? new List<object>()
+                    : JsonConvert.DeserializeObject<List<object>>(systemConfig.Color);
+
+                var updatedColors = existingColors.Where(c => !colorsToDelete.Contains(c.ToString())).ToList();
+                systemConfig.Color = JsonConvert.SerializeObject(updatedColors);
+
+                await context.SaveChangesAsync();
+                return Ok(ApiResult<object>.Success(updatedColors, "Colors deleted successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error deleting colors: {ex.Message}");
+                return StatusCode(500, ApiResult<object>.Error($"An error occurred while deleting colors: {ex.Message}"));
+            }
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpDelete("delete-size")]
+        public async Task<IActionResult> DeleteSize([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                _logger.Info("Deleting size from SystemConfig initiated.");
+                var systemConfig = await context.SystemConfigs.FirstOrDefaultAsync(sc => sc.Id == "SIZE");
+                if (systemConfig == null)
+                {
+                    throw new KeyNotFoundException("SystemConfig with Id 'SIZE' not found.");
+                }
+
+                systemConfig.Size = null;
+
+                await context.SaveChangesAsync();
+                return Ok(ApiResult<object>.Success(null, "Size deleted successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error deleting size: {ex.Message}");
+                return StatusCode(500, ApiResult<object>.Error($"An error occurred while deleting size: {ex.Message}"));
+            }
+        }
+        #endregion
     }
 }

@@ -156,23 +156,23 @@ namespace GoodsDesignAPI.Controllers
         /// <summary>
         /// Get the cart for a specific user by user ID (admin or manager only).
         /// </summary>
-        /// <param name="userId">The user ID.</param>
+        /// <param name="id">The user ID.</param>
         /// <returns>The cart for the specified user.</returns>
-        [HttpGet("user/{userId:guid}")]
-        public async Task<IActionResult> GetCartByUserId(Guid userId)
+        [HttpGet("user/{id:guid}")]
+        public async Task<IActionResult> GetCartByUserId(Guid id)
         {
-            _logger.Info($"Fetching cart for user ID {userId}.");
+            _logger.Info($"Fetching cart for user ID {id}.");
 
 
 
             try
             {
-                var cart = await _cartItemService.GetCartByUserId(userId);
+                var cart = await _cartItemService.GetCartByUserId(id);
                 return Ok(ApiResult<CartDTO>.Success(cart, "Cart retrieved successfully."));
             }
             catch (Exception ex)
             {
-                _logger.Error($"Error fetching cart for user ID {userId}: {ex.Message}");
+                _logger.Error($"Error fetching cart for user ID {id}: {ex.Message}");
                 return StatusCode(500, ApiResult<object>.Error("An error occurred while retrieving the cart."));
             }
         }

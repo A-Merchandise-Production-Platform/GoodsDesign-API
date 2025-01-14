@@ -90,6 +90,7 @@ namespace GoodsDesignAPI.Architecture
             services.AddScoped<IBlankProductInStockService, BlankProductInStockService>();
             services.AddScoped<ICartItemService, CartItemService>();
             services.AddScoped<ICustomerOrderService, CustomerOrderService>();
+            services.AddScoped<IPaymentService, PaymentService>();
             return services;
         }
 

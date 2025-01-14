@@ -89,7 +89,6 @@ namespace GoodsDesignAPI.Controllers
         /// <summary>
         /// Get the count of unread notifications for a user.
         /// </summary>
-        /// <param name="userId">User ID</param>
         /// <returns>Count of unread notifications</returns>
         [HttpGet("me/notifications/count")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -116,7 +115,6 @@ namespace GoodsDesignAPI.Controllers
         /// <summary>
         /// Mark all notifications as read for a user.
         /// </summary>
-        /// <param name="userId">User ID</param>
         /// <returns>Status</returns>
         [HttpPut("me/notifications/read-all")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -141,19 +139,19 @@ namespace GoodsDesignAPI.Controllers
         }
 
         /// <summary>
-        /// Get and mark a specific notification as read.
+        /// Get and mark a specific notification as read/seen.
         /// </summary>
-        /// <param name="notificationId">Notification ID</param>
+        /// <param name="id">Notification ID</param>
         /// <returns>Notification</returns>
         [HttpGet("me/notifications/{notificationId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> ReadNotification(Guid notificationId)
+        public async Task<IActionResult> SeenNotification(Guid id)
         {
             try
             {
-                var notification = await _notificationService.ReadNotification(notificationId);
+                var notification = await _notificationService.ReadNotification(id);
                 return Ok(notification);
             }
             catch (KeyNotFoundException ex)
@@ -172,17 +170,17 @@ namespace GoodsDesignAPI.Controllers
         /// <summary>
         /// Delete a specific notification.
         /// </summary>
-        /// <param name="notificationId">Notification ID</param>
+        /// <param name="id">Notification ID</param>
         /// <returns>Status</returns>
-        [HttpDelete("me/notifications/{notificationId}")]
+        [HttpDelete("me/notifications/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> DeleteNotification(Guid notificationId)
+        public async Task<IActionResult> DeleteNotification(Guid id)
         {
             try
             {
-                await _notificationService.DeleteNotification(notificationId);
+                await _notificationService.DeleteNotification(id);
                 return Ok("Notification deleted successfully.");
             }
             catch (KeyNotFoundException ex)
