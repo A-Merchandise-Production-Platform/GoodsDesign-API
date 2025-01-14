@@ -1,12 +1,13 @@
-﻿using System;
+﻿using DataTransferObjects.PaymentDTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessObjects.Entities
+namespace DataTransferObjects.OrderDTOs
 {
-    public class CustomerOrder : BaseEntity
+    public class CustomerOrderDTO
     {
         public Guid CustomerId { get; set; }
         public string Status { get; set; } // Enum: Pending, Accepted, In Production, etc.
@@ -15,11 +16,6 @@ namespace BusinessObjects.Entities
         public decimal DepositPaid { get; set; }
         public DateTime OrderDate { get; set; }
 
-        // Navigation property
-        public User Customer { get; set; }
-
-        public ICollection<CustomerOrderDetail> CustomerOrderDetails { get; set; }
-        public ICollection<Payment> Payments { get; set; }
-
+        public ICollection<PaymentDTO>? Payments {  get; set; }
     }
 }

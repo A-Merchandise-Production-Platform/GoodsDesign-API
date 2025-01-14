@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BusinessObjects.Entities;
+using BusinessObjects.Migrations;
 using DataTransferObjects.CartDTOs;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
@@ -47,9 +48,9 @@ namespace Services.Services
         }
 
         // Thêm sản phẩm vào giỏ hàng
-        public async Task<CartItemDTO> AddCartItem(CartItemDTO cartItemDTO)
+        public async Task<CartItemDTO> AddCartItem(CartItemCreateDTO cartItemDTO, Guid userId)
         {
-            var userId = _claimsService.GetCurrentUserId;
+            //var userId = _claimsService.GetCurrentUserId;
             _logger.Info($"Adding cart item for user {userId}");
 
             var product = await _unitOfWork.ProductGenericRepository.GetByIdAsync(cartItemDTO.ProductId);
@@ -67,24 +68,28 @@ namespace Services.Services
                 existingCartItem.Quantity += cartItemDTO.Quantity;
               //  existingCartItem.UnitPrice = product.Price; // Cập nhật giá mới
                 await _unitOfWork.CartItemGenericRepository.Update(existingCartItem);
+                await _unitOfWork.SaveChangesAsync();
+                _logger.Success("Cart item existing updated successfully.");
+
+                return _mapper.Map<CartItemDTO>(existingCartItem);
+
             }
-            else
-            {
+         
                 var newCartItem = new CartItem
                 {
                     UserId = userId,
-                    ProductId = cartItemDTO.ProductId,
+                    ProductId = product.Id,
                     Quantity = cartItemDTO.Quantity,
-                  //  UnitPrice = product.Price
+                     UnitPrice = cartItemDTO.UnitPrice
                 };
 
-                await _unitOfWork.CartItemGenericRepository.AddAsync(newCartItem);
-            }
+                newCartItem =  await _unitOfWork.CartItemGenericRepository.AddAsync(newCartItem);
+            
 
             await _unitOfWork.SaveChangesAsync();
             _logger.Success("Cart item added successfully.");
 
-            return cartItemDTO;
+            return _mapper.Map<CartItemDTO>(newCartItem);
         }
 
 
@@ -110,26 +115,22 @@ namespace Services.Services
         }
 
         // Lấy giỏ hàng của người dùng hiện tại
-        public async Task<CartDTO> GetCart()
+        public async Task<CartDTO> GetCart(Guid userId)
         {
-            var userId = _claimsService.GetCurrentUserId;
             _logger.Info($"Fetching cart for user {userId}");
 
             var cartItems = await _unitOfWork.CartItemGenericRepository.GetQueryable()
                 .Where(ci => ci.UserId == userId)
                 .Include(ci => ci.Product)
-                .ToListAsync();
+            .ToListAsync();
+
+            
 
             var cartDTO = new CartDTO
             {
                 UserId = userId,
-                Items = cartItems.Select(ci => new CartItemDTO
-                {
-                    ProductId = ci.ProductId,
-                    ProductName = ci.Product?.Name,
-                    Quantity = ci.Quantity,
-                    UnitPrice = ci.UnitPrice
-                }).ToList()
+                Items = _mapper.Map<List<CartItemDTO>>(cartItems)
+     
             };
 
             return cartDTO;

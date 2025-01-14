@@ -563,6 +563,195 @@ namespace GoodsDesignAPI.Controllers
         }
 
 
+        /// <summary>
+        /// Retrieves a list of customer orders with associated details and customers.
+        /// </summary>
+        /// <response code="200">Returns the list of customer orders with details.</response>
+        /// <response code="500">Internal server error.</response>
+        [EnableQuery]
+        [HttpGet("/api/customer-orders")]
+        [ProducesResponseType(typeof(ApiResult<IEnumerable<CustomerOrder>>), 200)]
+        [ProducesResponseType(typeof(ApiResult<object>), 500)]
+        public async Task<ActionResult<IEnumerable<CustomerOrder>>> GetCustomerOrders()
+        {
+            try
+            {
+                var result = await _context.CustomerOrders
+                    .Include(o => o.Customer)
+                    .Include(o => o.CustomerOrderDetails)
+                    .ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a customer order by ID.
+        /// </summary>
+        /// <param name="id">The ID of the customer order.</param>
+        /// <response code="200">Returns the customer order details.</response>
+        /// <response code="404">Customer order not found.</response>
+        /// <response code="500">Internal server error.</response>
+        [EnableQuery]
+        [HttpGet("/api/customer-orders/{id}")]
+        public async Task<ActionResult<CustomerOrder>> GetCustomerOrderById(string id)
+        {
+            try
+            {
+                var itemId = Guid.TryParse(id, out var guid) ? guid : Guid.Empty;
+                var item = await _context.CustomerOrders
+                    .Include(o => o.Customer)
+                    .Include(o => o.CustomerOrderDetails)
+                    .FirstOrDefaultAsync(o => o.Id.Equals(itemId));
+
+                if (item == null)
+                {
+                    return NotFound(ApiResult<object>.Error($"Customer order with ID '{id}' not found."));
+                }
+
+                return Ok(item);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a list of customer order details with associated orders.
+        /// </summary>
+        /// <response code="200">Returns the list of customer order details.</response>
+        /// <response code="500">Internal server error.</response>
+        [EnableQuery]
+        [HttpGet("/api/customer-order-details")]
+        [ProducesResponseType(typeof(ApiResult<IEnumerable<CustomerOrderDetail>>), 200)]
+        [ProducesResponseType(typeof(ApiResult<object>), 500)]
+        public async Task<ActionResult<IEnumerable<CustomerOrderDetail>>> GetCustomerOrderDetails()
+        {
+            try
+            {
+                var result = await _context.CustomerOrderDetails
+                    .Include(d => d.CustomerOrder)
+                    .ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a customer order detail by ID.
+        /// </summary>
+        /// <param name="id">The ID of the customer order detail.</param>
+        /// <response code="200">Returns the customer order detail.</response>
+        /// <response code="404">Customer order detail not found.</response>
+        /// <response code="500">Internal server error.</response>
+        [EnableQuery]
+        [HttpGet("/api/customer-order-details/{id}")]
+        public async Task<ActionResult<CustomerOrderDetail>> GetCustomerOrderDetailById(string id)
+        {
+            try
+            {
+                var itemId = Guid.TryParse(id, out var guid) ? guid : Guid.Empty;
+                var item = await _context.CustomerOrderDetails
+                    .Include(d => d.CustomerOrder)
+                    .FirstOrDefaultAsync(d => d.Id.Equals(itemId));
+
+                if (item == null)
+                {
+                    return NotFound(ApiResult<object>.Error($"Customer order detail with ID '{id}' not found."));
+                }
+
+                return Ok(item);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a list of payments with associated orders and customers.
+        /// </summary>
+        /// <response code="200">Returns the list of payments.</response>
+        /// <response code="500">Internal server error.</response>
+        [EnableQuery]
+        [HttpGet("/api/payments")]
+        [ProducesResponseType(typeof(ApiResult<IEnumerable<Payment>>), 200)]
+        [ProducesResponseType(typeof(ApiResult<object>), 500)]
+        public async Task<ActionResult<IEnumerable<Payment>>> GetPayments()
+        {
+            try
+            {
+                var result = await _context.Payments
+                    .Include(p => p.Customer)
+                    .Include(p => p.CustomerOrder)
+                    .ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a payment by ID.
+        /// </summary>
+        /// <param name="id">The ID of the payment.</param>
+        /// <response code="200">Returns the payment details.</response>
+        /// <response code="404">Payment not found.</response>
+        /// <response code="500">Internal server error.</response>
+        [EnableQuery]
+        [HttpGet("/api/payments/{id}")]
+        public async Task<ActionResult<Payment>> GetPaymentById(string id)
+        {
+            try
+            {
+                var itemId = Guid.TryParse(id, out var guid) ? guid : Guid.Empty;
+                var item = await _context.Payments
+                    .Include(p => p.Customer)
+                    .Include(p => p.CustomerOrder)
+                    .FirstOrDefaultAsync(p => p.Id.Equals(itemId));
+
+                if (item == null)
+                {
+                    return NotFound(ApiResult<object>.Error($"Payment with ID '{id}' not found."));
+                }
+
+                return Ok(item);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+
+
 
     }
 }

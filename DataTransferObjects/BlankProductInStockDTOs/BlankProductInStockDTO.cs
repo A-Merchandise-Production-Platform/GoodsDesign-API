@@ -9,7 +9,7 @@ namespace DataTransferObjects.BlankProductInStockDTOs
     public class BlankProductInStockDTO
     {
         public Guid ProductVarianceId { get; set; }
-        public Guid PlaceId { get; set; }
+        public Guid AreaId { get; set; }
         public int QuantityInStock { get; set; }
     }
 }

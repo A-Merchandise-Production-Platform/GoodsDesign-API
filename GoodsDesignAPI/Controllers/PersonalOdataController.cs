@@ -72,14 +72,21 @@ namespace GoodsDesignAPI.Controllers
         {
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userId))
+                _logger.Info("Fetching orders for current user.");
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdString))
                 {
                     _logger.Warn("User ID not found in token.");
                     return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
                 }
 
-                var userExists = await _context.Users.AnyAsync(u => u.Id == Guid.Parse(userId) && !u.IsDeleted);
+                if (!Guid.TryParse(userIdString, out var userId))
+                {
+                    _logger.Warn("Invalid User ID format.");
+                    return BadRequest(ApiResult<object>.Error("400 - Invalid User ID format."));
+                }
+
+                var userExists = await _context.Users.AnyAsync(u => u.Id == userId && !u.IsDeleted);
                 if (!userExists)
                 {
                     _logger.Warn("User not found or deleted.");
@@ -87,7 +94,7 @@ namespace GoodsDesignAPI.Controllers
                 }
 
                 var orders = await _context.CustomerOrders
-                    .Where(o => o.CustomerId == Guid.Parse(userId))
+                    .Where(o => o.CustomerId == userId)
                     .ToListAsync();
 
                 return Ok(orders);
@@ -140,9 +147,9 @@ namespace GoodsDesignAPI.Controllers
         }
 
         /// <summary>
-        /// Retrieves personal factories owned by the current user.
+        /// Retrieves personal cart 
         /// </summary>
-        /// <response code="200">Returns the list of factories owned by the current user.</response>
+        /// <response code="200">Returns the list of cart-items created by the current user.</response>
         /// <response code="500">Internal server error.</response>
         [EnableQuery]
         [HttpGet("/api/cart-items/me")]
@@ -173,6 +180,53 @@ namespace GoodsDesignAPI.Controllers
             catch (Exception ex)
             {
                 _logger.Error($"Error retrieving factories: {ex.Message}");
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+
+        /// <summary>
+        /// Retrieves personal customer payments 
+        /// </summary>
+        /// <response code="200">Returns the list of payments for the current user.</response>
+        /// <response code="500">Internal server error.</response>
+        [EnableQuery]
+        [HttpGet("/api/payments/me")]
+        public async Task<ActionResult<IEnumerable<CustomerOrder>>> GetMyPayments()
+        {
+            try
+            {
+                _logger.Info("Fetching orders for current user.");
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    _logger.Warn("User ID not found in token.");
+                    return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
+                }
+
+                if (!Guid.TryParse(userIdString, out var userId))
+                {
+                    _logger.Warn("Invalid User ID format.");
+                    return BadRequest(ApiResult<object>.Error("400 - Invalid User ID format."));
+                }
+
+                var userExists = await _context.Users.AnyAsync(u => u.Id == userId && !u.IsDeleted);
+                if (!userExists)
+                {
+                    _logger.Warn("User not found or deleted.");
+                    return Unauthorized(ApiResult<object>.Error("401 - User not found or deleted."));
+                }
+
+                var orders = await _context.Payments
+                    .Where(o => o.CustomerId == userId)
+                    .ToListAsync();
+
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error retrieving customer orders: {ex.Message}");
                 int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
                 return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
             }
