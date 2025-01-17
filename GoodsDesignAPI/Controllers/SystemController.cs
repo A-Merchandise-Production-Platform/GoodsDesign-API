@@ -1,11 +1,9 @@
 ﻿using BusinessObjects;
 using BusinessObjects.Entities;
-using DataTransferObjects.JsonBDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Services.Interfaces.CommonService;
 using Services.Utils;
 
@@ -26,7 +24,6 @@ namespace GoodsDesignAPI.Controllers
             _logger = loggerService;
         }
 
-      //  [Authorize(Roles = "admin")]
         [HttpPost("seed-all-data")]
         public async Task<IActionResult> SeedAllData([FromServices] GoodsDesignDbContext context)
         {
@@ -105,6 +102,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("seed-users")]
         public async Task<ApiResult<List<User>>> SeedUsers()
         {
@@ -154,6 +152,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("seed-areas")]
         public async Task<ApiResult<List<Area>>> SeedAreas([FromServices] GoodsDesignDbContext context)
         {
@@ -179,6 +178,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("seed-categories")]
         public async Task<ApiResult<List<Category>>> SeedCategories([FromServices] GoodsDesignDbContext context)
         {
@@ -203,6 +203,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("seed-products")]
         public async Task<ApiResult<List<Product>>> SeedProducts([FromServices] GoodsDesignDbContext context)
         {
@@ -248,6 +249,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("seed-factories")]
         public async Task<ApiResult<List<Factory>>> SeedFactories([FromServices] GoodsDesignDbContext context)
         {
@@ -284,6 +286,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("seed-factory-products")]
         public async Task<ApiResult<List<FactoryProduct>>> SeedFactoryProducts([FromServices] GoodsDesignDbContext context)
         {
@@ -316,6 +319,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("seed-product-variances")]
         public async Task<ApiResult<List<ProductVariance>>> SeedProductVariances([FromServices] GoodsDesignDbContext context)
         {
@@ -377,7 +381,8 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-    //    [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("seed-blank-products-in-stock")]
         public async Task<ApiResult<List<BlankProductInStock>>> SeedBlankProductsInStock([FromServices] GoodsDesignDbContext context)
         {
@@ -446,9 +451,8 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-
-
         [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("admin-test-authorize")]
         public IActionResult AdminEndpoint()
         {
@@ -456,6 +460,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "manager")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("manager-test-authorize")]
         public IActionResult ManagerEndpoint()
         {
@@ -463,6 +468,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "staff")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("staff-test-authorize")]
         public IActionResult StaffEndpoint()
         {
@@ -470,6 +476,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "factoryOwner")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("factory-owner-test-authorize")]
         public IActionResult FactoryOwnerEndpoint()
         {
@@ -477,6 +484,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "customer")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("customer-test-authorize")]
         public IActionResult CustomerEndpoint()
         {
@@ -484,6 +492,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize(Roles = "admin, manager")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("admin-manager-test-authorize")]
         public IActionResult AdminManagerEndpoint()
         {

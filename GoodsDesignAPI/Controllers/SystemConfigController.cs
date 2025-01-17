@@ -2,7 +2,6 @@
 using BusinessObjects.Entities;
 using DataTransferObjects.JsonBDTOs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -190,6 +189,7 @@ namespace GoodsDesignAPI.Controllers
         #endregion
 
         #region Get Data
+        [ProducesResponseType(typeof(List<SystemConfig>), StatusCodes.Status200OK)]
         [HttpGet("get-banks")]
         public async Task<IActionResult> GetBanks([FromServices] GoodsDesignDbContext context)
         {
