@@ -17,9 +17,13 @@ using Services.Interfaces.CommonService;
 using Services.Mapper;
 using Services.Services;
 using Services.Services.CommonService;
+using Services.Services.ThirdPartyService.PaymentGateway;
+using Services.Services.ThirdPartyService.PaymentGateway.Interfaces;
+using Services.Services.ThirdPartyService.PaymentGateway.Services;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using VNPAY.NET;
 
 namespace GoodsDesignAPI.Architecture
 {
@@ -72,7 +76,14 @@ namespace GoodsDesignAPI.Architecture
                 return new PayOS(clientId, apiKey, checksumKey);
             });
             //VnPay
-
+            services.AddSingleton<IVnpay>(p =>
+            {
+                string _tmnCode = configuration["Payment:VnPay:TmnCode"];
+                string _hashSecret = configuration["Payment:VnPay:HashSecret"];
+                string _baseUrl = configuration["Payment:VnPay:PaymentUrl"];
+                string _callbackUrl = configuration["Payment:VnPay:ReturnUrl"];
+                return new Vnpay();
+            });
 
             return services;
         }
@@ -91,6 +102,9 @@ namespace GoodsDesignAPI.Architecture
             services.AddScoped<ICartItemService, CartItemService>();
             services.AddScoped<ICustomerOrderService, CustomerOrderService>();
             services.AddScoped<IPaymentService, PaymentService>();
+
+            services.AddScoped<IVnPayService, VnPayService>();
+            services.AddScoped<IPayOSService, PayOSService>();
             return services;
         }
 
