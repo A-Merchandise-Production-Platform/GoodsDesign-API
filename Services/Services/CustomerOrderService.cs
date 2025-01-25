@@ -1,15 +1,10 @@
 ﻿using AutoMapper;
 using BusinessObjects.Entities;
 using DataTransferObjects.OrderDTOs;
-using DataTransferObjects.PaymentDTOs;
 using Repositories.Interfaces;
 using Services.Interfaces;
 using Services.Interfaces.CommonService;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Services.Services.ThirdPartyService.PaymentGateway.Interfaces;
 
 namespace Services.Services
 {
@@ -59,7 +54,7 @@ namespace Services.Services
                         Quantity = item.Quantity,
                         UnitPrice = item.UnitPrice,
                         TotalPrice = item.TotalPrice,
-                        Status="PAID"
+                        Status = "PAID"
                     }).ToList()
                 };
 
@@ -71,8 +66,8 @@ namespace Services.Services
 
                 // **Tạo Payments bằng phương thức mới trong PaymentService**
 
-                var payments = await _paymentService.GeneratePaymentsForOrder(order);
-                order.Payments = payments;
+                //var payments = await _paymentService.GeneratePaymentsForOrder(order);
+                //order.Payments = payments;
                 var result = _mapper.Map<CustomerOrderDTO>(order);
 
                 // Clear cart
