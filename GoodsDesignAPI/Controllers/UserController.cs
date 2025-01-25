@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace GoodsDesignAPI.Controllers
 {
-    [Route("api/user")]
+    [Route("api")]
     [ApiController]
     public class UserController : ControllerBase
     {
