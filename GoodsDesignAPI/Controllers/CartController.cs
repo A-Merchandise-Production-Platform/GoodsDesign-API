@@ -53,7 +53,8 @@ namespace GoodsDesignAPI.Controllers
         /// </summary>
         /// <param name="cartItemDTO">The cart item to be added.</param>
         /// <returns>The updated cart item.</returns>
-        [HttpPost("me/cart-items")]
+        [HttpPost("me/cart/products")]        [ApiExplorerSettings(IgnoreApi = true)]
+
         public async Task<IActionResult> AddCartItem([FromBody] CartItemCreateDTO cartItemDTO)
         {
             _logger.Info("Adding item to cart.");
@@ -83,13 +84,13 @@ namespace GoodsDesignAPI.Controllers
         /// <summary>
         /// Remove an item from the cart by product ID.
         /// </summary>
-        /// <param name="productId">The ID of the product to be removed.</param>
+        /// <param name="id">The ID of the product to be removed.</param>
         /// <returns>True if the item was successfully removed.</returns>
-        [HttpDelete("me/cart-items/{productId:guid}")]
-        public async Task<IActionResult> RemoveCartItem(Guid productId)
+        [HttpDelete("me/cart/products/{id:guid}")]
+        public async Task<IActionResult> RemoveCartItem(Guid id)
         {
 
-            _logger.Info($"Removing cart item with ProductId {productId}.");
+            _logger.Info($"Removing cart item with ProductId {id}.");
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -99,7 +100,7 @@ namespace GoodsDesignAPI.Controllers
             }
             try
             {
-                var result = await _cartItemService.RemoveCartItem(productId);
+                var result = await _cartItemService.RemoveCartItem(id);
                 return Ok(ApiResult<bool>.Success(result, "Cart item removed successfully."));
             }
             catch (KeyNotFoundException ex)
@@ -118,7 +119,7 @@ namespace GoodsDesignAPI.Controllers
         /// Clear the current user's cart.
         /// </summary>
         /// <returns>True if the cart was successfully cleared.</returns>
-        [HttpDelete("me/cart/clear")]
+        [HttpDelete("me/cart")]
         public async Task<IActionResult> ClearCart()
         {
             _logger.Info("Clearing cart for current user.");
@@ -153,29 +154,29 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Get the cart for a specific user by user ID (admin or manager only).
-        /// </summary>
-        /// <param name="id">The user ID.</param>
-        /// <returns>The cart for the specified user.</returns>
-        [HttpGet("user/{id:guid}")]
-        public async Task<IActionResult> GetCartByUserId(Guid id)
-        {
-            _logger.Info($"Fetching cart for user ID {id}.");
+        ///// <summary>
+        ///// Get the cart for a specific user by user ID (admin or manager only).
+        ///// </summary>
+        ///// <param name="id">The user ID.</param>
+        ///// <returns>The cart for the specified user.</returns>
+        //[HttpGet("user/{id:guid}")]
+        //public async Task<IActionResult> GetCartByUserId(Guid id)
+        //{
+        //    _logger.Info($"Fetching cart for user ID {id}.");
 
 
 
-            try
-            {
-                var cart = await _cartItemService.GetCartByUserId(id);
-                return Ok(ApiResult<CartDTO>.Success(cart, "Cart retrieved successfully."));
-            }
-            catch (Exception ex)
-            {
-                _logger.Error($"Error fetching cart for user ID {id}: {ex.Message}");
-                return StatusCode(500, ApiResult<object>.Error("An error occurred while retrieving the cart."));
-            }
-        }
+        //    try
+        //    {
+        //        var cart = await _cartItemService.GetCartByUserId(id);
+        //        return Ok(ApiResult<CartDTO>.Success(cart, "Cart retrieved successfully."));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.Error($"Error fetching cart for user ID {id}: {ex.Message}");
+        //        return StatusCode(500, ApiResult<object>.Error("An error occurred while retrieving the cart."));
+        //    }
+        //}
 
     }
 }

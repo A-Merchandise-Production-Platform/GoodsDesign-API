@@ -20,14 +20,12 @@ namespace Services.Mapper
         {
             CreateMap<User, UserDTO>()
     .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ? "Male" : "Female"))
-    .ReverseMap()
-    .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender != null && src.Gender.ToLower() == "male"));
+    .ReverseMap();
 
 
             CreateMap<User, UserUpdateDTO>()
  .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ? "Male" : "Female"))
- .ReverseMap()
- .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender != null && src.Gender.ToLower() == "male"));
+ .ReverseMap();
 
             CreateMap<Area, AreaDTO>()
                 .ReverseMap();

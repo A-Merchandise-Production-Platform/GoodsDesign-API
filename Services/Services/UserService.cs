@@ -5,6 +5,7 @@ using DataTransferObjects.UserDTOs;
 using Microsoft.AspNetCore.Identity;
 using Services.Interfaces;
 using Services.Interfaces.CommonService;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Services.Services
 {
@@ -196,6 +197,7 @@ namespace Services.Services
                 }
 
                 user.IsDeleted = true;
+                user.IsActive = false;
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
@@ -224,6 +226,11 @@ namespace Services.Services
                 {
                     _logger.Warn($"User with ID: {userId} not found.");
                     return null;
+                }
+                if(user.IsDeleted)
+                {
+                    _logger.Error($"User with ID: {userId} had been deleted.");
+                    throw new Exception("Cannot change, this account had been deleted");
                 }
 
                 user.IsActive = !user.IsActive;

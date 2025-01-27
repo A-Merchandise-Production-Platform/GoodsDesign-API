@@ -28,7 +28,7 @@ namespace GoodsDesignAPI.Controllers
         /// <response code="200">Returns the list of notifications for the current user.</response>
         /// <response code="500">Internal server error.</response>
         [EnableQuery]
-        [HttpGet("/api/notifications/me")]
+        [HttpGet("/api/me/notifications")]
         public async Task<ActionResult<IEnumerable<Notification>>> GetMyNotifications()
         {
             try
@@ -67,7 +67,7 @@ namespace GoodsDesignAPI.Controllers
         /// <response code="200">Returns the list of customer orders for the current user.</response>
         /// <response code="500">Internal server error.</response>
         [EnableQuery]
-        [HttpGet("/api/customer-orders/me")]
+        [HttpGet("/api/me/customer-orders")]
         public async Task<ActionResult<IEnumerable<CustomerOrder>>> GetMyCustomerOrders()
         {
             try
@@ -113,7 +113,7 @@ namespace GoodsDesignAPI.Controllers
         /// <response code="200">Returns the list of factories owned by the current user.</response>
         /// <response code="500">Internal server error.</response>
         [EnableQuery]
-        [HttpGet("/api/factories/me")]
+        [HttpGet("/api/me/factories")]
         public async Task<ActionResult<IEnumerable<Factory>>> GetMyFactories()
         {
             try
@@ -152,7 +152,7 @@ namespace GoodsDesignAPI.Controllers
         /// <response code="200">Returns the list of cart-items created by the current user.</response>
         /// <response code="500">Internal server error.</response>
         [EnableQuery]
-        [HttpGet("/api/cart-items/me")]
+        [HttpGet("/api/me/cart-items")]
         public async Task<ActionResult<CartItem>> GetMyCart()
         {
             try
@@ -192,7 +192,7 @@ namespace GoodsDesignAPI.Controllers
         /// <response code="200">Returns the list of payments for the current user.</response>
         /// <response code="500">Internal server error.</response>
         [EnableQuery]
-        [HttpGet("/api/payments/me")]
+        [HttpGet("/api/me/payments")]
         public async Task<ActionResult<IEnumerable<CustomerOrder>>> GetMyPayments()
         {
             try

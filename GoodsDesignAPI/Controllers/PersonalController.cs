@@ -8,16 +8,16 @@ using System.Security.Claims;
 
 namespace GoodsDesignAPI.Controllers
 {
-    [Route("api/user")]
+    [Route("api")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class PersonalController : ControllerBase
     {
 
         private readonly ILoggerService _logger;
         private readonly IUserService _userService;
         private readonly INotificationService _notificationService;
 
-        public UserController(ILoggerService logger, IUserService userService, INotificationService notificationService)
+        public PersonalController(ILoggerService logger, IUserService userService, INotificationService notificationService)
         {
             _logger = logger;
             _userService = userService;
