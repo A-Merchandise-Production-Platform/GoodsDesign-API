@@ -44,6 +44,10 @@ namespace GoodsDesignAPI.Controllers
                 var factoryProductsResult = await SeedFactoryProducts(context);
                 var productVariances = await SeedProductVariances(context);
                 var blankProductsInStockResult = await SeedBlankProductsInStock(context);
+                // Seed Customer Orders
+                var customerOrdersResult = await SeedCustomerOrders(context);
+                // Seed Payments
+                var paymentsResult = await SeedPayments(context);
 
 
                 await transaction.CommitAsync();
@@ -61,6 +65,8 @@ namespace GoodsDesignAPI.Controllers
                         FactoryProducts = factoryProductsResult.Data,
                         ProductVariances = productVariances.Data,
                         BlankProductInStock = blankProductsInStockResult.Data,
+                        CustomerOrders = customerOrdersResult.Data,
+                        Payments = paymentsResult.Data,
                     }
                 }));
             }
@@ -76,7 +82,9 @@ namespace GoodsDesignAPI.Controllers
         {
             _logger.Info("Clearing all data in the database...");
 
-
+            await context.Payments.ExecuteDeleteAsync();
+            await context.CustomerOrderDetails.ExecuteDeleteAsync();
+            await context.CustomerOrders.ExecuteDeleteAsync();
             await context.BlankProductsInStocks.ExecuteDeleteAsync();
             await context.FactoryProducts.ExecuteDeleteAsync();
             await context.Factories.ExecuteDeleteAsync();
@@ -448,6 +456,132 @@ namespace GoodsDesignAPI.Controllers
             {
                 _logger.Error($"Error during seeding Blank Products In Stock: {ex.Message}");
                 return ApiResult<List<BlankProductInStock>>.Error($"Error during seeding Blank Products In Stock: {ex.Message}");
+            }
+        }
+
+
+        [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpPost("seed-customer-orders")]
+        public async Task<ApiResult<List<CustomerOrder>>> SeedCustomerOrders([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                _logger.Info("Seeding Customer Orders initiated.");
+
+                // Lấy user admin
+                var adminUser = await context.Users.FirstOrDefaultAsync(u => u.UserName == "admin");
+                if (adminUser == null)
+                {
+                    throw new Exception("Please seed users before seeding customer orders.");
+                }
+
+                // Define Customer Orders to seed
+                var customerOrdersToSeed = new List<CustomerOrder>
+        {
+            new CustomerOrder
+            {
+                Id = Guid.NewGuid(),
+                CustomerId = adminUser.Id,
+                Status = "Pending",
+                TotalPrice = 1000,
+                ShippingPrice = 50,
+                DepositPaid = 300,
+                OrderDate = DateTime.UtcNow.AddHours(7),
+                CustomerOrderDetails = new List<CustomerOrderDetail> // Example order details
+                {
+                    new CustomerOrderDetail { Id = Guid.NewGuid(), UnitPrice = 500, Quantity = 1, Status = "Pending"},
+                    new CustomerOrderDetail { Id = Guid.NewGuid(), UnitPrice = 500, Quantity = 1, Status = "Pending" }
+                }
+            },
+            new CustomerOrder
+            {
+                Id = Guid.NewGuid(),
+                CustomerId = adminUser.Id,
+                Status = "In Production",
+                TotalPrice = 2000,
+                ShippingPrice = 100,
+                DepositPaid = 600,
+                OrderDate = DateTime.UtcNow.AddHours(7),
+                CustomerOrderDetails = new List<CustomerOrderDetail>
+                {
+                    new CustomerOrderDetail { Id = Guid.NewGuid(), UnitPrice = 1000, Quantity = 2, Status = "In Progress" }
+                }
+            }
+        };
+
+                await context.CustomerOrders.AddRangeAsync(customerOrdersToSeed);
+                await context.SaveChangesAsync();
+
+                _logger.Success("Customer Orders seeded successfully.");
+                return ApiResult<List<CustomerOrder>>.Success(customerOrdersToSeed, "Customer Orders seeded successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error during seeding Customer Orders: {ex.Message}");
+                return ApiResult<List<CustomerOrder>>.Error($"Error during seeding Customer Orders: {ex.Message}");
+            }
+        }
+
+        [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpPost("seed-payments")]
+        public async Task<ApiResult<List<Payment>>> SeedPayments([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                _logger.Info("Seeding Payments initiated.");
+
+                // Lấy tất cả Customer Orders đã seed
+                var customerOrders = await context.CustomerOrders.ToListAsync();
+                if (!customerOrders.Any())
+                {
+                    throw new Exception("Please seed customer orders before seeding payments.");
+                }
+
+                var paymentsToSeed = new List<Payment>();
+
+                foreach (var order in customerOrders)
+                {
+                    // Tạo 2 khoản thanh toán cho mỗi order
+                    var depositPayment = new Payment
+                    {
+                        Id = Guid.NewGuid(),
+                        CustomerOrderId = order.Id,
+                        CustomerId = order.CustomerId,
+                        Amount = Math.Ceiling(order.TotalPrice * 0.3m), // 30% làm tròn lên
+                        Type = "Deposit",
+                        PaymentLog = "Payment FirstTime",
+                        Status = "Completed",
+                        CreatedDate = DateTime.UtcNow.AddHours(7)
+                    };
+
+                    var remainingPayment = new Payment
+                    {
+                        Id = Guid.NewGuid(),
+                        CustomerOrderId = order.Id,
+                        CustomerId = order.CustomerId,
+                        Amount = order.TotalPrice - depositPayment.Amount,
+                        Type = "Withdrawn",
+                        PaymentLog = "Payment SecondTime",
+                        Status = "Pending",
+                        CreatedDate = DateTime.UtcNow.AddHours(7)
+                    };
+
+                    paymentsToSeed.Add(depositPayment);
+                    paymentsToSeed.Add(remainingPayment);
+                }
+
+                await context.Payments.AddRangeAsync(paymentsToSeed);
+                await context.SaveChangesAsync();
+
+                _logger.Success("Payments seeded successfully.");
+                return ApiResult<List<Payment>>.Success(paymentsToSeed, "Payments seeded successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error during seeding Payments: {ex.Message}");
+                return ApiResult<List<Payment>>.Error($"Error during seeding Payments: {ex.Message}");
             }
         }
 

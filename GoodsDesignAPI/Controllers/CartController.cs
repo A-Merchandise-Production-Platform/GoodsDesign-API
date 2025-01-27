@@ -53,7 +53,8 @@ namespace GoodsDesignAPI.Controllers
         /// </summary>
         /// <param name="cartItemDTO">The cart item to be added.</param>
         /// <returns>The updated cart item.</returns>
-        [HttpPost("me/cart/products")]
+        [HttpPost("me/cart/products")]        [ApiExplorerSettings(IgnoreApi = true)]
+
         public async Task<IActionResult> AddCartItem([FromBody] CartItemCreateDTO cartItemDTO)
         {
             _logger.Info("Adding item to cart.");
