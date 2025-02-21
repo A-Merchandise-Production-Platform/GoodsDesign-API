@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BusinessObjects.Enums
+﻿namespace BusinessObjects.Enums
 {
     public enum SystemConfigEnum
     {
-        BANK,SIZE,COLOR
+        BANK, SIZE, COLOR
     }
 }

@@ -2,7 +2,6 @@
 using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using DataTransferObjects.JsonBDTOs;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Services.Interfaces.CommonService;
@@ -56,21 +55,21 @@ namespace GoodsDesignAPI.Controllers
         #endregion
 
         #region Add Data
-        [Authorize(Roles = "admin")]
+        //[Authorize(Roles = "admin")]
         [HttpPut("banks")]
         public async Task<IActionResult> OverwriteBanks([FromBody] List<BankDTO> banks)
         {
             return await OverwriteSystemConfig(SystemConfigEnum.BANK.ToString(), banks, "Banks overwritten successfully.");
         }
 
-        [Authorize(Roles = "admin")]
+        //[Authorize(Roles = "admin")]
         [HttpPut("colors")]
         public async Task<IActionResult> OverwriteColors([FromBody] List<ColorDTO> colors)
         {
             return await OverwriteSystemConfig(SystemConfigEnum.COLOR.ToString(), colors, "Colors overwritten successfully.");
         }
 
-        [Authorize(Roles = "admin")]
+        //[Authorize(Roles = "admin")]
         [HttpPut("sizes")]
         public async Task<IActionResult> OverwriteSizes([FromBody] List<SizeDTO> sizes)
         {
