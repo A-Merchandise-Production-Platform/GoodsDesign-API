@@ -122,11 +122,7 @@ namespace BusinessObjects
                 .HasKey(sc => sc.Id); // Primary Key
 
             modelBuilder.Entity<SystemConfig>()
-                .Property(sc => sc.Bank)
-                .HasColumnType("jsonb"); // JSONB for PostgreSQL
-
-            modelBuilder.Entity<SystemConfig>()
-                .Property(sc => sc.Color)
+                .Property(sc => sc.Value)
                 .HasColumnType("jsonb");
 
         }

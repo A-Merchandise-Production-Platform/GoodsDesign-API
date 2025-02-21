@@ -1,16 +1,10 @@
 ﻿using AutoMapper;
 using BusinessObjects.Entities;
-using BusinessObjects.Migrations;
 using DataTransferObjects.CartDTOs;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
 using Services.Interfaces;
 using Services.Interfaces.CommonService;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services.Services
 {
@@ -66,7 +60,7 @@ namespace Services.Services
             if (existingCartItem != null)
             {
                 existingCartItem.Quantity += cartItemDTO.Quantity;
-              //  existingCartItem.UnitPrice = product.Price; // Cập nhật giá mới
+                //  existingCartItem.UnitPrice = product.Price; // Cập nhật giá mới
                 await _unitOfWork.CartItemGenericRepository.Update(existingCartItem);
                 await _unitOfWork.SaveChangesAsync();
                 _logger.Success("Cart item existing updated successfully.");
@@ -74,17 +68,17 @@ namespace Services.Services
                 return _mapper.Map<CartItemDTO>(existingCartItem);
 
             }
-         
-                var newCartItem = new CartItem
-                {
-                    UserId = userId,
-                    ProductId = product.Id,
-                    Quantity = cartItemDTO.Quantity,
-                     UnitPrice = cartItemDTO.UnitPrice
-                };
 
-                newCartItem =  await _unitOfWork.CartItemGenericRepository.AddAsync(newCartItem);
-            
+            var newCartItem = new CartItem
+            {
+                UserId = userId,
+                ProductId = product.Id,
+                Quantity = cartItemDTO.Quantity,
+                UnitPrice = cartItemDTO.UnitPrice
+            };
+
+            newCartItem = await _unitOfWork.CartItemGenericRepository.AddAsync(newCartItem);
+
 
             await _unitOfWork.SaveChangesAsync();
             _logger.Success("Cart item added successfully.");
@@ -124,13 +118,13 @@ namespace Services.Services
                 .Include(ci => ci.Product)
             .ToListAsync();
 
-            
+
 
             var cartDTO = new CartDTO
             {
                 UserId = userId,
                 Items = _mapper.Map<List<CartItemDTO>>(cartItems)
-     
+
             };
 
             return cartDTO;

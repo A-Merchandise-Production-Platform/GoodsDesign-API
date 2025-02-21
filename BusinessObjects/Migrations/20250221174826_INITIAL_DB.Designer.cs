@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BusinessObjects.Migrations
 {
     [DbContext(typeof(GoodsDesignDbContext))]
-    [Migration("20250112072036_systemconfig")]
-    partial class systemconfig
+    [Migration("20250221174826_INITIAL_DB")]
+    partial class INITIAL_DB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -259,6 +259,61 @@ namespace BusinessObjects.Migrations
                     b.ToTable("CustomerOrders");
                 });
 
+            modelBuilder.Entity("BusinessObjects.Entities.CustomerOrderDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CustomerOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("ProductDesignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("TotalPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerOrderId");
+
+                    b.HasIndex("ProductDesignId");
+
+                    b.ToTable("CustomerOrderDetails");
+                });
+
             modelBuilder.Entity("BusinessObjects.Entities.DesignComponentPosition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -403,6 +458,113 @@ namespace BusinessObjects.Migrations
                     b.ToTable("Factories");
                 });
 
+            modelBuilder.Entity("BusinessObjects.Entities.FactoryOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("EstimatedCompletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FactoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TotalItems")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("TotalProductionCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FactoryId");
+
+                    b.ToTable("FactoryOrders");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Entities.FactoryOrderDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CustomerOrderDetailId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FactoryOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ProductDesignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("ProductionCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerOrderDetailId");
+
+                    b.HasIndex("FactoryOrderId");
+
+                    b.HasIndex("ProductDesignId");
+
+                    b.ToTable("FactoryOrderDetails");
+                });
+
             modelBuilder.Entity("BusinessObjects.Entities.FactoryProduct", b =>
                 {
                     b.Property<Guid>("FactoryId")
@@ -536,6 +698,9 @@ namespace BusinessObjects.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("OrderCode")
+                        .HasColumnType("integer");
+
                     b.Property<string>("PaymentLog")
                         .IsRequired()
                         .HasColumnType("text");
@@ -578,13 +743,7 @@ namespace BusinessObjects.Migrations
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<Guid>("CustomerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CustomerOrderId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -596,9 +755,8 @@ namespace BusinessObjects.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("PaymentGatewayTransactionId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<long>("PaymentGatewayTransactionId")
+                        .HasColumnType("bigint");
 
                     b.Property<Guid>("PaymentId")
                         .HasColumnType("uuid");
@@ -628,8 +786,6 @@ namespace BusinessObjects.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
-
-                    b.HasIndex("CustomerOrderId");
 
                     b.HasIndex("PaymentId");
 
@@ -865,14 +1021,8 @@ namespace BusinessObjects.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("Bank")
+                    b.Property<string>("Value")
                         .HasColumnType("jsonb");
-
-                    b.Property<string>("Color")
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("Size")
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -1131,6 +1281,23 @@ namespace BusinessObjects.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("BusinessObjects.Entities.CustomerOrderDetail", b =>
+                {
+                    b.HasOne("BusinessObjects.Entities.CustomerOrder", "CustomerOrder")
+                        .WithMany("CustomerOrderDetails")
+                        .HasForeignKey("CustomerOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObjects.Entities.ProductDesign", "ProductDesign")
+                        .WithMany()
+                        .HasForeignKey("ProductDesignId");
+
+                    b.Navigation("CustomerOrder");
+
+                    b.Navigation("ProductDesign");
+                });
+
             modelBuilder.Entity("BusinessObjects.Entities.DesignComponentPosition", b =>
                 {
                     b.HasOne("BusinessObjects.Entities.DesignPosition", "DesignPosition")
@@ -1172,6 +1339,44 @@ namespace BusinessObjects.Migrations
                     b.Navigation("FactoryOwner");
                 });
 
+            modelBuilder.Entity("BusinessObjects.Entities.FactoryOrder", b =>
+                {
+                    b.HasOne("BusinessObjects.Entities.Factory", "Factory")
+                        .WithMany()
+                        .HasForeignKey("FactoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Factory");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Entities.FactoryOrderDetail", b =>
+                {
+                    b.HasOne("BusinessObjects.Entities.CustomerOrderDetail", "CustomerOrderDetail")
+                        .WithMany()
+                        .HasForeignKey("CustomerOrderDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObjects.Entities.FactoryOrder", "FactoryOrder")
+                        .WithMany()
+                        .HasForeignKey("FactoryOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObjects.Entities.ProductDesign", "ProductDesign")
+                        .WithMany()
+                        .HasForeignKey("ProductDesignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomerOrderDetail");
+
+                    b.Navigation("FactoryOrder");
+
+                    b.Navigation("ProductDesign");
+                });
+
             modelBuilder.Entity("BusinessObjects.Entities.FactoryProduct", b =>
                 {
                     b.HasOne("BusinessObjects.Entities.Factory", "Factory")
@@ -1209,7 +1414,7 @@ namespace BusinessObjects.Migrations
                         .IsRequired();
 
                     b.HasOne("BusinessObjects.Entities.CustomerOrder", "CustomerOrder")
-                        .WithMany()
+                        .WithMany("Payments")
                         .HasForeignKey("CustomerOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1227,12 +1432,6 @@ namespace BusinessObjects.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BusinessObjects.Entities.CustomerOrder", "CustomerOrder")
-                        .WithMany()
-                        .HasForeignKey("CustomerOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("BusinessObjects.Entities.Payment", "Payment")
                         .WithMany()
                         .HasForeignKey("PaymentId")
@@ -1240,8 +1439,6 @@ namespace BusinessObjects.Migrations
                         .IsRequired();
 
                     b.Navigation("Customer");
-
-                    b.Navigation("CustomerOrder");
 
                     b.Navigation("Payment");
                 });
@@ -1363,6 +1560,13 @@ namespace BusinessObjects.Migrations
             modelBuilder.Entity("BusinessObjects.Entities.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Entities.CustomerOrder", b =>
+                {
+                    b.Navigation("CustomerOrderDetails");
+
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("BusinessObjects.Entities.Factory", b =>

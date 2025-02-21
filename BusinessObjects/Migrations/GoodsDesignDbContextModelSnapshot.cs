@@ -1018,14 +1018,8 @@ namespace BusinessObjects.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("Bank")
+                    b.Property<string>("Value")
                         .HasColumnType("jsonb");
-
-                    b.Property<string>("Color")
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("Size")
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
