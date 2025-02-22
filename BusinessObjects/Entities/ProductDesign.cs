@@ -17,6 +17,6 @@ namespace BusinessObjects.Entities
 
         // Navigation properties
         public User User { get; set; }
-        public ProductVariance ProductVariance { get; set; }
+        public BlankVariance BlankVariance { get; set; }
     }
 }

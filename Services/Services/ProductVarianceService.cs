@@ -25,7 +25,7 @@ namespace Services.Services
         }
 
 
-        public async Task<ProductVariance> CreateProductVariance(ProductVarianceDTO dto)
+        public async Task<BlankVariance> CreateProductVariance(ProductVarianceDTO dto)
         {
             _logger.Info("Creating Product Variance...");
             try
@@ -37,7 +37,7 @@ namespace Services.Services
                     throw new KeyNotFoundException("404 - Product not found.");
                 }
 
-                var productVariance = new ProductVariance
+                var productVariance = new BlankVariance
                 {
                     ProductId = dto.ProductId,
                     Information = JsonSerializer.Serialize(dto.Information),
@@ -57,7 +57,7 @@ namespace Services.Services
             }
         }
 
-        public async Task<ProductVariance> UpdateProductVariance(Guid id, ProductVarianceDTO dto)
+        public async Task<BlankVariance> UpdateProductVariance(Guid id, ProductVarianceDTO dto)
         {
             _logger.Info($"Updating Product Variance with ID: {id}");
             try
@@ -93,7 +93,7 @@ namespace Services.Services
             }
         }
 
-        public async Task<ProductVariance> DeleteProductVariance(Guid id)
+        public async Task<BlankVariance> DeleteProductVariance(Guid id)
         {
             _logger.Info($"Deleting Product Variance with ID: {id}");
             try

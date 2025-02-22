@@ -93,14 +93,12 @@ namespace GoodsDesignAPI.Architecture
         public static IServiceCollection SetupBusinessServicesLayer(this IServiceCollection services)
         {
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IAreaService, AreaService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IFactoryService, FactoryService>();
             services.AddScoped<IFactoryProductService, FactoryProductService>();
             services.AddScoped<IProductVarianceService, ProductVarianceService>();
-            services.AddScoped<IBlankProductInStockService, BlankProductInStockService>();
             services.AddScoped<ICartItemService, CartItemService>();
             services.AddScoped<ICustomerOrderService, CustomerOrderService>();
             services.AddScoped<IPaymentService, PaymentService>();
