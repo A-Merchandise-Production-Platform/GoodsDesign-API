@@ -1,7 +1,9 @@
 ﻿using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using DataTransferObjects.NotificationDTOs;
+using Microsoft.AspNetCore.SignalR;
 using Repositories.Interfaces;
+using Services.Hubs;
 using Services.Interfaces;
 using Services.Interfaces.CommonService;
 
@@ -11,14 +13,16 @@ namespace Services.Services
     {
         private readonly ILoggerService _logger;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IHubContext<NotificationHub> _notificationHubContext;
 
         public NotificationService(
             ILoggerService logger,
             IUnitOfWork unitOfWork
-        )
+        , IHubContext<NotificationHub> notificationHubContext)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
+            _notificationHubContext = notificationHubContext;
         }
 
         // Xóa thông báo dựa trên notificationId
@@ -74,6 +78,8 @@ namespace Services.Services
                 await _unitOfWork.NotificationRepository.AddAsync(notification);
                 await _unitOfWork.SaveChangesAsync();
 
+                await _notificationHubContext.Clients.All.SendAsync("ReceiveMessage");
+
                 _logger.Info($"Notification sent to all users: {notification.Title}");
                 return notification;
             }
@@ -103,6 +109,8 @@ namespace Services.Services
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.Info($"Notification sent to role {role}: {notification.Title}");
+
+                await _notificationHubContext.Clients.Group(role.ToString()).SendAsync("ReceiveMessage");
                 return notification;
             }
             catch (Exception ex)
@@ -131,6 +139,9 @@ namespace Services.Services
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.Info($"Notification sent to user {userId}: {notification.Title}");
+
+                await _notificationHubContext.Clients.User(userId.ToString()).SendAsync("ReceiveMessage");
+
                 return notification;
             }
             catch (Exception ex)

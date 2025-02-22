@@ -1,9 +1,13 @@
 ﻿using BusinessObjects;
 using BusinessObjects.Entities;
+using BusinessObjects.Enums;
+using DataTransferObjects.NotificationDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Repositories.Interfaces;
+using Services.Interfaces;
 using Services.Interfaces.CommonService;
 using Services.Utils;
 
@@ -16,12 +20,68 @@ namespace GoodsDesignAPI.Controllers
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
         private readonly ILoggerService _logger;
+        private readonly INotificationService _notificationService;
+        private readonly IClaimsService _claimsService;
 
-        public SystemController(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService loggerService)
+        public SystemController(UserManager<User> userManager, RoleManager<Role> roleManager, ILoggerService loggerService, INotificationService notificationService, IClaimsService claimsService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = loggerService;
+            _notificationService = notificationService;
+            _claimsService = claimsService;
+        }
+
+        [HttpPost("noti-all")]
+        public async Task<IActionResult> NotifyAll()
+        {
+            NotificationDTO notification = new NotificationDTO
+            {
+                Title = "Test Notification",
+                Content = "This is a test notification.",
+                Role = null,
+                Url = "https://example.com",
+                UserId = null
+
+            };
+
+            await _notificationService.PushNotificationToAll(notification);
+
+            return Ok(ApiResult<object>.Success(null, "Notification sent to all users."));
+        }
+
+        [HttpPost("noti-user")]
+        public async Task<IActionResult> NotifyUser()
+        {
+            var userId = _claimsService.GetCurrentUserId;
+
+            NotificationDTO notification = new NotificationDTO
+            {
+                Title = "Test Notification",
+                Content = "This is a test notification.",
+                Role = null,
+                Url = "https://example.com",
+                UserId = userId
+            };
+
+            return Ok(ApiResult<object>.Success(null, "Notification sent to user."));
+        }
+
+        [HttpPost("noti-role")]
+        public async Task<IActionResult> NotifyRole()
+        {
+            NotificationDTO notification = new NotificationDTO
+            {
+                Title = "Test Notification",
+                Content = "This is a test notification.",
+                Role = Roles.ADMIN.ToString(),
+                Url = "https://example.com",
+                UserId = null
+            };
+
+            await _notificationService.PushNotificationToRole(Roles.ADMIN, notification);
+
+            return Ok(ApiResult<object>.Success(null, "Notification sent to role."));
         }
 
         [HttpPost("seed-all-data")]

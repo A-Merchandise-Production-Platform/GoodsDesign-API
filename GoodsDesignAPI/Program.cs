@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
+using Services.Hubs;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -78,6 +79,8 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseMiddleware<PerformanceTimeMiddleware>();
 app.UseMiddleware<UserStatusMiddleware>();
 app.UseMiddleware<ApiLoggerMiddleware>();
+
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();
 
