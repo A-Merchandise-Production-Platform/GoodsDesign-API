@@ -15,7 +15,6 @@ namespace Repositories.Commons
             GetCurrentUserId = string.IsNullOrEmpty(extractedId) ? Guid.Empty : Guid.Parse(extractedId);
             IpAddress = httpContextAccessor?.HttpContext?.Connection?.LocalIpAddress?.ToString();
         }
-
         public Guid GetCurrentUserId { get; }
 
         public string? IpAddress { get; }

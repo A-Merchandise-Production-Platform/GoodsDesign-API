@@ -1,6 +1,7 @@
 ﻿using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using DataTransferObjects.NotificationDTOs;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Repositories.Interfaces;
 using Services.Hubs;
@@ -14,15 +15,19 @@ namespace Services.Services
         private readonly ILoggerService _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHubContext<NotificationHub> _notificationHubContext;
+        private readonly UserManager<User> _userManager;
 
         public NotificationService(
             ILoggerService logger,
             IUnitOfWork unitOfWork
-        , IHubContext<NotificationHub> notificationHubContext)
+        , IHubContext<NotificationHub> notificationHubContext,
+            UserManager<User> userManager
+            )
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
             _notificationHubContext = notificationHubContext;
+            _userManager = userManager;
         }
 
         // Xóa thông báo dựa trên notificationId
@@ -125,6 +130,11 @@ namespace Services.Services
         {
             try
             {
+                User user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                {
+                    throw new KeyNotFoundException("User not found.");
+                }
                 var notification = new Notification
                 {
                     Title = notificationDTO.Title,
@@ -132,6 +142,7 @@ namespace Services.Services
                     Url = notificationDTO.Url,
                     IsRead = false,
                     UserId = userId,
+                    User = user,
                     Type = NotificationType.ByUser
                 };
 

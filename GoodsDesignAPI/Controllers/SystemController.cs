@@ -39,9 +39,7 @@ namespace GoodsDesignAPI.Controllers
             {
                 Title = "Test Notification",
                 Content = "This is a test notification.",
-                Role = null,
                 Url = "https://example.com",
-                UserId = null
 
             };
 
@@ -59,10 +57,10 @@ namespace GoodsDesignAPI.Controllers
             {
                 Title = "Test Notification",
                 Content = "This is a test notification.",
-                Role = null,
                 Url = "https://example.com",
-                UserId = userId
             };
+
+            await _notificationService.PushNotificationToUser(userId, notification);
 
             return Ok(ApiResult<object>.Success(null, "Notification sent to user."));
         }
@@ -74,9 +72,7 @@ namespace GoodsDesignAPI.Controllers
             {
                 Title = "Test Notification",
                 Content = "This is a test notification.",
-                Role = Roles.ADMIN.ToString(),
                 Url = "https://example.com",
-                UserId = null
             };
 
             await _notificationService.PushNotificationToRole(Roles.ADMIN, notification);

@@ -1,6 +1,8 @@
 ﻿using BusinessObjects;
 using BusinessObjects.Entities;
+using BusinessObjects.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
@@ -15,11 +17,13 @@ namespace GoodsDesignAPI.Controllers
     {
         private readonly GoodsDesignDbContext _context;
         private readonly ILoggerService _logger;
+        private readonly UserManager<User> _userManager;
 
-        public PersonalOdataController(GoodsDesignDbContext context, ILoggerService logger)
+        public PersonalOdataController(GoodsDesignDbContext context, ILoggerService logger, UserManager<User> userManager)
         {
             _context = context;
             _logger = logger;
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -40,16 +44,23 @@ namespace GoodsDesignAPI.Controllers
                     return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
                 }
 
-                var userExists = await _context.Users.AnyAsync(u => u.Id == Guid.Parse(userId) && !u.IsDeleted);
-                if (!userExists)
+                var userExists = await _context.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId) && !u.IsDeleted);
+                if (userExists == null)
                 {
                     _logger.Warn("User not found or deleted.");
                     return Unauthorized(ApiResult<object>.Error("401 - User not found or deleted."));
                 }
 
+                var role = await _context.Roles.FindAsync(userExists.RoleId);
+
                 var notifications = await _context.Notifications
-                    .Where(n => n.UserId == Guid.Parse(userId))
+                    .Where(n => n.Type == NotificationType.AllUsers
+                    || n.UserId == userExists.Id
+                                || n.Role.ToLower() == role.Name.ToLower())
+                    .OrderByDescending(n => n.CreatedAt)
                     .ToListAsync();
+
+
 
                 return Ok(notifications);
             }
