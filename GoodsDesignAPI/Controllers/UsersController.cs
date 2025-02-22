@@ -73,7 +73,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
 
-        [HttpPut("{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserUpdateDTO userUpdateDTO)
         {
             _logger.Info($"Attempting to update user with ID: {id}");

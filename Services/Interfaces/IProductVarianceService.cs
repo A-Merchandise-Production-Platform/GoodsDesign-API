@@ -10,8 +10,8 @@ namespace Services.Interfaces
 {
     public interface IProductVarianceService
     {
-        Task<ProductVariance> CreateProductVariance(ProductVarianceDTO dto);
-        Task<ProductVariance> DeleteProductVariance(Guid id);
-        Task<ProductVariance> UpdateProductVariance(Guid id, ProductVarianceDTO dto);
+        Task<BlankVariance> CreateProductVariance(ProductVarianceDTO dto);
+        Task<BlankVariance> DeleteProductVariance(Guid id);
+        Task<BlankVariance> UpdateProductVariance(Guid id, ProductVarianceDTO dto);
     }
 }

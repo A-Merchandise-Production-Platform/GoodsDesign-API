@@ -117,63 +117,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Retrieves a list of areas with OData support.
-        /// </summary>
-        /// <response code="200">Returns the list of areas.</response>
-        /// <response code="500">Internal server error.</response>
-        [EnableQuery]
-        [HttpGet("/api/areas")]
-        [ProducesResponseType(typeof(ApiResult<IEnumerable<Area>>), 200)]
-        [ProducesResponseType(typeof(ApiResult<object>), 500)]
-        public async Task<ActionResult<IEnumerable<Area>>> GetAreas()
-        {
-            try
-            {
-                var result = await _context.Areas.ToListAsync();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
-                var errorResponse = ApiResult<object>.Error(ex.Message);
-
-                return StatusCode(statusCode, errorResponse);
-            }
-        }
-
-        /// <summary>
-        /// Retrieves an area by ID.
-        /// </summary>
-        /// <param name="id">The ID of the area.</param>
-        /// <response code="200">Returns the area details.</response>
-        /// <response code="404">Area not found.</response>
-        /// <response code="500">Internal server error.</response>
-        [EnableQuery]
-        [HttpGet("/api/areas/{id}")]
-        public async Task<ActionResult<Area>> GetAreaById(string id)
-        {
-            try
-            {
-                var itemId = Guid.TryParse(id, out var guid) ? guid : Guid.Empty;
-                var item = await _context.Areas.FirstOrDefaultAsync(d => d.Id.Equals(itemId));
-
-                if (item == null)
-                {
-                    return NotFound(ApiResult<object>.Error($"Area with ID '{id}' not found."));
-                }
-
-                return Ok(item);
-            }
-            catch (Exception ex)
-            {
-                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
-                var errorResponse = ApiResult<object>.Error(ex.Message);
-
-                return StatusCode(statusCode, errorResponse);
-            }
-        }
-
+        
         /// <summary>
         /// Retrieves a list of categories with their associated products using OData support.
         /// </summary>
@@ -358,7 +302,7 @@ namespace GoodsDesignAPI.Controllers
         {
             try
             {
-                var result = await _context.Factories.Include(x => x.FactoryProducts).ThenInclude(x => x.Product).ToListAsync();
+                var result = await _context.Factories.Include(x => x.FactoryProducts).ThenInclude(x => x.BlankVariance).ToListAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -384,7 +328,7 @@ namespace GoodsDesignAPI.Controllers
             try
             {
                 var itemId = Guid.TryParse(id, out var guid) ? guid : Guid.Empty;
-                var item = await _context.Factories.Include(x => x.FactoryProducts).ThenInclude(x => x.Product).FirstOrDefaultAsync(d => d.Id.Equals(itemId));
+                var item = await _context.Factories.Include(x => x.FactoryProducts).ThenInclude(x => x.BlankVariance).FirstOrDefaultAsync(d => d.Id.Equals(itemId));
 
                 if (item == null)
                 {
@@ -402,23 +346,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-        [EnableQuery]
-        [HttpGet("/api/product-variances")]
-        public async Task<ActionResult<IEnumerable<ProductVariance>>> GetProductVariances()
-        {
-            try
-            {
-                var result = await _context.ProductVariances.Include(x => x.Product).ToListAsync();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
-                var errorResponse = ApiResult<object>.Error(ex.Message);
-
-                return StatusCode(statusCode, errorResponse);
-            }
-        }
+        
 
         /// <summary>
         /// Retrieves a product variance by ID.
@@ -429,12 +357,12 @@ namespace GoodsDesignAPI.Controllers
         /// <response code="500">Internal server error.</response>
         [EnableQuery]
         [HttpGet("/api/product-variances/{id}")]
-        public async Task<ActionResult<ProductVariance>> GetProductVarianceById(string id)
+        public async Task<ActionResult<BlankVariance>> GetProductVarianceById(string id)
         {
             try
             {
                 var itemId = Guid.TryParse(id, out var guid) ? guid : Guid.Empty;
-                var item = await _context.ProductVariances.Include(x => x.Product).FirstOrDefaultAsync(d => d.Id.Equals(itemId));
+                var item = await _context.BlankVariances.Include(x => x.Product).FirstOrDefaultAsync(d => d.Id.Equals(itemId));
 
                 if (item == null)
                 {
@@ -452,30 +380,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Retrieves a list of blank products in stock with their associated product variances.
-        /// </summary>
-        /// <response code="200">Returns the list of blank products in stock with product variances.</response>
-        /// <response code="500">Internal server error.</response>
-        [EnableQuery]
-        [HttpGet("/api/blank-products-in-stock")]
-        [ProducesResponseType(typeof(ApiResult<IEnumerable<BlankProductInStock>>), 200)]
-        [ProducesResponseType(typeof(ApiResult<object>), 500)]
-        public async Task<ActionResult<IEnumerable<BlankProductInStock>>> GetBlankProductsInStock()
-        {
-            try
-            {
-                var result = await _context.BlankProductsInStocks.Include(x => x.ProductVariance).ToListAsync();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
-                var errorResponse = ApiResult<object>.Error(ex.Message);
-
-                return StatusCode(statusCode, errorResponse);
-            }
-        }
+       
 
         [EnableQuery]
         [HttpGet("/api/product-position-types")]
@@ -530,37 +435,6 @@ namespace GoodsDesignAPI.Controllers
         }
 
 
-        /// <summary>
-        /// Retrieves a blank product in stock by ID.
-        /// </summary>
-        /// <param name="id">The ID of the blank product in stock.</param>
-        /// <response code="200">Returns the blank product in stock details.</response>
-        /// <response code="404">Blank product in stock not found.</response>
-        /// <response code="500">Internal server error.</response>
-        [EnableQuery]
-        [HttpGet("/api/blank-products-in-stock/{id}")]
-        public async Task<ActionResult<BlankProductInStock>> GetBlankProductInStockById(string id)
-        {
-            try
-            {
-                var itemId = Guid.TryParse(id, out var guid) ? guid : Guid.Empty;
-                var item = await _context.BlankProductsInStocks.Include(x => x.ProductVariance).FirstOrDefaultAsync(d => d.Id.Equals(itemId));
-
-                if (item == null)
-                {
-                    return NotFound(ApiResult<object>.Error($"Blank product in stock with ID '{id}' not found."));
-                }
-
-                return Ok(item);
-            }
-            catch (Exception ex)
-            {
-                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
-                var errorResponse = ApiResult<object>.Error(ex.Message);
-
-                return StatusCode(statusCode, errorResponse);
-            }
-        }
 
 
         /// <summary>

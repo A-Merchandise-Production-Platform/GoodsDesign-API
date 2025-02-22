@@ -17,7 +17,7 @@ namespace BusinessObjects.Entities
         // Navigation property
         public Category Category { get; set; }
         public virtual ICollection<FactoryProduct> FactoryProducts { get; set; } // Many-to-Many through FactoryProduct
-        public virtual ICollection<ProductVariance> ProductVariances { get; set; } 
+        public virtual ICollection<BlankVariance> BlankVariances { get; set; } 
 
     }
 }

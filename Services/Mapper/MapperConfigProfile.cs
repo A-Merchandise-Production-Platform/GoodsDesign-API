@@ -19,16 +19,14 @@ namespace Services.Mapper
         public MapperConfigProfile()
         {
             CreateMap<User, UserDTO>()
-    .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ? "Male" : "Female"))
+    //.ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ? "Male" : "Female"))
     .ReverseMap();
 
 
             CreateMap<User, UserUpdateDTO>()
- .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ? "Male" : "Female"))
+// .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ? "Male" : "Female"))
  .ReverseMap();
 
-            CreateMap<Area, AreaDTO>()
-                .ReverseMap();
 
             CreateMap<Category, CategoryDTO>()
                 .ReverseMap();
@@ -46,11 +44,10 @@ namespace Services.Mapper
             CreateMap<FactoryProductDTO, FactoryProduct>()
                .ReverseMap();
 
-            CreateMap<ProductVarianceDTO, ProductVariance>()
+            CreateMap<ProductVarianceDTO, BlankVariance>()
                .ReverseMap();
 
-            CreateMap<BlankProductInStockDTO, BlankProductInStock>()
-               .ReverseMap();
+          
 
             CreateMap<CartItem, CartItemDTO>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
