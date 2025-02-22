@@ -19,6 +19,9 @@ namespace BusinessObjects.Entities
 
         // One-to-Many: A user belongs to one role
         public Guid RoleId { get; set; } // Foreign Key
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
+
         public Role Role { get; set; } // Navigation Property
                                        // Navigation Property
         public ICollection<CartItem> CartItems { get; set; }

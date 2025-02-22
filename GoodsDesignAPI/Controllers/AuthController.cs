@@ -1,4 +1,4 @@
-using BusinessObjects.Entities;
+﻿using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using DataTransferObjects.Auth;
 using DataTransferObjects.AuthDTOs;
@@ -7,11 +7,13 @@ using DataTransferObjects.NotificationDTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Repositories.Interfaces;
 using Services.Interfaces;
 using Services.Interfaces.CommonService;
 using Services.Utils;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 
 namespace GoodsDesignAPI.Controllers
@@ -27,6 +29,8 @@ namespace GoodsDesignAPI.Controllers
         private readonly IFactoryService _factoryService;
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
+        private readonly ICurrentTime _currentTime;
+
 
         public AuthController(
             UserManager<User> userManager,
@@ -35,7 +39,9 @@ namespace GoodsDesignAPI.Controllers
             INotificationService notificationService,
             IFactoryService factoryService,
             IUserService userService,
-            IEmailService emailService)
+            IEmailService emailService,
+            ICurrentTime currentTime
+            )
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -44,6 +50,7 @@ namespace GoodsDesignAPI.Controllers
             _factoryService = factoryService;
             _userService = userService;
             _emailService = emailService;
+            _currentTime = currentTime;
         }
 
         /// <summary>
@@ -92,6 +99,9 @@ namespace GoodsDesignAPI.Controllers
 
                 var accessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(60));
                 var refreshToken = await _userManager.GenerateUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken");
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiryTime = _currentTime.GetCurrentTime().AddDays(7);
+                var result = await _userManager.UpdateAsync(user);
 
                 _logger.Success("Login successful.");
                 return Ok(ApiResult<LoginResponseDTO>.Success(new LoginResponseDTO
@@ -313,7 +323,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken([FromBody] LoginResponseDTO request)
+        public async Task<IActionResult> RefreshToken()
         {
             _logger.Info("Token refresh attempt initiated.");
             try
@@ -323,43 +333,86 @@ namespace GoodsDesignAPI.Controllers
                     .AddJsonFile("appsettings.json", true, true)
                     .AddEnvironmentVariables()
                     .Build();
-                // Validate the access token without checking its expiration
+
+                // Lấy Access Token từ header Authorization
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized(ApiResult<object>.Error("401 - Missing or invalid Authorization header."));
+                }
+
+                var accessToken = authHeader.Replace("Bearer ", "");
+
+                // Validate Access Token mà không kiểm tra expiration
                 var tokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateAudience = false,
                     ValidateIssuer = false,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])),
-                    ValidateLifetime = true
+                    ValidateLifetime = false // Không check expiration (Vì token này có thể đã hết hạn)
                 };
-                var principal = new JwtSecurityTokenHandler().ValidateToken(request.AccessToken, tokenValidationParameters, out SecurityToken securityToken);
-                // Ensure the token is a valid JWT
+
+                var principal = new JwtSecurityTokenHandler().ValidateToken(accessToken, tokenValidationParameters, out SecurityToken securityToken);
+
                 if (securityToken is not JwtSecurityToken jwtSecurityToken ||
                     !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 {
                     throw new SecurityTokenException("Invalid token.");
                 }
+
+                // Lấy email từ token
                 var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+                if (email == null)
+                {
+                    _logger.Warn("Token does not contain email.");
+                    return Unauthorized(ApiResult<object>.Error("401 - Token does not contain email."));
+                }
+
                 var user = await _userManager.FindByEmailAsync(email);
                 if (user == null)
                 {
                     _logger.Warn("User not found for token refresh.");
                     return Unauthorized(ApiResult<object>.Error("401 - User not found."));
                 }
-                if (!await _userManager.VerifyUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken", request.RefreshToken))
+
+                // Lấy refresh token từ cơ sở dữ liệu của user
+                var storedRefreshToken = user.RefreshToken;
+                if (string.IsNullOrEmpty(storedRefreshToken))
+                {
+                    _logger.Warn("User has no refresh token stored.");
+                    return Unauthorized(ApiResult<object>.Error("401 - No refresh token available."));
+                }
+
+                // Kiểm tra refresh token hợp lệ
+                if (!await _userManager.VerifyUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken", storedRefreshToken))
                 {
                     _logger.Warn("Refresh token invalid or expired.");
                     return Unauthorized(ApiResult<object>.Error("401 - Refresh token invalid or expired."));
                 }
+
+                // Lấy thông tin role
                 var role = await _roleManager.FindByIdAsync(user.RoleId.ToString());
                 if (role == null)
                 {
                     _logger.Warn("User has no assigned role.");
                     return BadRequest(ApiResult<object>.Error("400 - User does not have an assigned role."));
                 }
+
+                // Tạo Access Token mới
                 var newAccessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(15));
+
+                // Tạo Refresh Token mới (Valid trong 7 ngày)
                 var newRefreshToken = await _userManager.GenerateUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken");
+
+                // Lưu refresh token mới vào database
+                user.RefreshToken = newRefreshToken;
+                user.RefreshTokenExpiryTime = _currentTime.GetCurrentTime().AddDays(int.Parse(configuration["JWT:RefreshTokenValidityInDays"]));
+
+                await _userManager.UpdateAsync(user);
+
                 _logger.Success("Token refresh successful.");
+
                 return Ok(ApiResult<LoginResponseDTO>.Success(new LoginResponseDTO
                 {
                     AccessToken = newAccessToken,
@@ -373,5 +426,6 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
             }
         }
+
     }
 }

@@ -76,7 +76,7 @@ namespace Services.Services
                         factory.FactoryProducts.Add(new FactoryProduct
                         {
                             Factory = factory,
-                            Product = product,
+                            //BlankVariance = product,
                             ProductionCapacity = selectedProduct.ProductionCapacity ?? 0,
                             EstimatedProductionTimwe = selectedProduct.EstimatedProductionTime ?? 0
                         });

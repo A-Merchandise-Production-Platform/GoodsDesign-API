@@ -13,12 +13,10 @@ namespace BusinessObjects
         }
 
         //Add table
-        public DbSet<Area> Areas { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<ProductPositionType> ProductPositionTypes { get; set; }
-        public DbSet<ProductVariance> ProductVariances { get; set; }
-        public DbSet<BlankProductInStock> BlankProductsInStocks { get; set; }
+        public DbSet<BlankVariance> BlankVariances { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Factory> Factories { get; set; }
         public DbSet<FactoryProduct> FactoryProducts { get; set; }
@@ -69,32 +67,24 @@ namespace BusinessObjects
                 .HasForeignKey(ppt => ppt.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<ProductVariance>()
+            modelBuilder.Entity<BlankVariance>()
      .HasOne(pv => pv.Product)
-     .WithMany(p => p.ProductVariances)
+     .WithMany(p => p.BlankVariances)
      .HasForeignKey(pv => pv.ProductId)
      .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<BlankProductInStock>()
-                .HasOne(bp => bp.ProductVariance)
-                .WithMany()
-                .HasForeignKey(bp => bp.ProductVarianceId)
-                .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<BlankProductInStock>()
-                .HasOne(bp => bp.Area)
-                .WithMany()
-                .HasForeignKey(bp => bp.AreaId)
-                .OnDelete(DeleteBehavior.Restrict);
+
+
 
             // Optional: Configure jsonb column (if needed)
-            modelBuilder.Entity<ProductVariance>()
+            modelBuilder.Entity<BlankVariance>()
                 .Property(pv => pv.Information)
                 .HasColumnType("jsonb");
 
             // Configure Many-to-Many relationship using FactoryProduct
             modelBuilder.Entity<FactoryProduct>()
-                .HasKey(fp => new { fp.FactoryId, fp.ProductId }); // Composite primary key
+                .HasKey(fp => new { fp.FactoryId, fp.BlankVarianceId }); // Composite primary key
 
             modelBuilder.Entity<FactoryProduct>()
                 .HasOne(fp => fp.Factory)
@@ -103,9 +93,9 @@ namespace BusinessObjects
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<FactoryProduct>()
-                .HasOne(fp => fp.Product)
-                .WithMany(p => p.FactoryProducts) // Product -> FactoryProducts
-                .HasForeignKey(fp => fp.ProductId)
+                .HasOne(fp => fp.BlankVariance)
+                .WithMany(p => p.FactoryProducts) // BlankVariance -> FactoryProducts
+                .HasForeignKey(fp => fp.BlankVarianceId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Factory>()
@@ -122,7 +112,11 @@ namespace BusinessObjects
                 .HasKey(sc => sc.Id); // Primary Key
 
             modelBuilder.Entity<SystemConfig>()
-                .Property(sc => sc.Value)
+                .Property(sc => sc.Bank)
+                .HasColumnType("jsonb"); // JSONB for PostgreSQL
+
+            modelBuilder.Entity<SystemConfig>()
+                .Property(sc => sc.Color)
                 .HasColumnType("jsonb");
 
         }

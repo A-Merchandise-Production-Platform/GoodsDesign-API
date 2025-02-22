@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BusinessObjects.Entities
 {
-    public class ProductVariance : BaseEntity
+    public class BlankVariance : BaseEntity
     {
         public Guid ProductId { get; set; }
         public string Information { get; set; } // JSONB equivalent
@@ -14,5 +14,6 @@ namespace BusinessObjects.Entities
 
         // Navigation property
         public Product Product { get; set; }
+        public virtual ICollection<FactoryProduct> FactoryProducts { get; set; } // Many-to-Many through FactoryProduct
     }
 }

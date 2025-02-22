@@ -37,13 +37,11 @@ namespace GoodsDesignAPI.Controllers
 
                 // Seed data in order
                 var usersResult = await SeedUsers();
-                var areasResult = await SeedAreas(context);
+                var factoriesResult = await SeedFactories(context);
                 var categoriesResult = await SeedCategories(context);
                 var productsResult = await SeedProducts(context);
-                var factoriesResult = await SeedFactories(context);
+                var productVariances = await SeedBlankVariances(context);
                 var factoryProductsResult = await SeedFactoryProducts(context);
-                var productVariances = await SeedProductVariances(context);
-                var blankProductsInStockResult = await SeedBlankProductsInStock(context);
                 // Seed Customer Orders
                 var customerOrdersResult = await SeedCustomerOrders(context);
                 // Seed Payments
@@ -58,13 +56,11 @@ namespace GoodsDesignAPI.Controllers
                     Details = new
                     {
                         Users = usersResult.Data,
-                        Areas = areasResult.Data,
                         Categories = categoriesResult.Data,
                         Products = productsResult.Data,
                         Factories = factoriesResult.Data,
                         FactoryProducts = factoryProductsResult.Data,
                         ProductVariances = productVariances.Data,
-                        BlankProductInStock = blankProductsInStockResult.Data,
                         CustomerOrders = customerOrdersResult.Data,
                         Payments = paymentsResult.Data,
                     }
@@ -85,13 +81,11 @@ namespace GoodsDesignAPI.Controllers
             await context.Payments.ExecuteDeleteAsync();
             await context.CustomerOrderDetails.ExecuteDeleteAsync();
             await context.CustomerOrders.ExecuteDeleteAsync();
-            await context.BlankProductsInStocks.ExecuteDeleteAsync();
             await context.FactoryProducts.ExecuteDeleteAsync();
             await context.Factories.ExecuteDeleteAsync();
-            await context.ProductVariances.ExecuteDeleteAsync();
+            await context.BlankVariances.ExecuteDeleteAsync();
             await context.Products.ExecuteDeleteAsync();
             await context.Categories.ExecuteDeleteAsync();
-            await context.Areas.ExecuteDeleteAsync();
             await context.Notifications.ExecuteDeleteAsync();
 
             var users = _userManager.Users.ToList();
@@ -159,31 +153,6 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-        [Authorize(Roles = "admin")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [HttpPost("seed-areas")]
-        public async Task<ApiResult<List<Area>>> SeedAreas([FromServices] GoodsDesignDbContext context)
-        {
-            try
-            {
-                var areasToSeed = new List<Area>
-                {
-                    new Area { Id = Guid.NewGuid(), Name = "Area 1", Position = "North", Code = "A001" },
-                    new Area { Id = Guid.NewGuid(), Name = "Area 2", Position = "South", Code = "A002" },
-                    new Area { Id = Guid.NewGuid(), Name = "Area 3", Position = "East", Code = "A003" }
-                };
-
-                await context.Areas.AddRangeAsync(areasToSeed);
-                await context.SaveChangesAsync();
-
-                return ApiResult<List<Area>>.Success(areasToSeed, "Areas seeded successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.Error($"Error seeding areas: {ex.Message}");
-                throw;
-            }
-        }
 
         [Authorize(Roles = "admin")]
         [ApiExplorerSettings(IgnoreApi = true)]
@@ -256,6 +225,8 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
+
+
         [Authorize(Roles = "admin")]
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("seed-factories")]
@@ -301,17 +272,17 @@ namespace GoodsDesignAPI.Controllers
             try
             {
                 var factories = await context.Factories.ToListAsync();
-                var products = await context.Products.ToListAsync();
+                var blankVariances = await context.BlankVariances.ToListAsync();
 
-                if (!factories.Any() || !products.Any())
+                if (!factories.Any() || !blankVariances.Any())
                 {
                     throw new Exception("Please seed factories and products before seeding factory products.");
                 }
 
                 var factoryProductsToSeed = new List<FactoryProduct>
                 {
-                    new FactoryProduct { FactoryId = factories[0].Id, ProductId = products[0].Id, ProductionCapacity = 500 , EstimatedProductionTimwe=0},
-                    new FactoryProduct { FactoryId = factories[1].Id, ProductId = products[1].Id, ProductionCapacity = 300 , EstimatedProductionTimwe= 0}
+                    new FactoryProduct { FactoryId = factories[0].Id, BlankVarianceId = blankVariances[0].Id, ProductionCapacity = 500 , EstimatedProductionTimwe=0},
+                    new FactoryProduct { FactoryId = factories[1].Id, BlankVarianceId = blankVariances[1].Id, ProductionCapacity = 300 , EstimatedProductionTimwe= 0}
                 };
 
                 await context.FactoryProducts.AddRangeAsync(factoryProductsToSeed);
@@ -328,134 +299,32 @@ namespace GoodsDesignAPI.Controllers
 
         [Authorize(Roles = "admin")]
         [ApiExplorerSettings(IgnoreApi = true)]
-        [HttpPost("seed-product-variances")]
-        public async Task<ApiResult<List<ProductVariance>>> SeedProductVariances([FromServices] GoodsDesignDbContext context)
+        [HttpPost("seed-blank-variances")]
+        public async Task<ApiResult<List<BlankVariance>>> SeedBlankVariances([FromServices] GoodsDesignDbContext context)
         {
             try
             {
-                _logger.Info("Seeding Product Variances initiated.");
+                _logger.Info("Seeding Blank Variances initiated.");
+                var products = await context.Products.ToListAsync();
+                if (!products.Any()) throw new Exception("Please seed products before seeding blank variances.");
 
-                // Get existing products to assign variances
-                var existingProducts = await context.Products.ToListAsync();
-                if (!existingProducts.Any())
+                var blankVariancesToSeed = new List<BlankVariance>
                 {
-                    throw new Exception("Please seed products before seeding product variances.");
-                }
+                    new BlankVariance { Id = Guid.NewGuid(), ProductId = products[0].Id, Information = "{\"color\":\"white\",\"material\":\"cotton\"}", BlankPrice = Convert.ToString(20.00m) },
+                    new BlankVariance { Id = Guid.NewGuid(), ProductId = products[0].Id, Information = "{\"color\":\"black\",\"material\":\"cotton\"}", BlankPrice = Convert.ToString(21.00m) },
+                                new BlankVariance { Id = Guid.NewGuid(), ProductId = products[1].Id, Information = "{\"material\":\"plastic\",\"color\":\"red\"}", BlankPrice = "8.99" }
 
-                // Define Product Variances to seed
-                var productVariancesToSeed = new List<ProductVariance>
-        {
-            new ProductVariance
-            {
-                Id = Guid.NewGuid(),
-                ProductId = existingProducts[0].Id,
-                Information = "{\"color\":\"white\",\"size\":\"L\"}", // JSON string for additional information
-                BlankPrice = "19.99"
-            },
-            new ProductVariance
-            {
-                Id = Guid.NewGuid(),
-                ProductId = existingProducts[0].Id,
-                Information = "{\"color\":\"black\",\"size\":\"M\"}",
-                BlankPrice = "18.99"
-            },
-            new ProductVariance
-            {
-                Id = Guid.NewGuid(),
-                ProductId = existingProducts[1].Id,
-                Information = "{\"material\":\"silicone\",\"color\":\"blue\"}",
-                BlankPrice = "9.99"
-            },
-            new ProductVariance
-            {
-                Id = Guid.NewGuid(),
-                ProductId = existingProducts[1].Id,
-                Information = "{\"material\":\"plastic\",\"color\":\"red\"}",
-                BlankPrice = "8.99"
-            }
-        };
+                };
 
-                // Add Product Variances to database
-                await context.ProductVariances.AddRangeAsync(productVariancesToSeed);
+                await context.BlankVariances.AddRangeAsync(blankVariancesToSeed);
                 await context.SaveChangesAsync();
 
-                _logger.Success("Product Variances seeded successfully.");
-                return ApiResult<List<ProductVariance>>.Success(productVariancesToSeed, "Product Variances seeded successfully.");
+                return ApiResult<List<BlankVariance>>.Success(blankVariancesToSeed, "Blank Variances seeded successfully.");
             }
             catch (Exception ex)
             {
-                _logger.Error($"Error during seeding Product Variances: {ex.Message}");
-                return ApiResult<List<ProductVariance>>.Error($"Error during seeding Product Variances: {ex.Message}");
-            }
-        }
-
-        [Authorize(Roles = "admin")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [HttpPost("seed-blank-products-in-stock")]
-        public async Task<ApiResult<List<BlankProductInStock>>> SeedBlankProductsInStock([FromServices] GoodsDesignDbContext context)
-        {
-            try
-            {
-                _logger.Info("Seeding Blank Products In Stock initiated.");
-
-                // Get existing ProductVariances and Areas
-                var productVariances = await context.ProductVariances.ToListAsync();
-                var areas = await context.Areas.ToListAsync();
-
-                if (!productVariances.Any())
-                {
-                    throw new Exception("Please seed ProductVariances before seeding Blank Products In Stock.");
-                }
-
-                if (!areas.Any())
-                {
-                    throw new Exception("Please seed Areas before seeding Blank Products In Stock.");
-                }
-
-                // Define Blank Products In Stock to seed
-                var blankProductsInStockToSeed = new List<BlankProductInStock>
-        {
-            new BlankProductInStock
-            {
-                Id = Guid.NewGuid(),
-                ProductVarianceId = productVariances[0].Id,
-                AreaId = areas[0].Id,
-                QuantityInStock = 100
-            },
-            new BlankProductInStock
-            {
-                Id = Guid.NewGuid(),
-                ProductVarianceId = productVariances[1].Id,
-                AreaId = areas[1].Id,
-                QuantityInStock = 150
-            },
-            new BlankProductInStock
-            {
-                Id = Guid.NewGuid(),
-                ProductVarianceId = productVariances[2].Id,
-                AreaId = areas[2].Id,
-                QuantityInStock = 200
-            },
-            new BlankProductInStock
-            {
-                Id = Guid.NewGuid(),
-                ProductVarianceId = productVariances[0].Id,
-                AreaId = areas[2].Id,
-                QuantityInStock = 50
-            }
-        };
-
-                // Add Blank Products In Stock to database
-                await context.BlankProductsInStocks.AddRangeAsync(blankProductsInStockToSeed);
-                await context.SaveChangesAsync();
-
-                _logger.Success("Blank Products In Stock seeded successfully.");
-                return ApiResult<List<BlankProductInStock>>.Success(blankProductsInStockToSeed, "Blank Products In Stock seeded successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.Error($"Error during seeding Blank Products In Stock: {ex.Message}");
-                return ApiResult<List<BlankProductInStock>>.Error($"Error during seeding Blank Products In Stock: {ex.Message}");
+                _logger.Error($"Error during seeding Blank Variances: {ex.Message}");
+                return ApiResult<List<BlankVariance>>.Error($"Error during seeding Blank Variances: {ex.Message}");
             }
         }
 
