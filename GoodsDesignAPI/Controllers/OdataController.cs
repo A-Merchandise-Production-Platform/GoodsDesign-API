@@ -1,6 +1,8 @@
 ﻿using BusinessObjects;
 using BusinessObjects.Entities;
+using BusinessObjects.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +16,13 @@ namespace GoodsDesignAPI.Controllers
     {
         private readonly GoodsDesignDbContext _context;
         private readonly ILoggerService _logger;
+        private readonly UserManager<User> _userManager;
 
-        public OdataController(GoodsDesignDbContext context, ILoggerService logger)
+        public OdataController(GoodsDesignDbContext context, ILoggerService logger, UserManager<User> userManager)
         {
             _context = context;
             _logger = logger;
+            _userManager = userManager;
         }
 
 
@@ -117,7 +121,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-        
+
         /// <summary>
         /// Retrieves a list of categories with their associated products using OData support.
         /// </summary>
@@ -188,7 +192,34 @@ namespace GoodsDesignAPI.Controllers
         {
             try
             {
-                var result = await _context.Notifications.Include(x => x.User).ToListAsync();
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.Warn("User ID not found in token.");
+                    throw new UnauthorizedAccessException("401 - User not authenticated.");
+                }
+
+                var userExists = await _userManager.FindByIdAsync(userId);
+
+                if (userExists == null)
+                {
+                    _logger.Warn("User not found or deleted.");
+                    throw new UnauthorizedAccessException("401 - User not found or deleted.");
+                }
+
+                var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == userExists.RoleId);
+
+                if (role == null)
+                {
+                    _logger.Warn("User role not found.");
+                    throw new UnauthorizedAccessException("401 - User role not found.");
+                }
+                var result = await _context.Notifications
+                    .Where(n => n.Type == NotificationType.AllUsers
+                                || n.UserId == userExists.Id
+                                || n.Role.ToLower() == role.Name.ToLower())
+                    .OrderByDescending(n => n.CreatedAt)
+                    .ToListAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -346,7 +377,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-        
+
 
         /// <summary>
         /// Retrieves a product variance by ID.
@@ -380,7 +411,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-       
+
 
         [EnableQuery]
         [HttpGet("/api/product-position-types")]

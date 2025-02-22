@@ -98,6 +98,7 @@ static IEdmModel GetEdmModel()
     var products = builder.EntitySet<Product>("Products");
     var factories = builder.EntitySet<Factory>("Factories");
     var blankvariances = builder.EntitySet<BlankVariance>("BlankVariances");
+    var notifications = builder.EntitySet<Notification>("Notifications");
 
     // Define relationships
     users.EntityType.HasOptional(u => u.Role); // User has one Role

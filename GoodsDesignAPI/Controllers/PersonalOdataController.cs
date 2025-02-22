@@ -1,7 +1,5 @@
 ﻿using BusinessObjects;
 using BusinessObjects.Entities;
-using BusinessObjects.Enums;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -12,7 +10,6 @@ using System.Security.Claims;
 
 namespace GoodsDesignAPI.Controllers
 {
-    [Authorize]
     public class PersonalOdataController : Microsoft.AspNetCore.OData.Routing.Controllers.ODataController
     {
         private readonly GoodsDesignDbContext _context;
@@ -24,52 +21,6 @@ namespace GoodsDesignAPI.Controllers
             _context = context;
             _logger = logger;
             _userManager = userManager;
-        }
-
-        /// <summary>
-        /// Retrieves personal notifications for the current user.
-        /// </summary>
-        /// <response code="200">Returns the list of notifications for the current user.</response>
-        /// <response code="500">Internal server error.</response>
-        [EnableQuery]
-        [HttpGet("/api/me/notifications")]
-        public async Task<ActionResult<IEnumerable<Notification>>> GetMyNotifications()
-        {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userId))
-                {
-                    _logger.Warn("User ID not found in token.");
-                    return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
-                }
-
-                var userExists = await _context.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId) && !u.IsDeleted);
-                if (userExists == null)
-                {
-                    _logger.Warn("User not found or deleted.");
-                    return Unauthorized(ApiResult<object>.Error("401 - User not found or deleted."));
-                }
-
-                var role = await _context.Roles.FindAsync(userExists.RoleId);
-
-                var notifications = await _context.Notifications
-                    .Where(n => n.Type == NotificationType.AllUsers
-                    || n.UserId == userExists.Id
-                                || n.Role.ToLower() == role.Name.ToLower())
-                    .OrderByDescending(n => n.CreatedAt)
-                    .ToListAsync();
-
-
-
-                return Ok(notifications);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error($"Error retrieving notifications: {ex.Message}");
-                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
-                return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
-            }
         }
 
         /// <summary>
