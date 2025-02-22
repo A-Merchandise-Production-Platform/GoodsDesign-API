@@ -58,7 +58,7 @@ namespace GoodsDesignAPI.Controllers
         }
 
         [Authorize]
-        [HttpPut("me")]
+        [HttpPatch("me")]
         public async Task<IActionResult> UpdateCurrentUser(UserUpdateDTO userUpdateDTO)
         {
             try

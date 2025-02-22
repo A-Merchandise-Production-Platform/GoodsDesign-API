@@ -19,12 +19,12 @@ namespace Services.Mapper
         public MapperConfigProfile()
         {
             CreateMap<User, UserDTO>()
-    .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ? "Male" : "Female"))
+    //.ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ? "Male" : "Female"))
     .ReverseMap();
 
 
             CreateMap<User, UserUpdateDTO>()
- .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ? "Male" : "Female"))
+// .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ? "Male" : "Female"))
  .ReverseMap();
 
 
