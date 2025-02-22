@@ -13,7 +13,6 @@ using Services.Interfaces.CommonService;
 using Services.Utils;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Text;
 
 namespace GoodsDesignAPI.Controllers
@@ -67,7 +66,7 @@ namespace GoodsDesignAPI.Controllers
             {
                 IConfiguration configuration = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", true, true)
+                    .AddJsonFile("appsettings.json", true, false)
                     .AddEnvironmentVariables()
                     .Build();
 
@@ -330,7 +329,7 @@ namespace GoodsDesignAPI.Controllers
             {
                 IConfiguration configuration = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", true, true)
+                    .AddJsonFile("appsettings.json", true, false)
                     .AddEnvironmentVariables()
                     .Build();
 

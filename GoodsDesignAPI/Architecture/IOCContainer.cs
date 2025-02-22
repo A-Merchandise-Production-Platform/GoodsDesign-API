@@ -61,7 +61,7 @@ namespace GoodsDesignAPI.Architecture
         {
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile("appsettings.json", true, false)
                 .AddEnvironmentVariables()
                 .Build();
             var accessKey = configuration["Minio:AccessKey"];
@@ -172,7 +172,7 @@ namespace GoodsDesignAPI.Architecture
         {
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile("appsettings.json", true, false)
                 .AddEnvironmentVariables()
                 .Build();
 
@@ -237,7 +237,7 @@ namespace GoodsDesignAPI.Architecture
         {
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile("appsettings.json", true, false)
                 .AddEnvironmentVariables()
                 .Build();
 
