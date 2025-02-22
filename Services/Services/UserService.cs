@@ -132,36 +132,43 @@ namespace Services.Services
                 if (user == null)
                 {
                     _logger.Warn($"User with ID: {userId} not found.");
-                    throw new KeyNotFoundException($"User with ID: {userId} not found."); // Có thể bắt KeyNotFoundException để trả 404.
+                    throw new KeyNotFoundException($"User with ID: {userId} not found.");
                 }
 
-                // Map updated properties from DTO to the User entity
-                _mapper.Map(userUpdateDTO, user);
+                // 🔹 Duyệt qua tất cả properties của UserUpdateDTO
+                foreach (var property in typeof(UserUpdateDTO).GetProperties())
+                {
+                    var newValue = property.GetValue(userUpdateDTO);
+                    if (newValue != null) // Chỉ cập nhật nếu không phải null
+                    {
+                        var userProperty = typeof(User).GetProperty(property.Name);
+                        if (userProperty != null && userProperty.CanWrite)
+                        {
+                            userProperty.SetValue(user, newValue);
+                        }
+                    }
+                }
 
-                // Handle password update if provided
+                // 🔹 Xử lý cập nhật password nếu có truyền vào
                 if (!string.IsNullOrEmpty(userUpdateDTO.Password))
                 {
                     var removePasswordResult = await _userManager.RemovePasswordAsync(user);
                     if (!removePasswordResult.Succeeded)
                     {
-                        var removePasswordErrors = string.Join(", ", removePasswordResult.Errors.Select(e => e.Description));
-                        throw new InvalidOperationException($"Failed to remove current password: {removePasswordErrors}"); // Lỗi nghiệp vụ.
+                        throw new InvalidOperationException($"Failed to remove current password: {string.Join(", ", removePasswordResult.Errors.Select(e => e.Description))}");
                     }
 
                     var addPasswordResult = await _userManager.AddPasswordAsync(user, userUpdateDTO.Password);
                     if (!addPasswordResult.Succeeded)
                     {
-                        var addPasswordErrors = string.Join(", ", addPasswordResult.Errors.Select(e => e.Description));
-                        throw new InvalidOperationException($"Failed to update password: {addPasswordErrors}"); // Lỗi nghiệp vụ.
+                        throw new InvalidOperationException($"Failed to update password: {string.Join(", ", addPasswordResult.Errors.Select(e => e.Description))}");
                     }
                 }
 
-                // Update user in UserManager
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
-                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                    throw new InvalidOperationException($"Failed to update user: {errors}"); // Lỗi nghiệp vụ.
+                    throw new InvalidOperationException($"Failed to update user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                 }
 
                 _logger.Success($"User with ID: {userId} updated successfully.");
@@ -170,19 +177,20 @@ namespace Services.Services
             catch (KeyNotFoundException ex)
             {
                 _logger.Warn(ex.Message);
-                throw; // Để controller trả mã lỗi 404.
+                throw;
             }
             catch (InvalidOperationException ex)
             {
                 _logger.Warn(ex.Message);
-                throw; // Để controller trả mã lỗi 400.
+                throw;
             }
             catch (Exception ex)
             {
                 _logger.Error($"Unexpected error updating user: {ex.Message}");
-                throw new Exception("An unexpected error occurred while updating the user.", ex); // Mặc định 500.
+                throw new Exception("An unexpected error occurred while updating the user.", ex);
             }
         }
+
 
         public async Task<UserDTO?> DeleteUserAsync(Guid userId)
         {
