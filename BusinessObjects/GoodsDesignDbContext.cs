@@ -52,9 +52,6 @@ namespace BusinessObjects
                 .WithMany(r => r.Users) // A Role has many Users
                 .HasForeignKey(u => u.RoleId) // Foreign Key in User
                 .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete users when a role is deleted
-            modelBuilder.Entity<User>()
-                .Property(sc => sc.Address)
-                .HasColumnType("jsonb"); // JSONB for PostgreSQL
 
             // Configure relationships for custom tables
             modelBuilder.Entity<Product>()
