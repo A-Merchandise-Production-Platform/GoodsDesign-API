@@ -52,6 +52,7 @@ namespace GoodsDesignAPI.Architecture
             services.SetupThirdParty();
 
             services.AddSignalR();
+            services.AddHttpClient();
 
             Console.WriteLine("=== Done setup IOC Container ===");
             return services;

@@ -9,13 +9,12 @@ namespace BusinessObjects.Entities
         public string? ImageUrl { get; set; } = "";
         public bool IsActive { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
-        public string? Address { get; set; } = "";
+        public string? Address { get; set; } = ""; // JSONB
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow.AddHours(7);
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public Guid? CreatedBy { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public Guid? UpdatedBy { get; set; }
-
 
         // One-to-Many: A user belongs to one role
         public Guid RoleId { get; set; } // Foreign Key
