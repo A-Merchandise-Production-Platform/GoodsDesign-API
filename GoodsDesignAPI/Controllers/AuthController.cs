@@ -406,7 +406,7 @@ namespace GoodsDesignAPI.Controllers
 
                 // Lưu refresh token mới vào database
                 user.RefreshToken = newRefreshToken;
-                user.RefreshTokenExpiryTime = _currentTime.GetCurrentTime().AddDays(int.Parse(configuration["JWT:RefreshTokenValidityInDays"]));
+                user.RefreshTokenExpiryTime = _currentTime.GetCurrentTime().AddDays(7);
 
                 await _userManager.UpdateAsync(user);
 
