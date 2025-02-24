@@ -2,6 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Net;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace BusinessObjects
 {
@@ -114,6 +118,18 @@ namespace BusinessObjects
                 .Property(sc => sc.Value)
                 .HasColumnType("jsonb"); // JSONB for PostgreSQL
 
+
+            modelBuilder.Entity<User>()
+                     .Property(u => u.Address)
+                     .HasConversion(
+                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                         v => JsonSerializer.Deserialize<AddressModel>(v, (JsonSerializerOptions)null))
+                     .HasColumnType("jsonb");
+
         }
+
+
     }
+
+  
 }

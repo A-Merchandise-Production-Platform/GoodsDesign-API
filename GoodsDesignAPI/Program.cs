@@ -24,7 +24,8 @@ builder.Services.AddControllers()
     .AddOData(opt =>
     {
         opt.Select().Filter().Expand().OrderBy().SetMaxTop(100).Count()
-           .AddRouteComponents("api", GetEdmModel()).AddRouteComponents("api/me", GetPersonalEdmModel());
+           .AddRouteComponents("api", GetEdmModel());
+           //.AddRouteComponents("api/me", GetPersonalEdmModel());
 
     });
 
