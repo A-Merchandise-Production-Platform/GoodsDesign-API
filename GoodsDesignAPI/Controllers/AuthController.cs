@@ -365,14 +365,16 @@ namespace GoodsDesignAPI.Controllers
                 if (email == null)
                 {
                     _logger.Warn("Token does not contain email.");
-                    return Unauthorized(ApiResult<object>.Error("401 - Token does not contain email."));
+                    //return Unauthorized(ApiResult<object>.Error("401 - Token does not contain email."));
+                    return StatusCode(403, ApiResult<object>.Error("403 - Forbidden: Token does not contain email."));
+
                 }
 
                 var user = await _userManager.FindByEmailAsync(email);
                 if (user == null)
                 {
                     _logger.Warn("User not found for token refresh.");
-                    return Unauthorized(ApiResult<object>.Error("401 - User not found."));
+                    return NotFound(ApiResult<object>.Error("401 - User not found."));
                 }
 
                 // Lấy refresh token từ cơ sở dữ liệu của user
@@ -387,7 +389,7 @@ namespace GoodsDesignAPI.Controllers
                 if (!await _userManager.VerifyUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken", storedRefreshToken))
                 {
                     _logger.Warn("Refresh token invalid or expired.");
-                    return Unauthorized(ApiResult<object>.Error("401 - Refresh token invalid or expired."));
+                    return BadRequest(ApiResult<object>.Error("401 - Refresh token invalid or expired."));
                 }
 
                 // Lấy thông tin role
