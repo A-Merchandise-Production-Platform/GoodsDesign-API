@@ -23,6 +23,7 @@ services:
       - "Payment__VnPay__TmnCode=0RZLO13S"
       - "Payment__VnPay__HashSecret=IKNZLEFKQ6QGFJU6TXO4DOSLB58XEI63"
       - "Payment__VnPay__Version=2.1.0"
+      - "Shipping__GHN__Token=62acc554-f25c-11ef-a653-3600c660ea00"
     ports:
       - "9000:8080"
     depends_on:
