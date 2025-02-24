@@ -377,17 +377,40 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a list of blank variance with their associated products using OData support.
+        /// </summary>
+        /// <response code="200">Returns the list of blank variance with products.</response>
+        /// <response code="500">Internal server error.</response>
+        [EnableQuery]
+        [HttpGet("/api/blank-variances")]
+        [ProducesResponseType(typeof(ApiResult<IEnumerable<Factory>>), 200)]
+        [ProducesResponseType(typeof(ApiResult<object>), 500)]
+        public async Task<ActionResult<IEnumerable<BlankVariance>>> GetBlankVariances()
+        {
+            try
+            {
+                var result = await _context.BlankVariances.Include(x => x.Product).ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
 
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
 
         /// <summary>
-        /// Retrieves a product variance by ID.
+        /// Retrieves a blank variance by ID.
         /// </summary>
         /// <param name="id">The ID of the product variance.</param>
         /// <response code="200">Returns the product variance details.</response>
         /// <response code="404">Product variance not found.</response>
         /// <response code="500">Internal server error.</response>
         [EnableQuery]
-        [HttpGet("/api/product-variances/{id}")]
+        [HttpGet("/api/blank-variances/{id}")]
         public async Task<ActionResult<BlankVariance>> GetProductVarianceById(string id)
         {
             try
@@ -482,8 +505,8 @@ namespace GoodsDesignAPI.Controllers
             try
             {
                 var result = await _context.CustomerOrders
-                    .Include(o => o.Customer)
-                    .Include(o => o.CustomerOrderDetails)
+                   // .Include(o => o.Customer)
+                    //.Include(o => o.CustomerOrderDetails)
                     .ToListAsync();
                 return Ok(result);
             }

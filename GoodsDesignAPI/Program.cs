@@ -24,7 +24,8 @@ builder.Services.AddControllers()
     .AddOData(opt =>
     {
         opt.Select().Filter().Expand().OrderBy().SetMaxTop(100).Count()
-           .AddRouteComponents("api", GetEdmModel());
+           .AddRouteComponents("api", GetEdmModel()).AddRouteComponents("api/me", GetPersonalEdmModel());
+
     });
 
 // Setup IOC Container
@@ -99,14 +100,39 @@ static IEdmModel GetEdmModel()
     var factories = builder.EntitySet<Factory>("Factories");
     var blankvariances = builder.EntitySet<BlankVariance>("BlankVariances");
     var notifications = builder.EntitySet<Notification>("Notifications");
+    var customerOrders = builder.EntitySet<CustomerOrder>("customer-orders");
+    var customerOrderDetails = builder.EntitySet<CustomerOrderDetail>("customer-order-details");
+    var payments = builder.EntitySet<Payment>("payments");
 
     // Define relationships
     users.EntityType.HasOptional(u => u.Role); // User has one Role
-    roles.EntityType.HasMany(r => r.Users); // Role has many Users
-    roles.EntityType.HasMany(r => r.Users); // Role has many Users
-    products.EntityType.HasMany(r => r.FactoryProducts); // Role has many Users
-    factories.EntityType.HasMany(r => r.FactoryProducts); // Role has many Users
-    categories.EntityType.HasMany(r => r.Products); // Role has many Users
+    roles.EntityType.HasMany(r => r.Users);
+    roles.EntityType.HasMany(r => r.Users); 
+    products.EntityType.HasMany(r => r.FactoryProducts); 
+    categories.EntityType.HasMany(r => r.Products); 
+
+    factories.EntityType.HasMany(r => r.FactoryProducts); 
+
+    categories.EntityType.HasMany(r => r.Products); 
+
+    customerOrders.EntityType.HasMany(r => r.CustomerOrderDetails);
+    customerOrders.EntityType.HasMany(r => r.Payments);
+
+    blankvariances.EntityType.HasOptional(r => r.Product);
+
+    return builder.GetEdmModel();
+}
+
+static IEdmModel GetPersonalEdmModel()
+{
+    var builder = new ODataConventionModelBuilder();
+    builder.EnableLowerCamelCase();
+
+    // Entity sets cho route /api/me/
+    var personalCustomerOrders = builder.EntitySet<CustomerOrder>("me/customer-orders");
+    var personalFactories = builder.EntitySet<Factory>("me/factories");
+    var personalCartItems = builder.EntitySet<CartItem>("me/cart-items");
+    var personalPayments = builder.EntitySet<Payment>("me/payments");
 
     return builder.GetEdmModel();
 }

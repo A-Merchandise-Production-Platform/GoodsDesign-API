@@ -34,38 +34,18 @@ namespace GoodsDesignAPI.Controllers
         {
             try
             {
-                _logger.Info("Fetching orders for current user.");
                 var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userIdString))
+                if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
                 {
-                    _logger.Warn("User ID not found in token.");
                     return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
                 }
 
-                if (!Guid.TryParse(userIdString, out var userId))
-                {
-                    _logger.Warn("Invalid User ID format.");
-                    return BadRequest(ApiResult<object>.Error("400 - Invalid User ID format."));
-                }
-
-                var userExists = await _context.Users.AnyAsync(u => u.Id == userId && !u.IsDeleted);
-                if (!userExists)
-                {
-                    _logger.Warn("User not found or deleted.");
-                    return Unauthorized(ApiResult<object>.Error("401 - User not found or deleted."));
-                }
-
-                var orders = await _context.CustomerOrders
-                    .Where(o => o.CustomerId == userId)
-                    .ToListAsync();
-
-                return Ok(orders);
+                var orders = await _context.CustomerOrders.ToListAsync();
+                return Ok(orders); // Không gọi .ToListAsync()
             }
             catch (Exception ex)
             {
-                _logger.Error($"Error retrieving customer orders: {ex.Message}");
-                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
-                return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
             }
         }
 
