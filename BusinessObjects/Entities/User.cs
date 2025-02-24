@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessObjects.Entities
 {
@@ -9,7 +10,7 @@ namespace BusinessObjects.Entities
         public string? ImageUrl { get; set; } = "";
         public bool IsActive { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
-        public string? Address { get; set; } = ""; // JSONB
+        public AddressModel? Address { get; set; } = new AddressModel();
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public Guid? CreatedBy { get; set; }
