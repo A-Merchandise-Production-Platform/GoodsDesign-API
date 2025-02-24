@@ -1,4 +1,5 @@
-﻿using DataTransferObjects.UserDTOs;
+﻿using BusinessObjects.Entities;
+using DataTransferObjects.UserDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
@@ -102,7 +103,9 @@ namespace GoodsDesignAPI.Controllers
                     return BadRequest(ApiResult<object>.Error("Invalid UserId!"));
 
                 var count = await _notificationService.GetUnreadNotificationsCount(Guid.Parse(userId));
-                return Ok(count);
+                return Ok(ApiResult<int>.Success(
+                    count, "Get unread notifications count successfully."
+                    ));
             }
             catch (Exception ex)
             {
@@ -128,7 +131,7 @@ namespace GoodsDesignAPI.Controllers
                     return BadRequest(ApiResult<object>.Error("Invalid UserId!"));
 
                 await _notificationService.ReadAllNotifications(Guid.Parse(userId));
-                return Ok(ApiResult<object>.Success(null, "All notifications marked as read."));
+                return Ok(ApiResult<Notification>.Success(null, "All notifications marked as read."));
             }
             catch (Exception ex)
             {
@@ -143,16 +146,16 @@ namespace GoodsDesignAPI.Controllers
         /// </summary>
         /// <param name="id">Notification ID</param>
         /// <returns>Notification</returns>
-        [HttpGet("me/notifications/{notificationId}")]
+        [HttpPut("me/notifications/{notificationId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> SeenNotification(Guid id)
+        public async Task<IActionResult> SeenNotification(Guid notificationId)
         {
             try
             {
-                var notification = await _notificationService.ReadNotification(id);
-                return Ok(notification);
+                var notification = await _notificationService.ReadNotification(notificationId);
+                return Ok(ApiResult<Notification>.Success(notification, "Notification deleted successfully."));
             }
             catch (KeyNotFoundException ex)
             {
@@ -181,7 +184,7 @@ namespace GoodsDesignAPI.Controllers
             try
             {
                 await _notificationService.DeleteNotification(id);
-                return Ok("Notification deleted successfully.");
+                return Ok(ApiResult<Notification>.Success(null, "Notification deleted successfully."));
             }
             catch (KeyNotFoundException ex)
             {
