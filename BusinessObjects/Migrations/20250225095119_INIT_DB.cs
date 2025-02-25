@@ -7,30 +7,21 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BusinessObjects.Migrations
 {
     /// <inheritdoc />
-    public partial class INITIAL_DB : Migration
+    public partial class INIT_DB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Areas",
+                name: "Caches",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Position = table.Column<string>(type: "text", nullable: false),
-                    Code = table.Column<string>(type: "text", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedBy = table.Column<Guid>(type: "uuid", nullable: true)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Areas", x => x.Id);
+                    table.PrimaryKey("PK_Caches", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -140,12 +131,14 @@ namespace BusinessObjects.Migrations
                     ImageUrl = table.Column<string>(type: "text", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    Address = table.Column<string>(type: "text", nullable: true),
+                    Address = table.Column<string>(type: "jsonb", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     UpdatedBy = table.Column<Guid>(type: "uuid", nullable: true),
                     RoleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: true),
+                    RefreshTokenExpiryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -173,6 +166,33 @@ namespace BusinessObjects.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "BlankVariances",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProductId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Information = table.Column<string>(type: "jsonb", nullable: false),
+                    BlankPrice = table.Column<string>(type: "text", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedBy = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BlankVariances", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BlankVariances_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductPositionTypes",
                 columns: table => new
                 {
@@ -197,33 +217,6 @@ namespace BusinessObjects.Migrations
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ProductVariances",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProductId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Information = table.Column<string>(type: "jsonb", nullable: false),
-                    BlankPrice = table.Column<string>(type: "text", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedBy = table.Column<Guid>(type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProductVariances", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ProductVariances_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -434,39 +427,6 @@ namespace BusinessObjects.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BlankProductsInStocks",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProductVarianceId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AreaId = table.Column<Guid>(type: "uuid", nullable: false),
-                    QuantityInStock = table.Column<int>(type: "integer", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedBy = table.Column<Guid>(type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BlankProductsInStocks", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_BlankProductsInStocks_Areas_AreaId",
-                        column: x => x.AreaId,
-                        principalTable: "Areas",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_BlankProductsInStocks_ProductVariances_ProductVarianceId",
-                        column: x => x.ProductVarianceId,
-                        principalTable: "ProductVariances",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProductDesigns",
                 columns: table => new
                 {
@@ -477,6 +437,7 @@ namespace BusinessObjects.Migrations
                     IsFinalized = table.Column<bool>(type: "boolean", nullable: false),
                     IsPublic = table.Column<bool>(type: "boolean", nullable: false),
                     IsTemplate = table.Column<bool>(type: "boolean", nullable: false),
+                    BlankVarianceId = table.Column<Guid>(type: "uuid", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
@@ -489,9 +450,9 @@ namespace BusinessObjects.Migrations
                 {
                     table.PrimaryKey("PK_ProductDesigns", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ProductDesigns_ProductVariances_ProductVarianceId",
-                        column: x => x.ProductVarianceId,
-                        principalTable: "ProductVariances",
+                        name: "FK_ProductDesigns_BlankVariances_BlankVarianceId",
+                        column: x => x.BlankVarianceId,
+                        principalTable: "BlankVariances",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -574,9 +535,10 @@ namespace BusinessObjects.Migrations
                 columns: table => new
                 {
                     FactoryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProductId = table.Column<Guid>(type: "uuid", nullable: false),
+                    BlankVarianceId = table.Column<Guid>(type: "uuid", nullable: false),
                     ProductionCapacity = table.Column<int>(type: "integer", nullable: false),
                     EstimatedProductionTimwe = table.Column<int>(type: "integer", nullable: false),
+                    ProductId = table.Column<Guid>(type: "uuid", nullable: true),
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -588,7 +550,13 @@ namespace BusinessObjects.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FactoryProducts", x => new { x.FactoryId, x.ProductId });
+                    table.PrimaryKey("PK_FactoryProducts", x => new { x.FactoryId, x.BlankVarianceId });
+                    table.ForeignKey(
+                        name: "FK_FactoryProducts_BlankVariances_BlankVarianceId",
+                        column: x => x.BlankVarianceId,
+                        principalTable: "BlankVariances",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_FactoryProducts_Factories_FactoryId",
                         column: x => x.FactoryId,
@@ -599,8 +567,7 @@ namespace BusinessObjects.Migrations
                         name: "FK_FactoryProducts_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -786,14 +753,9 @@ namespace BusinessObjects.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BlankProductsInStocks_AreaId",
-                table: "BlankProductsInStocks",
-                column: "AreaId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BlankProductsInStocks_ProductVarianceId",
-                table: "BlankProductsInStocks",
-                column: "ProductVarianceId");
+                name: "IX_BlankVariances_ProductId",
+                table: "BlankVariances",
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CartItems_ProductId",
@@ -861,6 +823,11 @@ namespace BusinessObjects.Migrations
                 column: "FactoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_FactoryProducts_BlankVarianceId",
+                table: "FactoryProducts",
+                column: "BlankVarianceId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_FactoryProducts_ProductId",
                 table: "FactoryProducts",
                 column: "ProductId");
@@ -891,9 +858,9 @@ namespace BusinessObjects.Migrations
                 column: "PaymentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductDesigns_ProductVarianceId",
+                name: "IX_ProductDesigns_BlankVarianceId",
                 table: "ProductDesigns",
-                column: "ProductVarianceId");
+                column: "BlankVarianceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductDesigns_UserId",
@@ -909,11 +876,6 @@ namespace BusinessObjects.Migrations
                 name: "IX_Products_CategoryId",
                 table: "Products",
                 column: "CategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProductVariances_ProductId",
-                table: "ProductVariances",
-                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
@@ -960,7 +922,7 @@ namespace BusinessObjects.Migrations
                 name: "AspNetUserRoles");
 
             migrationBuilder.DropTable(
-                name: "BlankProductsInStocks");
+                name: "Caches");
 
             migrationBuilder.DropTable(
                 name: "CartItems");
@@ -996,9 +958,6 @@ namespace BusinessObjects.Migrations
                 name: "UserTokens");
 
             migrationBuilder.DropTable(
-                name: "Areas");
-
-            migrationBuilder.DropTable(
                 name: "DesignPosition");
 
             migrationBuilder.DropTable(
@@ -1023,7 +982,7 @@ namespace BusinessObjects.Migrations
                 name: "CustomerOrders");
 
             migrationBuilder.DropTable(
-                name: "ProductVariances");
+                name: "BlankVariances");
 
             migrationBuilder.DropTable(
                 name: "Users");

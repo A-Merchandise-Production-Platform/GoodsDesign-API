@@ -67,6 +67,19 @@ namespace BusinessObjects.Migrations
                     b.ToTable("BlankVariances");
                 });
 
+            modelBuilder.Entity("BusinessObjects.Entities.Cache", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Caches");
+                });
+
             modelBuilder.Entity("BusinessObjects.Entities.CartItem", b =>
                 {
                     b.Property<Guid>("Id")

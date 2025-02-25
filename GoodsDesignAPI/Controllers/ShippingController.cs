@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BusinessObjects;
+using BusinessObjects.Entities;
+using BusinessObjects.Enums;
+using Microsoft.AspNetCore.Mvc;
 using Services.Utils;
 using System.Text;
 using System.Text.Json;
@@ -10,6 +13,7 @@ namespace GoodsDesignAPI.Controllers
     [ApiController]
     public class ShippingController : ControllerBase
     {
+        private readonly GoodsDesignDbContext _context;
         private const string TOKEN = "62acc554-f25c-11ef-a653-3600c660ea00";
         private const string SHOP_ID = "196029";
         private const string BASE_URL = "https://dev-online-gateway.ghn.vn";
@@ -21,9 +25,10 @@ namespace GoodsDesignAPI.Controllers
 
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public ShippingController(IHttpClientFactory httpClientFactory)
+        public ShippingController(IHttpClientFactory httpClientFactory, GoodsDesignDbContext context)
         {
             _httpClientFactory = httpClientFactory;
+            _context = context;
         }
 
         private HttpClient CreateClient()
@@ -38,6 +43,14 @@ namespace GoodsDesignAPI.Controllers
         [HttpGet("provinces")]
         public async Task<IActionResult> GetProvinces()
         {
+            var provinces = await _context.Caches.FindAsync(CacheKey.PROVINCES.ToString());
+
+            if (provinces != null)
+            {
+                var data = JsonSerializer.Deserialize<List<ProvinceDto>>(provinces.Value);
+                return Ok(ApiResult<List<ProvinceDto>>.Success(data));
+            }
+
             var _client = CreateClient();
             var response = await _client.GetAsync(GET_PROVINCE_ENDPOINT);
             if (!response.IsSuccessStatusCode)
@@ -45,30 +58,30 @@ namespace GoodsDesignAPI.Controllers
 
             var content = await response.Content.ReadAsStringAsync();
             var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<ProvinceDto>>>(content);
+
+            // Lưu vào cache
+            await _context.Caches.AddAsync(new Cache
+            {
+                Id = CacheKey.PROVINCES.ToString(),
+                Value = JsonSerializer.Serialize(apiResponse.Data),
+            });
+            await _context.SaveChangesAsync();
+
             return Ok(ApiResult<List<ProvinceDto>>.Success(apiResponse.Data));
-        }
-
-        [HttpGet("provinces/{id}")]
-        public async Task<IActionResult> GetProvinceById(int id)
-        {
-            var _client = CreateClient();
-            var response = await _client.GetAsync($"{GET_PROVINCE_ENDPOINT}");
-            if (!response.IsSuccessStatusCode)
-                return await HandleErrorResponse(response);
-
-            var content = await response.Content.ReadAsStringAsync();
-            var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<ProvinceDto>>>(content);
-
-            ProvinceDto provinceDto = apiResponse.Data.FirstOrDefault(x => x.ProvinceID == id);
-            if (provinceDto == null)
-                return NotFound(ApiResult<object>.Error("Province not found."));
-
-            return Ok(ApiResult<ProvinceDto>.Success(provinceDto));
         }
 
         [HttpGet("districts")]
         public async Task<IActionResult> GetDistricts([FromQuery] int provinceId)
         {
+            var cacheKey = $"{CacheKey.DISTRICTS}_{provinceId}";
+            var districts = await _context.Caches.FindAsync(cacheKey);
+
+            if (districts != null)
+            {
+                var data = JsonSerializer.Deserialize<List<DistrictDto>>(districts.Value);
+                return Ok(ApiResult<List<DistrictDto>>.Success(data));
+            }
+
             var _client = CreateClient();
             var response = await _client.GetAsync($"{GET_DISTRICT_ENDPOINT}?province_id={provinceId}");
             if (!response.IsSuccessStatusCode)
@@ -76,31 +89,30 @@ namespace GoodsDesignAPI.Controllers
 
             var content = await response.Content.ReadAsStringAsync();
             var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<DistrictDto>>>(content);
+
+            // Lưu vào cache
+            await _context.Caches.AddAsync(new Cache
+            {
+                Id = cacheKey,
+                Value = JsonSerializer.Serialize(apiResponse.Data),
+            });
+            await _context.SaveChangesAsync();
+
             return Ok(ApiResult<List<DistrictDto>>.Success(apiResponse.Data));
-        }
-
-        [HttpGet("districts/{id}")]
-        public async Task<IActionResult> GetDistrictById(int id)
-        {
-            var _client = CreateClient();
-            var response = await _client.GetAsync($"{GET_DISTRICT_ENDPOINT}");
-            if (!response.IsSuccessStatusCode)
-                return await HandleErrorResponse(response);
-
-            var content = await response.Content.ReadAsStringAsync();
-            var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<DistrictDto>>>(content);
-
-            DistrictDto districtDto = apiResponse.Data.FirstOrDefault(x => x.DistrictID == id);
-
-            if (districtDto == null)
-                return NotFound(ApiResult<object>.Error("District not found."));
-
-            return Ok(ApiResult<DistrictDto>.Success(districtDto));
         }
 
         [HttpGet("wards")]
         public async Task<IActionResult> GetWards([FromQuery] int districtId)
         {
+            var cacheKey = $"{CacheKey.WARDS}_{districtId}";
+            var wards = await _context.Caches.FindAsync(cacheKey);
+
+            if (wards != null)
+            {
+                var data = JsonSerializer.Deserialize<List<WardDto>>(wards.Value);
+                return Ok(ApiResult<List<WardDto>>.Success(data));
+            }
+
             var _client = CreateClient();
             var response = await _client.GetAsync($"{GET_WARD_ENDPOINT}?district_id={districtId}");
             if (!response.IsSuccessStatusCode)
@@ -108,28 +120,18 @@ namespace GoodsDesignAPI.Controllers
 
             var content = await response.Content.ReadAsStringAsync();
             var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<WardDto>>>(content);
+
+            // Lưu vào cache
+            await _context.Caches.AddAsync(new Cache
+            {
+                Id = cacheKey,
+                Value = JsonSerializer.Serialize(apiResponse.Data),
+            });
+            await _context.SaveChangesAsync();
+
             return Ok(ApiResult<List<WardDto>>.Success(apiResponse.Data));
         }
 
-        [HttpGet("wards/{id}")]
-        public async Task<IActionResult> GetWardById(string id, [FromQuery] int districtId)
-        {
-            var _client = CreateClient();
-            var response = await _client.GetAsync($"{GET_WARD_ENDPOINT}?district_id={districtId}");
-            if (!response.IsSuccessStatusCode)
-                return await HandleErrorResponse(response);
-
-            var content = await response.Content.ReadAsStringAsync();
-
-            var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<WardDto>>>(content);
-
-            WardDto wardDto = apiResponse.Data.FirstOrDefault(x => x.WardCode == id.ToString());
-
-            if (wardDto == null)
-                return NotFound(ApiResult<object>.Error("Ward not found."));
-
-            return Ok(ApiResult<WardDto>.Success(wardDto));
-        }
 
         [HttpGet("available-services")]
         public async Task<IActionResult> GetAvailableServices([FromQuery] int fromDistrict, [FromQuery] int toDistrict)

@@ -37,7 +37,7 @@ namespace GoodsDesignAPI.Controllers
                 {
                     new SystemConfig { Id = SystemConfigEnum.BANK.ToString(), Value = JsonConvert.SerializeObject(GetDefaultBanks()) },
                     new SystemConfig { Id = SystemConfigEnum.COLOR.ToString(), Value = JsonConvert.SerializeObject(GetDefaultColors()) },
-                    new SystemConfig { Id = SystemConfigEnum.SIZE.ToString(), Value = JsonConvert.SerializeObject(GetDefaultSizes()) }
+                    new SystemConfig { Id = SystemConfigEnum.SIZE.ToString(), Value = JsonConvert.SerializeObject(GetDefaultSizes()) },
                 };
 
                 await _context.SystemConfigs.AddRangeAsync(systemConfigs);
@@ -98,6 +98,7 @@ namespace GoodsDesignAPI.Controllers
         {
             return await GetSystemConfig<List<SizeDTO>>(SystemConfigEnum.SIZE.ToString(), "Fetched sizes successfully.");
         }
+
         #endregion
 
         #region Helpers
@@ -221,6 +222,75 @@ namespace GoodsDesignAPI.Controllers
         {
             new() { Code = "S" }, new() { Code = "M" }, new() { Code = "L" }, new() { Code = "XL" }, new() { Code = "XXL" }, new() { Code = "XXXL" }
         };
+
+        private static List<ProvinceDto> GetDefaultProvinces() => new()
+{
+    new() { ProvinceID = 286, ProvinceName = "Test" },
+    new() { ProvinceID = 269, ProvinceName = "Lào Cai" },
+    new() { ProvinceID = 268, ProvinceName = "Hưng Yên" },
+    new() { ProvinceID = 267, ProvinceName = "Hòa Bình" },
+    new() { ProvinceID = 266, ProvinceName = "Sơn La" },
+    new() { ProvinceID = 265, ProvinceName = "Điện Biên" },
+    new() { ProvinceID = 264, ProvinceName = "Lai Châu" },
+    new() { ProvinceID = 263, ProvinceName = "Yên Bái" },
+    new() { ProvinceID = 262, ProvinceName = "Bình Định" },
+    new() { ProvinceID = 261, ProvinceName = "Ninh Thuận" },
+    new() { ProvinceID = 260, ProvinceName = "Phú Yên" },
+    new() { ProvinceID = 259, ProvinceName = "Kon Tum" },
+    new() { ProvinceID = 258, ProvinceName = "Bình Thuận" },
+    new() { ProvinceID = 253, ProvinceName = "Bạc Liêu" },
+    new() { ProvinceID = 252, ProvinceName = "Cà Mau" },
+    new() { ProvinceID = 250, ProvinceName = "Hậu Giang" },
+    new() { ProvinceID = 249, ProvinceName = "Bắc Ninh" },
+    new() { ProvinceID = 248, ProvinceName = "Bắc Giang" },
+    new() { ProvinceID = 247, ProvinceName = "Lạng Sơn" },
+    new() { ProvinceID = 246, ProvinceName = "Cao Bằng" },
+    new() { ProvinceID = 245, ProvinceName = "Bắc Kạn" },
+    new() { ProvinceID = 244, ProvinceName = "Thái Nguyên" },
+    new() { ProvinceID = 243, ProvinceName = "Quảng Nam" },
+    new() { ProvinceID = 242, ProvinceName = "Quảng Ngãi" },
+    new() { ProvinceID = 241, ProvinceName = "Đắk Nông" },
+    new() { ProvinceID = 240, ProvinceName = "Tây Ninh" },
+    new() { ProvinceID = 239, ProvinceName = "Bình Phước" },
+    new() { ProvinceID = 238, ProvinceName = "Quảng Trị" },
+    new() { ProvinceID = 237, ProvinceName = "Quảng Bình" },
+    new() { ProvinceID = 236, ProvinceName = "Hà Tĩnh" },
+    new() { ProvinceID = 235, ProvinceName = "Nghệ An" },
+    new() { ProvinceID = 234, ProvinceName = "Thanh Hóa" },
+    new() { ProvinceID = 233, ProvinceName = "Ninh Bình" },
+    new() { ProvinceID = 232, ProvinceName = "Hà Nam" },
+    new() { ProvinceID = 231, ProvinceName = "Nam Định" },
+    new() { ProvinceID = 230, ProvinceName = "Quảng Ninh" },
+    new() { ProvinceID = 229, ProvinceName = "Phú Thọ" },
+    new() { ProvinceID = 228, ProvinceName = "Tuyên Quang" },
+    new() { ProvinceID = 227, ProvinceName = "Hà Giang" },
+    new() { ProvinceID = 226, ProvinceName = "Thái Bình" },
+    new() { ProvinceID = 225, ProvinceName = "Hải Dương" },
+    new() { ProvinceID = 224, ProvinceName = "Hải Phòng" },
+    new() { ProvinceID = 223, ProvinceName = "Thừa Thiên Huế" },
+    new() { ProvinceID = 221, ProvinceName = "Vĩnh Phúc" },
+    new() { ProvinceID = 220, ProvinceName = "Cần Thơ" },
+    new() { ProvinceID = 219, ProvinceName = "Kiên Giang" },
+    new() { ProvinceID = 218, ProvinceName = "Sóc Trăng" },
+    new() { ProvinceID = 217, ProvinceName = "An Giang" },
+    new() { ProvinceID = 216, ProvinceName = "Đồng Tháp" },
+    new() { ProvinceID = 215, ProvinceName = "Vĩnh Long" },
+    new() { ProvinceID = 214, ProvinceName = "Trà Vinh" },
+    new() { ProvinceID = 213, ProvinceName = "Bến Tre" },
+    new() { ProvinceID = 212, ProvinceName = "Tiền Giang" },
+    new() { ProvinceID = 211, ProvinceName = "Long An" },
+    new() { ProvinceID = 210, ProvinceName = "Đắk Lắk" },
+    new() { ProvinceID = 209, ProvinceName = "Lâm Đồng" },
+    new() { ProvinceID = 208, ProvinceName = "Khánh Hòa" },
+    new() { ProvinceID = 207, ProvinceName = "Gia Lai" },
+    new() { ProvinceID = 206, ProvinceName = "Bà Rịa - Vũng Tàu" },
+    new() { ProvinceID = 205, ProvinceName = "Bình Dương" },
+    new() { ProvinceID = 204, ProvinceName = "Đồng Nai" },
+    new() { ProvinceID = 203, ProvinceName = "Đà Nẵng" },
+    new() { ProvinceID = 202, ProvinceName = "Hồ Chí Minh" },
+    new() { ProvinceID = 201, ProvinceName = "Hà Nội" }
+};
+
         #endregion
     }
 }
