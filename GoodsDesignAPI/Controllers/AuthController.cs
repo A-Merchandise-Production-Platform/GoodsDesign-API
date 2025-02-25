@@ -322,9 +322,10 @@ namespace GoodsDesignAPI.Controllers
             }
         }
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken()
+        public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
         {
             _logger.Info("Token refresh attempt initiated.");
+
             try
             {
                 IConfiguration configuration = new ConfigurationBuilder()
@@ -333,82 +334,121 @@ namespace GoodsDesignAPI.Controllers
                     .AddEnvironmentVariables()
                     .Build();
 
-                // Lấy Access Token từ header Authorization
+                // 🛑 Lấy Access Token từ Header
                 var authHeader = Request.Headers["Authorization"].ToString();
                 if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
-                    return Unauthorized(ApiResult<object>.Error("401 - Missing or invalid Authorization header."));
+                    return Unauthorized(ApiResult<object>.Error("401 - Missing Access Token in header."));
                 }
 
                 var accessToken = authHeader.Replace("Bearer ", "");
 
-                // Validate Access Token mà không kiểm tra expiration
+                // 🛑 Xác thực Access Token nhưng KHÔNG kiểm tra expiration
                 var tokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateAudience = false,
                     ValidateIssuer = false,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])),
-                    ValidateLifetime = false // Không check expiration (Vì token này có thể đã hết hạn)
+                    ValidateLifetime = false // Không check expiration
                 };
 
-                var principal = new JwtSecurityTokenHandler().ValidateToken(accessToken, tokenValidationParameters, out SecurityToken securityToken);
-
-                if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-                    !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                ClaimsPrincipal principal;
+                try
                 {
-                    throw new SecurityTokenException("Invalid token.");
+                    principal = new JwtSecurityTokenHandler().ValidateToken(accessToken, tokenValidationParameters, out SecurityToken validatedToken);
+
+                    if (validatedToken is not JwtSecurityToken jwtToken ||
+                        !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        throw new SecurityTokenException("Invalid token.");
+                    }
+
+                    // ValidateAccessTokenExpiry(jwtToken);
+
+                    var currentUtc = _currentTime.GetCurrentTime();
+                    if (jwtToken.ValidTo <= currentUtc)
+                    {
+                        _logger.Info("Access token is expired. Attempting to refresh...");
+                    }
+                    else
+                    {
+                        double minutesLeft = (jwtToken.ValidTo - currentUtc).TotalMinutes;
+                        _logger.Info($"Access token is still valid for ~{minutesLeft:F2} minutes. Proceeding to refresh anyway...");
+                    }
+                }
+                catch (Exception)
+                {
+                    return BadRequest(ApiResult<object>.Error("401 - Invalid Access Token."));
                 }
 
-                // Lấy email từ token
+                // 🛑 Lấy email từ Access Token
                 var email = principal.FindFirst(ClaimTypes.Email)?.Value;
                 if (email == null)
                 {
                     _logger.Warn("Token does not contain email.");
-                    //return Unauthorized(ApiResult<object>.Error("401 - Token does not contain email."));
-                    return StatusCode(403, ApiResult<object>.Error("403 - Forbidden: Token does not contain email."));
-
+                    return BadRequest(ApiResult<object>.Error("401 - Token does not contain email."));
                 }
 
                 var user = await _userManager.FindByEmailAsync(email);
                 if (user == null)
                 {
                     _logger.Warn("User not found for token refresh.");
-                    return NotFound(ApiResult<object>.Error("401 - User not found."));
+                    return BadRequest(ApiResult<object>.Error("401 - User not found."));
                 }
 
-                // Lấy refresh token từ cơ sở dữ liệu của user
+                // 🛑 Kiểm tra Refresh Token có được gửi lên không
+                if (string.IsNullOrEmpty(refreshToken))
+                {
+                    return BadRequest(ApiResult<object>.Error("401 - Missing Refresh Token."));
+                }
+
+                // 🛑 Lấy Refresh Token từ DB của user
                 var storedRefreshToken = user.RefreshToken;
                 if (string.IsNullOrEmpty(storedRefreshToken))
                 {
-                    _logger.Warn("User has no refresh token stored.");
-                    return Unauthorized(ApiResult<object>.Error("401 - No refresh token available."));
+                    return BadRequest(ApiResult<object>.Error("401 - No Refresh Token found in database."));
                 }
 
-                // Kiểm tra refresh token hợp lệ
-                if (!await _userManager.VerifyUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken", storedRefreshToken))
+                // 🛑 Kiểm tra Refresh Token gửi từ frontend có giống với trong DB không
+                if (refreshToken != storedRefreshToken)
+                {
+                    return BadRequest(ApiResult<object>.Error("401 - Refresh Token does not match."));
+                }
+
+                // 🛑 Dùng Identity API kiểm tra Refresh Token có hợp lệ không
+                var isValid = await _userManager.VerifyUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken", refreshToken);
+                if (!isValid)
+                {
+                    return BadRequest(ApiResult<object>.Error("401 - Invalid or expired Refresh Token."));
+                }
+
+                _logger.Info("Current Time: " + _currentTime.GetCurrentTime().ToString());
+
+                // 🛑 Kiểm tra thời gian hết hạn của Refresh Token
+                if (user.RefreshTokenExpiryTime < _currentTime.GetCurrentTime())
                 {
                     _logger.Warn("Refresh token invalid or expired.");
                     return BadRequest(ApiResult<object>.Error("401 - Refresh token invalid or expired."));
                 }
 
-                // Lấy thông tin role
+                // 🛑 Lấy role của user
                 var role = await _roleManager.FindByIdAsync(user.RoleId.ToString());
                 if (role == null)
                 {
-                    _logger.Warn("User has no assigned role.");
                     return BadRequest(ApiResult<object>.Error("400 - User does not have an assigned role."));
                 }
 
-                // Tạo Access Token mới
-                var newAccessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(15));
+                // 🛑 Tạo Access Token mới (1 giờ)
+                var newAccessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromHours(1));
 
                 // Tạo Refresh Token mới (Valid trong 7 ngày)
                 var newRefreshToken = await _userManager.GenerateUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken");
 
                 // Lưu refresh token mới vào database
                 user.RefreshToken = newRefreshToken;
-                user.RefreshTokenExpiryTime = _currentTime.GetCurrentTime().AddDays(7);
+                int check = int.Parse(configuration["JWT:RefreshTokenValidityInDays"]);
+                user.RefreshTokenExpiryTime = _currentTime.GetCurrentTime().AddDays(int.Parse(configuration["JWT:RefreshTokenValidityInDays"]));
 
                 await _userManager.UpdateAsync(user);
 
@@ -427,6 +467,19 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(statusCode, ApiResult<object>.Error(ex.Message));
             }
         }
+
+        private void ValidateAccessTokenExpiry(JwtSecurityToken jwtToken)
+        {
+            var tokenExpiryTime = jwtToken.ValidTo;
+            var currentTime = _currentTime.GetCurrentTime();
+
+            if (tokenExpiryTime > currentTime.AddMinutes(5))
+            {
+                _logger.Info("Access token is still valid, no need to refresh.");
+                throw new SecurityTokenException("Access token is still valid and does not need to be refreshed.");
+            }
+        }
+
 
     }
 }
