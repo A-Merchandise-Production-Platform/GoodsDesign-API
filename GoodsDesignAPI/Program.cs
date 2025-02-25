@@ -1,6 +1,7 @@
 using BusinessObjects.Entities;
 using GoodsDesignAPI.Architecture;
 using GoodsDesignAPI.Middlewares;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.OData;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
@@ -31,6 +32,13 @@ builder.Services.AddControllers()
 
 // Setup IOC Container
 builder.Services.SetupIOCContainer();
+
+
+//CONFIG FOR VERIFY TOKEN IN 7 DAYS WITH 
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromDays(7);
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
