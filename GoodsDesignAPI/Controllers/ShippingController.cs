@@ -37,8 +37,16 @@ namespace GoodsDesignAPI.Controllers
             client.BaseAddress = new Uri(BASE_URL);
             client.DefaultRequestHeaders.Add("Token", TOKEN);
             client.DefaultRequestHeaders.Add("ShopId", SHOP_ID);
+
+            // Add User-Agent and Accept headers
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.DefaultRequestHeaders.Add("Referer", BASE_URL);
+            client.DefaultRequestHeaders.Add("Origin", BASE_URL);
+
             return client;
         }
+
 
         [HttpGet("provinces")]
         public async Task<IActionResult> GetProvinces()
