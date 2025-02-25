@@ -67,6 +67,19 @@ namespace BusinessObjects.Migrations
                     b.ToTable("BlankVariances");
                 });
 
+            modelBuilder.Entity("BusinessObjects.Entities.Cache", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Caches");
+                });
+
             modelBuilder.Entity("BusinessObjects.Entities.CartItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -937,14 +950,8 @@ namespace BusinessObjects.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("Bank")
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("Color")
-                        .HasColumnType("jsonb");
-
                     b.Property<string>("Value")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.HasKey("Id");
 
@@ -961,7 +968,7 @@ namespace BusinessObjects.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Address")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()

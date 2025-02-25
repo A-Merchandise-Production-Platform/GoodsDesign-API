@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BusinessObjects.Migrations
 {
     [DbContext(typeof(GoodsDesignDbContext))]
-    [Migration("20250222052914_newDbReviewOne")]
-    partial class newDbReviewOne
+    [Migration("20250225095119_INIT_DB")]
+    partial class INIT_DB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -68,6 +68,19 @@ namespace BusinessObjects.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("BlankVariances");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Entities.Cache", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Caches");
                 });
 
             modelBuilder.Entity("BusinessObjects.Entities.CartItem", b =>
@@ -940,14 +953,8 @@ namespace BusinessObjects.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("Bank")
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("Color")
-                        .HasColumnType("jsonb");
-
                     b.Property<string>("Value")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.HasKey("Id");
 
@@ -964,7 +971,7 @@ namespace BusinessObjects.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Address")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()

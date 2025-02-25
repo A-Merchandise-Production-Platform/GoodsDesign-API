@@ -181,13 +181,73 @@ namespace GoodsDesignAPI.Controllers
                 }
 
                 var usersToSeed = new List<User>
+        {
+            new User
+            {
+                UserName = "admin",
+                Email = "admin@gmail.com",
+                RoleId = roleDict["admin"].Id,
+                Address = new AddressModel
                 {
-                    new User { UserName = "admin", Email = "admin@gmail.com", RoleId = roleDict["admin"].Id },
-                    new User { UserName = "manager", Email = "manager@gmail.com", RoleId = roleDict["manager"].Id },
-                    new User { UserName = "staff", Email = "staff@gmail.com", RoleId = roleDict["staff"].Id },
-                    new User { UserName = "factoryOwner", Email = "factoryowner@gmail.com", RoleId = roleDict["factoryOwner"].Id },
-                    new User { UserName = "customer", Email = "customer@gmail.com", RoleId = roleDict["customer"].Id }
-                };
+                    ProvinceID = 1,
+                    DistrictID = 10,
+                    WardCode = "W01",
+                    Street = "123 Admin Street"
+                }
+            },
+            new User
+            {
+                UserName = "manager",
+                Email = "manager@gmail.com",
+                RoleId = roleDict["manager"].Id,
+                Address = new AddressModel
+                {
+                    ProvinceID = 2,
+                    DistrictID = 20,
+                    WardCode = "W02",
+                    Street = "456 Manager Ave"
+                }
+            },
+            new User
+            {
+                UserName = "staff",
+                Email = "staff@gmail.com",
+                RoleId = roleDict["staff"].Id,
+                Address = new AddressModel
+                {
+                    ProvinceID = 3,
+                    DistrictID = 30,
+                    WardCode = "W03",
+                    Street = "789 Staff Road"
+                }
+            },
+            new User
+            {
+                UserName = "factoryOwner",
+                Email = "factoryowner@gmail.com",
+                RoleId = roleDict["factoryOwner"].Id,
+                Address = new AddressModel
+                {
+                    ProvinceID = 4,
+                    DistrictID = 40,
+                    WardCode = "W04",
+                    Street = "101 Factory Blvd"
+                }
+            },
+            new User
+            {
+                UserName = "customer",
+                Email = "customer@gmail.com",
+                RoleId = roleDict["customer"].Id,
+                Address = new AddressModel
+                {
+                    ProvinceID = 5,
+                    DistrictID = 50,
+                    WardCode = "W05",
+                    Street = "202 Customer Lane"
+                }
+            }
+        };
 
                 usersToSeed.ForEach(x => x.IsActive = true);
 

@@ -429,7 +429,7 @@ namespace GoodsDesignAPI.Controllers
                 if (user.RefreshTokenExpiryTime < _currentTime.GetCurrentTime())
                 {
                     _logger.Warn("Refresh token invalid or expired.");
-                    return Unauthorized(ApiResult<object>.Error("401 - Refresh token invalid or expired."));
+                    return BadRequest(ApiResult<object>.Error("401 - Refresh token invalid or expired."));
                 }
 
                 // 🛑 Lấy role của user

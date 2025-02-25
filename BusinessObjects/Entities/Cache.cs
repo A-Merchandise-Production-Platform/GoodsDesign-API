@@ -2,10 +2,10 @@
 
 namespace BusinessObjects.Entities
 {
-    public class SystemConfig
+    public class Cache
     {
         [Key]
-        public string Id { get; set; } // Enum: BANK, COLOR, SIZE
+        public string Id { get; set; }
 
         public string? Value { get; set; }
 
