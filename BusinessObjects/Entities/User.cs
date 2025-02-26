@@ -25,5 +25,6 @@ namespace BusinessObjects.Entities
         public Role Role { get; set; } // Navigation Property
                                        // Navigation Property
         public ICollection<CartItem> CartItems { get; set; }
+        public ICollection<ProductDesign> ProductDesigns { get; set; }
     }
 }

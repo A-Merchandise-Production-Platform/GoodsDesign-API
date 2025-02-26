@@ -14,5 +14,7 @@ namespace BusinessObjects.Entities
 
         // Navigation property
         public Product Product { get; set; }
+        public ICollection<DesignPosition> DesignPositions { get; set; } = new List<DesignPosition>();
+
     }
 }

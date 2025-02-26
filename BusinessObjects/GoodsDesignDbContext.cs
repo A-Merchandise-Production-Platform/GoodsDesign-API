@@ -32,7 +32,7 @@ namespace BusinessObjects
         public DbSet<CustomerOrderDetail> CustomerOrderDetails { get; set; }
         public DbSet<FactoryOrder> FactoryOrders { get; set; }
         public DbSet<FactoryOrderDetail> FactoryOrderDetails { get; set; }
-
+        public DbSet<DesignPosition> DesignPositions { get; set; }
 
 
 
@@ -40,7 +40,7 @@ namespace BusinessObjects
         {
             base.OnModelCreating(modelBuilder);
 
-            // Map Identity tables to custom table names
+            // Đổi tên bảng Identity Framework
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<Role>().ToTable("Roles");
             modelBuilder.Entity<IdentityUserClaim<Guid>>().ToTable("UserClaims");
@@ -48,56 +48,59 @@ namespace BusinessObjects
             modelBuilder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
             modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens");
 
-            // One-to-Many relationship between User and Role
+            // One-to-Many: User → Role
             modelBuilder.Entity<User>()
-                .HasOne(u => u.Role) // A User has one Role
-                .WithMany(r => r.Users) // A Role has many Users
-                .HasForeignKey(u => u.RoleId) // Foreign Key in User
-                .OnDelete(DeleteBehavior.Cascade); // Optional: Cascade delete users when a role is deleted
+                .HasOne(u => u.Role)
+                .WithMany(r => r.Users)
+                .HasForeignKey(u => u.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure relationships for custom tables
+            // One-to-Many: Product → Category
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // One-to-Many: ProductPositionType → Product
             modelBuilder.Entity<ProductPositionType>()
                 .HasOne(ppt => ppt.Product)
-                .WithMany()
+                .WithMany(p => p.ProductPositionTypes)
                 .HasForeignKey(ppt => ppt.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // One-to-Many: BlankVariance → Product
             modelBuilder.Entity<BlankVariance>()
-     .HasOne(pv => pv.Product)
-     .WithMany(p => p.BlankVariances)
-     .HasForeignKey(pv => pv.ProductId)
-     .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(pv => pv.Product)
+                .WithMany(p => p.BlankVariances)
+                .HasForeignKey(pv => pv.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
 
+            // Many-to-Many: FactoryProduct (Composite Key)
+            modelBuilder.Entity<FactoryProduct>()
+                .HasKey(fp => new { fp.FactoryId, fp.BlankVarianceId });
 
+            // Many-to-Many: DesignPosition (Composite Key)
+            modelBuilder.Entity<DesignPosition>()
+                .HasKey(dp => new { dp.ProductDesignId, dp.ProductPositionTypeId });
 
+            // One-to-Many: ProductDesign → User & BlankVariance
+            modelBuilder.Entity<ProductDesign>()
+                .HasOne(pd => pd.User)
+                .WithMany(u => u.ProductDesigns)
+                .HasForeignKey(pd => pd.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<ProductDesign>()
+                .HasOne(pd => pd.BlankVariance)
+                .WithMany(bv => bv.ProductDesigns)
+                .HasForeignKey(pd => pd.BlankVarianceId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Optional: Configure jsonb column (if needed)
+            // Cấu hình JSONB cho PostgreSQL
             modelBuilder.Entity<BlankVariance>()
                 .Property(pv => pv.Information)
                 .HasColumnType("jsonb");
-
-            // Configure Many-to-Many relationship using FactoryProduct
-            modelBuilder.Entity<FactoryProduct>()
-                .HasKey(fp => new { fp.FactoryId, fp.BlankVarianceId }); // Composite primary key
-
-            modelBuilder.Entity<FactoryProduct>()
-                .HasOne(fp => fp.Factory)
-                .WithMany(f => f.FactoryProducts) // Factory -> FactoryProducts
-                .HasForeignKey(fp => fp.FactoryId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<FactoryProduct>()
-                .HasOne(fp => fp.BlankVariance)
-                .WithMany(p => p.FactoryProducts) // BlankVariance -> FactoryProducts
-                .HasForeignKey(fp => fp.BlankVarianceId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Factory>()
                 .Property(f => f.Information)
@@ -107,30 +110,27 @@ namespace BusinessObjects
                 .Property(f => f.Contract)
                 .HasColumnType("jsonb");
 
-
-            // Configure SystemConfig
-            modelBuilder.Entity<SystemConfig>()
-                .HasKey(sc => sc.Id); // Primary Key
+            modelBuilder.Entity<DesignPosition>()
+                .Property(dp => dp.DesignJSON)
+                .HasColumnType("jsonb");
 
             modelBuilder.Entity<SystemConfig>()
                 .Property(sc => sc.Value)
-                .HasColumnType("jsonb"); // JSONB for PostgreSQL
+                .HasColumnType("jsonb");
 
             modelBuilder.Entity<Cache>()
-                .HasKey(sc => sc.Id); // Primary Key
-
-            modelBuilder.Entity<Cache>()
-                .Property(sc => sc.Value)
-                .HasColumnType("jsonb"); // JSONB for PostgreSQL
+                .Property(c => c.Value)
+                .HasColumnType("jsonb");
 
             modelBuilder.Entity<User>()
-                     .Property(u => u.Address)
-                     .HasConversion(
-                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                         v => JsonSerializer.Deserialize<AddressModel>(v, (JsonSerializerOptions)null))
-                     .HasColumnType("jsonb");
-
+                .Property(u => u.Address)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<AddressModel>(v, (JsonSerializerOptions)null))
+                .HasColumnType("jsonb");
         }
+
+
 
 
     }
