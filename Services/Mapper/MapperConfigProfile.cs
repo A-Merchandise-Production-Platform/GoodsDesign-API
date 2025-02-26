@@ -7,6 +7,7 @@ using DataTransferObjects.CategoryDTOs;
 using DataTransferObjects.FactoryDTOs;
 using DataTransferObjects.OrderDTOs;
 using DataTransferObjects.PaymentDTOs;
+using DataTransferObjects.ProductDesignDTOs;
 using DataTransferObjects.ProductDTOs;
 using DataTransferObjects.ProductVarianceDTOs;
 using DataTransferObjects.UserDTOs;
@@ -69,6 +70,9 @@ namespace Services.Mapper
         .ReverseMap();
 
             CreateMap<PaymentDTO, Payment>()
+       .ReverseMap();
+
+            CreateMap<ProductDesignCreateDTO, ProductDesign>()
        .ReverseMap();
 
         }
