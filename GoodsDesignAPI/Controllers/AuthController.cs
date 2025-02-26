@@ -322,10 +322,10 @@ namespace GoodsDesignAPI.Controllers
             }
         }
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+        public async Task<IActionResult> RefreshToken( RefreshTokenDTO refreshTokenDTO)
         {
             _logger.Info("Token refresh attempt initiated.");
-
+            var refreshToken = refreshTokenDTO.RefreshToken;
             try
             {
                 IConfiguration configuration = new ConfigurationBuilder()
@@ -480,6 +480,10 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
+        public class RefreshTokenDTO
+        {
+            public string RefreshToken { get; set; }
+        }
 
     }
 }
