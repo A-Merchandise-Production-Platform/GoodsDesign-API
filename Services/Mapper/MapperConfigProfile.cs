@@ -51,7 +51,7 @@ namespace Services.Mapper
           
 
             CreateMap<CartItem, CartItemDTO>()
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+               // .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
                .ReverseMap();
 
             CreateMap<CartItem, CartItemDTO>()
@@ -74,6 +74,9 @@ namespace Services.Mapper
 
             CreateMap<ProductDesignCreateDTO, ProductDesign>()
        .ReverseMap();
+
+            CreateMap<ProductDesignDTO, ProductDesign>()
+     .ReverseMap();
 
         }
     }

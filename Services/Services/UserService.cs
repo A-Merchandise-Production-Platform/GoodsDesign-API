@@ -3,6 +3,7 @@ using BusinessObjects.Entities;
 using DataTransferObjects.Auth;
 using DataTransferObjects.UserDTOs;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using Services.Interfaces;
 using Services.Interfaces.CommonService;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -84,6 +85,11 @@ namespace Services.Services
                     Role = role // add many -many role
                 };
 
+                if(!userCreateDTO.Addresses.IsNullOrEmpty())
+                {
+                    user.Addresses = userCreateDTO.Addresses;
+                }
+
                 // Create user in UserManager
                 var result = await _userManager.CreateAsync(user, "123456"); // Replace with a proper password management strategy
                 if (!result.Succeeded)
@@ -112,7 +118,10 @@ namespace Services.Services
                     Gender = user.Gender,
                     DateOfBirth = user.DateOfBirth,
                     ImageUrl = user.ImageUrl,
-                    Role = role.Name
+                    Role = role.Name,
+                    Addresses= user.Addresses
+
+
                 };
             }
             catch (Exception ex)
@@ -138,6 +147,8 @@ namespace Services.Services
                 // 🔹 Duyệt qua tất cả properties của UserUpdateDTO
                 foreach (var property in typeof(UserUpdateDTO).GetProperties())
                 {
+                    if (property.Name == nameof(userUpdateDTO.Addresses)) continue; // Bỏ qua danh sách địa chỉ
+
                     var newValue = property.GetValue(userUpdateDTO);
                     if (newValue != null) // Chỉ cập nhật nếu không phải null
                     {
@@ -147,6 +158,10 @@ namespace Services.Services
                             userProperty.SetValue(user, newValue);
                         }
                     }
+                }
+                if(userUpdateDTO.Addresses != null)
+                {
+                    user.Addresses = userUpdateDTO.Addresses;
                 }
 
                 // 🔹 Xử lý cập nhật password nếu có truyền vào

@@ -10,10 +10,12 @@ namespace BusinessObjects.Entities
     {
         public Guid CustomerId { get; set; }
         public string Status { get; set; } // Enum: Pending, Accepted, In Production, etc.
+        public decimal TotalProductPrice { get; set; }
+        public decimal? TotalShippingPrice { get; set; }
         public decimal TotalPrice { get; set; }
-        public decimal ShippingPrice { get; set; }
         public decimal DepositPaid { get; set; }
         public DateTime OrderDate { get; set; }
+        public string? Note { get; set; } = "";
 
         // Navigation property
         public User Customer { get; set; }

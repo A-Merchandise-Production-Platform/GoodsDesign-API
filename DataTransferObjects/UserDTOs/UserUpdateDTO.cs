@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BusinessObjects.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,5 +18,7 @@ namespace DataTransferObjects.UserDTOs
         public bool? Gender { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? ImageUrl { get; set; }
+        public List<AddressModel>? Addresses { get; set; }
+
     }
 }

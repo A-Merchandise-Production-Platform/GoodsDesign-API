@@ -1,4 +1,5 @@
-﻿using DataTransferObjects.OrderDTOs;
+﻿using DataTransferObjects.CartDTOs;
+using DataTransferObjects.OrderDTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Services.Interfaces
 {
     public interface ICustomerOrderService
     {
-        Task<CustomerOrderDTO> CheckoutOrder(Guid customerId);
+         Task<CustomerOrderDTO> CheckoutOrder(Guid customerId, CheckoutDTO checkout);
         Task<List<CustomerOrderDTO>> GetOrdersByCustomerId(Guid customerId);
         Task<CustomerOrderDTO> UpdateOrderStatus(Guid orderId, string status);
     }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using Repositories.Interfaces;
 using Services.Interfaces;
 using Services.Interfaces.CommonService;
@@ -102,6 +103,8 @@ namespace GoodsDesignAPI.Controllers
                 var customerOrdersResult = await SeedCustomerOrders(context);
                 // Seed Payments
                 var paymentsResult = await SeedPayments(context);
+                var productDesignsResult = await SeedProductDesigns(context);
+
 
 
                 await transaction.CommitAsync();
@@ -119,6 +122,8 @@ namespace GoodsDesignAPI.Controllers
                         ProductVariances = productVariances.Data,
                         CustomerOrders = customerOrdersResult.Data,
                         Payments = paymentsResult.Data,
+                        ProductDesigns = productDesignsResult.Data 
+
                     }
                 }));
             }
@@ -134,6 +139,10 @@ namespace GoodsDesignAPI.Controllers
         {
             _logger.Info("Clearing all data in the database...");
 
+            await context.ProductDesigns.ExecuteDeleteAsync();
+            await context.ProductPositionTypes.ExecuteDeleteAsync();
+
+            await context.DesignPositions.ExecuteDeleteAsync();
             await context.Payments.ExecuteDeleteAsync();
             await context.CustomerOrderDetails.ExecuteDeleteAsync();
             await context.CustomerOrders.ExecuteDeleteAsync();
@@ -187,12 +196,15 @@ namespace GoodsDesignAPI.Controllers
                 UserName = "admin",
                 Email = "admin@gmail.com",
                 RoleId = roleDict["admin"].Id,
-                Address = new AddressModel
+                Addresses = new List<AddressModel>
                 {
-                    ProvinceID = 1,
-                    DistrictID = 10,
-                    WardCode = "W01",
-                    Street = "123 Admin Street"
+                    new AddressModel
+                    {
+                        ProvinceID = 1,
+                        DistrictID = 10,
+                        WardCode = "W01",
+                        Street = "123 Admin Street"
+                    }
                 }
             },
             new User
@@ -200,12 +212,15 @@ namespace GoodsDesignAPI.Controllers
                 UserName = "manager",
                 Email = "manager@gmail.com",
                 RoleId = roleDict["manager"].Id,
-                Address = new AddressModel
+                Addresses = new List<AddressModel>
                 {
-                    ProvinceID = 2,
-                    DistrictID = 20,
-                    WardCode = "W02",
-                    Street = "456 Manager Ave"
+                    new AddressModel
+                    {
+                        ProvinceID = 2,
+                        DistrictID = 20,
+                        WardCode = "W02",
+                        Street = "456 Manager Ave"
+                    }
                 }
             },
             new User
@@ -213,12 +228,15 @@ namespace GoodsDesignAPI.Controllers
                 UserName = "staff",
                 Email = "staff@gmail.com",
                 RoleId = roleDict["staff"].Id,
-                Address = new AddressModel
+                Addresses = new List<AddressModel>
                 {
-                    ProvinceID = 3,
-                    DistrictID = 30,
-                    WardCode = "W03",
-                    Street = "789 Staff Road"
+                    new AddressModel
+                    {
+                        ProvinceID = 3,
+                        DistrictID = 30,
+                        WardCode = "W03",
+                        Street = "789 Staff Road"
+                    }
                 }
             },
             new User
@@ -226,12 +244,15 @@ namespace GoodsDesignAPI.Controllers
                 UserName = "factoryOwner",
                 Email = "factoryowner@gmail.com",
                 RoleId = roleDict["factoryOwner"].Id,
-                Address = new AddressModel
+                Addresses = new List<AddressModel>
                 {
-                    ProvinceID = 4,
-                    DistrictID = 40,
-                    WardCode = "W04",
-                    Street = "101 Factory Blvd"
+                    new AddressModel
+                    {
+                        ProvinceID = 4,
+                        DistrictID = 40,
+                        WardCode = "W04",
+                        Street = "101 Factory Blvd"
+                    }
                 }
             },
             new User
@@ -239,12 +260,15 @@ namespace GoodsDesignAPI.Controllers
                 UserName = "customer",
                 Email = "customer@gmail.com",
                 RoleId = roleDict["customer"].Id,
-                Address = new AddressModel
+                Addresses = new List<AddressModel>
                 {
-                    ProvinceID = 5,
-                    DistrictID = 50,
-                    WardCode = "W05",
-                    Street = "202 Customer Lane"
+                    new AddressModel
+                    {
+                        ProvinceID = 5,
+                        DistrictID = 50,
+                        WardCode = "W05",
+                        Street = "202 Customer Lane"
+                    }
                 }
             }
         };
@@ -268,6 +292,7 @@ namespace GoodsDesignAPI.Controllers
                 throw;
             }
         }
+
 
 
         [Authorize(Roles = "admin")]
@@ -470,7 +495,7 @@ namespace GoodsDesignAPI.Controllers
                 CustomerId = adminUser.Id,
                 Status = "Pending",
                 TotalPrice = 1000,
-                ShippingPrice = 50,
+                TotalShippingPrice = 50,
                 DepositPaid = 300,
                 OrderDate = DateTime.UtcNow.AddHours(7),
                 CustomerOrderDetails = new List<CustomerOrderDetail> // Example order details
@@ -485,7 +510,7 @@ namespace GoodsDesignAPI.Controllers
                 CustomerId = adminUser.Id,
                 Status = "In Production",
                 TotalPrice = 2000,
-                ShippingPrice = 100,
+                TotalShippingPrice = 100,
                 DepositPaid = 600,
                 OrderDate = DateTime.UtcNow.AddHours(7),
                 CustomerOrderDetails = new List<CustomerOrderDetail>
@@ -569,6 +594,66 @@ namespace GoodsDesignAPI.Controllers
                 return ApiResult<List<Payment>>.Error($"Error during seeding Payments: {ex.Message}");
             }
         }
+
+        [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpPost("seed-product-designs")]
+        public async Task<ApiResult<List<ProductDesign>>> SeedProductDesigns([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                // Lấy 1 user (ví dụ staff) để làm ví dụ
+                var staffUser = await context.Users.FirstOrDefaultAsync(u => u.UserName == "staff");
+                if (staffUser == null)
+                {
+                    throw new Exception("Please seed the 'staff' user before seeding product designs.");
+                }
+
+                // Lấy các BlankVariances để liên kết với ProductDesign
+                var blankVariances = await context.BlankVariances.ToListAsync();
+                if (!blankVariances.Any())
+                {
+                    throw new Exception("Please seed blank variances before seeding product designs.");
+                }
+
+                // Tạo danh sách ProductDesign để seed
+                var designsToSeed = new List<ProductDesign>
+        {
+            new ProductDesign
+            {
+                Id = Guid.NewGuid(),
+                UserId = staffUser.Id,
+                BlankVarianceId = blankVariances[0].Id, // Gắn với BlankVariance đầu tiên
+                Saved3DPreviewUrl = "https://example.com/preview1.png",
+                IsFinalized = false,
+                IsPublic = false,
+                IsTemplate = false
+            },
+            new ProductDesign
+            {
+                Id = Guid.NewGuid(),
+                UserId = staffUser.Id,
+                BlankVarianceId = blankVariances.Count > 1 ? blankVariances[1].Id : blankVariances[0].Id,
+                Saved3DPreviewUrl = "https://example.com/preview2.png",
+                IsFinalized = true,
+                IsPublic = true,
+                IsTemplate = false
+            }
+        };
+
+                // AddRange vào DbSet
+                await context.ProductDesigns.AddRangeAsync(designsToSeed);
+                await context.SaveChangesAsync();
+
+                return ApiResult<List<ProductDesign>>.Success(designsToSeed, "Product Designs seeded successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error seeding product designs: {ex.Message}");
+                throw;
+            }
+        }
+
 
         [Authorize(Roles = "admin")]
         [ApiExplorerSettings(IgnoreApi = true)]

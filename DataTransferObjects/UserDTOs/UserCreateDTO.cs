@@ -1,4 +1,6 @@
-﻿namespace DataTransferObjects.UserDTOs
+﻿using BusinessObjects.Entities;
+
+namespace DataTransferObjects.UserDTOs
 {
     public class UserCreateDTO
     {
@@ -9,5 +11,7 @@
         public bool? Gender { get; set; } = true;
         public DateTime? DateOfBirth { get; set; } = DateTime.UtcNow.AddYears(-18);
         public string? ImageUrl { get; set; } = "";
+        public List<AddressModel>? Addresses { get; set; }
+
     }
 }
