@@ -10,10 +10,12 @@ namespace BusinessObjects.Entities
     {
         public Guid UserId { get; set; }
         public User User { get; set; }
-        public Guid ProductId { get; set; }
-        public Product Product { get; set; }
+        public Guid ProductDesignId { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
+
+        // Navigation properties
+        public ProductDesign ProductDesign { get; set; }
 
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace DataTransferObjects.Auth
+﻿using BusinessObjects.Entities;
+
+namespace DataTransferObjects.Auth
 {
     public class GetCurrentUserResponseDTO
     {
@@ -10,6 +12,8 @@
         public DateTime? DateOfBirth { get; set; }
         public string? ImageUrl { get; set; }
         public bool IsActive { get; set; }
+        public List<AddressModel>? Addresses { get; set; }
+
 
         public string? Role { get; set; }
     }

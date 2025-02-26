@@ -13,7 +13,7 @@ namespace BusinessObjects.Entities
 
         public string Information { get; set; } // JSONB equivalent
         public string Contract { get; set; } // JSONB equivalent
-        public AddressModel? Address { get; set; } = new AddressModel();
+        public AddressModel Address { get; set; } = new AddressModel();
 
 
 

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace BusinessObjects.Entities
 {
-    [Owned]
 
     public class AddressModel
     {

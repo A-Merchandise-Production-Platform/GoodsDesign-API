@@ -37,7 +37,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-        [HttpPut("{id:guid}")]
+        [HttpPatch("{id:guid}")]
         public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] ProductDTO productDTO)
         {
             _logger.Info($"Update product with ID {id} request received.");

@@ -7,6 +7,7 @@ using DataTransferObjects.CategoryDTOs;
 using DataTransferObjects.FactoryDTOs;
 using DataTransferObjects.OrderDTOs;
 using DataTransferObjects.PaymentDTOs;
+using DataTransferObjects.ProductDesignDTOs;
 using DataTransferObjects.ProductDTOs;
 using DataTransferObjects.ProductVarianceDTOs;
 using DataTransferObjects.UserDTOs;
@@ -50,7 +51,7 @@ namespace Services.Mapper
           
 
             CreateMap<CartItem, CartItemDTO>()
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+               // .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
                .ReverseMap();
 
             CreateMap<CartItem, CartItemDTO>()
@@ -70,6 +71,12 @@ namespace Services.Mapper
 
             CreateMap<PaymentDTO, Payment>()
        .ReverseMap();
+
+            CreateMap<ProductDesignCreateDTO, ProductDesign>()
+       .ReverseMap();
+
+            CreateMap<ProductDesignDTO, ProductDesign>()
+     .ReverseMap();
 
         }
     }

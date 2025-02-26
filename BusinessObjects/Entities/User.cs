@@ -10,7 +10,7 @@ namespace BusinessObjects.Entities
         public string? ImageUrl { get; set; } = "";
         public bool IsActive { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
-        public AddressModel? Address { get; set; } = new AddressModel();
+        public List<AddressModel> Addresses { get; set; } = new List<AddressModel>();
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public Guid? CreatedBy { get; set; }

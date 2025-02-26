@@ -49,11 +49,11 @@ namespace GoodsDesignAPI.Controllers
         }
 
         /// <summary>
-        /// Add a new item to the cart.
+        /// this is api for adding a new item to the cart.
         /// </summary>
         /// <param name="cartItemDTO">The cart item to be added.</param>
         /// <returns>The updated cart item.</returns>
-        [HttpPost("me/cart/products")]        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpPost("me/cart/product-designs")]       
 
         public async Task<IActionResult> AddCartItem([FromBody] CartItemCreateDTO cartItemDTO)
         {
@@ -86,7 +86,7 @@ namespace GoodsDesignAPI.Controllers
         /// </summary>
         /// <param name="id">The ID of the product to be removed.</param>
         /// <returns>True if the item was successfully removed.</returns>
-        [HttpDelete("me/cart/products/{id:guid}")]
+        [HttpDelete("me/cart/product-designs/{id:guid}")]
         public async Task<IActionResult> RemoveCartItem(Guid id)
         {
 

@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace DataTransferObjects.CartDTOs
 {
-    public class CartItemCreateDTO
+    public class CheckoutDTO
     {
-        public Guid ProductDesignId { get; set; }
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
+        public decimal TotalShippingPrice { get; set; }
+        public string? Note { get; set; } = "";
     }
 }

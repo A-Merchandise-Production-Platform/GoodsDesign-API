@@ -13,11 +13,12 @@ namespace Repositories
         private readonly IGenericRepository<Notification> _notificationRepository;
         private readonly IGenericRepository<Factory> _factoryRepository;
         private readonly IGenericRepository<FactoryProduct> _factoryProductRepository;
-        private readonly IGenericRepository<BlankVariance> _productVarianceRepository;
+        private readonly IGenericRepository<BlankVariance> _blankVarianceRepository;
         private readonly IGenericRepository<ProductPositionType> _productPositionTypeRepository;
         private readonly IGenericRepository<CartItem> _cartItemGenericRepository;
         private readonly IGenericRepository<CustomerOrder> _customerOrderGenericRepository;
         private readonly IGenericRepository<Payment> _paymentGenericRepository;
+        private readonly IGenericRepository<ProductDesign> _productDesignGenericRepository;
 
 
         public UnitOfWork(GoodsDesignDbContext dbContext
@@ -27,14 +28,12 @@ namespace Repositories
             , IGenericRepository<Notification> notificationRepository
             , IGenericRepository<Factory> factoryRepository
             , IGenericRepository<FactoryProduct> factoryProductRepository
-            , IGenericRepository<BlankVariance> productVarianceRepository
+            , IGenericRepository<BlankVariance> blankVarianceRepository
             , IGenericRepository<ProductPositionType> productPositionTypeRepository
             , IGenericRepository<CartItem> cartItemGenericRepository
             , IGenericRepository<CustomerOrder> customerOrderGenericRepository
             , IGenericRepository<Payment> paymentGenericRepository
-
-
-
+            , IGenericRepository<ProductDesign> productDesignGenericRepository
 
             )
         {
@@ -45,11 +44,12 @@ namespace Repositories
             _notificationRepository = notificationRepository;
             _factoryRepository = factoryRepository;
             _factoryProductRepository = factoryProductRepository;
-            _productVarianceRepository = productVarianceRepository;
+            _blankVarianceRepository = blankVarianceRepository;
             _productPositionTypeRepository = productPositionTypeRepository;
             _cartItemGenericRepository = cartItemGenericRepository;
             _customerOrderGenericRepository = customerOrderGenericRepository;
             _paymentGenericRepository = paymentGenericRepository;
+            _productDesignGenericRepository = productDesignGenericRepository;
         }
 
         //   public IGenericRepository<User> UserGenericRepository => _userGenericRepository;
@@ -58,23 +58,29 @@ namespace Repositories
         public IGenericRepository<Notification> NotificationRepository => _notificationRepository;
         public IGenericRepository<Factory> FactoryRepository => _factoryRepository;
         public IGenericRepository<FactoryProduct> FactoryProductRepository => _factoryProductRepository;
-        public IGenericRepository<BlankVariance> ProductVarianceRepository => _productVarianceRepository;
+        public IGenericRepository<BlankVariance> BlankVarianceRepository => _blankVarianceRepository;
         public IGenericRepository<ProductPositionType> ProductPositionTypeRepository => _productPositionTypeRepository;
         public IGenericRepository<CartItem> CartItemGenericRepository => _cartItemGenericRepository;
         public IGenericRepository<CustomerOrder> CustomerOrderGenericRepository => _customerOrderGenericRepository;
         public IGenericRepository<Payment> PaymentGenericRepository => _paymentGenericRepository;
+        public IGenericRepository<ProductDesign> ProductDesignGenericRepository => _productDesignGenericRepository;
 
 
 
 
-        public Task<int> SaveChangesAsync()
+
+        public async Task<int> SaveChangesAsync()
         {
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
             try
             {
-                return _dbContext.SaveChangesAsync();
+                var result = await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return result;
             }
             catch (Exception)
             {
+                await transaction.RollbackAsync();
                 throw;
             }
         }

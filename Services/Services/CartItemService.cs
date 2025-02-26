@@ -29,7 +29,7 @@ namespace Services.Services
 
             var cartItems = await _unitOfWork.CartItemGenericRepository.GetAllAsync(
                 ci => ci.UserId == userId,
-                ci => ci.Product
+                ci => ci.ProductDesign
             );
 
             var cartItemDTOs = cartItems.Select(ci => _mapper.Map<CartItemDTO>(ci)).ToList();
@@ -44,46 +44,54 @@ namespace Services.Services
         // Thêm sản phẩm vào giỏ hàng
         public async Task<CartItemDTO> AddCartItem(CartItemCreateDTO cartItemDTO, Guid userId)
         {
-            //var userId = _claimsService.GetCurrentUserId;
-            _logger.Info($"Adding cart item for user {userId}");
-
-            var product = await _unitOfWork.ProductGenericRepository.GetByIdAsync(cartItemDTO.ProductId);
-            if (product == null)
+            try
             {
-                throw new KeyNotFoundException($"Product with ID {cartItemDTO.ProductId} not found.");
-            }
+                //var userId = _claimsService.GetCurrentUserId;
+                _logger.Info($"Adding cart item for user {userId}");
 
-            // Kiểm tra nếu đã tồn tại sản phẩm trong giỏ hàng
-            var existingCartItem = await _unitOfWork.CartItemGenericRepository.GetQueryable()
-                .FirstOrDefaultAsync(ci => ci.UserId == userId && ci.ProductId == cartItemDTO.ProductId);
+                var productDesign = await _unitOfWork.ProductDesignGenericRepository.GetByIdAsync(cartItemDTO.ProductDesignId);
+                if (productDesign == null)
+                {
+                    throw new KeyNotFoundException($"Product Design with ID {cartItemDTO.ProductDesignId} not found.");
+                }
 
-            if (existingCartItem != null)
-            {
-                existingCartItem.Quantity += cartItemDTO.Quantity;
-                //  existingCartItem.UnitPrice = product.Price; // Cập nhật giá mới
-                await _unitOfWork.CartItemGenericRepository.Update(existingCartItem);
+                // Kiểm tra nếu đã tồn tại sản phẩm trong giỏ hàng
+                var existingCartItem = await _unitOfWork.CartItemGenericRepository.GetQueryable()
+                    .FirstOrDefaultAsync(ci => ci.UserId == userId && ci.ProductDesignId == cartItemDTO.ProductDesignId);
+
+                if (existingCartItem != null)
+                {
+                    existingCartItem.Quantity += cartItemDTO.Quantity;
+                    //  existingCartItem.UnitPrice = product.Price; // Cập nhật giá mới
+                    await _unitOfWork.CartItemGenericRepository.Update(existingCartItem);
+                    await _unitOfWork.SaveChangesAsync();
+                    _logger.Success("Cart item existing updated successfully.");
+
+                    return _mapper.Map<CartItemDTO>(existingCartItem);
+
+                }
+
+                var newCartItem = new CartItem
+                {
+                    UserId = userId,
+                    ProductDesignId = productDesign.Id,
+                    Quantity = cartItemDTO.Quantity,
+                    UnitPrice = cartItemDTO.UnitPrice
+                };
+
+                newCartItem = await _unitOfWork.CartItemGenericRepository.AddAsync(newCartItem);
+
+
                 await _unitOfWork.SaveChangesAsync();
-                _logger.Success("Cart item existing updated successfully.");
+                _logger.Success("Cart item added successfully.");
 
-                return _mapper.Map<CartItemDTO>(existingCartItem);
-
+                return _mapper.Map<CartItemDTO>(newCartItem);
             }
-
-            var newCartItem = new CartItem
+            catch (Exception ex)
             {
-                UserId = userId,
-                ProductId = product.Id,
-                Quantity = cartItemDTO.Quantity,
-                UnitPrice = cartItemDTO.UnitPrice
-            };
 
-            newCartItem = await _unitOfWork.CartItemGenericRepository.AddAsync(newCartItem);
-
-
-            await _unitOfWork.SaveChangesAsync();
-            _logger.Success("Cart item added successfully.");
-
-            return _mapper.Map<CartItemDTO>(newCartItem);
+                throw new Exception("400 - "+ex.Message);
+            }
         }
 
 
@@ -94,7 +102,7 @@ namespace Services.Services
             _logger.Info($"Removing cart item for user {userId}");
 
             var cartItem = await _unitOfWork.CartItemGenericRepository.GetQueryable()
-                .FirstOrDefaultAsync(ci => ci.UserId == userId && ci.ProductId == productId);
+                .FirstOrDefaultAsync(ci => ci.UserId == userId && ci.ProductDesignId == productId);
 
             if (cartItem == null)
             {
@@ -115,7 +123,7 @@ namespace Services.Services
 
             var cartItems = await _unitOfWork.CartItemGenericRepository.GetQueryable()
                 .Where(ci => ci.UserId == userId)
-                .Include(ci => ci.Product)
+                .Include(ci => ci.ProductDesign)
             .ToListAsync();
 
 

@@ -1,4 +1,5 @@
-﻿using DataTransferObjects.OrderDTOs;
+﻿using DataTransferObjects.CartDTOs;
+using DataTransferObjects.OrderDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
@@ -26,7 +27,7 @@ namespace GoodsDesignAPI.Controllers
         /// </summary>
         /// <returns>The newly created order.</returns>
         [HttpPost("checkout")]
-        public async Task<IActionResult> Checkout()
+        public async Task<IActionResult> Checkout(CheckoutDTO checkOutDTO)
         {
             _logger.Info("Checkout process initiated.");
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -44,7 +45,7 @@ namespace GoodsDesignAPI.Controllers
 
             try
             {
-                var order = await _orderService.CheckoutOrder(userId);
+                var order = await _orderService.CheckoutOrder(userId, checkOutDTO);
                 return Ok(ApiResult<CustomerOrderDTO>.Success(order, "Order created successfully."));
             }
             catch (Exception ex)

@@ -11,11 +11,12 @@ namespace Repositories.Interfaces
         IGenericRepository<Notification> NotificationRepository { get; }
         IGenericRepository<Factory> FactoryRepository { get; }
         IGenericRepository<FactoryProduct> FactoryProductRepository { get; }
-        IGenericRepository<BlankVariance> ProductVarianceRepository { get; }
+        IGenericRepository<BlankVariance> BlankVarianceRepository { get; }
         IGenericRepository<ProductPositionType> ProductPositionTypeRepository { get; }
         IGenericRepository<CartItem> CartItemGenericRepository { get; }
         IGenericRepository<CustomerOrder> CustomerOrderGenericRepository { get; }
         IGenericRepository<Payment> PaymentGenericRepository { get; }
+        IGenericRepository<ProductDesign> ProductDesignGenericRepository { get; }
 
         Task<int> SaveChangesAsync();
     }

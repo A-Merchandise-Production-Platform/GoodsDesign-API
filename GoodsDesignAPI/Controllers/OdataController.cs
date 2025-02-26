@@ -678,6 +678,33 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a list of product designs with associated user.
+        /// </summary>
+        /// <response code="200">Returns the list of product designs.</response>
+        /// <response code="500">Internal server error.</response>
+        [EnableQuery]
+        [HttpGet("/api/product-designs")]
+        [ProducesResponseType(typeof(ApiResult<IEnumerable<Payment>>), 200)]
+        [ProducesResponseType(typeof(ApiResult<object>), 500)]
+        public async Task<ActionResult<IEnumerable<ProductDesign>>> GetProductDesigns()
+        {
+            try
+            {
+                var result = await _context.ProductDesigns
+                    //.Include(p => p.User).Include(x=>x.BlankVariance)
+                    .ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
 
 
 

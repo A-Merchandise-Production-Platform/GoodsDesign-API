@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Text.Json;
 
 namespace BusinessObjects
@@ -122,12 +123,30 @@ namespace BusinessObjects
                 .Property(c => c.Value)
                 .HasColumnType("jsonb");
 
-            modelBuilder.Entity<User>()
+            
+
+            modelBuilder.Entity<Factory>()
                 .Property(u => u.Address)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
                     v => JsonSerializer.Deserialize<AddressModel>(v, (JsonSerializerOptions)null))
                 .HasColumnType("jsonb");
+
+            var addressComparer = new ValueComparer<List<AddressModel>>(
+    (c1, c2) => c1.SequenceEqual(c2),  // So sánh 2 danh sách có giống nhau không
+    c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())), // Tạo HashCode cho danh sách
+    c => c.ToList()  // Clone danh sách tránh bị lỗi tracking
+);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Addresses)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<List<AddressModel>>(v, (JsonSerializerOptions)null))
+                .HasColumnType("jsonb") // Đặt sau HasConversion
+                .Metadata.SetValueComparer(addressComparer);
+
+
         }
 
 

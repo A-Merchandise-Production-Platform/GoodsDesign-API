@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BusinessObjects.Entities;
+using DataTransferObjects.CartDTOs;
 using DataTransferObjects.OrderDTOs;
 using Repositories.Interfaces;
 using Services.Interfaces;
@@ -25,7 +26,7 @@ namespace Services.Services
             _paymentService = paymentService;
         }
 
-        public async Task<CustomerOrderDTO> CheckoutOrder(Guid customerId)
+        public async Task<CustomerOrderDTO> CheckoutOrder(Guid customerId, CheckoutDTO checkout)
         {
             try
             {
@@ -45,9 +46,10 @@ namespace Services.Services
                     CustomerId = customerId,
                     Status = "Pending",
                     TotalPrice = cart.Items.Sum(item => item.TotalPrice),
-                    ShippingPrice = 0, // Bạn có thể thêm logic tính phí vận chuyển
+                    TotalShippingPrice = checkout.TotalShippingPrice, // Bạn có thể thêm logic tính phí vận chuyển
                     DepositPaid = 0,   // Tạm để bằng 0, sẽ thêm logic khi cần
                     OrderDate = DateTime.UtcNow.AddHours(7),
+                    Note= checkout.Note,
                     CustomerOrderDetails = cart.Items.Select(item => new CustomerOrderDetail
                     {
                         //ProductId = item.ProductId,
@@ -59,7 +61,7 @@ namespace Services.Services
                 };
 
                 // Lưu CustomerOrder vào cơ sở dữ liệu
-                await _unitOfWork.CustomerOrderGenericRepository.AddAsync(order);
+                order= await _unitOfWork.CustomerOrderGenericRepository.AddAsync(order);
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.Success($"Order created successfully for customer ID: {customerId}");

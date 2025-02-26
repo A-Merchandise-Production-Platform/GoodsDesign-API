@@ -44,7 +44,7 @@ namespace Services.Services
                     BlankPrice = dto.BlankPrice
                 };
 
-                var result = await _unitOfWork.ProductVarianceRepository.AddAsync(productVariance);
+                var result = await _unitOfWork.BlankVarianceRepository.AddAsync(productVariance);
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.Success("Product Variance created successfully.");
@@ -62,7 +62,7 @@ namespace Services.Services
             _logger.Info($"Updating Product Variance with ID: {id}");
             try
             {
-                var productVariance = await _unitOfWork.ProductVarianceRepository.GetByIdAsync(id);
+                var productVariance = await _unitOfWork.BlankVarianceRepository.GetByIdAsync(id);
                 if (productVariance == null)
                 {
                     _logger.Warn($"Product Variance with ID {id} not found.");
@@ -80,7 +80,7 @@ namespace Services.Services
                 productVariance.Information = JsonSerializer.Serialize(dto.Information);
                 productVariance.BlankPrice = dto.BlankPrice;
 
-                await _unitOfWork.ProductVarianceRepository.Update(productVariance);
+                await _unitOfWork.BlankVarianceRepository.Update(productVariance);
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.Success("Product Variance updated successfully.");
@@ -98,14 +98,14 @@ namespace Services.Services
             _logger.Info($"Deleting Product Variance with ID: {id}");
             try
             {
-                var productVariance = await _unitOfWork.ProductVarianceRepository.GetByIdAsync(id);
+                var productVariance = await _unitOfWork.BlankVarianceRepository.GetByIdAsync(id);
                 if (productVariance == null)
                 {
                     _logger.Warn($"Product Variance with ID {id} not found.");
                     throw new KeyNotFoundException("404 - Product Variance not found.");
                 }
 
-                await _unitOfWork.ProductVarianceRepository.SoftRemove(productVariance);
+                await _unitOfWork.BlankVarianceRepository.SoftRemove(productVariance);
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.Success("Product Variance deleted successfully.");
