@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BusinessObjects.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,5 +20,7 @@ namespace DataTransferObjects.UserDTOs
         public string? Role { get; set; }
         public bool? IsActive { get; set; }
         public bool? IsDeleted { get; set; } = false;
+        public List<AddressModel>? Addresses { get; set; }
+
     }
 }
