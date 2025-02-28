@@ -4,6 +4,7 @@ using DataTransferObjects.AreaDTOs;
 using DataTransferObjects.BlankProductInStockDTOs;
 using DataTransferObjects.CartDTOs;
 using DataTransferObjects.CategoryDTOs;
+using DataTransferObjects.DesignPositionDTOs;
 using DataTransferObjects.FactoryDTOs;
 using DataTransferObjects.OrderDTOs;
 using DataTransferObjects.PaymentDTOs;
@@ -76,6 +77,12 @@ namespace Services.Mapper
        .ReverseMap();
 
             CreateMap<ProductDesignDTO, ProductDesign>()
+     .ReverseMap();
+
+            CreateMap<OverwriteDesignDTO, DesignPosition>()
+   .ReverseMap(); 
+
+            CreateMap<DesignPositionDTO, DesignPosition>()
      .ReverseMap();
 
         }

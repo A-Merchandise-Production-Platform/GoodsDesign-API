@@ -19,6 +19,8 @@ namespace Repositories
         private readonly IGenericRepository<CustomerOrder> _customerOrderGenericRepository;
         private readonly IGenericRepository<Payment> _paymentGenericRepository;
         private readonly IGenericRepository<ProductDesign> _productDesignGenericRepository;
+        private readonly IDesignPositionRepository _designPositionRepository;
+
 
 
         public UnitOfWork(GoodsDesignDbContext dbContext
@@ -34,6 +36,7 @@ namespace Repositories
             , IGenericRepository<CustomerOrder> customerOrderGenericRepository
             , IGenericRepository<Payment> paymentGenericRepository
             , IGenericRepository<ProductDesign> productDesignGenericRepository
+            , IDesignPositionRepository designPositionRepository
 
             )
         {
@@ -50,6 +53,7 @@ namespace Repositories
             _customerOrderGenericRepository = customerOrderGenericRepository;
             _paymentGenericRepository = paymentGenericRepository;
             _productDesignGenericRepository = productDesignGenericRepository;
+            _designPositionRepository = designPositionRepository;
         }
 
         //   public IGenericRepository<User> UserGenericRepository => _userGenericRepository;
@@ -65,6 +69,7 @@ namespace Repositories
         public IGenericRepository<Payment> PaymentGenericRepository => _paymentGenericRepository;
         public IGenericRepository<ProductDesign> ProductDesignGenericRepository => _productDesignGenericRepository;
 
+        public IDesignPositionRepository DesignPositionRepository => _designPositionRepository;
 
 
 
