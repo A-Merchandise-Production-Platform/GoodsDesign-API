@@ -43,6 +43,9 @@ namespace GoodsDesignAPI.Architecture
             services.SetupCORS();
             services.SetupJWT();
             //Add generic repositories
+            services.AddScoped<IDesignPositionRepository, DesignPositionRepository>();
+            services.AddScoped<IDesignPositionService, DesignPositionService>();
+
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             //Add business services
             services.SetupBusinessServicesLayer();
