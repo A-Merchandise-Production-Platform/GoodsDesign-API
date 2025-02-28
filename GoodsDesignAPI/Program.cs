@@ -112,12 +112,14 @@ static IEdmModel GetEdmModel()
     var customerOrders = builder.EntitySet<CustomerOrder>("customer-orders");
     var customerOrderDetails = builder.EntitySet<CustomerOrderDetail>("customer-order-details");
     var payments = builder.EntitySet<Payment>("payments");
+    var productPositionTypes = builder.EntitySet<ProductPositionType>("product-position-types");
 
     // Define relationships
     users.EntityType.HasOptional(u => u.Role); // User has one Role
     roles.EntityType.HasMany(r => r.Users);
     roles.EntityType.HasMany(r => r.Users); 
     products.EntityType.HasMany(r => r.FactoryProducts); 
+    products.EntityType.HasMany(r => r.ProductPositionTypes); 
     categories.EntityType.HasMany(r => r.Products); 
 
     factories.EntityType.HasMany(r => r.FactoryProducts); 
