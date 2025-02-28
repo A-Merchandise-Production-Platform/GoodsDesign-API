@@ -12,5 +12,6 @@ namespace Services.Interfaces
     {
         Task<ProductDesign> CreateProductDesign(ProductDesignCreateDTO dto);
         Task<ProductDesign> GetById(Guid id);
+        Task<ProductDesignDTO> PatchProductDesignAsync(Guid id, ProductDesignUpdateDTO dto);
     }
 }

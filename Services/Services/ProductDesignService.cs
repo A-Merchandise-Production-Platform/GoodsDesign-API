@@ -80,5 +80,70 @@ namespace Services.Services
                 throw;
             }
         }
+
+        public async Task<ProductDesignDTO> PatchProductDesignAsync(Guid id, ProductDesignUpdateDTO dto)
+        {
+            _logger.Info($"Patching product design with ID: {id}");
+
+            // 1. Lấy ProductDesign hiện có
+            var existingPD = await _unitOfWork.ProductDesignGenericRepository.GetByIdAsync(id);
+            if (existingPD == null)
+            {
+                _logger.Warn($"ProductDesign with ID {id} not found.");
+                throw new KeyNotFoundException("404 - ProductDesign not found.");
+            }
+
+            // 2. Xử lý thủ công những field có logic riêng
+
+            // -- (A) Kiểm tra & cập nhật UserId
+            //if (existingPD.UserId.HasValue)
+            //{
+            //    var user = await _userService.GetCurrentUser(dto.UserId.Value.ToString());
+            //    if (user == null) throw new KeyNotFoundException("400 - User not found.");
+            //    existingPD.UserId = dto.UserId.Value;
+            //}
+
+            //// -- (B) Kiểm tra & cập nhật BlankVarianceId
+            //if (existingPD.BlankVarianceId.HasValue)
+            //{
+            //    var blankVariance = await _unitOfWork.BlankVarianceRepository.GetByIdAsync(dto.BlankVarianceId.Value);
+            //    if (blankVariance == null) throw new KeyNotFoundException("400 - BlankVariance not found.");
+            //    existingPD.BlankVarianceId = dto.BlankVarianceId.Value;
+            //}
+
+            // 3. Dùng reflection để cập nhật các field còn lại
+            //    (bỏ qua UserId, BlankVarianceId vì đã xử lý trên)
+            var patchDtoType = typeof(ProductDesignUpdateDTO);
+            var productDesignType = typeof(ProductDesign);
+
+            // Danh sách property tên “đặc biệt” (đã xử lý thủ công)
+            var specialProps = new HashSet<string> { nameof(dto.UserId), nameof(dto.BlankVarianceId) };
+
+            foreach (var prop in patchDtoType.GetProperties())
+            {
+                if (specialProps.Contains(prop.Name)) continue; // bỏ qua field đặc biệt
+
+                // Lấy value từ DTO
+                var value = prop.GetValue(dto);
+                if (value is null) continue; // null => ko update
+
+                // Tìm property tương ứng bên ProductDesign
+                var entityProp = productDesignType.GetProperty(prop.Name);
+                if (entityProp != null && entityProp.CanWrite)
+                {
+                    // Gán value
+                    // Ví dụ: existingPD.Saved3DPreviewUrl = dto.Saved3DPreviewUrl
+                    entityProp.SetValue(existingPD, value);
+                }
+            }
+
+            // 4. Lưu DB
+            await _unitOfWork.ProductDesignGenericRepository.Update(existingPD);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.Success($"ProductDesign with ID {id} patched via reflection successfully.");
+            return _mapper.Map<ProductDesignDTO>(existingPD);
+        }
+
     }
 }

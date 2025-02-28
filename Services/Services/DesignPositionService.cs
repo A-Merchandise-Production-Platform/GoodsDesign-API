@@ -1,4 +1,5 @@
 ﻿using BusinessObjects.Entities;
+using DataTransferObjects.DesignPositionDTOs;
 using Repositories.Interfaces;
 using Services.Interfaces;
 
@@ -35,6 +36,25 @@ public class DesignPositionService : IDesignPositionService
         }
 
         await _unitOfWork.SaveChangesAsync();
+        return designPosition;
+    }
+
+    public async Task<DesignPosition> AddDesignPositionAsync(AddDesignPositionDTO dto)
+    {
+        // Tạo entity
+        var designPosition = new DesignPosition
+        {
+            ProductDesignId = dto.ProductDesignId,
+            ProductPositionTypeId = dto.ProductPositionTypeId,
+            DesignJSON = dto.DesignJSON ?? string.Empty
+        };
+
+        // Gọi repo để thêm
+        await _unitOfWork.DesignPositionRepository.AddAsync(designPosition);
+
+        // Lưu CSDL
+        await _unitOfWork.SaveChangesAsync();
+
         return designPosition;
     }
 }
