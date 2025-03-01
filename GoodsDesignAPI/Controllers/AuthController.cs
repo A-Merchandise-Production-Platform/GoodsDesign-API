@@ -27,7 +27,6 @@ namespace GoodsDesignAPI.Controllers
         private readonly INotificationService _notificationService;
         private readonly IFactoryService _factoryService;
         private readonly IEmailService _emailService;
-        private readonly IUserService _userService;
         private readonly ICurrentTime _currentTime;
 
 
@@ -47,7 +46,6 @@ namespace GoodsDesignAPI.Controllers
             _logger = logger;
             _notificationService = notificationService;
             _factoryService = factoryService;
-            _userService = userService;
             _emailService = emailService;
             _currentTime = currentTime;
         }
@@ -99,7 +97,7 @@ namespace GoodsDesignAPI.Controllers
                 var accessToken = JwtUtils.GenerateJwtToken(user.Id.ToString(), user.Email, role.Name, configuration, TimeSpan.FromMinutes(60));
                 var refreshToken = await _userManager.GenerateUserTokenAsync(user, "REFRESHTOKENPROVIDER", "RefreshToken");
                 user.RefreshToken = refreshToken;
-                user.RefreshTokenExpiryTime = _currentTime.GetCurrentTime().AddDays(7);
+                user.RefreshTokenExpiryTime = _currentTime.GetCurrentTime().AddDays(int.Parse(configuration["JWT:RefreshTokenValidityInDays"]));
                 var result = await _userManager.UpdateAsync(user);
 
                 _logger.Success("Login successful.");
@@ -322,7 +320,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken( [FromBody]RefreshTokenDTO refreshTokenDTO)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDTO refreshTokenDTO)
         {
             _logger.Info("Token refresh attempt initiated.");
             var refreshToken = refreshTokenDTO.RefreshToken;
@@ -480,7 +478,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-        
+
 
     }
 }
