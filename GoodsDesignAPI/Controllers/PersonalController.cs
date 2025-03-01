@@ -200,5 +200,162 @@ namespace GoodsDesignAPI.Controllers
         }
 
 
+        /// <summary>
+        /// Lấy tất cả địa chỉ của user login.
+        /// </summary>
+        [HttpGet("addresses")]
+        public async Task<IActionResult> GetAllAddresses()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.Warn("User ID not found in token.");
+                    return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
+                }
+
+                //var user = await _userService.GetCurrentUser(userId);
+                //if (user == null)
+                //{
+                //    _logger.Warn("User not found.");
+                //    return NotFound(ApiResult<object>.Error("404 - User not found."));
+                //}
+
+                var addresses = await _userService.GetAllAddressesAsync(Guid.Parse(userId));
+                return Ok(ApiResult<List<AddressModel>>.Success(addresses, "Addresses retrieved successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Lấy 1 địa chỉ theo index trong danh sách.
+        /// </summary>
+        /// <param name="index">Vị trí địa chỉ trong danh sách</param>
+        [HttpGet("addresses/{index}")]
+        public async Task<IActionResult> GetAddress( int index)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.Warn("User ID not found in token.");
+                    return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
+                }
+                var address = await _userService.GetAddressAsync(Guid.Parse(userId), index);
+                if (address == null)
+                    return NotFound(ApiResult<object>.Error("Address index out of range."));
+                return Ok(ApiResult<AddressModel>.Success(address, "Address retrieved successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Thêm 1 địa chỉ mới vào danh sách của user login.
+        /// </summary>
+        /// <param name="dto">Dữ liệu địa chỉ mới</param>
+        [HttpPost("addresses")]
+        public async Task<IActionResult> AddAddress( [FromBody] AddressModel dto)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.Warn("User ID not found in token.");
+                    return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
+                }
+
+                var newAddress = await _userService.AddAddressAsync(Guid.Parse(userId), dto);
+                return Ok(ApiResult<AddressModel>.Success(newAddress, "Address added successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật địa chỉ theo index.
+        /// </summary>
+        /// <param name="index">Vị trí địa chỉ cần update</param>
+        /// <param name="dto">Dữ liệu địa chỉ mới</param>
+        [HttpPut("addresses/{index}")]
+        public async Task<IActionResult> UpdateAddress( int index, [FromBody] AddressModel dto)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.Warn("User ID not found in token.");
+                    return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
+                }
+
+                var updated = await _userService.UpdateAddressAsync(Guid.Parse(userId), index, dto);
+                return Ok(ApiResult<AddressModel>.Success(updated, "Address updated successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Xóa địa chỉ theo index khỏi danh sách.
+        /// </summary>
+        /// <param name="index">Vị trí địa chỉ cần xóa</param>
+        [HttpDelete("addresses/{index}")]
+        public async Task<IActionResult> DeleteAddress( int index)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.Warn("User ID not found in token.");
+                    return Unauthorized(ApiResult<object>.Error("401 - User not authenticated."));
+                }
+
+
+                var success = await _userService.DeleteAddressAsync(Guid.Parse(userId), index);
+                if (!success)
+                    return BadRequest(ApiResult<object>.Error("Failed to delete address."));
+                return Ok(ApiResult<object>.Success(null, "Address deleted successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+
     }
 }

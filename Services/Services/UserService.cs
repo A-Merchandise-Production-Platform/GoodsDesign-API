@@ -275,5 +275,66 @@ namespace Services.Services
             }
         }
 
+        public async Task<List<AddressModel>> GetAllAddressesAsync(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new KeyNotFoundException("User not found.");
+            return user.Addresses;
+        }
+
+        public async Task<AddressModel?> GetAddressAsync(Guid userId, int index)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new KeyNotFoundException("User not found.");
+            if (index < 0 || index >= user.Addresses.Count) return null; // out of range
+            return user.Addresses[index];
+        }
+
+        public async Task<AddressModel> AddAddressAsync(Guid userId, AddressModel address)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new KeyNotFoundException("User not found.");
+
+            user.Addresses.Add(address);
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                throw new Exception("Failed to add address.");
+
+            return address;
+        }
+
+        public async Task<AddressModel> UpdateAddressAsync(Guid userId, int index, AddressModel address)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new KeyNotFoundException("User not found.");
+            if (index < 0 || index >= user.Addresses.Count)
+                throw new KeyNotFoundException("Address index out of range.");
+
+            // Ghi đè toàn bộ
+            user.Addresses[index] = address;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                throw new Exception("Failed to update address.");
+
+            return address;
+        }
+
+        public async Task<bool> DeleteAddressAsync(Guid userId, int index)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new KeyNotFoundException("User not found.");
+            if (index < 0 || index >= user.Addresses.Count)
+                throw new KeyNotFoundException("Address index out of range.");
+
+            user.Addresses.RemoveAt(index);
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                throw new Exception("Failed to delete address.");
+
+            return true;
+        }
+
     }
 }
