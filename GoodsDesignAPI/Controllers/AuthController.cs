@@ -480,10 +480,7 @@ namespace GoodsDesignAPI.Controllers
             }
         }
 
-        public class RefreshTokenDTO
-        {
-            public string RefreshToken { get; set; }
-        }
+        
 
     }
 }
