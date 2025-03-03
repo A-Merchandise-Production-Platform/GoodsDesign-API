@@ -1,4 +1,5 @@
-﻿using BusinessObjects.Enums;
+﻿using BusinessObjects.Entities;
+using BusinessObjects.Enums;
 using DataTransferObjects.UserDTOs;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
@@ -149,6 +150,125 @@ namespace GoodsDesignAPI.Controllers
                 var errorResponse = ApiResult<object>.Error(ex.Message);
 
                 return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Lấy tất cả địa chỉ của user.
+        /// </summary>
+        /// <param name="id">ID của user</param>
+        [HttpGet("{id}/addresses")]
+        public async Task<IActionResult> GetAllAddresses(Guid id)
+        {
+            try
+            {
+                var addresses = await _userService.GetAllAddressesAsync(id);
+                return Ok(ApiResult<List<AddressModel>>.Success(addresses, "Addresses retrieved successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Lấy 1 địa chỉ theo index trong danh sách.
+        /// </summary>
+        /// <param name="id">ID của user</param>
+        /// <param name="index">Vị trí địa chỉ trong danh sách</param>
+        [HttpGet("{id}/addresses/{index}")]
+        public async Task<IActionResult> GetAddress(Guid id, int index)
+        {
+            try
+            {
+                var address = await _userService.GetAddressAsync(id, index);
+                if (address == null)
+                    return NotFound(ApiResult<object>.Error("Address index out of range."));
+                return Ok(ApiResult<AddressModel>.Success(address, "Address retrieved successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Thêm 1 địa chỉ mới vào danh sách của user.
+        /// </summary>
+        /// <param name="id">ID của user</param>
+        /// <param name="dto">Dữ liệu địa chỉ mới</param>
+        [HttpPost("{id}/addresses")]
+        public async Task<IActionResult> AddAddress(Guid id, [FromBody] AddressModel dto)
+        {
+            try
+            {
+                var newAddress = await _userService.AddAddressAsync(id, dto);
+                return Ok(ApiResult<AddressModel>.Success(newAddress, "Address added successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật địa chỉ theo index.
+        /// </summary>
+        /// <param name="id">ID của user</param>
+        /// <param name="index">Vị trí địa chỉ cần update</param>
+        /// <param name="dto">Dữ liệu địa chỉ mới</param>
+        [HttpPut("{id}/addresses/{index}")]
+        public async Task<IActionResult> UpdateAddress(Guid id, int index, [FromBody] AddressModel dto)
+        {
+            try
+            {
+                var updated = await _userService.UpdateAddressAsync(id, index, dto);
+                return Ok(ApiResult<AddressModel>.Success(updated, "Address updated successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Xóa địa chỉ theo index khỏi danh sách.
+        /// </summary>
+        /// <param name="id">ID của user</param>
+        /// <param name="index">Vị trí địa chỉ cần xóa</param>
+        [HttpDelete("{id}/addresses/{index}")]
+        public async Task<IActionResult> DeleteAddress(Guid id, int index)
+        {
+            try
+            {
+                var success = await _userService.DeleteAddressAsync(id, index);
+                if (!success)
+                    return BadRequest(ApiResult<object>.Error("Failed to delete address."));
+                return Ok(ApiResult<object>.Success(null, "Address deleted successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
             }
         }
 
