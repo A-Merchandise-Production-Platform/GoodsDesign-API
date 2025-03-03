@@ -93,5 +93,51 @@ namespace GoodsDesignAPI.Controllers
                 return StatusCode(500, ApiResult<object>.Error(ex.Message));
             }
         }
+
+        /// <summary>
+        /// Xóa cứng một <c>ProductDesign</c> theo ID.
+        /// </summary>
+        /// <param name="id">ID của ProductDesign</param>
+        /// <returns>Xóa thành công hoặc lỗi.</returns>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProductDesign(Guid id)
+        {
+            try
+            {
+                await _productDesignService.DeleteProductDesignAsync(id);
+                return Ok(ApiResult<object>.Success(null, "ProductDesign deleted successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Sao chép (duplicate) một <c>ProductDesign</c> sang bản mới.
+        /// </summary>
+        /// <param name="id">ID của ProductDesign gốc</param>
+        /// <returns>Trả về <c>ProductDesignDTO</c> đã sao chép.</returns>
+        [HttpPost("duplicate/{id}")]
+        public async Task<IActionResult> DuplicateProductDesign(Guid id)
+        {
+            try
+            {
+                var newDesign = await _productDesignService.DuplicateProductDesignAsync(id);
+                return Ok(ApiResult<ProductDesignDTO>.Success(newDesign, "ProductDesign duplicated successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Error(ex.Message));
+            }
+        }
     }
 }

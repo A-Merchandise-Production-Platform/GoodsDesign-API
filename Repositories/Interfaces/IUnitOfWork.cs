@@ -18,6 +18,7 @@ namespace Repositories.Interfaces
         IGenericRepository<Payment> PaymentGenericRepository { get; }
         IGenericRepository<ProductDesign> ProductDesignGenericRepository { get; }
         IDesignPositionRepository DesignPositionRepository { get; }
+        IGenericRepository<StaffFactory> StaffFactoryGenericRepository { get; }
 
         Task<int> SaveChangesAsync();
     }

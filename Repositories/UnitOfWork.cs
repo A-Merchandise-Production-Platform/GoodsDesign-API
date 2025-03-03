@@ -20,6 +20,7 @@ namespace Repositories
         private readonly IGenericRepository<Payment> _paymentGenericRepository;
         private readonly IGenericRepository<ProductDesign> _productDesignGenericRepository;
         private readonly IDesignPositionRepository _designPositionRepository;
+        private readonly IGenericRepository<StaffFactory> _staffFactoryGenericRepository;
 
 
 
@@ -37,6 +38,8 @@ namespace Repositories
             , IGenericRepository<Payment> paymentGenericRepository
             , IGenericRepository<ProductDesign> productDesignGenericRepository
             , IDesignPositionRepository designPositionRepository
+            ,
+IGenericRepository<StaffFactory> staffFactoryGenericRepository
 
             )
         {
@@ -54,6 +57,7 @@ namespace Repositories
             _paymentGenericRepository = paymentGenericRepository;
             _productDesignGenericRepository = productDesignGenericRepository;
             _designPositionRepository = designPositionRepository;
+            _staffFactoryGenericRepository = staffFactoryGenericRepository;
         }
 
         //   public IGenericRepository<User> UserGenericRepository => _userGenericRepository;
@@ -71,6 +75,7 @@ namespace Repositories
 
         public IDesignPositionRepository DesignPositionRepository => _designPositionRepository;
 
+        public IGenericRepository<StaffFactory> StaffFactoryGenericRepository => _staffFactoryGenericRepository;
 
 
 

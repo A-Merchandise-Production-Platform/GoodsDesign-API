@@ -34,6 +34,7 @@ namespace BusinessObjects
         public DbSet<FactoryOrder> FactoryOrders { get; set; }
         public DbSet<FactoryOrderDetail> FactoryOrderDetails { get; set; }
         public DbSet<DesignPosition> DesignPositions { get; set; }
+        public DbSet<StaffFactory> StaffFactories { get; set; }
 
 
 

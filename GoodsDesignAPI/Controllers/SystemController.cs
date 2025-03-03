@@ -104,6 +104,8 @@ namespace GoodsDesignAPI.Controllers
                 // Seed Payments
                 var paymentsResult = await SeedPayments(context);
                 var productDesignsResult = await SeedProductDesigns(context);
+                var staffFactoriesResult = await SeedStaffFactories(context);
+
 
 
 
@@ -122,7 +124,8 @@ namespace GoodsDesignAPI.Controllers
                         ProductVariances = productVariances.Data,
                         CustomerOrders = customerOrdersResult.Data,
                         Payments = paymentsResult.Data,
-                        ProductDesigns = productDesignsResult.Data 
+                        ProductDesigns = productDesignsResult.Data ,
+                        StaffFactories = staffFactoriesResult.Data  
 
                     }
                 }));
@@ -141,7 +144,7 @@ namespace GoodsDesignAPI.Controllers
 
             await context.ProductDesigns.ExecuteDeleteAsync();
             await context.ProductPositionTypes.ExecuteDeleteAsync();
-
+            await context.StaffFactories.ExecuteDeleteAsync();
             await context.DesignPositions.ExecuteDeleteAsync();
             await context.Payments.ExecuteDeleteAsync();
             await context.CustomerOrderDetails.ExecuteDeleteAsync();
@@ -653,6 +656,78 @@ namespace GoodsDesignAPI.Controllers
                 throw;
             }
         }
+
+        [Authorize(Roles = "admin")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpPost("seed-staff-factories")]
+        public async Task<ApiResult<List<StaffFactory>>> SeedStaffFactories([FromServices] GoodsDesignDbContext context)
+        {
+            try
+            {
+                _logger.Info("Seeding StaffFactory initiated.");
+
+                // Lấy user có role = 'staff'
+                var staffRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "staff");
+                if (staffRole == null)
+                {
+                    throw new Exception("Please seed roles (including 'staff') before seeding staff factories.");
+                }
+                var staffUsers = await context.Users
+                    .Where(u => u.RoleId == staffRole.Id)
+                    .ToListAsync();
+                if (!staffUsers.Any())
+                {
+                    throw new Exception("Please seed at least one 'staff' user before seeding staff factories.");
+                }
+
+                // Lấy user có role = 'factoryOwner'
+                var factoryOwnerRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "factoryOwner");
+                if (factoryOwnerRole == null)
+                {
+                    throw new Exception("Please seed roles (including 'factoryOwner') before seeding staff factories.");
+                }
+                var factoryOwnerUsers = await context.Users
+                    .Where(u => u.RoleId == factoryOwnerRole.Id)
+                    .ToListAsync();
+                if (!factoryOwnerUsers.Any())
+                {
+                    throw new Exception("Please seed at least one 'factoryOwner' user before seeding staff factories.");
+                }
+
+              
+                var factoryOwners = await context.Factories.ToListAsync();
+                if (!factoryOwners.Any())
+                {
+                    throw new Exception("Please seed factories before seeding staff factories.");
+                }
+
+                // Tạo 1 list StaffFactory
+                var staffFactoriesToSeed = new List<StaffFactory>();
+
+             
+                staffFactoriesToSeed.Add(new StaffFactory
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = staffUsers[0].Id,           // staff user
+                    FactoryOwnerId = factoryOwners[0].Id // cột Id của Factory
+                });
+
+             
+
+                // Lưu DB
+                await context.Set<StaffFactory>().AddRangeAsync(staffFactoriesToSeed);
+                await context.SaveChangesAsync();
+
+                _logger.Success("StaffFactory seeded successfully.");
+                return ApiResult<List<StaffFactory>>.Success(staffFactoriesToSeed, "StaffFactory seeded successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error seeding StaffFactory: {ex.Message}");
+                throw;
+            }
+        }
+
 
 
         [Authorize(Roles = "admin")]

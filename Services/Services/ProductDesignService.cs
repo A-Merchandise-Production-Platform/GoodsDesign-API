@@ -145,5 +145,83 @@ namespace Services.Services
             return _mapper.Map<ProductDesignDTO>(existingPD);
         }
 
+        public async Task<bool> DeleteProductDesignAsync(Guid id)
+        {
+            _logger.Info($"Deleting product design with ID: {id}");
+
+            // Lấy design
+            var existingPD = await _unitOfWork.ProductDesignGenericRepository.GetByIdAsync(id);
+            if (existingPD == null)
+            {
+                _logger.Warn($"Product design with ID {id} not found.");
+                throw new KeyNotFoundException("404 - Product design not found.");
+            }
+
+            // Hard remove (bạn có thể đổi thành soft remove tùy ý)
+            var removed = await _unitOfWork.ProductDesignGenericRepository.HardRemove(x => x.Id == id);
+            if (!removed)
+            {
+                _logger.Error("Failed to delete product design.");
+                throw new Exception("500 - Failed to delete product design.");
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+            _logger.Success($"Product design with ID {id} deleted successfully.");
+            return true;
+        }
+
+
+          public async Task<ProductDesignDTO> DuplicateProductDesignAsync(Guid sourceDesignId)
+        {
+            _logger.Info($"Duplicating product design with ID: {sourceDesignId}");
+
+            // Lấy ProductDesign cũ, kèm DesignPositions nếu muốn copy
+            var oldDesign = await _unitOfWork.ProductDesignGenericRepository
+                .GetByIdAsync(sourceDesignId, x => x.DesignPositions);
+
+            if (oldDesign == null)
+            {
+                _logger.Warn($"Product design with ID {sourceDesignId} not found.");
+                throw new KeyNotFoundException("404 - Product design not found.");
+            }
+
+            // Tạo ProductDesign mới và copy các field cần thiết
+            var newDesign = new ProductDesign
+            {
+                UserId = oldDesign.UserId,
+                BlankVarianceId = oldDesign.BlankVarianceId,
+                Saved3DPreviewUrl = oldDesign.Saved3DPreviewUrl,
+                IsFinalized = oldDesign.IsFinalized,
+                IsPublic = oldDesign.IsPublic,
+                IsTemplate = oldDesign.IsTemplate,
+                CreatedAt = DateTime.UtcNow // Ngày tạo mới
+            };
+
+            // Copy DesignPositions
+            if (oldDesign.DesignPositions != null && oldDesign.DesignPositions.Any())
+            {
+                newDesign.DesignPositions = new List<DesignPosition>();
+                foreach (var oldPos in oldDesign.DesignPositions)
+                {
+                    var newPos = new DesignPosition
+                    {
+                        ProductPositionTypeId = oldPos.ProductPositionTypeId,
+                        DesignJSON = oldPos.DesignJSON
+                        // EF sẽ tự gán ProductDesignId khi save
+                    };
+                    newDesign.DesignPositions.Add(newPos);
+                }
+            }
+
+            // Lưu vào DB
+            await _unitOfWork.ProductDesignGenericRepository.AddAsync(newDesign);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.Success($"Duplicated product design from ID {sourceDesignId} to new ID {newDesign.Id}.");
+
+            // Trả về DTO
+            return _mapper.Map<ProductDesignDTO>(newDesign);
+        }
+
     }
 }
