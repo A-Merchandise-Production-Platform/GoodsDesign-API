@@ -8,7 +8,7 @@ using Services.Utils;
 
 namespace GoodsDesignAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/design-positions")]
     [ApiController]
     public class DesignPositionController : ControllerBase
     {

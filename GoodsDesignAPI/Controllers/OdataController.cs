@@ -685,7 +685,7 @@ namespace GoodsDesignAPI.Controllers
         /// <response code="500">Internal server error.</response>
         [EnableQuery]
         [HttpGet("/api/product-designs")]
-        [ProducesResponseType(typeof(ApiResult<IEnumerable<Payment>>), 200)]
+        [ProducesResponseType(typeof(ApiResult<IEnumerable<ProductDesign>>), 200)]
         [ProducesResponseType(typeof(ApiResult<object>), 500)]
         public async Task<ActionResult<IEnumerable<ProductDesign>>> GetProductDesigns()
         {
@@ -693,6 +693,33 @@ namespace GoodsDesignAPI.Controllers
             {
                 var result = await _context.ProductDesigns
                     //.Include(p => p.User).Include(x=>x.BlankVariance)
+                    .ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                int statusCode = ExceptionUtils.ExtractStatusCode(ex.Message);
+                var errorResponse = ApiResult<object>.Error(ex.Message);
+
+                return StatusCode(statusCode, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a list of staff assigned with factory
+        /// </summary>
+        /// <response code="200">Returns the list of assgined staff.</response>
+        /// <response code="500">Internal server error.</response>
+        [EnableQuery]
+        [HttpGet("/api/staff-factories")]
+        [ProducesResponseType(typeof(ApiResult<IEnumerable<StaffFactory>>), 200)]
+        [ProducesResponseType(typeof(ApiResult<object>), 500)]
+        public async Task<ActionResult<IEnumerable<StaffFactory>>> GetStaffFactory()
+        {
+            try
+            {
+                var result = await _context.StaffFactories
+                    .Include(p => p.FactoryOwner)
                     .ToListAsync();
                 return Ok(result);
             }

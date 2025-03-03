@@ -85,6 +85,9 @@ namespace Services.Mapper
             CreateMap<DesignPositionDTO, DesignPosition>()
      .ReverseMap();
 
+            CreateMap<StaffFactoryDTO, StaffFactory>()
+ .ReverseMap();
+
         }
     }
 }

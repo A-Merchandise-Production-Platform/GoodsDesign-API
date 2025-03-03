@@ -44,8 +44,6 @@ namespace GoodsDesignAPI.Architecture
             services.SetupJWT();
             //Add generic repositories
             services.AddScoped<IDesignPositionRepository, DesignPositionRepository>();
-            services.AddScoped<IDesignPositionService, DesignPositionService>();
-
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             //Add business services
             services.SetupBusinessServicesLayer();
@@ -106,6 +104,12 @@ namespace GoodsDesignAPI.Architecture
             services.AddScoped<ICartItemService, CartItemService>();
             services.AddScoped<ICustomerOrderService, CustomerOrderService>();
             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IProductPositionTypeService, ProductPositionTypeService>();
+            services.AddScoped<IDesignPositionService, DesignPositionService>();
+            services.AddScoped<IProductDesignService, ProductDesignService>();
+            services.AddScoped<IStaffFactoryService, StaffFactoryService>();
+
+
 
             services.AddScoped<IVnPayService, VnPayService>();
             services.AddScoped<IPayOSService, PayOSService>();
