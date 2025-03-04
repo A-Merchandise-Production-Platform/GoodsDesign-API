@@ -18,7 +18,7 @@ import { GetUser } from '../auth/decorators';
 
 @Controller('categories')
 @ApiTags('Categories')
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
