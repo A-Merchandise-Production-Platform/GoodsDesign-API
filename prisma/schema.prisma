@@ -16,13 +16,15 @@ enum Roles {
 }
 
 model User {
-  id          String  @id @default(uuid())
-  gender      Boolean @default(false)
+  id          String    @id @default(uuid())
+  email       String?   @unique @default("")
+  password    String?   @default("")
+  gender      Boolean   @default(false)
   dateOfBirth DateTime?
-  imageUrl    String? @default("")
-  isActive    Boolean @default(false)
-  isDeleted   Boolean @default(false)
-  createdAt   DateTime @default(now())
+  imageUrl    String?   @default("")
+  isActive    Boolean   @default(false)
+  isDeleted   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
   createdBy   String?
   updatedAt   DateTime?
   updatedBy   String?
@@ -36,14 +38,14 @@ model User {
 }
 
 model Address {
-  id         String  @id @default(uuid())
+  id         String @id @default(uuid())
   provinceID Int
   districtID Int
   wardCode   String
   street     String
   userId     String
 
-  user       User @relation(fields: [userId], references: [id])
+  user       User   @relation(fields: [userId], references: [id])
 
   @@map("Addresses")
 }
