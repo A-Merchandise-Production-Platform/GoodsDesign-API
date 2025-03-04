@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,13 +7,43 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// prisma/schema.prisma
-model Article {
-  id          Int      @id @default(autoincrement())
-  title       String   @unique
-  description String?
-  body        String
-  published   Boolean  @default(false)
+enum Roles {
+  ADMIN
+  MANAGER
+  STAFF
+  FACTORYOWNER
+  CUSTOMER
+}
+
+model User {
+  id          String  @id @default(uuid())
+  gender      Boolean @default(false)
+  dateOfBirth DateTime?
+  imageUrl    String? @default("")
+  isActive    Boolean @default(false)
+  isDeleted   Boolean @default(false)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  updatedAt   DateTime?
+  updatedBy   String?
+  deletedBy   String?
+  deletedAt   DateTime?
+  role        Roles
+
+  addresses   Address[]
+
+  @@map("Users")
+}
+
+model Address {
+  id         String  @id @default(uuid())
+  provinceID Int
+  districtID Int
+  wardCode   String
+  street     String
+  userId     String
+
+  user       User @relation(fields: [userId], references: [id])
+
+  @@map("Addresses")
 }

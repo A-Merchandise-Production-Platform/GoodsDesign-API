@@ -1,47 +1,102 @@
-// prisma/seed.ts
+import { PrismaClient, Roles } from '@prisma/client';
 
-import { PrismaClient } from '@prisma/client';
-
-// initialize Prisma Client
 const prisma = new PrismaClient();
 
 async function main() {
-  // create two dummy articles
-  const post1 = await prisma.article.upsert({
-    where: { title: 'Prisma Adds Support for MongoDB' },
+  // Seed users with different roles
+  const admin = await prisma.user.upsert({
+    where: { id: 'admin-id' },
     update: {},
     create: {
-      title: 'Prisma Adds Support for MongoDB',
-      body: 'Support for MongoDB has been one of the most requested features since the initial release of...',
-      description:
-        "We are excited to share that today's Prisma ORM release adds stable support for MongoDB!",
-      published: false,
+      id: 'admin-id',
+      gender: true,
+      dateOfBirth: new Date('1990-01-01'),
+      imageUrl: 'https://example.com/admin.jpg',
+      isActive: true,
+      role: Roles.ADMIN,
+      addresses: {
+        create: [
+          {
+            provinceID: 1,
+            districtID: 1,
+            wardCode: '001',
+            street: '123 Admin Street',
+          },
+        ],
+      },
     },
   });
 
-  const post2 = await prisma.article.upsert({
-    where: { title: "What's new in Prisma? (Q1/22)" },
+  const manager = await prisma.user.upsert({
+    where: { id: 'manager-id' },
     update: {},
     create: {
-      title: "What's new in Prisma? (Q1/22)",
-      body: 'Our engineers have been working hard, issuing new releases with many improvements...',
-      description:
-        'Learn about everything in the Prisma ecosystem and community from January to March 2022.',
-      published: true,
+      id: 'manager-id',
+      gender: false,
+      dateOfBirth: new Date('1992-06-15'),
+      imageUrl: 'https://example.com/manager.jpg',
+      isActive: true,
+      role: Roles.MANAGER,
+      addresses: {
+        create: [
+          {
+            provinceID: 2,
+            districtID: 2,
+            wardCode: '002',
+            street: '456 Manager Road',
+          },
+        ],
+      },
     },
   });
 
-  console.log({ post1, post2 });
+  const staff = await prisma.user.upsert({
+    where: { id: 'staff-id' },
+    update: {},
+    create: {
+      id: 'staff-id',
+      gender: true,
+      dateOfBirth: new Date('1995-09-20'),
+      imageUrl: 'https://example.com/staff.jpg',
+      isActive: true,
+      role: Roles.STAFF,
+    },
+  });
+
+  const factoryOwner = await prisma.user.upsert({
+    where: { id: 'factory-owner-id' },
+    update: {},
+    create: {
+      id: 'factory-owner-id',
+      gender: false,
+      dateOfBirth: new Date('1985-12-10'),
+      imageUrl: 'https://example.com/factoryowner.jpg',
+      isActive: true,
+      role: Roles.FACTORYOWNER,
+    },
+  });
+
+  const customer = await prisma.user.upsert({
+    where: { id: 'customer-id' },
+    update: {},
+    create: {
+      id: 'customer-id',
+      gender: true,
+      dateOfBirth: new Date('2000-03-25'),
+      imageUrl: 'https://example.com/customer.jpg',
+      isActive: true,
+      role: Roles.CUSTOMER,
+    },
+  });
+
+  console.log({ admin, manager, staff, factoryOwner, customer });
 }
 
-// execute the main function
 main()
   .catch((e) => {
     console.error(e);
     process.exit(1);
   })
   .finally(async () => {
-    // close Prisma Client at the end
     await prisma.$disconnect();
   });
-
