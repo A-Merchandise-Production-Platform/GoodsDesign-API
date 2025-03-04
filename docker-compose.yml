@@ -1,0 +1,17 @@
+services:
+  goodsdesign-db:
+    container_name: goodsdesign-db
+    image: postgres:13.5
+    restart: always
+    environment:
+      - POSTGRES_DB=goodsdesign_db
+      - POSTGRES_USER=goodsdesign_user
+      - POSTGRES_PASSWORD=goodsdesign_password
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+volumes:
+  postgres:
+
