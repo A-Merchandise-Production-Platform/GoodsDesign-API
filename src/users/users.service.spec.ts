@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto, UpdateUserDto } from './dto';
+import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto';
 import { NotFoundException } from '@nestjs/common';
 import { Roles } from '@prisma/client';
 
@@ -9,14 +9,17 @@ describe('UsersService', () => {
   let service: UsersService;
   let prismaService: PrismaService;
 
+  const mockDate = new Date();
   const mockUser = {
     id: '1',
+    email: 'test@example.com',
+    password: 'hashedPassword123',
     gender: false,
     dateOfBirth: new Date('1990-01-01'),
     imageUrl: 'http://example.com/image.jpg',
     isActive: true,
     isDeleted: false,
-    createdAt: new Date(),
+    createdAt: mockDate,
     createdBy: 'admin',
     updatedAt: null,
     updatedBy: null,
@@ -24,6 +27,8 @@ describe('UsersService', () => {
     deletedBy: null,
     role: Roles.CUSTOMER,
   };
+
+  const mockUserResponse = new UserResponseDto(mockUser);
 
   const mockPrismaService = {
     user: {
@@ -56,6 +61,8 @@ describe('UsersService', () => {
 
   describe('create', () => {
     const createUserDto: CreateUserDto = {
+      email: 'test@example.com',
+      password: 'password123',
       gender: false,
       dateOfBirth: '1990-01-01',
       role: Roles.CUSTOMER,
@@ -65,31 +72,50 @@ describe('UsersService', () => {
     it('should create a new user', async () => {
       mockPrismaService.user.create.mockResolvedValue(mockUser);
       const result = await service.create(createUserDto);
-      expect(result).toEqual(mockUser);
-      expect(prismaService.user.create).toHaveBeenCalled();
+      expect(result).toEqual(mockUserResponse);
+      expect(prismaService.user.create).toHaveBeenCalledWith({
+        data: {
+          ...createUserDto,
+          dateOfBirth: new Date(createUserDto.dateOfBirth),
+        },
+      });
     });
   });
 
   describe('findAll', () => {
-    it('should return an array of users', async () => {
+    it('should return an array of active users', async () => {
       mockPrismaService.user.findMany.mockResolvedValue([mockUser]);
       const result = await service.findAll();
-      expect(result).toEqual([mockUser]);
-      expect(prismaService.user.findMany).toHaveBeenCalled();
+      expect(result).toEqual([mockUserResponse]);
+      expect(prismaService.user.findMany).toHaveBeenCalledWith({
+        where: { isDeleted: false }
+      });
     });
   });
 
   describe('findOne', () => {
-    it('should return a user', async () => {
+    it('should return an active user', async () => {
       mockPrismaService.user.findFirst.mockResolvedValue(mockUser);
       const result = await service.findOne('1');
-      expect(result).toEqual(mockUser);
-      expect(prismaService.user.findFirst).toHaveBeenCalled();
+      expect(result).toEqual(mockUserResponse);
+      expect(prismaService.user.findFirst).toHaveBeenCalledWith({
+        where: { id: '1', isDeleted: false }
+      });
     });
 
     it('should throw NotFoundException when user not found', async () => {
       mockPrismaService.user.findFirst.mockResolvedValue(null);
-      await expect(service.findOne('1')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('1')).rejects.toThrow(
+        new NotFoundException('User with ID 1 not found')
+      );
+    });
+
+    it('should throw NotFoundException when user is deleted', async () => {
+      const deletedUser = { ...mockUser, isDeleted: true };
+      mockPrismaService.user.findFirst.mockResolvedValue(deletedUser);
+      await expect(service.findOne('1')).rejects.toThrow(
+        new NotFoundException('User with ID 1 not found')
+      );
     });
   });
 
@@ -99,34 +125,87 @@ describe('UsersService', () => {
       updatedBy: 'admin',
     };
 
-    it('should update a user', async () => {
+    it('should update an active user', async () => {
+      const now = new Date();
+      jest.useFakeTimers().setSystemTime(now);
+      
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.user.update.mockResolvedValue({ ...mockUser, ...updateUserDto });
+      const updatedUser = {
+        ...mockUser,
+        gender: updateUserDto.gender,
+        updatedBy: updateUserDto.updatedBy,
+        updatedAt: now
+      };
+      mockPrismaService.user.update.mockResolvedValue(updatedUser);
       
       const result = await service.update('1', updateUserDto);
-      expect(result).toEqual({ ...mockUser, ...updateUserDto });
-      expect(prismaService.user.update).toHaveBeenCalled();
+      expect(result).toEqual(new UserResponseDto(updatedUser));
+      expect(prismaService.user.update).toHaveBeenCalledWith({
+        where: { id: '1' },
+        data: {
+          ...updateUserDto,
+          updatedAt: now
+        }
+      });
+
+      jest.useRealTimers();
     });
 
     it('should throw NotFoundException when user not found', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
-      await expect(service.update('1', updateUserDto)).rejects.toThrow(NotFoundException);
+      await expect(service.update('1', updateUserDto)).rejects.toThrow(
+        new NotFoundException('User with ID 1 not found')
+      );
+    });
+
+    it('should throw NotFoundException when user is deleted', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue({ ...mockUser, isDeleted: true });
+      await expect(service.update('1', updateUserDto)).rejects.toThrow(
+        new NotFoundException('User with ID 1 not found')
+      );
     });
   });
 
   describe('remove', () => {
     it('should soft delete a user', async () => {
+      const now = new Date();
+      jest.useFakeTimers().setSystemTime(now);
+      
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.user.update.mockResolvedValue({ ...mockUser, isDeleted: true });
+      const deletedUser = {
+        ...mockUser,
+        isDeleted: true,
+        deletedAt: now,
+        deletedBy: 'admin'
+      };
+      mockPrismaService.user.update.mockResolvedValue(deletedUser);
       
       const result = await service.remove('1', 'admin');
-      expect(result.isDeleted).toBeTruthy();
-      expect(prismaService.user.update).toHaveBeenCalled();
+      expect(result).toEqual(new UserResponseDto(deletedUser));
+      expect(prismaService.user.update).toHaveBeenCalledWith({
+        where: { id: '1' },
+        data: {
+          isDeleted: true,
+          deletedAt: now,
+          deletedBy: 'admin'
+        }
+      });
+
+      jest.useRealTimers();
     });
 
     it('should throw NotFoundException when user not found', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
-      await expect(service.remove('1', 'admin')).rejects.toThrow(NotFoundException);
+      await expect(service.remove('1', 'admin')).rejects.toThrow(
+        new NotFoundException('User with ID 1 not found')
+      );
+    });
+
+    it('should throw NotFoundException when user is already deleted', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue({ ...mockUser, isDeleted: true });
+      await expect(service.remove('1', 'admin')).rejects.toThrow(
+        new NotFoundException('User with ID 1 not found')
+      );
     });
   });
 });

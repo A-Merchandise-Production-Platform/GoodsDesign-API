@@ -30,10 +30,10 @@ export class UsersService {
 
   async findOne(id: string): Promise<UserResponseDto> {
     const user = await this.prisma.user.findFirst({
-      where: { id, isDeleted: false },
+      where: { id }
     });
 
-    if (!user) {
+    if (!user || user.isDeleted) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 

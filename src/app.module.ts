@@ -5,11 +5,16 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { EnvModule } from './dynamic-modules/env';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
     EnvModule.forRoot(),
-    PrismaModule, UsersModule, AuthModule],
+    PrismaModule,
+    UsersModule,
+    AuthModule,
+    CategoriesModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
