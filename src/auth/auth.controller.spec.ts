@@ -12,6 +12,8 @@ describe('AuthController', () => {
   const mockAuthService = {
     register: jest.fn(),
     login: jest.fn(),
+    refreshTokens: jest.fn(),
+    logout: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -78,6 +80,43 @@ describe('AuthController', () => {
 
       expect(result).toEqual(mockResponse);
       expect(authService.login).toHaveBeenCalledWith(loginDto);
+    });
+  });
+
+  describe('refreshToken', () => {
+    const refreshTokenDto = {
+      refreshToken: 'valid-refresh-token',
+    };
+
+    const mockResponse = {
+      id: '123',
+      email: 'test@example.com',
+      role: Roles.CUSTOMER,
+      accessToken: 'new-access-token',
+      refreshToken: 'new-refresh-token',
+    };
+
+    it('should refresh tokens', async () => {
+      mockAuthService.refreshTokens.mockResolvedValueOnce(mockResponse);
+
+      const result = await controller.refreshToken(refreshTokenDto);
+
+      expect(result).toEqual(mockResponse);
+      expect(authService.refreshTokens).toHaveBeenCalledWith(refreshTokenDto);
+    });
+  });
+
+  describe('logout', () => {
+    const userId = '123';
+    const mockResponse = { message: 'Logged out successfully' };
+
+    it('should logout user', async () => {
+      mockAuthService.logout.mockResolvedValueOnce(mockResponse);
+
+      const result = await controller.logout(userId);
+
+      expect(result).toEqual(mockResponse);
+      expect(authService.logout).toHaveBeenCalledWith(userId);
     });
   });
 });

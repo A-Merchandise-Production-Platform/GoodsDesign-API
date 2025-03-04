@@ -16,12 +16,15 @@ describe('AuthService', () => {
   const mockPrismaService = {
     user: {
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       create: jest.fn(),
+      update: jest.fn(),
     },
   };
 
   const mockJwtService = {
     signAsync: jest.fn(),
+    verifyAsync: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -153,6 +156,84 @@ describe('AuthService', () => {
       await expect(service.login(loginDto)).rejects.toThrow(
         UnauthorizedException,
       );
+    });
+  });
+
+  describe('refreshTokens', () => {
+    const refreshTokenDto = {
+      refreshToken: 'valid-refresh-token',
+    };
+    const userId = '123';
+
+    it('should refresh tokens successfully', async () => {
+      const newAccessToken = 'new-access-token';
+      const newRefreshToken = 'new-refresh-token';
+      
+      mockJwtService.verifyAsync.mockResolvedValueOnce({ userId });
+      mockPrismaService.user.findFirst.mockResolvedValueOnce({
+        id: userId,
+        email: 'test@example.com',
+        role: Roles.CUSTOMER,
+        refreshToken: refreshTokenDto.refreshToken,
+      });
+      mockJwtService.signAsync.mockResolvedValueOnce(newAccessToken);
+      mockJwtService.signAsync.mockResolvedValueOnce(newRefreshToken);
+      mockPrismaService.user.update.mockResolvedValueOnce({
+        id: userId,
+        email: 'test@example.com',
+        role: Roles.CUSTOMER,
+        refreshToken: newRefreshToken,
+      });
+
+      const result = await service.refreshTokens(refreshTokenDto);
+
+      expect(result).toEqual({
+        id: userId,
+        email: 'test@example.com',
+        role: Roles.CUSTOMER,
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      });
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: userId },
+        data: { refreshToken: newRefreshToken },
+      });
+    });
+
+    it('should throw UnauthorizedException if refresh token is invalid', async () => {
+      mockJwtService.verifyAsync.mockRejectedValueOnce(new Error());
+
+      await expect(service.refreshTokens(refreshTokenDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should throw UnauthorizedException if user not found', async () => {
+      mockJwtService.verifyAsync.mockResolvedValueOnce({ userId });
+      mockPrismaService.user.findFirst.mockResolvedValueOnce(null);
+
+      await expect(service.refreshTokens(refreshTokenDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+  });
+
+  describe('logout', () => {
+    const userId = '123';
+
+    it('should logout successfully', async () => {
+      mockPrismaService.user.update.mockResolvedValueOnce({
+        id: userId,
+        refreshToken: null,
+      });
+
+      const result = await service.logout(userId);
+
+      expect(result).toEqual({ message: 'Logged out successfully' });
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: userId },
+        data: { refreshToken: null },
+      });
     });
   });
 });

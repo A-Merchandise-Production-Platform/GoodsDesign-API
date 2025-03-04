@@ -16,9 +16,10 @@ enum Roles {
 }
 
 model User {
-  id          String    @id @default(uuid())
-  email       String?   @unique @default("")
-  password    String?   @default("")
+  id            String    @id @default(uuid())
+  email         String?   @unique @default("")
+  password      String?   @default("")
+  refreshToken  String?
   gender      Boolean   @default(false)
   dateOfBirth DateTime?
   imageUrl    String?   @default("")
