@@ -2,8 +2,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto } from './dto/auth.dto';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
+import { Roles } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -12,12 +13,12 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(createUserDto: CreateUserDto) {
-    const { password, ...rest } = createUserDto;
+  async register(registerDto: RegisterDto) {
+    const { password, ...rest } = registerDto;
 
     // Check if user exists
     const userExists = await this.prisma.user.findUnique({
-      where: { email: createUserDto.email },
+      where: { email: registerDto.email },
     });
 
     if (userExists) {
@@ -27,11 +28,12 @@ export class AuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user with default CUSTOMER role
     const user = await this.prisma.user.create({
       data: {
         ...rest,
         password: hashedPassword,
+        role: Roles.CUSTOMER, // Set default role
         isActive: true, // Activate user upon registration
       },
     });

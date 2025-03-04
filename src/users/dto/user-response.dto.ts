@@ -6,6 +6,9 @@ export class UserResponseDto {
   @ApiProperty({ description: 'User ID' })
   id: string;
 
+  @ApiProperty({ description: 'User email' })
+  email: string;
+
   @ApiProperty({ description: 'User gender' })
   gender: boolean;
 

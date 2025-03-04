@@ -8,7 +8,6 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
-  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto';
@@ -19,18 +18,18 @@ import {
   ApiParam,
   ApiBadRequestResponse,
   ApiNotFoundResponse,
-  ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Roles } from '@prisma/client';
 
 @ApiTags('users')
 @Controller('users')
-@ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new user' })
+  @Auth(Roles.ADMIN)
+  @ApiOperation({ summary: 'Create a new user (Admin only)' })
   @ApiResponse({
     status: 201,
     description: 'User has been successfully created.',
@@ -42,8 +41,8 @@ export class UsersController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get all active users' })
+  @Auth(Roles.ADMIN)
+  @ApiOperation({ summary: 'Get all active users (Admin only)' })
   @ApiResponse({
     status: 200,
     description: 'List of all active users.',
@@ -54,7 +53,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({
@@ -68,8 +67,8 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Update a user' })
+  @Auth(Roles.ADMIN)
+  @ApiOperation({ summary: 'Update a user (Admin only)' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({
     status: 200,
@@ -86,9 +85,9 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @Auth(Roles.ADMIN)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Soft delete a user' })
+  @ApiOperation({ summary: 'Soft delete a user (Admin only)' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({
     status: 200,
