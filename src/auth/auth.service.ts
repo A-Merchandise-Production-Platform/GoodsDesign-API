@@ -6,13 +6,15 @@ import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import * as bcrypt from 'bcrypt';
 import { Roles } from '@prisma/client';
-import { envConfig, TokenType } from 'src/dynamic-modules';
+import { envConfig, TokenType } from '../dynamic-modules';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly redisService: RedisService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -93,11 +95,9 @@ export class AuthService {
       }),
     ]);
 
-    // Store refresh token in database
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { refreshToken },
-    });
+    // Store refresh token in Redis
+    const expiresIn = parseInt(envConfig().jwt[TokenType.RefreshToken].expiresIn);
+    await this.redisService.setRefreshToken(userId, refreshToken, expiresIn);
 
     return {
       accessToken,
@@ -112,16 +112,19 @@ export class AuthService {
         secret: envConfig().jwt[TokenType.RefreshToken].secret,
       });
 
-      // Find user with this refresh token
-      const user = await this.prisma.user.findFirst({
-        where: {
-          id: payload.userId,
-          refreshToken: refreshTokenDto.refreshToken,
-        },
+      // Check if token exists in Redis
+      const storedToken = await this.redisService.getRefreshToken(payload.userId);
+      if (!storedToken || storedToken !== refreshTokenDto.refreshToken) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      // Find user
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.userId },
       });
 
       if (!user) {
-        throw new UnauthorizedException('Invalid refresh token');
+        throw new UnauthorizedException('User not found');
       }
 
       // Generate new tokens
@@ -139,11 +142,8 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    // Remove refresh token from database
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { refreshToken: null },
-    });
+    // Remove refresh token from Redis
+    await this.redisService.removeRefreshToken(userId);
     return { message: 'Logged out successfully' };
   }
 }

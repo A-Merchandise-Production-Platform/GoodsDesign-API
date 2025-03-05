@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Roles, User } from '@prisma/client';
+import { RedisService } from '../redis/redis.service';
 
 jest.mock('bcrypt');
 
@@ -12,6 +13,7 @@ describe('AuthService', () => {
   let service: AuthService;
   let prismaService: PrismaService;
   let jwtService: JwtService;
+  let redisService: RedisService;
 
   const mockPrismaService = {
     user: {
@@ -27,6 +29,12 @@ describe('AuthService', () => {
     verifyAsync: jest.fn(),
   };
 
+  const mockRedisService = {
+    setRefreshToken: jest.fn(),
+    getRefreshToken: jest.fn(),
+    removeRefreshToken: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -39,12 +47,17 @@ describe('AuthService', () => {
           provide: JwtService,
           useValue: mockJwtService,
         },
+        {
+          provide: RedisService,
+          useValue: mockRedisService,
+        },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
     prismaService = module.get<PrismaService>(PrismaService);
     jwtService = module.get<JwtService>(JwtService);
+    redisService = module.get<RedisService>(RedisService);
   });
 
   beforeEach(() => {
@@ -68,6 +81,9 @@ describe('AuthService', () => {
       const userId = '123';
       const token = 'jwt-token';
 
+      const newAccessToken = 'access-token';
+      const newRefreshToken = 'refresh-token';
+
       jest.spyOn(bcrypt, 'hash').mockImplementation(() => Promise.resolve(hashedPassword));
       mockPrismaService.user.findUnique.mockResolvedValueOnce(null);
       mockPrismaService.user.create.mockResolvedValueOnce({
@@ -76,7 +92,8 @@ describe('AuthService', () => {
         role: Roles.CUSTOMER,
         password: hashedPassword,
       } as User);
-      mockJwtService.signAsync.mockResolvedValueOnce(token);
+      mockJwtService.signAsync.mockResolvedValueOnce(newAccessToken);
+      mockJwtService.signAsync.mockResolvedValueOnce(newRefreshToken);
 
       const result = await service.register(registerDto);
 
@@ -84,8 +101,10 @@ describe('AuthService', () => {
         id: userId,
         email: registerDto.email,
         role: Roles.CUSTOMER,
-        accessToken: token,
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
       });
+      expect(redisService.setRefreshToken).toHaveBeenCalledWith(userId, newRefreshToken, expect.any(Number));
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { email: registerDto.email },
       });
@@ -170,20 +189,14 @@ describe('AuthService', () => {
       const newRefreshToken = 'new-refresh-token';
       
       mockJwtService.verifyAsync.mockResolvedValueOnce({ userId });
-      mockPrismaService.user.findFirst.mockResolvedValueOnce({
+      mockRedisService.getRefreshToken.mockResolvedValueOnce(refreshTokenDto.refreshToken);
+      mockPrismaService.user.findUnique.mockResolvedValueOnce({
         id: userId,
         email: 'test@example.com',
         role: Roles.CUSTOMER,
-        refreshToken: refreshTokenDto.refreshToken,
       });
       mockJwtService.signAsync.mockResolvedValueOnce(newAccessToken);
       mockJwtService.signAsync.mockResolvedValueOnce(newRefreshToken);
-      mockPrismaService.user.update.mockResolvedValueOnce({
-        id: userId,
-        email: 'test@example.com',
-        role: Roles.CUSTOMER,
-        refreshToken: newRefreshToken,
-      });
 
       const result = await service.refreshTokens(refreshTokenDto);
 
@@ -194,10 +207,7 @@ describe('AuthService', () => {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       });
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { id: userId },
-        data: { refreshToken: newRefreshToken },
-      });
+      expect(redisService.setRefreshToken).toHaveBeenCalledWith(userId, newRefreshToken, expect.any(Number));
     });
 
     it('should throw UnauthorizedException if refresh token is invalid', async () => {
@@ -222,18 +232,12 @@ describe('AuthService', () => {
     const userId = '123';
 
     it('should logout successfully', async () => {
-      mockPrismaService.user.update.mockResolvedValueOnce({
-        id: userId,
-        refreshToken: null,
-      });
+      mockRedisService.removeRefreshToken.mockResolvedValueOnce(undefined);
 
       const result = await service.logout(userId);
 
       expect(result).toEqual({ message: 'Logged out successfully' });
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { id: userId },
-        data: { refreshToken: null },
-      });
+      expect(mockRedisService.removeRefreshToken).toHaveBeenCalledWith(userId);
     });
   });
 });

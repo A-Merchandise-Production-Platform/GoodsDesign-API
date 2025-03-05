@@ -7,6 +7,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { RolesGuard } from './guards/roles.guard';
 import { PrismaModule } from '../prisma/prisma.module';
 import { envConfig, TokenType } from 'src/dynamic-modules';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { envConfig, TokenType } from 'src/dynamic-modules';
       secret: envConfig().jwt[TokenType.AccessToken].secret,
       signOptions: { expiresIn: '1d' },
     }),
+    RedisModule,
   ],
   controllers: [AuthController],
   providers: [

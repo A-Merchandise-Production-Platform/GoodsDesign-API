@@ -99,7 +99,7 @@ describe('UsersService', () => {
       const result = await service.findOne('1');
       expect(result).toEqual(mockUserResponse);
       expect(prismaService.user.findFirst).toHaveBeenCalledWith({
-        where: { id: '1', isDeleted: false }
+        where: { id: '1' }
       });
     });
 

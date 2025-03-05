@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { EnvModule } from './dynamic-modules';
 import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ProductsModule } from './products/products.module';
     AuthModule,
     CategoriesModule,
     ProductsModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
