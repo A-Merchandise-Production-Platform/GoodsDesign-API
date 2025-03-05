@@ -89,3 +89,58 @@ model Product {
 
   @@map("Products")
 }
+
+model SystemConfigBank {
+  id               Int      @id @default(autoincrement())
+  name             String
+  code             String   @unique
+  bin              String   @unique
+  shortName        String
+  logo             String
+  transferSupported Boolean  @default(false)
+  lookupSupported  Boolean  @default(false)
+  support          Int      @default(0)
+  isTransfer       Boolean  @default(false)
+  swiftCode        String?
+  isActive         Boolean  @default(true)
+  isDeleted        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  createdBy        String?
+  updatedAt        DateTime?
+  updatedBy        String?
+  deletedAt        DateTime?
+  deletedBy        String?
+
+  @@map("SystemConfigBanks")
+}
+
+model SystemConfigColor {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  code       String   @unique
+  isActive   Boolean  @default(true)
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  createdBy  String?
+  updatedAt  DateTime?
+  updatedBy  String?
+  deletedAt  DateTime?
+  deletedBy  String?
+
+  @@map("SystemConfigColors")
+}
+
+model SystemConfigSize {
+  id         Int      @id @default(autoincrement())
+  code       String   @unique
+  isActive   Boolean  @default(true)
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  createdBy  String?
+  updatedAt  DateTime?
+  updatedBy  String?
+  deletedAt  DateTime?
+  deletedBy  String?
+
+  @@map("SystemConfigSizes")
+}
