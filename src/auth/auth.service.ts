@@ -96,8 +96,7 @@ export class AuthService {
     ]);
 
     // Store refresh token in Redis
-    const expiresIn = parseInt(envConfig().jwt[TokenType.RefreshToken].expiresIn);
-    await this.redisService.setRefreshToken(userId, refreshToken, expiresIn);
+    await this.redisService.setRefreshToken(userId, refreshToken);
 
     return {
       accessToken,

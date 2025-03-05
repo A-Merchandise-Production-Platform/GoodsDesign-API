@@ -104,7 +104,7 @@ describe('AuthService', () => {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       });
-      expect(redisService.setRefreshToken).toHaveBeenCalledWith(userId, newRefreshToken, expect.any(Number));
+      expect(redisService.setRefreshToken).toHaveBeenCalledWith(userId, newRefreshToken);
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { email: registerDto.email },
       });
@@ -207,7 +207,7 @@ describe('AuthService', () => {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       });
-      expect(redisService.setRefreshToken).toHaveBeenCalledWith(userId, newRefreshToken, expect.any(Number));
+      expect(redisService.setRefreshToken).toHaveBeenCalledWith(userId, newRefreshToken);
     });
 
     it('should throw UnauthorizedException if refresh token is invalid', async () => {

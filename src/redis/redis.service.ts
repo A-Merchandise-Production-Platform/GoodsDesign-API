@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { createClient } from 'redis';
-import { promisify } from 'util';
+import { envConfig } from 'src/dynamic-modules';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
@@ -8,7 +8,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     this.client = createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6380',
+      url: envConfig().redis.url,
     });
 
     await this.client.connect();
@@ -18,9 +18,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     await this.client.quit();
   }
 
-  async setRefreshToken(userId: string, token: string, expiresIn: number) {
+  async setRefreshToken(userId: string, token: string) {
     await this.client.set(`refresh_token:${userId}`, token, {
-      EX: expiresIn,
+      EX: parseInt(envConfig().redis.ttl as string),
     });
   }
 

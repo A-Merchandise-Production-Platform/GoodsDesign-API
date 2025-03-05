@@ -12,6 +12,10 @@ export const envConfig = () => ({
             secret: process.env.JWT_REFRESH_TOKEN_SECRET || "refresh-token",
             expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN || "7d"
         }
+    },
+    redis: {
+        url: process.env.REDIS_URL || "redis://localhost:6380",
+        ttl: process.env.REDIS_TTL || "604800" //60 * 60 * 24 * 7
     }
 })
 

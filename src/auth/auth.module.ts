@@ -15,7 +15,7 @@ import { RedisModule } from '../redis/redis.module';
     PassportModule,
     JwtModule.register({
       secret: envConfig().jwt[TokenType.AccessToken].secret,
-      signOptions: { expiresIn: '1d' },
+      signOptions: { expiresIn: envConfig().jwt[TokenType.AccessToken].expiresIn },
     }),
     RedisModule,
   ],
