@@ -8,6 +8,7 @@ import { EnvModule } from './dynamic-modules';
 import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
 import { RedisModule } from './redis/redis.module';
+import { SystemConfigModule } from './system-config/system-config.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RedisModule } from './redis/redis.module';
     CategoriesModule,
     ProductsModule,
     RedisModule,
+    SystemConfigModule,
   ],
   controllers: [AppController],
   providers: [AppService],
