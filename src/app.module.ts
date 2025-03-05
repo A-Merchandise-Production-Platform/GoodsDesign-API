@@ -9,10 +9,19 @@ import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
 import { RedisModule } from './redis/redis.module';
 import { SystemConfigModule } from './system-config/system-config.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { join } from 'path';
 
 @Module({
   imports: [
     EnvModule.forRoot(),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      sortSchema: true,
+      playground: true,
+    }),
     PrismaModule,
     UsersModule,
     AuthModule,
