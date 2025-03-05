@@ -6,6 +6,7 @@ import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import * as bcrypt from 'bcrypt';
 import { Roles } from '@prisma/client';
+import { envConfig, TokenType } from 'src/dynamic-modules';
 
 @Injectable()
 export class AuthService {
@@ -83,12 +84,12 @@ export class AuthService {
     
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_SECRET || 'super-secret',
-        expiresIn: '15m', // shorter expiration for access token
+        secret: envConfig().jwt[TokenType.AccessToken].secret,
+        expiresIn: envConfig().jwt[TokenType.AccessToken].expiresIn,
       }),
       this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_REFRESH_SECRET || 'refresh-super-secret',
-        expiresIn: '7d', // longer expiration for refresh token
+        secret: envConfig().jwt[TokenType.RefreshToken].secret,
+        expiresIn: envConfig().jwt[TokenType.RefreshToken].expiresIn,
       }),
     ]);
 
@@ -108,7 +109,7 @@ export class AuthService {
     try {
       // Verify refresh token
       const payload = await this.jwtService.verifyAsync(refreshTokenDto.refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET || 'refresh-super-secret',
+        secret: envConfig().jwt[TokenType.RefreshToken].secret,
       });
 
       // Find user with this refresh token

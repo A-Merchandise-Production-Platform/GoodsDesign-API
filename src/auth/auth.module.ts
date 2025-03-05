@@ -6,14 +6,14 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RolesGuard } from './guards/roles.guard';
 import { PrismaModule } from '../prisma/prisma.module';
-import { envConfig } from 'src/dynamic-modules';
+import { envConfig, TokenType } from 'src/dynamic-modules';
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
     JwtModule.register({
-      secret: envConfig().jwt.secret || 'super-secret',
+      secret: envConfig().jwt[TokenType.AccessToken].secret,
       signOptions: { expiresIn: '1d' },
     }),
   ],
