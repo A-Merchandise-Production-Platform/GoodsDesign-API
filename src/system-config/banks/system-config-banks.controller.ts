@@ -28,7 +28,6 @@ import { GetUser } from '../../auth/decorators';
 
 @ApiTags('System Config Banks')
 @Controller('system-config/banks')
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class SystemConfigBanksController {
   constructor(private readonly banksService: SystemConfigBanksService) {}

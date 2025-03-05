@@ -28,7 +28,6 @@ import { GetUser } from '../../auth/decorators';
 
 @ApiTags('System Config Colors')
 @Controller('system-config/colors')
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class SystemConfigColorsController {
   constructor(private readonly colorsService: SystemConfigColorsService) {}

@@ -28,7 +28,6 @@ import { GetUser } from '../../auth/decorators';
 
 @ApiTags('System Config Sizes')
 @Controller('system-config/sizes')
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class SystemConfigSizesController {
   constructor(private readonly sizesService: SystemConfigSizesService) {}
