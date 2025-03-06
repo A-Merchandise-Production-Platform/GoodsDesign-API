@@ -5,6 +5,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { envConfig, TokenType } from 'src/dynamic-modules';
+import { UsersResolver } from './users.resolver';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { envConfig, TokenType } from 'src/dynamic-modules';
     }),
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, UsersResolver],
   exports: [UsersService],
 })
 export class UsersModule {}
