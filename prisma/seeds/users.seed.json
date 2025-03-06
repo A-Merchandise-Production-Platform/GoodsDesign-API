@@ -1,0 +1,32 @@
+[
+  {
+    "id": "admin-id",
+    "email": "admin@example.com",
+    "gender": true,
+    "dateOfBirth": "1990-01-01",
+    "imageUrl": "https://example.com/admin.jpg",
+    "isActive": true,
+    "role": "ADMIN",
+    "address": {
+      "provinceID": 1,
+      "districtID": 1,
+      "wardCode": "001",
+      "street": "123 Admin Street"
+    }
+  },
+  {
+    "id": "manager-id", 
+    "email": "manager@example.com",
+    "gender": false,
+    "dateOfBirth": "1992-06-15",
+    "imageUrl": "https://example.com/manager.jpg",
+    "isActive": true,
+    "role": "MANAGER",
+    "address": {
+      "provinceID": 2,
+      "districtID": 2,
+      "wardCode": "002", 
+      "street": "456 Manager Road"
+    }
+  }
+]
