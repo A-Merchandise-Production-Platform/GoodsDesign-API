@@ -2,23 +2,86 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Category {
+  createdAt: DateTime!
+  createdBy: String
+  deletedAt: DateTime
+  deletedBy: String
+  description: String
+  id: ID!
+  imageUrl: String
+  isActive: Boolean!
+  isDeleted: Boolean!
+  name: String!
+  updatedAt: DateTime
+  updatedBy: String
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
 
-type Query {
-  size(id: Float!): SizeType
-  sizes(includeDeleted: Boolean): [SizeType!]!
+type Product {
+  category: Category
+  categoryId: String!
+  createdAt: DateTime!
+  createdBy: String
+  deletedAt: DateTime
+  deletedBy: String
+  description: String
+  id: ID!
+  imageUrl: String
+  isActive: Boolean!
+  isDeleted: Boolean!
+  model3DUrl: String
+  name: String!
+  updatedAt: DateTime
+  updatedBy: String
 }
 
-type SizeType {
+type Query {
+  categories: [Category!]!
+  products: [Product!]!
+  systemConfigBanks: [SystemConfigBank!]!
+  users: [User!]!
+}
+
+type SystemConfigBank {
+  bin: String!
+  code: String!
   createdAt: DateTime!
-  createdById: String!
+  createdBy: String
   deletedAt: DateTime
-  deletedById: String
+  deletedBy: String
   id: ID!
+  isActive: Boolean!
+  isDeleted: Boolean!
+  isTransfer: Boolean!
+  logo: String!
+  lookupSupported: Boolean!
   name: String!
-  updatedAt: DateTime!
-  updatedById: String
+  shortName: String!
+  support: Int!
+  swiftCode: String
+  transferSupported: Boolean!
+  updatedAt: DateTime
+  updatedBy: String
+}
+
+type User {
+  createdAt: DateTime!
+  createdBy: String
+  dateOfBirth: DateTime
+  deletedAt: DateTime
+  deletedBy: String
+  email: String
+  gender: Boolean!
+  id: ID!
+  imageUrl: String
+  isActive: Boolean!
+  isDeleted: Boolean!
+  role: String!
+  updatedAt: DateTime
+  updatedBy: String
 }
