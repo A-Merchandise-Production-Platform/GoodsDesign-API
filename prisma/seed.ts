@@ -1,21 +1,25 @@
 import { PrismaClient } from '@prisma/client';
-import { seedBanks } from './seeds/banks.seed';
-import { seedColors } from './seeds/colors.seed';
-import { seedSizes } from './seeds/sizes.seed';
-import { seedUsers } from './seeds/users.seed';
+const { seedBanks } = require('./seeds/banks.seed');
+const { seedColors } = require('./seeds/colors.seed');
+const { seedSizes } = require('./seeds/sizes.seed');
+const { seedUsers } = require('./seeds/users.seed');
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Seed users
-  await seedUsers(prisma);
+  try {
+    // Seed users
+    await seedUsers(prisma);
+    // Seed system configurations
+    await seedBanks(prisma);
+    await seedColors(prisma);
+    await seedSizes(prisma);
 
-  // Seed system configurations
-  await seedBanks(prisma);
-  await seedColors(prisma);
-  await seedSizes(prisma);
-
-  console.log('Seeding completed successfully!');
+    console.log('Seeding completed successfully!');
+  } catch (error) {
+    console.error('Error during seeding:', error);
+    throw error;
+  }
 }
 
 main()
