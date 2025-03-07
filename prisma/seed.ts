@@ -1,15 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-const { seedBanks } = require('./seeds/banks.seed');
-const { seedColors } = require('./seeds/colors.seed');
-const { seedSizes } = require('./seeds/sizes.seed');
-const { seedUsers } = require('./seeds/users.seed');
+import { seedBanks, seedColors, seedSizes } from './seeds';
 
 const prisma = new PrismaClient();
 
 async function main() {
   try {
     // Seed users
-    await seedUsers(prisma);
+    // await seedUsers(prisma);
     // Seed system configurations
     await seedBanks(prisma);
     await seedColors(prisma);
