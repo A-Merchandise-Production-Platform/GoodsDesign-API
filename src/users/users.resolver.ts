@@ -28,4 +28,10 @@ export class UsersResolver {
             meta: result.meta
         }
     }
+
+    @Query(() => GraphQLUser, { name: "user" })
+    async getUser(@CurrentUser() currentUser: User, @Args("id") id: string): Promise<GraphQLUser> {
+        const user = await this.usersService.findOne(id, currentUser)
+        return new GraphQLUser(user)
+    }
 }

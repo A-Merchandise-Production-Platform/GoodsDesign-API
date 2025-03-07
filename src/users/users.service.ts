@@ -87,13 +87,19 @@ export class UsersService {
         }
     }
 
-    async findOne(id: string): Promise<UserResponseDto> {
+    async findOne(id: string, currentUser: User): Promise<UserResponseDto> {
         const user = await this.prisma.user.findFirst({
-            where: { id }
+            where: { id, isDeleted: false }
         })
 
-        if (!user || user.isDeleted) {
+        if (!user) {
             throw new NotFoundException(`User with ID ${id} not found`)
+        }
+
+        // Check if current user has permission to view this user
+        const allowedRoles = getRolesBelowOrEqual(currentUser.role)
+        if (!allowedRoles.includes(user.role)) {
+            throw new ForbiddenException("You are not authorized to access this resource")
         }
 
         return this.toUserResponse(user)

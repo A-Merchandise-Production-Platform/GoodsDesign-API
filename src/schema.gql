@@ -80,6 +80,7 @@ type Query {
   categories: [Category!]!
   products: [Product!]!
   systemConfigBanks: [SystemConfigBank!]!
+  user(id: String!): GraphQLUser!
   users(filter: UserFilter): PaginatedUsers!
 }
 
