@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const seedColors = async (prisma: PrismaClient, userId?: string) => {
+export const seedColors = async (prisma: PrismaClient) => {
   const colorsFilePath = path.join(__dirname, 'system-config-colors.seed.json');
   const defaultColors = JSON.parse(fs.readFileSync(colorsFilePath, 'utf-8'));
 
@@ -14,7 +14,7 @@ export const seedColors = async (prisma: PrismaClient, userId?: string) => {
       update: {},
       create: {
         ...color,
-        createdBy: userId || 'system',
+        createdBy: 'system',
       },
     });
   }

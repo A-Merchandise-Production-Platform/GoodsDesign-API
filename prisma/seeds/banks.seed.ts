@@ -17,7 +17,6 @@ export const seedBanks = async (prisma: PrismaClient) => {
         support: 0,
         isTransfer: bank.transferSupported,
         isActive: true,
-        createdAt: new Date(),
         createdBy: 'system',
       },
     });

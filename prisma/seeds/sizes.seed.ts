@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const seedSizes = async (prisma: PrismaClient, userId?: string) => {
+export const seedSizes = async (prisma: PrismaClient) => {
   const sizesFilePath = path.join(__dirname, 'system-config-sizes.seed.json');
   const defaultSizes = JSON.parse(fs.readFileSync(sizesFilePath, 'utf-8'));
 
@@ -14,7 +14,7 @@ export const seedSizes = async (prisma: PrismaClient, userId?: string) => {
       update: {},
       create: {
         ...size,
-        createdBy: userId || 'system',
+        createdBy: 'system',
       },
     });
   }

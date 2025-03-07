@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { SystemConfigBanksModule } from './banks/system-config-banks.module';
-import { SystemConfigColorsModule } from './colors/system-config-colors.module';
-import { SystemConfigSizesModule } from './sizes/system-config-sizes.module';
+import { SystemConfigBanksModule } from './banks';
+import { SystemConfigColorsModule } from './colors';
+import { SystemConfigSizesModule } from './sizes';
 
 @Module({
   imports: [

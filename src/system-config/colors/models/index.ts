@@ -1,0 +1,1 @@
+export * from "./system-config-color.model"

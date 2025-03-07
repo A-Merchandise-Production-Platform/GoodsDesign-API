@@ -8,12 +8,12 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Seed users
-  const users = await seedUsers(prisma);
+  await seedUsers(prisma);
 
   // Seed system configurations
   await seedBanks(prisma);
-  await seedColors(prisma, users.admin.id);
-  await seedSizes(prisma, users.admin.id);
+  await seedColors(prisma);
+  await seedSizes(prisma);
 
   console.log('Seeding completed successfully!');
 }
