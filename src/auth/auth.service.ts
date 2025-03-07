@@ -42,7 +42,8 @@ export class AuthService {
                 isActive: true, // Activate user upon registration
                 createdBy: rest.email,
                 updatedBy: rest.email,
-                dateOfBirth: new Date(new Date().setFullYear(new Date().getFullYear() - 18))
+                dateOfBirth: new Date(new Date().setFullYear(new Date().getFullYear() - 18)),
+                name: rest.name
             }
         })
 

@@ -6,6 +6,10 @@ export class RegisterDto {
     @IsEmail()
     email: string
 
+    @ApiProperty({ description: "User name", example: "John Doe" })
+    @IsString()
+    name: string
+
     @ApiProperty({ description: "User password", example: "strongPassword123" })
     @IsString()
     @MinLength(6)

@@ -22,11 +22,15 @@ export const seedUsers = async (prisma: PrismaClient) => {
             where: { email: userData.email },
             update: {
                 email: userData.email,
+                name: userData.name,
+                phoneNumber: userData.phoneNumber,
                 password: hashedPassword
             },
             create: {
                 id: uuidv4(),
                 email: userData.email,
+                name: userData.name,
+                phoneNumber: userData.phoneNumber,
                 password: hashedPassword,
                 gender: userData.gender,
                 dateOfBirth: new Date(userData.dateOfBirth),
