@@ -9,6 +9,10 @@ import { envConfig } from "./dynamic-modules"
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule)
+    app.enableCors({
+        origin: ["http://localhost:3000"],
+        credentials: true
+    })
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }))
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
 

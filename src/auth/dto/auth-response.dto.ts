@@ -13,4 +13,8 @@ export class AuthResponseDto {
         example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     })
     refreshToken: string
+
+    constructor(partial: Partial<AuthResponseDto>) {
+        Object.assign(this, partial)
+    }
 }
