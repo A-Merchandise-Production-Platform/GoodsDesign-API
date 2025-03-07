@@ -1,148 +1,138 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
-import { AuthDto } from './dto/auth.dto';
-import { RegisterDto } from './dto/register.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
-import * as bcrypt from 'bcrypt';
-import { Roles } from '@prisma/client';
-import { envConfig, TokenType } from '../dynamic-modules';
-import { RedisService } from '../redis/redis.service';
+import { Injectable, UnauthorizedException } from "@nestjs/common"
+import { JwtService } from "@nestjs/jwt"
+import { PrismaService } from "../prisma/prisma.service"
+import { AuthDto } from "./dto/auth.dto"
+import { RegisterDto } from "./dto/register.dto"
+import { RefreshTokenDto } from "./dto/refresh-token.dto"
+import * as bcrypt from "bcrypt"
+import { Roles, User } from "@prisma/client"
+import { envConfig, TokenType } from "../dynamic-modules"
+import { RedisService } from "../redis/redis.service"
+import { UserResponseDto } from "src/users"
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly jwtService: JwtService,
-    private readonly redisService: RedisService,
-  ) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly jwtService: JwtService,
+        private readonly redisService: RedisService
+    ) {}
 
-  async register(registerDto: RegisterDto) {
-    const { password, ...rest } = registerDto;
+    async register(registerDto: RegisterDto) {
+        const { password, ...rest } = registerDto
 
-    // Check if user exists
-    const userExists = await this.prisma.user.findUnique({
-      where: { email: registerDto.email },
-    });
+        // Check if user exists
+        const userExists = await this.prisma.user.findUnique({
+            where: { email: registerDto.email }
+        })
 
-    if (userExists) {
-      throw new UnauthorizedException('User with this email already exists');
+        if (userExists) {
+            throw new UnauthorizedException("User with this email already exists")
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10)
+
+        // Create user with default CUSTOMER role
+        const user = await this.prisma.user.create({
+            data: {
+                ...rest,
+                password: hashedPassword,
+                role: Roles.CUSTOMER, // Set default role
+                isActive: true, // Activate user upon registration
+                createdBy: rest.email,
+                updatedBy: rest.email,
+                dateOfBirth: new Date(new Date().setFullYear(new Date().getFullYear() - 18))
+            }
+        })
+
+        // Generate tokens
+        const tokens = await this.signTokens(user.id)
+
+        return {
+            user: new UserResponseDto(user),
+            ...tokens
+        }
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    async login(authDto: AuthDto) {
+        // Find user
+        console.log(authDto)
 
-    // Create user with default CUSTOMER role
-    const user = await this.prisma.user.create({
-      data: {
-        ...rest,
-        password: hashedPassword,
-        role: Roles.CUSTOMER, // Set default role
-        isActive: true, // Activate user upon registration
-      },
-    });
+        const user = await this.prisma.user.findUnique({
+            where: { email: authDto.email }
+        })
 
-    // Generate tokens
-    const tokens = await this.signTokens(user.id);
+        if (!user) {
+            throw new UnauthorizedException("Invalid credentials")
+        }
 
-    return {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      ...tokens,
-    };
-  }
+        // Check password
+        const passwordValid = await bcrypt.compare(authDto.password, user.password)
 
-  async login(authDto: AuthDto) {
-    // Find user
-    const user = await this.prisma.user.findUnique({
-      where: { email: authDto.email },
-    });
+        if (!passwordValid) {
+            throw new UnauthorizedException("Invalid credentials")
+        }
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+        // Generate tokens
+        const tokens = await this.signTokens(user.id)
+
+        console.log(tokens)
+
+        return {
+            user: new UserResponseDto(user),
+            ...tokens
+        }
     }
 
-    // Check password
-    const passwordValid = await bcrypt.compare(authDto.password, user.password);
+    private async signTokens(userId: string) {
+        const payload = { userId }
 
-    if (!passwordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+        const [accessToken, refreshToken] = await Promise.all([
+            this.jwtService.signAsync(payload, {
+                secret: envConfig().jwt[TokenType.AccessToken].secret,
+                expiresIn: envConfig().jwt[TokenType.AccessToken].expiresIn
+            }),
+            this.jwtService.signAsync(payload, {
+                secret: envConfig().jwt[TokenType.RefreshToken].secret,
+                expiresIn: envConfig().jwt[TokenType.RefreshToken].expiresIn
+            })
+        ])
+
+        // Store refresh token in Redis
+        await this.redisService.setRefreshToken(userId, refreshToken)
+
+        return {
+            accessToken,
+            refreshToken
+        }
     }
 
-    // Generate tokens
-    const tokens = await this.signTokens(user.id);
+    async refreshTokens(refreshTokenDto: RefreshTokenDto, user: User) {
+        const storedToken = await this.redisService.getRefreshToken(user.id)
 
-    return {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      ...tokens,
-    };
-  }
+        const validRefreshToken = this.jwtService.verify(refreshTokenDto.refreshToken, {
+            secret: envConfig().jwt[TokenType.RefreshToken].secret
+        })
 
-  private async signTokens(userId: string) {
-    const payload = { userId };
-    
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, {
-        secret: envConfig().jwt[TokenType.AccessToken].secret,
-        expiresIn: envConfig().jwt[TokenType.AccessToken].expiresIn,
-      }),
-      this.jwtService.signAsync(payload, {
-        secret: envConfig().jwt[TokenType.RefreshToken].secret,
-        expiresIn: envConfig().jwt[TokenType.RefreshToken].expiresIn,
-      }),
-    ]);
+        if (!validRefreshToken) {
+            throw new UnauthorizedException("Invalid refresh token")
+        }
 
-    // Store refresh token in Redis
-    await this.redisService.setRefreshToken(userId, refreshToken);
+        if (!storedToken || storedToken !== refreshTokenDto.refreshToken) {
+            throw new UnauthorizedException("Invalid refresh token")
+        }
 
-    return {
-      accessToken,
-      refreshToken,
-    };
-  }
+        const tokens = await this.signTokens(user.id)
 
-  async refreshTokens(refreshTokenDto: RefreshTokenDto) {
-    try {
-      // Verify refresh token
-      const payload = await this.jwtService.verifyAsync(refreshTokenDto.refreshToken, {
-        secret: envConfig().jwt[TokenType.RefreshToken].secret,
-      });
-
-      // Check if token exists in Redis
-      const storedToken = await this.redisService.getRefreshToken(payload.userId);
-      if (!storedToken || storedToken !== refreshTokenDto.refreshToken) {
-        throw new UnauthorizedException('Invalid refresh token');
-      }
-
-      // Find user
-      const user = await this.prisma.user.findUnique({
-        where: { id: payload.userId },
-      });
-
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-
-      // Generate new tokens
-      const tokens = await this.signTokens(user.id);
-
-      return {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        ...tokens,
-      };
-    } catch {
-      throw new UnauthorizedException('Invalid refresh token');
+        return {
+            user: new UserResponseDto(user),
+            ...tokens
+        }
     }
-  }
 
-  async logout(userId: string) {
-    // Remove refresh token from Redis
-    await this.redisService.removeRefreshToken(userId);
-    return { message: 'Logged out successfully' };
-  }
+    async logout(userId: string) {
+        await this.redisService.removeRefreshToken(userId)
+        return { message: "Logged out successfully" }
+    }
 }

@@ -1,51 +1,57 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Roles } from '@prisma/client';
-import { Exclude } from 'class-transformer';
+import { ApiHideProperty, ApiProperty } from "@nestjs/swagger"
+import { Roles } from "@prisma/client"
+import { Exclude } from "class-transformer"
 
 export class UserResponseDto {
-  @ApiProperty({ description: 'User ID' })
-  id: string;
+    @ApiProperty({ description: "User ID" })
+    id: string
 
-  @ApiProperty({ description: 'User email' })
-  email: string;
+    @ApiProperty({ description: "User email" })
+    email: string
 
-  @ApiProperty({ description: 'User gender' })
-  gender: boolean;
+    @Exclude()
+    @ApiHideProperty()
+    password: string
 
-  @ApiProperty({ description: 'User date of birth' })
-  dateOfBirth?: Date;
+    @ApiProperty({ description: "User gender" })
+    gender: boolean
 
-  @ApiProperty({ description: 'User image URL' })
-  imageUrl?: string;
+    @ApiProperty({ description: "User date of birth" })
+    dateOfBirth?: Date
 
-  @ApiProperty({ description: 'User active status' })
-  isActive: boolean;
+    @ApiProperty({ description: "User image URL" })
+    imageUrl?: string
 
-  @ApiProperty({ description: 'User deletion status' })
-  isDeleted: boolean;
+    @ApiProperty({ description: "User active status" })
+    isActive: boolean
 
-  @ApiProperty({ description: 'User role' })
-  role: Roles;
+    @ApiProperty({ description: "User deletion status" })
+    isDeleted: boolean
 
-  @ApiProperty({ description: 'Creation timestamp' })
-  createdAt: Date;
+    @ApiProperty({ description: "User role", default: Roles.CUSTOMER })
+    role: Roles
 
-  @ApiProperty({ description: 'Created by user ID' })
-  createdBy?: string;
+    @ApiProperty({ description: "Creation timestamp" })
+    createdAt: Date
 
-  @ApiProperty({ description: 'Last update timestamp' })
-  updatedAt?: Date;
+    @ApiProperty({ description: "Created by user ID" })
+    createdBy?: string
 
-  @ApiProperty({ description: 'Updated by user ID' })
-  updatedBy?: string;
+    @ApiProperty({ description: "Last update timestamp" })
+    updatedAt?: Date
 
-  @Exclude()
-  deletedAt?: Date;
+    @ApiProperty({ description: "Updated by user ID" })
+    updatedBy?: string
 
-  @Exclude()
-  deletedBy?: string;
+    @Exclude()
+    @ApiHideProperty()
+    deletedAt?: Date
 
-  constructor(partial: Partial<UserResponseDto>) {
-    Object.assign(this, partial);
-  }
+    @Exclude()
+    @ApiHideProperty()
+    deletedBy?: string
+
+    constructor(partial: Partial<UserResponseDto>) {
+        Object.assign(this, partial)
+    }
 }
