@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { Roles } from "@prisma/client"
-import { User } from "src/generated/nestjs-dto"
+import { UserResponseDto } from "src/users"
 
 export class AuthResponseDto {
     @ApiProperty({
@@ -16,9 +15,9 @@ export class AuthResponseDto {
     refreshToken: string
 
     @ApiProperty({
-        type: User
+        type: UserResponseDto
     })
-    user: User
+    user: UserResponseDto
 
     constructor(partial: Partial<AuthResponseDto>) {
         Object.assign(this, partial)

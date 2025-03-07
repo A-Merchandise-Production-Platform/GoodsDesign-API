@@ -5,10 +5,10 @@ import { AuthDto } from "./dto/auth.dto"
 import { RegisterDto } from "./dto/register.dto"
 import { RefreshTokenDto } from "./dto/refresh-token.dto"
 import * as bcrypt from "bcrypt"
-import { Roles } from "@prisma/client"
+import { Roles, User } from "@prisma/client"
 import { envConfig, TokenType } from "../dynamic-modules"
 import { RedisService } from "../redis/redis.service"
-import { User } from "src/generated/nestjs-dto"
+import { UserResponseDto } from "src/users"
 
 @Injectable()
 export class AuthService {
@@ -39,7 +39,10 @@ export class AuthService {
                 ...rest,
                 password: hashedPassword,
                 role: Roles.CUSTOMER, // Set default role
-                isActive: true // Activate user upon registration
+                isActive: true, // Activate user upon registration
+                createdBy: rest.email,
+                updatedBy: rest.email,
+                dateOfBirth: new Date(new Date().setFullYear(new Date().getFullYear() - 18))
             }
         })
 
@@ -47,7 +50,7 @@ export class AuthService {
         const tokens = await this.signTokens(user.id)
 
         return {
-            user: new User(user),
+            user: new UserResponseDto(user),
             ...tokens
         }
     }
@@ -77,7 +80,7 @@ export class AuthService {
         console.log(tokens)
 
         return {
-            user: new User(user),
+            user: new UserResponseDto(user),
             ...tokens
         }
     }
@@ -123,7 +126,7 @@ export class AuthService {
         const tokens = await this.signTokens(user.id)
 
         return {
-            user: new User(user),
+            user: new UserResponseDto(user),
             ...tokens
         }
     }

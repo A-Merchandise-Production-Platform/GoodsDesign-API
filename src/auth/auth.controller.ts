@@ -1,14 +1,14 @@
-import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common"
+import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger"
 import { AuthService } from "./auth.service"
 import { AuthDto } from "./dto/auth.dto"
 import { RegisterDto } from "./dto/register.dto"
 import { RefreshTokenDto } from "./dto/refresh-token.dto"
 import { AuthResponseDto } from "./dto/auth-response.dto"
-import { JwtAuthGuard } from "./guards/jwt-auth.guard"
 import { Auth } from "./decorators/auth.decorator"
 import { GetUser } from "./decorators"
 import { User } from "@prisma/client"
+import { UserResponseDto } from "src/users"
 
 @Controller("auth")
 @ApiTags("Authentication")
@@ -37,7 +37,7 @@ export class AuthController {
     @Post("login")
     @ApiOperation({ summary: "User login" })
     @ApiResponse({
-        status: 200,
+        status: 201,
         description: "User successfully logged in",
         type: AuthResponseDto
     })
@@ -95,5 +95,21 @@ export class AuthController {
     })
     async logout(@GetUser("userId") userId: string) {
         return this.authService.logout(userId)
+    }
+
+    @Get("me")
+    @Auth()
+    @ApiOperation({ summary: "Get user details" })
+    @ApiResponse({
+        status: 200,
+        description: "User details retrieved successfully",
+        type: UserResponseDto
+    })
+    @ApiResponse({
+        status: 401,
+        description: "Unauthorized"
+    })
+    getMe(@GetUser() user: User) {
+        return user
     }
 }

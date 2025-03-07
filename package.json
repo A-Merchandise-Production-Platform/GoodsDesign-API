@@ -55,7 +55,6 @@
         "uuid": "^11.1.0"
     },
     "devDependencies": {
-        "@brakebein/prisma-generator-nestjs-dto": "^1.24.1",
         "@nestjs/cli": "^10.0.0",
         "@nestjs/schematics": "^10.0.0",
         "@nestjs/testing": "^10.0.0",
