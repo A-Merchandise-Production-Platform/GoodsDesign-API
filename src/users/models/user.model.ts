@@ -1,47 +1,144 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Roles } from '@prisma/client';
+import { Field, ID, ObjectType, InputType, registerEnumType, Int } from "@nestjs/graphql"
+import { Roles } from "@prisma/client"
+import { IsOptional } from "class-validator"
+
+export enum SortOrder {
+    ASC = "asc",
+    DESC = "desc"
+}
+
+registerEnumType(SortOrder, {
+    name: "SortOrder",
+    description: "Sort order"
+})
+
+registerEnumType(Roles, {
+    name: "Roles",
+    description: "User roles"
+})
+
+@InputType()
+export class PaginationInput {
+    @Field(() => Int, { defaultValue: 1 })
+    page: number
+
+    @Field(() => Int, { defaultValue: 10 })
+    limit: number
+}
 
 @ObjectType()
-export class User {
-  @Field(() => ID)
-  id: string;
+export class PaginationMeta {
+    @Field(() => Int)
+    total: number
 
-  @Field(() => String, { nullable: true })
-  email?: string;
+    @Field(() => Int)
+    page: number
 
-  @Field(() => Boolean)
-  gender: boolean;
+    @Field(() => Int)
+    limit: number
 
-  @Field(() => Date, { nullable: true })
-  dateOfBirth?: Date;
+    @Field(() => Int)
+    totalPages: number
+}
 
-  @Field(() => String, { nullable: true })
-  imageUrl?: string;
+@ObjectType()
+export class PaginatedUsers {
+    @Field(() => [GraphQLUser])
+    items: GraphQLUser[]
 
-  @Field(() => Boolean)
-  isActive: boolean;
+    @Field(() => PaginationMeta)
+    meta: PaginationMeta
+}
 
-  @Field(() => Boolean)
-  isDeleted: boolean;
+@InputType()
+export class UserSort {
+    @Field(() => SortOrder, { nullable: true })
+    name?: SortOrder
 
-  @Field(() => Date)
-  createdAt: Date;
+    @Field(() => SortOrder, { nullable: true })
+    email?: SortOrder
 
-  @Field(() => String, { nullable: true })
-  createdBy?: string;
+    @Field(() => SortOrder, { nullable: true })
+    createdAt?: SortOrder
 
-  @Field(() => Date, { nullable: true })
-  updatedAt?: Date;
+    @Field(() => SortOrder, { nullable: true })
+    updatedAt?: SortOrder
+}
 
-  @Field(() => String, { nullable: true })
-  updatedBy?: string;
+@InputType()
+export class UserFilter {
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    email?: string
 
-  @Field(() => String, { nullable: true })
-  deletedBy?: string;
+    @Field(() => Roles, { nullable: true })
+    @IsOptional()
+    role?: Roles
 
-  @Field(() => Date, { nullable: true })
-  deletedAt?: Date;
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    isActive?: boolean
 
-  @Field(() => String)
-  role: Roles;
+    @Field(() => UserSort, { nullable: true })
+    @IsOptional()
+    sort?: UserSort
+
+    @Field(() => PaginationInput, { nullable: true })
+    @IsOptional()
+    pagination?: PaginationInput
+}
+
+@ObjectType()
+export class GraphQLUser {
+    @Field(() => ID)
+    id: string
+
+    @Field(() => String, { nullable: true })
+    email?: string
+
+    @Field(() => String, { nullable: true })
+    name?: string
+
+    @Field(() => String, { nullable: true })
+    phoneNumber?: string
+
+    @Field(() => Boolean)
+    gender: boolean
+
+    @Field(() => Date, { nullable: true })
+    dateOfBirth?: Date
+
+    @Field(() => String, { nullable: true })
+    imageUrl?: string
+
+    @Field(() => Boolean)
+    isActive: boolean
+
+    @Field(() => Boolean)
+    isDeleted: boolean
+
+    @Field(() => Date)
+    createdAt: Date
+
+    @Field(() => String, { nullable: true })
+    createdBy?: string
+
+    @Field(() => Date, { nullable: true })
+    updatedAt?: Date
+
+    @Field(() => String, { nullable: true })
+    updatedBy?: string
+
+    @Field(() => String, { nullable: true })
+    deletedBy?: string
+
+    @Field(() => Date, { nullable: true })
+    deletedAt?: Date
+
+    @Field(() => String)
+    role: Roles
+
+    constructor(partial: Partial<GraphQLUser>) {
+        Object.assign(this, partial)
+    }
 }
