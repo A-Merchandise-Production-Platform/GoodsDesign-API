@@ -9,7 +9,7 @@ const hashPassword = async (password: string) => {
 };
 
 export const seedUsers = async (prisma: PrismaClient) => {
-  const usersFilePath = path.join(__dirname, 'users.seed.json');
+  const usersFilePath = path.join(__dirname, 'users-data.seed.json');
   const usersData = JSON.parse(fs.readFileSync(usersFilePath, 'utf-8'));
 
   const hashedPassword = await hashPassword('123456');

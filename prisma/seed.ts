@@ -1,12 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-import { seedBanks, seedColors, seedSizes } from './seeds';
+import { seedBanks, seedColors, seedSizes, seedUsers } from './seeds';
 
 const prisma = new PrismaClient();
 
 async function main() {
   try {
     // Seed users
-    // await seedUsers(prisma);
+    await seedUsers(prisma);
     // Seed system configurations
     await seedBanks(prisma);
     await seedColors(prisma);
