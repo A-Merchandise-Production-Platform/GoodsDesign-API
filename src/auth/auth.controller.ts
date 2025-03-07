@@ -110,6 +110,6 @@ export class AuthController {
         description: "Unauthorized"
     })
     getMe(@GetUser() user: User) {
-        return user
+        return new UserResponseDto(user)
     }
 }

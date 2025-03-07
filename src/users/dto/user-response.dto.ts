@@ -9,6 +9,12 @@ export class UserResponseDto {
     @ApiProperty({ description: "User email" })
     email: string
 
+    @ApiProperty({ description: "User name" })
+    name: string
+
+    @ApiProperty({ description: "User phone number" })
+    phoneNumber: string
+
     @Exclude()
     @ApiHideProperty()
     password: string
