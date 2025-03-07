@@ -8,6 +8,7 @@ import * as bcrypt from "bcrypt"
 import { Roles } from "@prisma/client"
 import { envConfig, TokenType } from "../dynamic-modules"
 import { RedisService } from "../redis/redis.service"
+import { User } from "src/generated/nestjs-dto"
 
 @Injectable()
 export class AuthService {
@@ -46,9 +47,7 @@ export class AuthService {
         const tokens = await this.signTokens(user.id)
 
         return {
-            id: user.id,
-            email: user.email,
-            role: user.role,
+            user: new User(user),
             ...tokens
         }
     }
@@ -78,7 +77,7 @@ export class AuthService {
         console.log(tokens)
 
         return {
-            user,
+            user: new User(user),
             ...tokens
         }
     }
@@ -106,44 +105,30 @@ export class AuthService {
         }
     }
 
-    async refreshTokens(refreshTokenDto: RefreshTokenDto) {
-        try {
-            // Verify refresh token
-            const payload = await this.jwtService.verifyAsync(refreshTokenDto.refreshToken, {
-                secret: envConfig().jwt[TokenType.RefreshToken].secret
-            })
+    async refreshTokens(refreshTokenDto: RefreshTokenDto, user: User) {
+        const storedToken = await this.redisService.getRefreshToken(user.id)
 
-            // Check if token exists in Redis
-            const storedToken = await this.redisService.getRefreshToken(payload.userId)
-            if (!storedToken || storedToken !== refreshTokenDto.refreshToken) {
-                throw new UnauthorizedException("Invalid refresh token")
-            }
+        const validRefreshToken = this.jwtService.verify(refreshTokenDto.refreshToken, {
+            secret: envConfig().jwt[TokenType.RefreshToken].secret
+        })
 
-            // Find user
-            const user = await this.prisma.user.findUnique({
-                where: { id: payload.userId }
-            })
-
-            if (!user) {
-                throw new UnauthorizedException("User not found")
-            }
-
-            // Generate new tokens
-            const tokens = await this.signTokens(user.id)
-
-            return {
-                id: user.id,
-                email: user.email,
-                role: user.role,
-                ...tokens
-            }
-        } catch {
+        if (!validRefreshToken) {
             throw new UnauthorizedException("Invalid refresh token")
+        }
+
+        if (!storedToken || storedToken !== refreshTokenDto.refreshToken) {
+            throw new UnauthorizedException("Invalid refresh token")
+        }
+
+        const tokens = await this.signTokens(user.id)
+
+        return {
+            user: new User(user),
+            ...tokens
         }
     }
 
     async logout(userId: string) {
-        // Remove refresh token from Redis
         await this.redisService.removeRefreshToken(userId)
         return { message: "Logged out successfully" }
     }

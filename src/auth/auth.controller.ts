@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from "@nestjs/common"
+import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger"
 import { AuthService } from "./auth.service"
 import { AuthDto } from "./dto/auth.dto"
@@ -8,6 +8,7 @@ import { AuthResponseDto } from "./dto/auth-response.dto"
 import { JwtAuthGuard } from "./guards/jwt-auth.guard"
 import { Auth } from "./decorators/auth.decorator"
 import { GetUser } from "./decorators"
+import { User } from "@prisma/client"
 
 @Controller("auth")
 @ApiTags("Authentication")
@@ -29,8 +30,8 @@ export class AuthController {
         status: 401,
         description: "User with this email already exists"
     })
-    register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
-        return this.authService.register(registerDto)
+    async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
+        return new AuthResponseDto(await this.authService.register(registerDto))
     }
 
     @Post("login")
@@ -50,6 +51,9 @@ export class AuthController {
     }
 
     @Post("refresh")
+    // @ApiBearerAuth()
+    // @UseGuards(JwtAuthGuard)
+    @Auth()
     @ApiOperation({ summary: "Refresh access token" })
     @ApiResponse({
         status: 200,
@@ -60,8 +64,13 @@ export class AuthController {
         status: 401,
         description: "Invalid refresh token"
     })
-    refreshToken(@Body() refreshTokenDto: RefreshTokenDto): Promise<AuthResponseDto> {
-        return this.authService.refreshTokens(refreshTokenDto)
+    refreshToken(
+        @Body() refreshTokenDto: RefreshTokenDto,
+        @Req()
+        req: Request & { user: User }
+    ): Promise<AuthResponseDto> {
+        console.log(req.user)
+        return this.authService.refreshTokens(refreshTokenDto, req.user)
     }
 
     @Post("logout")

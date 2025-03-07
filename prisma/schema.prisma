@@ -7,6 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+generator nestjsDto {
+  provider                        = "prisma-generator-nestjs-dto"
+  output                          = "../src/generated/nestjs-dto"
+  outputToNestJsResourceStructure = "true"
+  flatResourceStructure           = "false"
+  exportRelationModifierClasses   = "true"
+  reExport                        = "true"
+  generateFileTypes               = "all"
+  createDtoPrefix                 = "Create"
+  updateDtoPrefix                 = "Update"
+  dtoSuffix                       = "Dto"
+  entityPrefix                    = ""
+  entitySuffix                    = ""
+  classValidation                 = "true"
+  fileNamingStyle                 = "kebab"
+  noDependencies                  = "false"
+  outputType                      = "class"
+  definiteAssignmentAssertion     = "false"
+  requiredResponseApiProperty     = "true"
+  prettier                        = "true"
+  wrapRelationsAsType             = "false"
+  showDefaultValues               = "false"
+}
+
 
 enum Roles {
   ADMIN
@@ -18,8 +42,8 @@ enum Roles {
 
 model User {
   id            String    @id @default(uuid())
-  email         String?   @unique @default("")
-  password      String?   @default("")
+  email         String  @unique 
+  password      String   @default("")
   gender      Boolean   @default(false)
   dateOfBirth DateTime?
   imageUrl    String?   @default("")
