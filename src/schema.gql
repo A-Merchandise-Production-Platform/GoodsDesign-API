@@ -22,6 +22,47 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type GraphQLUser {
+  createdAt: DateTime!
+  createdBy: String
+  dateOfBirth: DateTime
+  deletedAt: DateTime
+  deletedBy: String
+  email: String
+  gender: Boolean!
+  id: ID!
+  imageUrl: String
+  isActive: Boolean!
+  isDeleted: Boolean!
+  name: String
+  phoneNumber: String
+  role: Roles!
+  updatedAt: DateTime
+  updatedBy: String
+}
+
+type MonthlyUserGrowth {
+  month: String!
+  users: Int!
+}
+
+type PaginatedUsers {
+  items: [GraphQLUser!]!
+  meta: PaginationMeta!
+}
+
+input PaginationInput {
+  limit: Int! = 10
+  page: Int! = 1
+}
+
+type PaginationMeta {
+  limit: Int!
+  page: Int!
+  total: Int!
+  totalPages: Int!
+}
+
 type Product {
   category: Category
   categoryId: String!
@@ -44,7 +85,29 @@ type Query {
   categories: [Category!]!
   products: [Product!]!
   systemConfigBanks: [SystemConfigBank!]!
-  users: [User!]!
+  user(id: String!): GraphQLUser!
+  userAnalytics: UserAnalytics!
+  users(filter: UserFilter): PaginatedUsers!
+}
+
+type RoleDistribution {
+  count: Int!
+  role: String!
+}
+
+"""User roles"""
+enum Roles {
+  ADMIN
+  CUSTOMER
+  FACTORYOWNER
+  MANAGER
+  STAFF
+}
+
+"""Sort order"""
+enum SortOrder {
+  ASC
+  DESC
 }
 
 type SystemConfigBank {
@@ -69,19 +132,29 @@ type SystemConfigBank {
   updatedBy: String
 }
 
-type User {
-  createdAt: DateTime!
-  createdBy: String
-  dateOfBirth: DateTime
-  deletedAt: DateTime
-  deletedBy: String
+type UserAnalytics {
+  monthlyGrowth: [MonthlyUserGrowth!]!
+  roleDistribution: [RoleDistribution!]!
+  stats: UserStats!
+}
+
+input UserFilter {
   email: String
-  gender: Boolean!
-  id: ID!
-  imageUrl: String
-  isActive: Boolean!
-  isDeleted: Boolean!
-  role: String!
-  updatedAt: DateTime
-  updatedBy: String
+  isActive: Boolean
+  pagination: PaginationInput
+  role: Roles
+  sort: UserSort
+}
+
+input UserSort {
+  createdAt: SortOrder
+  email: SortOrder
+  name: SortOrder
+  updatedAt: SortOrder
+}
+
+type UserStats {
+  activeUsers: Int!
+  newUsersLast30Days: Int!
+  totalUsers: Int!
 }

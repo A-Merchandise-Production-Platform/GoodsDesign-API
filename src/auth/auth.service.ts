@@ -57,9 +57,6 @@ export class AuthService {
     }
 
     async login(authDto: AuthDto) {
-        // Find user
-        console.log(authDto)
-
         const user = await this.prisma.user.findUnique({
             where: { email: authDto.email }
         })
@@ -77,8 +74,6 @@ export class AuthService {
 
         // Generate tokens
         const tokens = await this.signTokens(user.id)
-
-        console.log(tokens)
 
         return {
             user: new UserResponseDto(user),
