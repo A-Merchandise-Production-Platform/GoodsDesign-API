@@ -41,6 +41,11 @@ type GraphQLUser {
   updatedBy: String
 }
 
+type MonthlyUserGrowth {
+  month: String!
+  users: Int!
+}
+
 type PaginatedUsers {
   items: [GraphQLUser!]!
   meta: PaginationMeta!
@@ -81,7 +86,13 @@ type Query {
   products: [Product!]!
   systemConfigBanks: [SystemConfigBank!]!
   user(id: String!): GraphQLUser!
+  userAnalytics: UserAnalytics!
   users(filter: UserFilter): PaginatedUsers!
+}
+
+type RoleDistribution {
+  count: Int!
+  role: String!
 }
 
 """User roles"""
@@ -121,6 +132,12 @@ type SystemConfigBank {
   updatedBy: String
 }
 
+type UserAnalytics {
+  monthlyGrowth: [MonthlyUserGrowth!]!
+  roleDistribution: [RoleDistribution!]!
+  stats: UserStats!
+}
+
 input UserFilter {
   email: String
   isActive: Boolean
@@ -134,4 +151,10 @@ input UserSort {
   email: SortOrder
   name: SortOrder
   updatedAt: SortOrder
+}
+
+type UserStats {
+  activeUsers: Int!
+  newUsersLast30Days: Int!
+  totalUsers: Int!
 }

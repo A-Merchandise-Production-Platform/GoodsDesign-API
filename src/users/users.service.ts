@@ -4,6 +4,7 @@ import { CreateUserDto, UpdateUserDto, UserResponseDto } from "./dto"
 import { User, Roles } from "@prisma/client"
 import { UserFilter } from "./models/user.model"
 import { getRolesBelowOrEqual } from "../utils/role.utils"
+import { UserAnalytics } from "./models/user-analytics.model"
 
 @Injectable()
 export class UsersService {
@@ -154,5 +155,121 @@ export class UsersService {
         })
 
         return this.toUserResponse(deletedUser)
+    }
+
+    async getUserAnalytics(currentUser: User): Promise<UserAnalytics> {
+        const allowedRoles = getRolesBelowOrEqual(currentUser.role)
+
+        // Basic stats
+        const [totalUsers, activeUsers, newUsersLast30Days] = await Promise.all([
+            // Total users
+            this.prisma.user.count({
+                where: {
+                    isDeleted: false,
+                    role: { in: allowedRoles }
+                }
+            }),
+            // Active users
+            this.prisma.user.count({
+                where: {
+                    isDeleted: false,
+                    isActive: true,
+                    role: { in: allowedRoles }
+                }
+            }),
+            // New users in last 30 days
+            this.prisma.user.count({
+                where: {
+                    isDeleted: false,
+                    role: { in: allowedRoles },
+                    createdAt: {
+                        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                    }
+                }
+            })
+        ])
+
+        // Monthly growth for last 12 months
+        const last12Months = await this.prisma.user.findMany({
+            where: {
+                isDeleted: false,
+                role: { in: allowedRoles },
+                createdAt: {
+                    gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
+                }
+            },
+            select: {
+                createdAt: true
+            }
+        })
+
+        const monthlyGrowth = this.calculateMonthlyGrowth(last12Months)
+
+        // Role distribution
+        const roleDistribution = await this.prisma.user.groupBy({
+            by: ["role"],
+            where: {
+                isDeleted: false,
+                role: { in: allowedRoles }
+            },
+            _count: {
+                role: true
+            }
+        })
+
+        return {
+            stats: {
+                totalUsers,
+                activeUsers,
+                newUsersLast30Days
+            },
+            monthlyGrowth,
+            roleDistribution: roleDistribution.map((item) => ({
+                role: item.role,
+                count: item._count.role
+            }))
+        }
+    }
+
+    private calculateMonthlyGrowth(
+        users: { createdAt: Date }[]
+    ): { month: string; users: number }[] {
+        const months = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec"
+        ]
+        const currentDate = new Date()
+        const monthlyData = new Map<string, number>()
+
+        // Initialize all months with 0
+        for (let i = 11; i >= 0; i--) {
+            const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
+            const monthKey = `${months[date.getMonth()]} ${date.getFullYear()}`
+            monthlyData.set(monthKey, 0)
+        }
+
+        // Count users per month
+        users.forEach((user) => {
+            const date = new Date(user.createdAt)
+            const monthKey = `${months[date.getMonth()]} ${date.getFullYear()}`
+            if (monthlyData.has(monthKey)) {
+                monthlyData.set(monthKey, monthlyData.get(monthKey)! + 1)
+            }
+        })
+
+        return Array.from(monthlyData.entries()).map(([month, users]) => ({
+            month,
+            users
+        }))
     }
 }

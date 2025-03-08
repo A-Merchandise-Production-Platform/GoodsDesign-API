@@ -15,10 +15,19 @@ export class CreateUserDto {
     @IsEmail()
     email: string
 
+    @ApiProperty({ description: "User name", example: "John Doe" })
+    @IsString()
+    name: string
+
     @ApiProperty({ description: "User password", example: "strongPassword123" })
     @IsString()
     @MinLength(6)
     password: string
+
+    @ApiProperty({ description: "User phone number", example: "+1234567890" })
+    @IsString()
+    @IsOptional()
+    phoneNumber?: string
 
     @ApiProperty({ description: "User gender", example: false })
     @IsBoolean()
