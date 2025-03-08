@@ -39,8 +39,11 @@ export class UsersController {
         type: UserResponseDto
     })
     @ApiBadRequestResponse({ description: "Invalid input data." })
-    create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
-        return this.usersService.create(createUserDto)
+    create(
+        @Body() createUserDto: CreateUserDto,
+        @CurrentUser() user: User
+    ): Promise<UserResponseDto> {
+        return this.usersService.create(createUserDto, user)
     }
 
     // @Get()
@@ -82,9 +85,10 @@ export class UsersController {
     @ApiBadRequestResponse({ description: "Invalid input data." })
     update(
         @Param("id") id: string,
-        @Body() updateUserDto: UpdateUserDto
+        @Body() updateUserDto: UpdateUserDto,
+        @CurrentUser() user: User
     ): Promise<UserResponseDto> {
-        return this.usersService.update(id, updateUserDto)
+        return this.usersService.update(id, updateUserDto, user)
     }
 
     @Delete(":id")
@@ -98,10 +102,7 @@ export class UsersController {
         type: UserResponseDto
     })
     @ApiNotFoundResponse({ description: "User not found." })
-    remove(
-        @Param("id") id: string,
-        @Body("deletedBy") deletedBy: string
-    ): Promise<UserResponseDto> {
-        return this.usersService.remove(id, deletedBy)
+    remove(@Param("id") id: string, @CurrentUser() user: User): Promise<UserResponseDto> {
+        return this.usersService.remove(id, user)
     }
 }

@@ -13,10 +13,12 @@ export class UsersService {
         return new UserResponseDto(user)
     }
 
-    async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+    async create(createUserDto: CreateUserDto, currentUser: User): Promise<UserResponseDto> {
         const user = await this.prisma.user.create({
             data: {
                 ...createUserDto,
+                isActive: true,
+                createdBy: currentUser.id,
                 dateOfBirth: createUserDto.dateOfBirth ? new Date(createUserDto.dateOfBirth) : null
             }
         })
@@ -105,7 +107,11 @@ export class UsersService {
         return this.toUserResponse(user)
     }
 
-    async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
+    async update(
+        id: string,
+        updateUserDto: UpdateUserDto,
+        currentUser: User
+    ): Promise<UserResponseDto> {
         const user = await this.prisma.user.findUnique({
             where: { id }
         })
@@ -121,14 +127,15 @@ export class UsersService {
                 dateOfBirth: updateUserDto.dateOfBirth
                     ? new Date(updateUserDto.dateOfBirth)
                     : undefined,
-                updatedAt: new Date()
+                updatedAt: new Date(),
+                updatedBy: currentUser.id
             }
         })
 
         return this.toUserResponse(updatedUser)
     }
 
-    async remove(id: string, deletedBy: string): Promise<UserResponseDto> {
+    async remove(id: string, currentUser: User): Promise<UserResponseDto> {
         const user = await this.prisma.user.findUnique({
             where: { id }
         })
@@ -142,7 +149,7 @@ export class UsersService {
             data: {
                 isDeleted: true,
                 deletedAt: new Date(),
-                deletedBy
+                deletedBy: currentUser.id
             }
         })
 
