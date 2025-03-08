@@ -135,7 +135,7 @@ export class GraphQLUser {
     @Field(() => Date, { nullable: true })
     deletedAt?: Date
 
-    @Field(() => String)
+    @Field(() => Roles)
     role: Roles
 
     constructor(partial: Partial<GraphQLUser>) {

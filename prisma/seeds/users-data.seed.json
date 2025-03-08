@@ -83,5 +83,243 @@
             "wardCode": "005",
             "street": "101 Factory Lane"
         }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer1@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer2@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer3@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer4@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer5@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer6@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer7@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer8@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer9@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer10@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer11@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer12@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
+    },
+    {
+        "id": "customer-id",
+        "email": "customer13@gmail.com",
+        "name": "Customer",
+        "phoneNumber": "0909090909",
+        "gender": true,
+        "dateOfBirth": "1990-01-01",
+        "imageUrl": "https://example.com/customer.jpg",
+        "isActive": true,
+        "role": "CUSTOMER",
+        "address": {
+            "provinceID": 3,
+            "districtID": 3,
+            "wardCode": "003",
+            "street": "789 Customer Avenue"
+        }
     }
 ]

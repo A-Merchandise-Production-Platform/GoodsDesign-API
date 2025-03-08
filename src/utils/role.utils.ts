@@ -12,8 +12,6 @@ export const getRolesBelowOrEqual = (userRole: Roles): Roles[] => {
     const roles = Object.entries(roleHierarchy)
         .filter(([_, level]) => level < roleHierarchy[userRole])
         .map(([role]) => role as Roles)
-
-    console.log(roles)
     return roles
 }
 

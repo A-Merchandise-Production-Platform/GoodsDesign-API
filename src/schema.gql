@@ -36,7 +36,7 @@ type GraphQLUser {
   isDeleted: Boolean!
   name: String
   phoneNumber: String
-  role: String!
+  role: Roles!
   updatedAt: DateTime
   updatedBy: String
 }

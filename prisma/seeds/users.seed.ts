@@ -20,12 +20,7 @@ export const seedUsers = async (prisma: PrismaClient) => {
     for (const userData of usersData) {
         const user = await prisma.user.upsert({
             where: { email: userData.email },
-            update: {
-                email: userData.email,
-                name: userData.name,
-                phoneNumber: userData.phoneNumber,
-                password: hashedPassword
-            },
+            update: {},
             create: {
                 id: uuidv4(),
                 email: userData.email,
