@@ -1,6 +1,33 @@
-import { PaymentMethod, PaymentStatus, PaymentType, TransactionStatus, TransactionType } from '@prisma/client';
+import { PaymentType, PaymentStatus, TransactionType, PaymentMethod, TransactionStatus } from '@prisma/client'
 
-export default {
+interface Transaction {
+  id: string
+  amount: number
+  type: TransactionType
+  paymentMethod: PaymentMethod
+  status: TransactionStatus
+  paymentGatewayTransactionId: string
+  transactionLog: string
+  createdDate: string
+}
+
+interface Payment {
+  id: string
+  orderId: string
+  userEmail: string
+  amount: number
+  type: PaymentType
+  paymentLog: string
+  createdDate: string
+  status: PaymentStatus
+  transactions: Transaction[]
+}
+
+interface PaymentsData {
+  payments: Payment[]
+}
+
+export const paymentsData: PaymentsData = {
   payments: [
     {
       id: "pay001",
@@ -47,4 +74,4 @@ export default {
       ]
     }
   ]
-};
+}
