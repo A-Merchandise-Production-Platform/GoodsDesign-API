@@ -283,15 +283,41 @@ model CustomerOrderDetail {
   @@map("CustomerOrderDetails")
 }
 
+enum PaymentType {
+  DEPOSIT
+  WITHDRAWN
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+}
+
+enum TransactionType {
+  PAYMENT
+  REFUND
+}
+
+enum PaymentMethod {
+  VNPAY
+  PAYOS
+}
+
+enum TransactionStatus {
+  COMPLETED
+  PENDING
+  FAILED
+}
+
 model Payment {
-  id           String    @id @default(uuid())
+  id           String        @id @default(uuid())
   orderId      String
   customerId   String
   amount       Decimal
-  type         String
+  type         PaymentType
   paymentLog   String
   createdDate  DateTime
-  status       String
+  status       PaymentStatus
 
   order        CustomerOrder @relation(fields: [orderId], references: [id])
   customer     User @relation(fields: [customerId], references: [id])
@@ -301,15 +327,15 @@ model Payment {
 }
 
 model PaymentTransaction {
-  id           String    @id @default(uuid())
+  id           String            @id @default(uuid())
   paymentId    String
   orderId      String
   customerId   String
   paymentGatewayTransactionId String
   amount       Decimal
-  type         String
-  paymentMethod String
-  status       String
+  type         TransactionType
+  paymentMethod PaymentMethod
+  status       TransactionStatus
   transactionLog String
   createdDate  DateTime
 

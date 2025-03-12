@@ -1,0 +1,48 @@
+{
+  "payments": [
+    {
+      "id": "pay001",
+      "orderId": "order001",
+      "userEmail": "customer@gmail.com",
+      "amount": 80.00,
+      "type": "DEPOSIT",
+      "paymentLog": "Payment FirstTime",
+      "createdDate": "2025-03-12T10:00:00.000Z",
+      "status": "COMPLETED",
+      "transactions": [
+        {
+          "id": "trans001",
+          "amount": 80.00,
+          "type": "PAYMENT",
+          "paymentMethod": "VNPAY",
+          "status": "COMPLETED",
+          "paymentGatewayTransactionId": "vnp_123456789",
+          "transactionLog": "Payment Successfully",
+          "createdDate": "2025-03-12T10:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "pay002",
+      "orderId": "order002",
+      "userEmail": "customer@gmail.com",
+      "amount": 157.50,
+      "type": "DEPOSIT",
+      "paymentLog": "Payment FirstTime",
+      "createdDate": "2025-03-11T15:30:00.000Z",
+      "status": "COMPLETED",
+      "transactions": [
+        {
+          "id": "trans002",
+          "amount": 157.50,
+          "type": "PAYMENT",
+          "paymentMethod": "PAYOS",
+          "status": "COMPLETED",
+          "paymentGatewayTransactionId": "pos_987654321",
+          "transactionLog": "Payment Successfully",
+          "createdDate": "2025-03-11T15:30:00.000Z"
+        }
+      ]
+    }
+  ]
+}
