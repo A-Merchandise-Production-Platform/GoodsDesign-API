@@ -1,6 +1,7 @@
 {
   "productDesigns": [
     {
+      "id": "design001",
       "userEmail": "customer@gmail.com",
       "blankVariantId": "bv001",
       "saved3DPreviewUrl": "https://example.com/previews/design1.jpg",
@@ -9,6 +10,7 @@
       "isTemplate": true
     },
     {
+      "id": "design002",
       "userEmail": "customer@gmail.com",
       "blankVariantId": "bv002",
       "saved3DPreviewUrl": "https://example.com/previews/design2.jpg",
@@ -17,6 +19,7 @@
       "isTemplate": false
     },
     {
+      "id": "design003",
       "userEmail": "manager@gmail.com",
       "blankVariantId": "bv001",
       "saved3DPreviewUrl": "https://example.com/previews/design3.jpg",

@@ -225,10 +225,32 @@ model DesignPosition {
   @@map("DesignPosition")
 }
 
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  IN_PRODUCTION
+  COMPLETED
+  DELIVERED
+  CANCELED
+}
+
+enum QualityCheckStatus {
+  PENDING
+  PARTIAL_APPROVED
+  APPROVED
+  REJECTED
+}
+
+enum ReworkStatus {
+  NOT_REQUIRED
+  IN_PROGRESS
+  COMPLETED
+}
+
 model CustomerOrder {
-  id            String    @id @default(uuid())
+  id            String      @id @default(uuid())
   customerId    String
-  status        String
+  status        OrderStatus
   totalPrice    Decimal
   shippingPrice Decimal
   depositPaid   Decimal
@@ -244,14 +266,14 @@ model CustomerOrder {
 }
 
 model CustomerOrderDetail {
-  id                 String  @id @default(uuid())
+  id                 String             @id @default(uuid())
   orderId           String
   designId          String
   price             Decimal
   quantity          Int
-  status            String
-  qualityCheckStatus String
-  reworkStatus      String
+  status            OrderStatus
+  qualityCheckStatus QualityCheckStatus
+  reworkStatus      ReworkStatus
 
   order             CustomerOrder @relation(fields: [orderId], references: [id])
   design            ProductDesign @relation(fields: [designId], references: [id])

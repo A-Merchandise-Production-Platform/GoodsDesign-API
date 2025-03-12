@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { seedBanks, seedColors, seedSizes, seedUsers, seedCategories, seedProducts, seedTasks, seedProductPositionTypes, seedBlankVariances, seedProductDesigns } from './seeds';
+import { seedBanks, seedColors, seedSizes, seedUsers, seedCategories, seedProducts, seedTasks, seedProductPositionTypes, seedBlankVariances, seedProductDesigns, seedCustomerOrders } from './seeds';
 
 const prisma = new PrismaClient();
 
@@ -18,6 +18,7 @@ async function main() {
     await seedProductPositionTypes(prisma);
     await seedBlankVariances(prisma);
     await seedProductDesigns(prisma);
+    await seedCustomerOrders(prisma);
 
     // Seed tasks
     await seedTasks(prisma);

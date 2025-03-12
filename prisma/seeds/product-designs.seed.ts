@@ -15,8 +15,18 @@ export async function seedProductDesigns(prisma: PrismaClient) {
         throw new Error(`User with email ${design.userEmail} not found`);
       }
 
-      await prisma.productDesign.create({
-        data: {
+      await prisma.productDesign.upsert({
+        where: { id: design.id },
+        update: {
+          userId: user.id,
+          blankVariantId: design.blankVariantId,
+          saved3DPreviewUrl: design.saved3DPreviewUrl,
+          isFinalized: design.isFinalized,
+          isPublic: design.isPublic,
+          isTemplate: design.isTemplate
+        },
+        create: {
+          id: design.id,
           userId: user.id,
           blankVariantId: design.blankVariantId,
           saved3DPreviewUrl: design.saved3DPreviewUrl,
