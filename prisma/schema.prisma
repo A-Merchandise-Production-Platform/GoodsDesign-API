@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum Roles {
   ADMIN
   MANAGER
@@ -18,24 +17,31 @@ enum Roles {
 
 model User {
   id            String    @id @default(uuid())
-  email         String  @unique 
+  email         String    @unique 
   name          String?
   phoneNumber   String?
-  password      String   @default("")
-  gender      Boolean   @default(false)
-  dateOfBirth DateTime?
-  imageUrl    String?   @default("")
-  isActive    Boolean   @default(false)
-  isDeleted   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  createdBy   String?
-  updatedAt   DateTime?
-  updatedBy   String?
-  deletedBy   String?
-  deletedAt   DateTime?
-  role        Roles
+  password      String    @default("")
+  gender        Boolean   @default(false)
+  dateOfBirth   DateTime?
+  imageUrl      String?   @default("")
+  isActive      Boolean   @default(false)
+  isDeleted     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  createdBy     String?
+  updatedAt     DateTime?
+  updatedBy     String?
+  deletedBy     String?
+  deletedAt     DateTime?
+  role          Roles
 
-  addresses   Address[]
+  addresses     Address[]
+  designs       ProductDesign[]
+  favorites     FavoriteDesign[]
+  orders        CustomerOrder[]
+  payments      Payment[]
+  transactions  PaymentTransaction[]
+  staffTasks    StaffTask[]
+  factory       Factory?
 
   @@map("Users")
 }
@@ -89,6 +95,8 @@ model Product {
   categoryId  String
 
   category    Category  @relation(fields: [categoryId], references: [id])
+  blankVariances BlankVariance[]
+  positionTypes  ProductPositionType[]
 
   @@map("Products")
 }
@@ -146,4 +154,265 @@ model SystemConfigSize {
   deletedBy  String?
 
   @@map("SystemConfigSizes")
+}
+
+model BlankVariance {
+  id          String    @id @default(uuid())
+  productId   String
+  information Json
+  blankPrice  Decimal
+
+  product     Product @relation(fields: [productId], references: [id])
+  designs     ProductDesign[]
+  factories   FactoryProduct[]
+  
+  @@map("BlankVariances")
+}
+
+model ProductPositionType {
+  id           String    @id @default(uuid())
+  productId    String
+  positionName String
+  basePrice    Decimal
+
+  product      Product @relation(fields: [productId], references: [id])
+  designPositions DesignPosition[]
+  
+  @@map("ProductPositionType")
+}
+
+model ProductDesign {
+  id                String    @id @default(uuid())
+  userId           String
+  blankVariantId   String
+  saved3DPreviewUrl String
+  isFinalized      Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  isPublic         Boolean   @default(false)
+  isTemplate       Boolean   @default(false)
+
+  user             User @relation(fields: [userId], references: [id])
+  blankVariant     BlankVariance @relation(fields: [blankVariantId], references: [id])
+  favorites        FavoriteDesign[]
+  designPositions  DesignPosition[]
+  orderDetails     CustomerOrderDetail[]
+  factoryOrderDetails FactoryOrderDetail[]
+
+  @@map("ProductDesigns")
+}
+
+model FavoriteDesign {
+  id         String    @id @default(uuid())
+  userId     String
+  designId   String
+  createdAt  DateTime @default(now())
+
+  user       User @relation(fields: [userId], references: [id])
+  design     ProductDesign @relation(fields: [designId], references: [id])
+
+  @@map("FavoriteDesign")
+}
+
+model DesignPosition {
+  id                   String @id @default(uuid())
+  designId             String
+  productPositionTypeId String
+  designJSON           Json
+
+  design               ProductDesign @relation(fields: [designId], references: [id])
+  positionType         ProductPositionType @relation(fields: [productPositionTypeId], references: [id])
+  
+  @@map("DesignPosition")
+}
+
+model CustomerOrder {
+  id            String    @id @default(uuid())
+  customerId    String
+  status        String
+  totalPrice    Decimal
+  shippingPrice Decimal
+  depositPaid   Decimal
+  orderDate     DateTime
+
+  customer      User @relation(fields: [customerId], references: [id])
+  orderDetails  CustomerOrderDetail[]
+  payments      Payment[]
+  transactions  PaymentTransaction[]
+  history       OrderHistory[]
+
+  @@map("CustomerOrders")
+}
+
+model CustomerOrderDetail {
+  id                 String  @id @default(uuid())
+  orderId           String
+  designId          String
+  price             Decimal
+  quantity          Int
+  status            String
+  qualityCheckStatus String
+  reworkStatus      String
+
+  order             CustomerOrder @relation(fields: [orderId], references: [id])
+  design            ProductDesign @relation(fields: [designId], references: [id])
+  checkQualities    CheckQuality[]
+  factoryOrderDetails FactoryOrderDetail[]
+  
+  @@map("CustomerOrderDetails")
+}
+
+model Payment {
+  id           String    @id @default(uuid())
+  orderId      String
+  customerId   String
+  amount       Decimal
+  type         String
+  paymentLog   String
+  createdDate  DateTime
+  status       String
+
+  order        CustomerOrder @relation(fields: [orderId], references: [id])
+  customer     User @relation(fields: [customerId], references: [id])
+  transactions PaymentTransaction[]
+
+  @@map("Payments")
+}
+
+model PaymentTransaction {
+  id           String    @id @default(uuid())
+  paymentId    String
+  orderId      String
+  customerId   String
+  paymentGatewayTransactionId String
+  amount       Decimal
+  type         String
+  paymentMethod String
+  status       String
+  transactionLog String
+  createdDate  DateTime
+
+  payment      Payment @relation(fields: [paymentId], references: [id])
+  order        CustomerOrder @relation(fields: [orderId], references: [id])
+  customer     User @relation(fields: [customerId], references: [id])
+
+  @@map("PaymentTransactions")
+}
+
+model OrderHistory {
+  id        String    @id @default(uuid())
+  orderId   String
+  status    String
+  timestamp DateTime
+  note      String?
+
+  order     CustomerOrder @relation(fields: [orderId], references: [id])
+  
+  @@map("OrderHistory")
+}
+
+model Task {
+  id                  String @id @default(uuid())
+  description         String
+  taskname           String
+  status             String
+  startDate          DateTime
+  expiredTime        DateTime
+  qualityCheckStatus String
+
+  checkQualities     CheckQuality[]
+  staffTasks         StaffTask[]
+
+  @@map("Tasks")
+}
+
+model CheckQuality {
+  id               String    @id @default(uuid())
+  taskId           String
+  orderDetailId    String
+  totalChecked     Int
+  passedQuantity   Int
+  failedQuantity   Int
+  status           String
+  reworkRequired   Boolean
+  note             String?
+  checkedAt        DateTime
+
+  task             Task @relation(fields: [taskId], references: [id])
+  orderDetail      CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
+  
+  @@map("CheckQuality")
+}
+
+model StaffTask {
+  id            String @id @default(uuid())
+  userId        String
+  taskId        String
+  assignedDate  DateTime
+  note          String?
+  status        String
+  completedDate DateTime?
+
+  user          User @relation(fields: [userId], references: [id])
+  task          Task @relation(fields: [taskId], references: [id])
+
+  @@map("StaffTasks")
+}
+
+model FactoryProduct {
+  id                    String @id @default(uuid())
+  factoryId            String
+  blankVarianceId      String
+  productionCapacity   Int
+  estimatedProductionTime Int
+
+  factory              Factory @relation(fields: [factoryId], references: [factoryOwnerId])
+  blankVariance        BlankVariance @relation(fields: [blankVarianceId], references: [id])
+
+  @@map("FactoryProducts")
+}
+
+model Factory {
+  factoryOwnerId String @id
+  information    Json
+  contract       Json
+
+  owner          User @relation(fields: [factoryOwnerId], references: [id])
+  products       FactoryProduct[]
+  orders         FactoryOrder[]
+  
+  @@map("Factory")
+}
+
+model FactoryOrder {
+  id                     String    @id @default(uuid())
+  factoryId             String
+  status                String
+  estimatedCompletionDate DateTime
+  totalItems            Int
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime?
+  totalProductionCost   Decimal
+
+  factory               Factory @relation(fields: [factoryId], references: [factoryOwnerId])
+  orderDetails         FactoryOrderDetail[]
+  
+  @@map("FactoryOrders")
+}
+
+model FactoryOrderDetail {
+  id               String    @id @default(uuid())
+  designId         String
+  factoryOrderId   String
+  orderDetailId    String
+  quantity         Int
+  status          String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime?
+  productionCost  Decimal
+
+  factoryOrder    FactoryOrder @relation(fields: [factoryOrderId], references: [id])
+  design          ProductDesign @relation(fields: [designId], references: [id])
+  orderDetail     CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
+  
+  @@map("FactoryOrderDetails")
 }
