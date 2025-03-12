@@ -1,0 +1,32 @@
+import { PrismaClient } from '@prisma/client';
+import productsData from './data/products.data.json';
+
+export const seedProducts = async (prisma: PrismaClient) => {
+  console.log('Seeding products...');
+  
+  for (const product of productsData) {
+    await prisma.product.upsert({
+      where: { id: product.id },
+      update: {
+        name: product.name,
+        description: product.description,
+        imageUrl: product.imageUrl,
+        model3DUrl: product.model3DUrl,
+        isActive: product.isActive,
+        categoryId: product.categoryId
+      },
+      create: {
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        imageUrl: product.imageUrl,
+        model3DUrl: product.model3DUrl,
+        isActive: product.isActive,
+        categoryId: product.categoryId,
+        createdBy: 'system'
+      },
+    });
+  }
+
+  console.log('Products seeded!');
+};

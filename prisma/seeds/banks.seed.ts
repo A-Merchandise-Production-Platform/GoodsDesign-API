@@ -1,24 +1,40 @@
 import { PrismaClient } from '@prisma/client';
-import * as fs from 'fs';
-import * as path from 'path';
+import banksData from './data/system-config-banks.data.json';
 
 export const seedBanks = async (prisma: PrismaClient) => {
-  const banksFilePath = path.join(__dirname, 'system-config-banks.seed.json');
-  const banksData = JSON.parse(fs.readFileSync(banksFilePath, 'utf-8'));
-
   console.log('Seeding system config banks...');
+  
+  // Delete all existing records first
+  await prisma.systemConfigBank.deleteMany({});
   
   for (const bank of banksData) {
     await prisma.systemConfigBank.upsert({
-      where: { id: bank.id },
-      update: bank,
-      create: {
-        ...bank,
-        support: 0,
-        isTransfer: bank.transferSupported,
-        isActive: true,
-        createdBy: 'system',
-      },
+          where: { code: bank.code },
+          update: {
+            name: bank.name,
+            bin: bank.bin,
+            shortName: bank.shortName,
+            logo: bank.logo,
+            transferSupported: bank.transferSupported,
+            lookupSupported: bank.lookupSupported,
+            swiftCode: bank.swiftCode,
+            isTransfer: bank.transferSupported,
+            isActive: true
+          },
+          create: {
+            code: bank.code,
+            name: bank.name,
+            bin: bank.bin,
+            shortName: bank.shortName,
+            logo: bank.logo,
+            transferSupported: bank.transferSupported,
+            lookupSupported: bank.lookupSupported,
+            swiftCode: bank.swiftCode,
+            support: 0,
+            isTransfer: bank.transferSupported,
+            isActive: true,
+            createdBy: 'system'
+          },
     });
   }
 

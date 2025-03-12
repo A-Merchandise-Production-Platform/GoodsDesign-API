@@ -1,0 +1,24 @@
+{
+  "positionTypes": [
+    {
+      "productId": "prod001",
+      "positionName": "Front",
+      "basePrice": 10.00
+    },
+    {
+      "productId": "prod001",
+      "positionName": "Back",
+      "basePrice": 10.00
+    },
+    {
+      "productId": "prod001",
+      "positionName": "Left Sleeve",
+      "basePrice": 5.00
+    },
+    {
+      "productId": "prod001",
+      "positionName": "Right Sleeve",
+      "basePrice": 5.00
+    }
+  ]
+}

@@ -1,12 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import * as fs from 'fs';
-import * as path from 'path';
+import defaultColors from './data/system-config-colors.data.json';
 
 export const seedColors = async (prisma: PrismaClient) => {
-  const colorsFilePath = path.join(__dirname, 'system-config-colors.seed.json');
-  const defaultColors = JSON.parse(fs.readFileSync(colorsFilePath, 'utf-8'));
-
   console.log('Seeding system config colors...');
+
+  // Delete all existing records first
+  await prisma.systemConfigColor.deleteMany({});
 
   for (const color of defaultColors) {
     await prisma.systemConfigColor.upsert({

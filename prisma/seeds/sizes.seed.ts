@@ -1,12 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import * as fs from 'fs';
-import * as path from 'path';
+import defaultSizes from './data/system-config-sizes.data.json';
 
 export const seedSizes = async (prisma: PrismaClient) => {
-  const sizesFilePath = path.join(__dirname, 'system-config-sizes.seed.json');
-  const defaultSizes = JSON.parse(fs.readFileSync(sizesFilePath, 'utf-8'));
-
   console.log('Seeding system config sizes...');
+
+  // Delete all existing records first
+  await prisma.systemConfigSize.deleteMany({});
 
   for (const size of defaultSizes) {
     await prisma.systemConfigSize.upsert({
