@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { blankVariancesData } from './data/blank-variances.data';
+import { blankVariancesData } from '../data/blank-variances.data';
 
 export async function seedBlankVariances(prisma: PrismaClient) {
   try {

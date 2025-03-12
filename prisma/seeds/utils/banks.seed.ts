@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { banksData } from './data/system-config-banks.data';
+import { banksData } from '../data/system-config-banks.data';
 
 export const seedBanks = async (prisma: PrismaClient) => {
   console.log('Seeding system config banks...');

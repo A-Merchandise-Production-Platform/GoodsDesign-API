@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { positionTypesData } from './data/product-position-types.data';
+import { positionTypesData } from '../data/product-position-types.data';
 
 export async function seedProductPositionTypes(prisma: PrismaClient) {
   try {

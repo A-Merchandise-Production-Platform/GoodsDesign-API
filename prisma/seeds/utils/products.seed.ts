@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { productsData } from './data/products.data';
+import { productsData } from '../data/products.data';
 
 export const seedProducts = async (prisma: PrismaClient) => {
   console.log('Seeding products...');

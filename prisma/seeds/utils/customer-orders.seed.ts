@@ -1,5 +1,5 @@
 import { PrismaClient, OrderStatus, QualityCheckStatus, ReworkStatus } from '@prisma/client';
-import { customerOrdersData } from './data/customer-orders.data';
+import { customerOrdersData } from '../data/customer-orders.data';
 
 export async function seedCustomerOrders(prisma: PrismaClient) {
   try {

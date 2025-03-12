@@ -1,7 +1,7 @@
 import { PrismaClient, Roles } from "@prisma/client"
 import * as bcrypt from "bcrypt"
 import { v4 as uuidv4 } from "uuid"
-import { usersData } from "./data/users.data"
+import { usersData } from "../data/users.data"
 
 const hashPassword = async (password: string) => {
     const salt = await bcrypt.genSalt()

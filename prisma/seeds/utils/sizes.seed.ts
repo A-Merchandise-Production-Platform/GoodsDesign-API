@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { sizesData } from './data/system-config-sizes.data';
+import { sizesData } from '../data/system-config-sizes.data';
 
 export const seedSizes = async (prisma: PrismaClient) => {
   console.log('Seeding system config sizes...');

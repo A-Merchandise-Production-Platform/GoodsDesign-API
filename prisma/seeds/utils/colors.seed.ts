@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { colorsData } from './data/system-config-colors.data';
+import { colorsData } from '../data/system-config-colors.data';
 
 export const seedColors = async (prisma: PrismaClient) => {
   console.log('Seeding system config colors...');
