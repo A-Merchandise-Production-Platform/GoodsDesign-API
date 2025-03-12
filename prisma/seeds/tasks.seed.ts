@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import tasksData from './data/tasks.data.json';
+import { tasksData } from './data/tasks.data';
 
 export const seedTasks = async (prisma: PrismaClient) => {
   console.log('Seeding tasks...');
@@ -7,7 +7,7 @@ export const seedTasks = async (prisma: PrismaClient) => {
   // Delete all existing records first
   await prisma.task.deleteMany({});
 
-  for (const task of tasksData) {
+  for (const task of tasksData.tasks) {
     await prisma.task.upsert({
       where: { id: task.id },
       update: {

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import blankVariancesData from './data/blank-variances.data.json';
+import { blankVariancesData } from './data/blank-variances.data';
 
 export async function seedBlankVariances(prisma: PrismaClient) {
   try {
@@ -10,13 +10,13 @@ export async function seedBlankVariances(prisma: PrismaClient) {
         where: { id: variance.id },
         update: {
           productId: variance.productId,
-          information: variance.information,
+          information: JSON.parse(JSON.stringify(variance.information)),
           blankPrice: variance.blankPrice,
         },
         create: {
           id: variance.id,
           productId: variance.productId,
-          information: variance.information,
+          information: JSON.parse(JSON.stringify(variance.information)),
           blankPrice: variance.blankPrice,
         },
       });

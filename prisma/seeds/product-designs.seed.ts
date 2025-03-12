@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import productDesignsData from './data/product-designs.data.json';
+import { productDesignsData } from './data/product-designs.data';
 
 export async function seedProductDesigns(prisma: PrismaClient) {
   try {

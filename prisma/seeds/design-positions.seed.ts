@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import designPositionsData from './data/design-positions.data.json';
+import { designPositionsData } from './data/design-positions.data';
 
 export async function seedDesignPositions(prisma: PrismaClient) {
   try {
@@ -28,13 +28,13 @@ export async function seedDesignPositions(prisma: PrismaClient) {
         update: {
           designId: position.designId,
           productPositionTypeId: position.productPositionTypeId,
-          designJSON: position.designJSON
+          designJSON: JSON.parse(JSON.stringify(position.designJSON))
         },
         create: {
           id: position.id,
           designId: position.designId,
           productPositionTypeId: position.productPositionTypeId,
-          designJSON: position.designJSON
+          designJSON: JSON.parse(JSON.stringify(position.designJSON))
         }
       });
     }

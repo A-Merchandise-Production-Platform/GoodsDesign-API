@@ -1,5 +1,5 @@
 import { PaymentMethod, PaymentStatus, PaymentType, PrismaClient, TransactionStatus, TransactionType } from '@prisma/client';
-import paymentsData from './data/payments.data';
+import { paymentsData } from './data/payments.data';
 
 export async function seedPayments(prisma: PrismaClient) {
   try {

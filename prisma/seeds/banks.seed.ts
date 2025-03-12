@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import banksData from './data/system-config-banks.data.json';
+import { banksData } from './data/system-config-banks.data';
 
 export const seedBanks = async (prisma: PrismaClient) => {
   console.log('Seeding system config banks...');
@@ -7,7 +7,7 @@ export const seedBanks = async (prisma: PrismaClient) => {
   // Delete all existing records first
   await prisma.systemConfigBank.deleteMany({});
   
-  for (const bank of banksData) {
+  for (const bank of banksData.banks) {
     await prisma.systemConfigBank.upsert({
           where: { code: bank.code },
           update: {

@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
-import categoriesData from './data/categories.data.json';
+import { categoriesData } from './data/categories.data';
 
 export const seedCategories = async (prisma: PrismaClient) => {
   console.log('Seeding categories...');
   
-  for (const category of categoriesData) {
+  for (const category of categoriesData.categories) {
     await prisma.category.upsert({
       where: { id: category.id },
       update: {
