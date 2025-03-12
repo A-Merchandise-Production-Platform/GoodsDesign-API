@@ -1,0 +1,28 @@
+{
+  "productDesigns": [
+    {
+      "userEmail": "customer@gmail.com",
+      "blankVariantId": "bv001",
+      "saved3DPreviewUrl": "https://example.com/previews/design1.jpg",
+      "isFinalized": true,
+      "isPublic": true,
+      "isTemplate": true
+    },
+    {
+      "userEmail": "customer@gmail.com",
+      "blankVariantId": "bv002",
+      "saved3DPreviewUrl": "https://example.com/previews/design2.jpg",
+      "isFinalized": true,
+      "isPublic": false,
+      "isTemplate": false
+    },
+    {
+      "userEmail": "manager@gmail.com",
+      "blankVariantId": "bv001",
+      "saved3DPreviewUrl": "https://example.com/previews/design3.jpg",
+      "isFinalized": false,
+      "isPublic": false,
+      "isTemplate": false
+    }
+  ]
+}

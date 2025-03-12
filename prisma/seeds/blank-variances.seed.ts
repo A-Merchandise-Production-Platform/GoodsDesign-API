@@ -1,0 +1,30 @@
+import { PrismaClient } from '@prisma/client';
+import blankVariancesData from './data/blank-variances.data.json';
+
+export async function seedBlankVariances(prisma: PrismaClient) {
+  try {
+    console.log('Seeding blank variances...');
+
+    for (const variance of blankVariancesData.blankVariances) {
+      await prisma.blankVariance.upsert({
+        where: { id: variance.id },
+        update: {
+          productId: variance.productId,
+          information: variance.information,
+          blankPrice: variance.blankPrice,
+        },
+        create: {
+          id: variance.id,
+          productId: variance.productId,
+          information: variance.information,
+          blankPrice: variance.blankPrice,
+        },
+      });
+    }
+
+    console.log('Blank variances seeded successfully!');
+  } catch (error) {
+    console.error('Error seeding blank variances:', error);
+    throw error;
+  }
+}
