@@ -8,6 +8,7 @@ import { EnvModule } from "./dynamic-modules"
 import { CategoriesModule } from "./categories"
 import { ProductsModule } from "./products"
 import { RedisModule } from "./redis"
+import { BlankVariancesModule } from './blank-variances/blank-variances.module';
 import { SystemConfigModule } from "./system-config"
 import { GraphQLModule } from "@nestjs/graphql"
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo"
