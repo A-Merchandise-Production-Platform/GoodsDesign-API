@@ -72,6 +72,7 @@ describe('AuthService', () => {
     const registerDto = {
       email: 'test@example.com',
       password: 'password123',
+      name: 'Test User',
       gender: false,
       dateOfBirth: '1990-01-01',
     };
@@ -98,9 +99,12 @@ describe('AuthService', () => {
       const result = await service.register(registerDto);
 
       expect(result).toEqual({
-        id: userId,
-        email: registerDto.email,
-        role: Roles.CUSTOMER,
+        user: {
+          id: userId,
+          email: registerDto.email,
+          role: Roles.CUSTOMER,
+          password: hashedPassword,
+        },
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       });
@@ -150,10 +154,14 @@ describe('AuthService', () => {
       const result = await service.login(loginDto);
 
       expect(result).toEqual({
-        id: userId,
-        email: loginDto.email,
-        role: Roles.CUSTOMER,
+        user: {
+          id: userId,
+          email: loginDto.email,
+          password: hashedPassword,
+          role: Roles.CUSTOMER,
+        },
         accessToken: token,
+        refreshToken: undefined,
       });
     });
 
@@ -198,7 +206,7 @@ describe('AuthService', () => {
       mockJwtService.signAsync.mockResolvedValueOnce(newAccessToken);
       mockJwtService.signAsync.mockResolvedValueOnce(newRefreshToken);
 
-      const result = await service.refreshTokens(refreshTokenDto);
+      const result = await service.refreshTokens(refreshTokenDto, { id: userId } as User);
 
       expect(result).toEqual({
         id: userId,
@@ -213,7 +221,7 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException if refresh token is invalid', async () => {
       mockJwtService.verifyAsync.mockRejectedValueOnce(new Error());
 
-      await expect(service.refreshTokens(refreshTokenDto)).rejects.toThrow(
+      await expect(service.refreshTokens(refreshTokenDto, { id: userId } as User)).rejects.toThrow(
         UnauthorizedException,
       );
     });
@@ -222,7 +230,7 @@ describe('AuthService', () => {
       mockJwtService.verifyAsync.mockResolvedValueOnce({ userId });
       mockPrismaService.user.findFirst.mockResolvedValueOnce(null);
 
-      await expect(service.refreshTokens(refreshTokenDto)).rejects.toThrow(
+      await expect(service.refreshTokens(refreshTokenDto, { id: userId } as User)).rejects.toThrow(
         UnauthorizedException,
       );
     });

@@ -4,7 +4,7 @@ import { UsersController } from './users.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { envConfig, TokenType } from 'src/dynamic-modules';
+import { envConfig, TokenType } from '../dynamic-modules';
 import { UsersResolver } from './users.resolver';
 
 @Module({
