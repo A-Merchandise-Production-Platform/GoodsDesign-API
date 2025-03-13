@@ -160,7 +160,7 @@ model BlankVariance {
   id          String    @id @default(uuid())
   productId   String
   information Json
-  blankPrice  Decimal
+  blankPrice  Int
 
   product     Product @relation(fields: [productId], references: [id])
   designs     ProductDesign[]
@@ -173,7 +173,7 @@ model ProductPositionType {
   id           String    @id @default(uuid())
   productId    String
   positionName String
-  basePrice    Decimal
+  basePrice    Int
 
   product      Product @relation(fields: [productId], references: [id])
   designPositions DesignPosition[]
@@ -251,9 +251,9 @@ model CustomerOrder {
   id            String      @id @default(uuid())
   customerId    String
   status        OrderStatus
-  totalPrice    Decimal
-  shippingPrice Decimal
-  depositPaid   Decimal
+  totalPrice    Int
+  shippingPrice Int
+  depositPaid   Int
   orderDate     DateTime
 
   customer      User @relation(fields: [customerId], references: [id])
@@ -269,7 +269,7 @@ model CustomerOrderDetail {
   id                 String             @id @default(uuid())
   orderId           String
   designId          String
-  price             Decimal
+  price             Int
   quantity          Int
   status            OrderStatus
   qualityCheckStatus QualityCheckStatus
@@ -313,7 +313,7 @@ model Payment {
   id           String        @id @default(uuid())
   orderId      String
   customerId   String
-  amount       Decimal
+  amount       Int
   type         PaymentType
   paymentLog   String
   createdDate  DateTime
@@ -332,7 +332,7 @@ model PaymentTransaction {
   orderId      String
   customerId   String
   paymentGatewayTransactionId String
-  amount       Decimal
+  amount       Int
   type         TransactionType
   paymentMethod PaymentMethod
   status       TransactionStatus
@@ -439,7 +439,7 @@ model FactoryOrder {
   totalItems            Int
   createdAt             DateTime  @default(now())
   updatedAt             DateTime?
-  totalProductionCost   Decimal
+  totalProductionCost   Int
 
   factory               Factory @relation(fields: [factoryId], references: [factoryOwnerId])
   orderDetails         FactoryOrderDetail[]
@@ -456,7 +456,7 @@ model FactoryOrderDetail {
   status          String
   createdAt       DateTime  @default(now())
   updatedAt       DateTime?
-  productionCost  Decimal
+  productionCost  Int
 
   factoryOrder    FactoryOrder @relation(fields: [factoryOrderId], references: [id])
   design          ProductDesign @relation(fields: [designId], references: [id])
