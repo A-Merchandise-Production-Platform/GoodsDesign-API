@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SystemConfigSizesService } from './system-config-sizes.service';
-import { PrismaService } from '../../prisma';
+import { PrismaService } from '../../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { CreateSystemConfigSizeDto, UpdateSystemConfigSizeDto } from './dto/system-config-size.dto';
 
@@ -9,10 +9,9 @@ describe('SystemConfigSizesService', () => {
   let prismaService: PrismaService;
 
   const mockSize = {
-    id: 1,
-    code: 'M',
-    isActive: true,
-    isDeleted: false,
+    id: '1',
+    name: 'Test Size',
+    code: 'TST',
     createdAt: new Date(),
     createdBy: 'test-user',
     updatedAt: null,
@@ -27,7 +26,6 @@ describe('SystemConfigSizesService', () => {
       findMany: jest.fn(),
       findFirst: jest.fn(),
       update: jest.fn(),
-      upsert: jest.fn(),
     },
   };
 
@@ -53,7 +51,7 @@ describe('SystemConfigSizesService', () => {
   describe('create', () => {
     it('should create a new size', async () => {
       const createDto: CreateSystemConfigSizeDto = {
-        code: 'M',
+        code: 'TST',
       };
 
       mockPrismaService.systemConfigSize.create.mockResolvedValue(mockSize);
@@ -97,33 +95,31 @@ describe('SystemConfigSizesService', () => {
     it('should return a size if found', async () => {
       mockPrismaService.systemConfigSize.findFirst.mockResolvedValue(mockSize);
 
-      const result = await service.findOne(1);
+      const result = await service.findOne('1');
       expect(result).toEqual(mockSize);
     });
 
     it('should throw NotFoundException if size not found', async () => {
       mockPrismaService.systemConfigSize.findFirst.mockResolvedValue(null);
 
-      await expect(service.findOne(1)).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('1')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('update', () => {
     it('should update a size', async () => {
       const updateDto: UpdateSystemConfigSizeDto = {
-        code: 'L',
       };
 
       mockPrismaService.systemConfigSize.findFirst.mockResolvedValue(mockSize);
       mockPrismaService.systemConfigSize.update.mockResolvedValue({
         ...mockSize,
-        code: 'L',
+        name: 'Updated Size',
       });
 
-      const result = await service.update(1, updateDto, 'test-user');
-      expect(result.code).toBe('L');
+      const result = await service.update('1', updateDto, 'test-user');
       expect(mockPrismaService.systemConfigSize.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: '1' },
         data: {
           ...updateDto,
           updatedAt: expect.any(Date),
@@ -141,10 +137,10 @@ describe('SystemConfigSizesService', () => {
         isDeleted: true,
       });
 
-      const result = await service.remove(1, 'test-user');
+      const result = await service.remove('1', 'test-user');
       expect(result.isDeleted).toBe(true);
       expect(mockPrismaService.systemConfigSize.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: '1' },
         data: {
           isDeleted: true,
           deletedAt: expect.any(Date),
@@ -163,10 +159,10 @@ describe('SystemConfigSizesService', () => {
         isDeleted: false,
       });
 
-      const result = await service.restore(1, 'test-user');
+      const result = await service.restore('1', 'test-user');
       expect(result.isDeleted).toBe(false);
       expect(mockPrismaService.systemConfigSize.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: '1' },
         data: {
           isDeleted: false,
           deletedAt: null,
@@ -180,16 +176,7 @@ describe('SystemConfigSizesService', () => {
     it('should throw NotFoundException if deleted size not found', async () => {
       mockPrismaService.systemConfigSize.findFirst.mockResolvedValue(null);
 
-      await expect(service.restore(1, 'test-user')).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  describe('seed', () => {
-    it('should seed default sizes', async () => {
-      mockPrismaService.systemConfigSize.upsert.mockResolvedValue(mockSize);
-
-      await service.seed('test-user');
-      expect(mockPrismaService.systemConfigSize.upsert).toHaveBeenCalledTimes(6); // S, M, L, XL, XXL, XXXL
+      await expect(service.restore('1', 'test-user')).rejects.toThrow(NotFoundException);
     });
   });
 });

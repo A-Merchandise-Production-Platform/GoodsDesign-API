@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma';
 import { CreateSystemConfigColorDto, UpdateSystemConfigColorDto } from './dto/system-config-color.dto';
 import { Prisma } from '@prisma/client';
-import { v4 as uuidv4 } from 'uuid';
 
 type SystemConfigColor = Prisma.SystemConfigColorGetPayload<{}>;
 

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SystemConfigBanksService } from './system-config-banks.service';
-import { PrismaService } from '../prisma';
+import { PrismaService } from '../../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { CreateSystemConfigBankDto, UpdateSystemConfigBankDto } from './dto/system-config-bank.dto';
 
@@ -114,14 +114,14 @@ describe('SystemConfigBanksService', () => {
     it('should return a bank if found', async () => {
       mockPrismaService.systemConfigBank.findFirst.mockResolvedValue(mockBank);
 
-      const result = await service.findOne(1);
+      const result = await service.findOne('1');
       expect(result).toEqual(mockBank);
     });
 
     it('should throw NotFoundException if bank not found', async () => {
       mockPrismaService.systemConfigBank.findFirst.mockResolvedValue(null);
 
-      await expect(service.findOne(1)).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('1')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -129,6 +129,10 @@ describe('SystemConfigBanksService', () => {
     it('should update a bank', async () => {
       const updateDto: UpdateSystemConfigBankDto = {
         name: 'Updated Bank',
+        code: 'UPD',
+        bin: '654321',
+        shortName: 'UpdBank',
+        logo: 'https://updated.com/logo.png',
       };
 
       mockPrismaService.systemConfigBank.findFirst.mockResolvedValue(mockBank);
@@ -137,10 +141,10 @@ describe('SystemConfigBanksService', () => {
         name: 'Updated Bank',
       });
 
-      const result = await service.update(1, updateDto, 'test-user');
+      const result = await service.update('1', updateDto, 'test-user');
       expect(result.name).toBe('Updated Bank');
       expect(mockPrismaService.systemConfigBank.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: '1' },
         data: {
           ...updateDto,
           updatedAt: expect.any(Date),
@@ -158,10 +162,10 @@ describe('SystemConfigBanksService', () => {
         isDeleted: true,
       });
 
-      const result = await service.remove(1, 'test-user');
+      const result = await service.remove('1', 'test-user');
       expect(result.isDeleted).toBe(true);
       expect(mockPrismaService.systemConfigBank.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: '1' },
         data: {
           isDeleted: true,
           deletedAt: expect.any(Date),
@@ -180,10 +184,10 @@ describe('SystemConfigBanksService', () => {
         isDeleted: false,
       });
 
-      const result = await service.restore(1, 'test-user');
+      const result = await service.restore('1', 'test-user');
       expect(result.isDeleted).toBe(false);
       expect(mockPrismaService.systemConfigBank.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: '1' },
         data: {
           isDeleted: false,
           deletedAt: null,
@@ -197,7 +201,7 @@ describe('SystemConfigBanksService', () => {
     it('should throw NotFoundException if deleted bank not found', async () => {
       mockPrismaService.systemConfigBank.findFirst.mockResolvedValue(null);
 
-      await expect(service.restore(1, 'test-user')).rejects.toThrow(NotFoundException);
+      await expect(service.restore('1', 'test-user')).rejects.toThrow(NotFoundException);
     });
   });
 });

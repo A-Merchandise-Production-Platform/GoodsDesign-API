@@ -25,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { GetUser } from '../../auth/decorators';
+import { User } from '@prisma/client';
 
 @ApiTags('System Config Colors')
 @Controller('system-config/colors')
@@ -41,9 +42,9 @@ export class SystemConfigColorsController {
   })
   create(
     @Body() createDto: CreateSystemConfigColorDto,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.colorsService.create(createDto, userId);
+    return this.colorsService.create(createDto, user?.id);
   }
 
   @Get()
@@ -84,9 +85,9 @@ export class SystemConfigColorsController {
   update(
     @Param('id', ParseIntPipe) id: string,
     @Body() updateDto: UpdateSystemConfigColorDto,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.colorsService.update(id, updateDto, userId);
+    return this.colorsService.update(id, updateDto, user?.id);
   }
 
   @Delete(':id')
@@ -98,9 +99,9 @@ export class SystemConfigColorsController {
   })
   remove(
     @Param('id', ParseIntPipe) id: string,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.colorsService.remove(id, userId);
+    return this.colorsService.remove(id, user?.id);
   }
 
   @Patch(':id/restore')
@@ -112,8 +113,8 @@ export class SystemConfigColorsController {
   })
   restore(
     @Param('id', ParseIntPipe) id: string,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.colorsService.restore(id, userId);
+    return this.colorsService.restore(id, user?.id);
   }
 }

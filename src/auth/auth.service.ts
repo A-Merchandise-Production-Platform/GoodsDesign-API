@@ -48,7 +48,7 @@ export class AuthService {
         })
 
         // Generate tokens
-        const tokens = await this.signTokens(user.id)
+        const tokens = await this.signTokens(user?.id)
 
         return {
             user: new UserResponseDto(user),
@@ -76,7 +76,7 @@ export class AuthService {
         }
 
         // Generate tokens
-        const tokens = await this.signTokens(user.id)
+        const tokens = await this.signTokens(user?.id)
 
         console.log(tokens)
 
@@ -110,7 +110,7 @@ export class AuthService {
     }
 
     async refreshTokens(refreshTokenDto: RefreshTokenDto, user: User) {
-        const storedToken = await this.redisService.getRefreshToken(user.id)
+        const storedToken = await this.redisService.getRefreshToken(user?.id)
 
         const validRefreshToken = this.jwtService.verifyAsync(refreshTokenDto.refreshToken, {
             secret: envConfig().jwt[TokenType.RefreshToken].secret
@@ -124,7 +124,7 @@ export class AuthService {
             throw new UnauthorizedException("Invalid refresh token")
         }
 
-        const tokens = await this.signTokens(user.id)
+        const tokens = await this.signTokens(user?.id)
 
         return {
             user: new UserResponseDto(user),

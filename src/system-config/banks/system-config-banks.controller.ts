@@ -25,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { GetUser } from '../../auth/decorators';
+import { User } from '@prisma/client';
 
 @ApiTags('System Config Banks')
 @Controller('system-config/banks')
@@ -41,9 +42,9 @@ export class SystemConfigBanksController {
   })
   create(
     @Body() createDto: CreateSystemConfigBankDto,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.banksService.create(createDto, userId);
+    return this.banksService.create(createDto, user?.id);
   }
 
   @Get()
@@ -84,9 +85,9 @@ export class SystemConfigBanksController {
   update(
     @Param('id', ParseIntPipe) id: string,
     @Body() updateDto: UpdateSystemConfigBankDto,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.banksService.update(id, updateDto, userId);
+    return this.banksService.update(id, updateDto, user?.id);
   }
 
   @Delete(':id')
@@ -98,9 +99,9 @@ export class SystemConfigBanksController {
   })
   remove(
     @Param('id', ParseIntPipe) id: string,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.banksService.remove(id, userId);
+    return this.banksService.remove(id, user?.id);
   }
 
   @Patch(':id/restore')
@@ -112,8 +113,8 @@ export class SystemConfigBanksController {
   })
   restore(
     @Param('id', ParseIntPipe) id: string,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.banksService.restore(id, userId);
+    return this.banksService.restore(id, user?.id);
   }
 }
