@@ -74,4 +74,55 @@ describe('Full System E2E Tests', () => {
       .get('/users/999')
       .expect(404);
   });
+
+  // New tests for system config bank CRUD operations
+  it('should create a new system config bank', () => {
+    return request(app.getHttpServer())
+      .post('/system-config/bank')
+      .send({ name: 'Bank A', config: { key: 'value' } })
+      .expect(201)
+      .then(response => {
+        expect(response.body).toHaveProperty('id');
+        expect(response.body.name).toBe('Bank A');
+        expect(response.body.config).toEqual({ key: 'value' });
+      });
+  });
+
+  it('should retrieve the created system config bank', () => {
+    return request(app.getHttpServer())
+      .get('/system-config/bank/1')
+      .expect(200)
+      .then(response => {
+        expect(response.body).toHaveProperty('id', 1);
+        expect(response.body.name).toBe('Bank A');
+        expect(response.body.config).toEqual({ key: 'value' });
+      });
+  });
+
+  it('should update the system config bank', () => {
+    return request(app.getHttpServer())
+      .put('/system-config/bank/1')
+      .send({ name: 'Bank B', config: { key: 'newValue' } })
+      .expect(200)
+      .then(response => {
+        expect(response.body).toHaveProperty('id', 1);
+        expect(response.body.name).toBe('Bank B');
+        expect(response.body.config).toEqual({ key: 'newValue' });
+      });
+  });
+
+  it('should delete the system config bank', () => {
+    return request(app.getHttpServer())
+      .delete('/system-config/bank/1')
+      .expect(200)
+      .then(response => {
+        expect(response.body).toHaveProperty('id', 1);
+      });
+  });
+
+  it('should return 404 for a non-existing system config bank', () => {
+    return request(app.getHttpServer())
+      .get('/system-config/bank/999')
+      .expect(404);
+  });
 });
