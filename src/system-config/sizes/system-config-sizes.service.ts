@@ -25,7 +25,7 @@ export class SystemConfigSizesService {
     });
   }
 
-  async findOne(id: number): Promise<SystemConfigSize> {
+  async findOne(id: string): Promise<SystemConfigSize> {
     const size = await this.prisma.systemConfigSize.findFirst({
       where: { id, isDeleted: false },
     });
@@ -38,7 +38,7 @@ export class SystemConfigSizesService {
   }
 
   async update(
-    id: number,
+    id: string,
     updateDto: UpdateSystemConfigSizeDto,
     userId?: string,
   ): Promise<SystemConfigSize> {
@@ -54,7 +54,7 @@ export class SystemConfigSizesService {
     });
   }
 
-  async remove(id: number, userId?: string): Promise<SystemConfigSize> {
+  async remove(id: string, userId?: string): Promise<SystemConfigSize> {
     await this.findOne(id);
 
     return this.prisma.systemConfigSize.update({
@@ -67,7 +67,7 @@ export class SystemConfigSizesService {
     });
   }
 
-  async restore(id: number, userId?: string): Promise<SystemConfigSize> {
+  async restore(id: string, userId?: string): Promise<SystemConfigSize> {
     const size = await this.prisma.systemConfigSize.findFirst({
       where: { id, isDeleted: true },
     });

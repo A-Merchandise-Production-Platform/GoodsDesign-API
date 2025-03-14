@@ -14,6 +14,7 @@ import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo"
 import { join } from "path"
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default"
 import { BlankVariancesModule } from "./blank-variances/blank-variances.module"
+import GraphQLJSON from "graphql-type-json"
 // import { TestModule } from './test/test.module';
 
 @Module({
@@ -22,6 +23,7 @@ import { BlankVariancesModule } from "./blank-variances/blank-variances.module"
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
             autoSchemaFile: join(process.cwd(), "src/schema.gql"),
+            resolvers: { JSON: GraphQLJSON },
             playground: false,
             plugins: [ApolloServerPluginLandingPageLocalDefault()],
             sortSchema: true

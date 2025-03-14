@@ -1,12 +1,9 @@
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, Int } from '@nestjs/graphql';
 import { JsonValue } from '@prisma/client/runtime/library';
 import GraphQLJSON from 'graphql-type-json';
 
-@ObjectType()
-export class BlankVariance {
-  @Field(() => ID)
-  id: string;
-
+@InputType()
+export class CreateBlankVarianceDto {
   @Field()
   productId: string;
 

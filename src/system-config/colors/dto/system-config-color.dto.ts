@@ -30,7 +30,7 @@ export class UpdateSystemConfigColorDto {
 
 export class SystemConfigColorResponseDto {
   @ApiProperty()
-  id: number;
+  id: string;
 
   @ApiProperty()
   name: string;

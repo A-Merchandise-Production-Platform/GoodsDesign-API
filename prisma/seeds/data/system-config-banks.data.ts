@@ -1,5 +1,4 @@
 interface Bank {
-    id: number;
     name: string;
     code: string;
     bin: string;
@@ -17,7 +16,6 @@ interface Bank {
   export const banksData: BanksData = {
     banks: [
       {
-        id: 17,
         name: "Ngân hàng TMCP Công thương Việt Nam",
         code: "ICB",
         bin: "970415",
@@ -28,7 +26,6 @@ interface Bank {
         swiftCode: "ICBVVNVX",
       },
       {
-        id: 43,
         name: "Ngân hàng TMCP Ngoại Thương Việt Nam",
         code: "VCB",
         bin: "970436",
@@ -39,7 +36,6 @@ interface Bank {
         swiftCode: "BFTVVNVX",
       },
       {
-        id: 4,
         name: "Ngân hàng TMCP Đầu tư và Phát triển Việt Nam",
         code: "BIDV",
         bin: "970418",
@@ -50,7 +46,6 @@ interface Bank {
         swiftCode: "BIDVVNVX",
       },
       {
-        id: 42,
         name: "Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam",
         code: "VBA",
         bin: "970405",
@@ -61,7 +56,6 @@ interface Bank {
         swiftCode: "VBAAVNVX",
       },
       {
-        id: 26,
         name: "Ngân hàng TMCP Phương Đông",
         code: "OCB",
         bin: "970448",
@@ -72,7 +66,6 @@ interface Bank {
         swiftCode: "ORCOVNVX",
       },
       {
-        id: 21,
         name: "Ngân hàng TMCP Quân đội",
         code: "MB",
         bin: "970422",
@@ -83,7 +76,6 @@ interface Bank {
         swiftCode: "MSCBVNVX",
       },
       {
-        id: 38,
         name: "Ngân hàng TMCP Kỹ thương Việt Nam",
         code: "TCB",
         bin: "970407",
@@ -94,7 +86,6 @@ interface Bank {
         swiftCode: "VTCBVNVX",
       },
       {
-        id: 2,
         name: "Ngân hàng TMCP Á Châu",
         code: "ACB",
         bin: "970416",
@@ -105,7 +96,6 @@ interface Bank {
         swiftCode: "ASCBVNVX",
       },
       {
-        id: 47,
         name: "Ngân hàng TMCP Việt Nam Thịnh Vượng",
         code: "VPB",
         bin: "970432",
@@ -116,7 +106,6 @@ interface Bank {
         swiftCode: "VPBKVNVX",
       },
       {
-        id: 39,
         name: "Ngân hàng TMCP Tiên Phong",
         code: "TPB",
         bin: "970423",
@@ -127,7 +116,6 @@ interface Bank {
         swiftCode: "TPBVVNVX",
       },
       {
-        id: 36,
         name: "Ngân hàng TMCP Sài Gòn Thương Tín",
         code: "STB",
         bin: "970403",
@@ -138,7 +126,6 @@ interface Bank {
         swiftCode: "SGTTVNVX",
       },
       {
-        id: 12,
         name: "Ngân hàng TMCP Phát triển Thành phố Hồ Chí Minh",
         code: "HDB",
         bin: "970437",
@@ -149,7 +136,6 @@ interface Bank {
         swiftCode: "HDBCVNVX",
       },
       {
-        id: 45,
         name: "Ngân hàng TMCP Quốc tế Việt Nam",
         code: "VIB",
         bin: "970441",
@@ -160,7 +146,6 @@ interface Bank {
         swiftCode: "VNIBVNVX",
       },
       {
-        id: 35,
         name: "Ngân hàng TMCP Sài Gòn - Hà Nội",
         code: "SHB",
         bin: "970443",
@@ -171,7 +156,6 @@ interface Bank {
         swiftCode: "SHBAVNVX",
       },
       {
-        id: 10,
         name: "Ngân hàng TMCP Xuất Nhập khẩu Việt Nam",
         code: "EIB",
         bin: "970431",
@@ -182,7 +166,6 @@ interface Bank {
         swiftCode: "EBVIVNVX",
       },
       {
-        id: 22,
         name: "Ngân hàng TMCP Hàng Hải",
         code: "MSB",
         bin: "970426",
@@ -193,7 +176,6 @@ interface Bank {
         swiftCode: "MCOBVNVX",
       },
       {
-        id: 53,
         name: "TMCP Việt Nam Thịnh Vượng - Ngân hàng số CAKE by VPBank",
         code: "CAKE",
         bin: "546034",

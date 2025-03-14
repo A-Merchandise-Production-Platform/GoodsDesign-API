@@ -70,7 +70,7 @@ export class SystemConfigBanksController {
     description: 'The bank has been found.',
     type: SystemConfigBankResponseDto,
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.banksService.findOne(id);
   }
 
@@ -82,7 +82,7 @@ export class SystemConfigBanksController {
     type: SystemConfigBankResponseDto,
   })
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateDto: UpdateSystemConfigBankDto,
     @GetUser('id') userId: string,
   ) {
@@ -97,7 +97,7 @@ export class SystemConfigBanksController {
     type: SystemConfigBankResponseDto,
   })
   remove(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @GetUser('id') userId: string,
   ) {
     return this.banksService.remove(id, userId);
@@ -111,7 +111,7 @@ export class SystemConfigBanksController {
     type: SystemConfigBankResponseDto,
   })
   restore(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @GetUser('id') userId: string,
   ) {
     return this.banksService.restore(id, userId);

@@ -57,7 +57,7 @@ export class UpdateSystemConfigBankDto extends CreateSystemConfigBankDto {
 
 export class SystemConfigBankResponseDto {
   @ApiProperty()
-  id: number;
+  id: string;
 
   @ApiProperty()
   name: string;

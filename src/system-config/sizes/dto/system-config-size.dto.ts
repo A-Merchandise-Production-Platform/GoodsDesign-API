@@ -21,7 +21,7 @@ export class UpdateSystemConfigSizeDto {
 
 export class SystemConfigSizeResponseDto {
   @ApiProperty()
-  id: number;
+  id: string;
 
   @ApiProperty()
   code: string;

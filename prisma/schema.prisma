@@ -102,7 +102,7 @@ model Product {
 }
 
 model SystemConfigBank {
-  id               Int      @id @default(autoincrement())
+  id               String   @id @default(uuid())
   name             String
   code             String   @unique
   bin              String   @unique
@@ -126,7 +126,7 @@ model SystemConfigBank {
 }
 
 model SystemConfigColor {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(uuid())
   name       String   @unique
   code       String   @unique
   isActive   Boolean  @default(true)
@@ -142,7 +142,7 @@ model SystemConfigColor {
 }
 
 model SystemConfigSize {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(uuid())
   code       String   @unique
   isActive   Boolean  @default(true)
   isDeleted  Boolean  @default(false)

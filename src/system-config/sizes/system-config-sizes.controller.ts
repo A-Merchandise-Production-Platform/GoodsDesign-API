@@ -70,7 +70,7 @@ export class SystemConfigSizesController {
     description: 'The size has been found.',
     type: SystemConfigSizeResponseDto,
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.sizesService.findOne(id);
   }
 
@@ -82,7 +82,7 @@ export class SystemConfigSizesController {
     type: SystemConfigSizeResponseDto,
   })
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateDto: UpdateSystemConfigSizeDto,
     @GetUser('id') userId: string,
   ) {
@@ -97,7 +97,7 @@ export class SystemConfigSizesController {
     type: SystemConfigSizeResponseDto,
   })
   remove(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @GetUser('id') userId: string,
   ) {
     return this.sizesService.remove(id, userId);
@@ -111,7 +111,7 @@ export class SystemConfigSizesController {
     type: SystemConfigSizeResponseDto,
   })
   restore(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @GetUser('id') userId: string,
   ) {
     return this.sizesService.restore(id, userId);

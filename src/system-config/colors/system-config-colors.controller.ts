@@ -70,7 +70,7 @@ export class SystemConfigColorsController {
     description: 'The color has been found.',
     type: SystemConfigColorResponseDto,
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.colorsService.findOne(id);
   }
 
@@ -82,7 +82,7 @@ export class SystemConfigColorsController {
     type: SystemConfigColorResponseDto,
   })
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateDto: UpdateSystemConfigColorDto,
     @GetUser('id') userId: string,
   ) {
@@ -97,7 +97,7 @@ export class SystemConfigColorsController {
     type: SystemConfigColorResponseDto,
   })
   remove(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @GetUser('id') userId: string,
   ) {
     return this.colorsService.remove(id, userId);
@@ -111,7 +111,7 @@ export class SystemConfigColorsController {
     type: SystemConfigColorResponseDto,
   })
   restore(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @GetUser('id') userId: string,
   ) {
     return this.colorsService.restore(id, userId);
