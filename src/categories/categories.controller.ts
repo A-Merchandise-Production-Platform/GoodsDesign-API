@@ -14,13 +14,15 @@ import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger"
 import { CategoriesService } from "./categories.service"
 import { CreateCategoryDto, UpdateCategoryDto } from "./dto"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
-import { GetUser } from "../auth/decorators"
+import { Auth, GetUser } from "../auth/decorators"
 import { CategoryEntity } from "src/categories/entities/categories.entity"
+import { User } from "@prisma/client"
 
 @Controller("categories")
 @ApiTags("Categories")
-// @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+// // @UseGuards(JwtAuthGuard)
+// @ApiBearerAuth()
+@Auth()
 export class CategoriesController {
     constructor(private readonly categoriesService: CategoriesService) {}
 
@@ -28,9 +30,9 @@ export class CategoriesController {
     @ApiOperation({ summary: "Create a new category" })
     async create(
         @Body() createCategoryDto: CreateCategoryDto,
-        @GetUser("id") userId: string
+        @GetUser() user: User
     ): Promise<CategoryEntity> {
-        return this.categoriesService.create(createCategoryDto, userId)
+        return this.categoriesService.create(createCategoryDto, user.id)
     }
 
     @Get()
