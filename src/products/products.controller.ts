@@ -43,10 +43,7 @@ export class ProductsController {
     })
     @ApiResponse({ status: 400, description: "Bad Request - Invalid input data" })
     @ApiResponse({ status: 401, description: "Unauthorized" })
-    async create(
-        @Body() createProductDto: CreateProductDto,
-        @GetUser("id") userId: string
-    ): Promise<ProductResponseDto> {
+    async create(@Body() createProductDto: CreateProductDto, @GetUser("id") userId: string) {
         return this.productsService.create(createProductDto, userId)
     }
 
@@ -70,7 +67,7 @@ export class ProductsController {
     async findAll(
         @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
         includeDeleted = false
-    ): Promise<ProductResponseDto[]> {
+    ) {
         return this.productsService.findAll(includeDeleted)
     }
 
@@ -100,7 +97,7 @@ export class ProductsController {
         @Param("categoryId") categoryId: string,
         @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
         includeDeleted = false
-    ): Promise<ProductResponseDto[]> {
+    ) {
         return this.productsService.findByCategory(categoryId, includeDeleted)
     }
 
@@ -131,7 +128,7 @@ export class ProductsController {
         @Param("id") id: string,
         @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
         includeDeleted = false
-    ): Promise<ProductResponseDto> {
+    ) {
         return this.productsService.findOne(id, includeDeleted)
     }
 
@@ -157,7 +154,7 @@ export class ProductsController {
         @Param("id") id: string,
         @Body() updateProductDto: UpdateProductDto,
         @GetUser("id") userId: string
-    ): Promise<ProductResponseDto> {
+    ) {
         return this.productsService.update(id, updateProductDto, userId)
     }
 
@@ -178,10 +175,7 @@ export class ProductsController {
     })
     @ApiResponse({ status: 401, description: "Unauthorized" })
     @ApiResponse({ status: 404, description: "Product not found" })
-    async remove(
-        @Param("id") id: string,
-        @GetUser("id") userId: string
-    ): Promise<ProductResponseDto> {
+    async remove(@Param("id") id: string, @GetUser("id") userId: string) {
         return this.productsService.remove(id, userId)
     }
 
@@ -202,10 +196,7 @@ export class ProductsController {
     })
     @ApiResponse({ status: 401, description: "Unauthorized" })
     @ApiResponse({ status: 404, description: "Product not found or not deleted" })
-    async restore(
-        @Param("id") id: string,
-        @GetUser("id") userId: string
-    ): Promise<ProductResponseDto> {
+    async restore(@Param("id") id: string, @GetUser("id") userId: string) {
         return this.productsService.restore(id, userId)
     }
 
@@ -226,10 +217,7 @@ export class ProductsController {
     })
     @ApiResponse({ status: 401, description: "Unauthorized" })
     @ApiResponse({ status: 404, description: "Product not found" })
-    async toggleActive(
-        @Param("id") id: string,
-        @GetUser("id") userId: string
-    ): Promise<ProductResponseDto> {
+    async toggleActive(@Param("id") id: string, @GetUser("id") userId: string) {
         return this.productsService.toggleActive(id, userId)
     }
 }

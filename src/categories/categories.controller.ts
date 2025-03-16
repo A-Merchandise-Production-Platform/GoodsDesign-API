@@ -12,9 +12,10 @@ import {
 } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger"
 import { CategoriesService } from "./categories.service"
-import { CreateCategoryDto, UpdateCategoryDto, CategoryResponseDto } from "./dto"
+import { CreateCategoryDto, UpdateCategoryDto } from "./dto"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
 import { GetUser } from "../auth/decorators"
+import { CategoryEntity } from "src/categories/entities/categories.entity"
 
 @Controller("categories")
 @ApiTags("Categories")
@@ -28,7 +29,7 @@ export class CategoriesController {
     async create(
         @Body() createCategoryDto: CreateCategoryDto,
         @GetUser("id") userId: string
-    ): Promise<CategoryResponseDto> {
+    ): Promise<CategoryEntity> {
         return this.categoriesService.create(createCategoryDto, userId)
     }
 
@@ -43,7 +44,7 @@ export class CategoriesController {
     async findAll(
         @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
         includeDeleted = false
-    ): Promise<CategoryResponseDto[]> {
+    ): Promise<CategoryEntity[]> {
         return this.categoriesService.findAll(includeDeleted)
     }
 
@@ -59,7 +60,7 @@ export class CategoriesController {
         @Param("id") id: string,
         @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
         includeDeleted = false
-    ): Promise<CategoryResponseDto> {
+    ): Promise<CategoryEntity> {
         return this.categoriesService.findOne(id, includeDeleted)
     }
 
@@ -69,25 +70,19 @@ export class CategoriesController {
         @Param("id") id: string,
         @Body() updateCategoryDto: UpdateCategoryDto,
         @GetUser("id") userId: string
-    ): Promise<CategoryResponseDto> {
+    ): Promise<CategoryEntity> {
         return this.categoriesService.update(id, updateCategoryDto, userId)
     }
 
     @Delete(":id")
     @ApiOperation({ summary: "Soft delete a category" })
-    async remove(
-        @Param("id") id: string,
-        @GetUser("id") userId: string
-    ): Promise<CategoryResponseDto> {
+    async remove(@Param("id") id: string, @GetUser("id") userId: string): Promise<CategoryEntity> {
         return this.categoriesService.remove(id, userId)
     }
 
     @Patch(":id/restore")
     @ApiOperation({ summary: "Restore a deleted category" })
-    async restore(
-        @Param("id") id: string,
-        @GetUser("id") userId: string
-    ): Promise<CategoryResponseDto> {
+    async restore(@Param("id") id: string, @GetUser("id") userId: string): Promise<CategoryEntity> {
         return this.categoriesService.restore(id, userId)
     }
 
@@ -96,7 +91,7 @@ export class CategoriesController {
     async toggleActive(
         @Param("id") id: string,
         @GetUser("id") userId: string
-    ): Promise<CategoryResponseDto> {
+    ): Promise<CategoryEntity> {
         return this.categoriesService.toggleActive(id, userId)
     }
 }
