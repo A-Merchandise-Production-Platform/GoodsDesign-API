@@ -3,25 +3,25 @@
 # ------------------------------------------------------
 
 type BlankVariance {
-  blankPrice: Int!
-  id: ID!
-  information: JSON!
-  productId: String!
+    blankPrice: Int!
+    id: ID!
+    information: JSON!
+    productId: String!
 }
 
 type Category {
-  createdAt: DateTime!
-  createdBy: String
-  deletedAt: DateTime
-  deletedBy: String
-  description: String
-  id: ID!
-  imageUrl: String
-  isActive: Boolean!
-  isDeleted: Boolean!
-  name: String!
-  updatedAt: DateTime
-  updatedBy: String
+    createdAt: DateTime!
+    createdBy: String
+    deletedAt: DateTime
+    deletedBy: String
+    description: String
+    id: ID!
+    imageUrl: String
+    isActive: Boolean!
+    isDeleted: Boolean!
+    name: String!
+    updatedAt: DateTime
+    updatedBy: String
 }
 
 """
@@ -30,22 +30,22 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type GraphQLUser {
-  createdAt: DateTime!
-  createdBy: String
-  dateOfBirth: DateTime
-  deletedAt: DateTime
-  deletedBy: String
-  email: String
-  gender: Boolean!
-  id: ID!
-  imageUrl: String
-  isActive: Boolean!
-  isDeleted: Boolean!
-  name: String
-  phoneNumber: String
-  role: Roles!
-  updatedAt: DateTime
-  updatedBy: String
+    createdAt: DateTime!
+    createdBy: String
+    dateOfBirth: DateTime
+    deletedAt: DateTime
+    deletedBy: String
+    email: String
+    gender: Boolean!
+    id: ID!
+    imageUrl: String
+    isActive: Boolean!
+    isDeleted: Boolean!
+    name: String
+    phoneNumber: String
+    role: Roles!
+    updatedAt: DateTime
+    updatedBy: String
 }
 
 """
@@ -54,121 +54,125 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 scalar JSON
 
 type MonthlyUserGrowth {
-  month: String!
-  users: Int!
+    month: String!
+    users: Int!
 }
 
 type PaginatedUsers {
-  items: [GraphQLUser!]!
-  meta: PaginationMeta!
+    items: [GraphQLUser!]!
+    meta: PaginationMeta!
 }
 
 input PaginationInput {
-  limit: Int! = 10
-  page: Int! = 1
+    limit: Int! = 10
+    page: Int! = 1
 }
 
 type PaginationMeta {
-  limit: Int!
-  page: Int!
-  total: Int!
-  totalPages: Int!
+    limit: Int!
+    page: Int!
+    total: Int!
+    totalPages: Int!
 }
 
 type Product {
-  category: Category
-  categoryId: String!
-  createdAt: DateTime!
-  createdBy: String
-  deletedAt: DateTime
-  deletedBy: String
-  description: String
-  id: ID!
-  imageUrl: String
-  isActive: Boolean!
-  isDeleted: Boolean!
-  model3DUrl: String
-  name: String!
-  updatedAt: DateTime
-  updatedBy: String
+    category: Category
+    categoryId: String!
+    createdAt: DateTime!
+    createdBy: String
+    deletedAt: DateTime
+    deletedBy: String
+    description: String
+    id: ID!
+    imageUrl: String
+    isActive: Boolean!
+    isDeleted: Boolean!
+    model3DUrl: String
+    name: String!
+    updatedAt: DateTime
+    updatedBy: String
 }
 
 type Query {
-  blankVariance(id: String!): BlankVariance
-  blankVariances: [BlankVariance!]!
-  categories: [Category!]!
-  products: [Product!]!
-  systemConfigBanks: [SystemConfigBank!]!
-  user(id: String!): GraphQLUser!
-  userAnalytics: UserAnalytics!
-  users(filter: UserFilter): PaginatedUsers!
+    blankVariance(id: String!): BlankVariance
+    blankVariances: [BlankVariance!]!
+    categories: [Category!]!
+    products: [Product!]!
+    systemConfigBanks: [SystemConfigBank!]!
+    user(id: String!): GraphQLUser!
+    userAnalytics: UserAnalytics!
+    users(filter: UserFilter): PaginatedUsers!
 }
 
 type RoleDistribution {
-  count: Int!
-  role: String!
+    count: Int!
+    role: String!
 }
 
-"""User roles"""
+"""
+User roles
+"""
 enum Roles {
-  ADMIN
-  CUSTOMER
-  FACTORYOWNER
-  MANAGER
-  STAFF
+    ADMIN
+    CUSTOMER
+    FACTORYOWNER
+    MANAGER
+    STAFF
 }
 
-"""Sort order"""
+"""
+Sort order
+"""
 enum SortOrder {
-  ASC
-  DESC
+    ASC
+    DESC
 }
 
 type SystemConfigBank {
-  bin: String!
-  code: String!
-  createdAt: DateTime!
-  createdBy: String
-  deletedAt: DateTime
-  deletedBy: String
-  id: ID!
-  isActive: Boolean!
-  isDeleted: Boolean!
-  isTransfer: Boolean!
-  logo: String!
-  lookupSupported: Boolean!
-  name: String!
-  shortName: String!
-  support: Int!
-  swiftCode: String
-  transferSupported: Boolean!
-  updatedAt: DateTime
-  updatedBy: String
+    bin: String!
+    code: String!
+    createdAt: DateTime!
+    createdBy: String
+    deletedAt: DateTime
+    deletedBy: String
+    id: ID!
+    isActive: Boolean!
+    isDeleted: Boolean!
+    isTransfer: Boolean!
+    logo: String!
+    lookupSupported: Boolean!
+    name: String!
+    shortName: String!
+    support: Int!
+    swiftCode: String
+    transferSupported: Boolean!
+    updatedAt: DateTime
+    updatedBy: String
 }
 
 type UserAnalytics {
-  monthlyGrowth: [MonthlyUserGrowth!]!
-  roleDistribution: [RoleDistribution!]!
-  stats: UserStats!
+    monthlyGrowth: [MonthlyUserGrowth!]!
+    roleDistribution: [RoleDistribution!]!
+    stats: UserStats!
 }
 
 input UserFilter {
-  email: String
-  isActive: Boolean
-  pagination: PaginationInput
-  role: Roles
-  sort: UserSort
+    email: String
+    isActive: Boolean
+    pagination: PaginationInput
+    role: Roles
+    sort: UserSort
 }
 
 input UserSort {
-  createdAt: SortOrder
-  email: SortOrder
-  name: SortOrder
-  updatedAt: SortOrder
+    createdAt: SortOrder
+    email: SortOrder
+    name: SortOrder
+    updatedAt: SortOrder
 }
 
 type UserStats {
-  activeUsers: Int!
-  newUsersLast30Days: Int!
-  totalUsers: Int!
+    activeUsers: Int!
+    newUsersLast30Days: Int!
+    totalUsers: Int!
 }

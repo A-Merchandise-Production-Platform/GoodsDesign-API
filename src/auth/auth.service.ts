@@ -75,6 +75,8 @@ export class AuthService {
         // Generate tokens
         const tokens = await this.signTokens(user?.id)
 
+        console.log(tokens)
+
         return {
             user: new UserResponseDto(user),
             ...tokens
