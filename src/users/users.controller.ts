@@ -10,7 +10,7 @@ import {
     HttpStatus
 } from "@nestjs/common"
 import { UsersService } from "./users.service"
-import { CreateUserDto, UpdateUserDto, UserResponseDto } from "./dto"
+import { CreateUserDto, UpdateUserDto } from "./dto"
 import {
     ApiTags,
     ApiOperation,
@@ -21,8 +21,9 @@ import {
     ApiBearerAuth
 } from "@nestjs/swagger"
 import { Auth } from "../auth/decorators/auth.decorator"
-import { Roles, User } from "@prisma/client"
+import { Roles } from "@prisma/client"
 import { CurrentUser } from "src/auth/decorators/current-user.decorator"
+import { UserEntity } from "./entities/users.entity"
 
 @ApiTags("Users")
 @Controller("users")
@@ -36,13 +37,13 @@ export class UsersController {
     @ApiResponse({
         status: 201,
         description: "User has been successfully created.",
-        type: UserResponseDto
+        type: UserEntity
     })
     @ApiBadRequestResponse({ description: "Invalid input data." })
     create(
         @Body() createUserDto: CreateUserDto,
-        @CurrentUser() user: User
-    ): Promise<UserResponseDto> {
+        @CurrentUser() user: UserEntity
+    ): Promise<UserEntity> {
         return this.usersService.create(createUserDto, user)
     }
 
@@ -52,9 +53,9 @@ export class UsersController {
     // @ApiResponse({
     //     status: 200,
     //     description: "List of all active users.",
-    //     type: [UserResponseDto]
+    //     type: [UserEntity]
     // })
-    // findAll(@CurrentUser() user: User): Promise<UserResponseDto[]> {
+    // findAll(@CurrentUser() user: UserEntity): Promise<UserEntity[]> {
     //     return this.usersService.findAll(user)
     // }
 
@@ -65,10 +66,10 @@ export class UsersController {
     // @ApiResponse({
     //     status: 200,
     //     description: "The found user.",
-    //     type: UserResponseDto
+    //     type: UserEntity
     // })
     // @ApiNotFoundResponse({ description: "User not found." })
-    // findOne(@Param("id") id: string): Promise<UserResponseDto> {
+    // findOne(@Param("id") id: string): Promise<UserEntity> {
     //     return this.usersService.findOne(id)
     // }
 
@@ -79,15 +80,15 @@ export class UsersController {
     @ApiResponse({
         status: 200,
         description: "User has been successfully updated.",
-        type: UserResponseDto
+        type: UserEntity
     })
     @ApiNotFoundResponse({ description: "User not found." })
     @ApiBadRequestResponse({ description: "Invalid input data." })
     update(
         @Param("id") id: string,
         @Body() updateUserDto: UpdateUserDto,
-        @CurrentUser() user: User
-    ): Promise<UserResponseDto> {
+        @CurrentUser() user: UserEntity
+    ): Promise<UserEntity> {
         return this.usersService.update(id, updateUserDto, user)
     }
 
@@ -99,10 +100,10 @@ export class UsersController {
     @ApiResponse({
         status: 200,
         description: "User has been successfully deleted.",
-        type: UserResponseDto
+        type: UserEntity
     })
     @ApiNotFoundResponse({ description: "User not found." })
-    remove(@Param("id") id: string, @CurrentUser() user: User): Promise<UserResponseDto> {
+    remove(@Param("id") id: string, @CurrentUser() user: UserEntity): Promise<UserEntity> {
         return this.usersService.remove(id, user)
     }
 }

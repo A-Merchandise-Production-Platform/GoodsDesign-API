@@ -2,10 +2,11 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type BlankVariance {
+type BlankVariancesEntity {
   blankPrice: Int!
   id: ID!
   information: JSON!
+  product: ProductEntity
   productId: String!
 }
 
@@ -30,53 +31,29 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type GraphQLUser {
-  createdAt: DateTime!
-  createdBy: String
-  dateOfBirth: DateTime
-  deletedAt: DateTime
-  deletedBy: String
-  email: String
-  gender: Boolean!
-  id: ID!
-  imageUrl: String
-  isActive: Boolean!
-  isDeleted: Boolean!
-  name: String
-  phoneNumber: String
-  role: Roles!
-  updatedAt: DateTime
-  updatedBy: String
-}
-
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
 
-type MonthlyUserGrowth {
-  month: String!
-  users: Int!
-}
-
 type PaginatedUsers {
-  items: [GraphQLUser!]!
+  items: [UserEntity!]!
   meta: PaginationMeta!
 }
 
 input PaginationInput {
-  limit: Int! = 10
-  page: Int! = 1
+  limit: Float! = 10
+  page: Float! = 1
 }
 
 type PaginationMeta {
-  limit: Int!
-  page: Int!
-  total: Int!
-  totalPages: Int!
+  limit: Float!
+  page: Float!
+  total: Float!
+  totalPages: Float!
 }
 
-type Product {
+type ProductEntity {
   category: CategoryEntity
   categoryId: String!
   createdAt: DateTime!
@@ -95,20 +72,15 @@ type Product {
 }
 
 type Query {
-  blankVariance(id: String!): BlankVariance
-  blankVariances: [BlankVariance!]!
+  blankVariance(id: String!): BlankVariancesEntity
+  blankVariances: [BlankVariancesEntity!]!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
-  products: [Product!]!
+  products: [ProductEntity!]!
   systemConfigBanks: [SystemConfigBank!]!
-  user(id: String!): GraphQLUser!
-  userAnalytics: UserAnalytics!
+  user(id: String!): UserEntity!
+  userAnalytics: UserEntity!
   users(filter: UserFilter): PaginatedUsers!
-}
-
-type RoleDistribution {
-  count: Int!
-  role: String!
 }
 
 """User roles"""
@@ -120,10 +92,9 @@ enum Roles {
   STAFF
 }
 
-"""Sort order"""
-enum SortOrder {
-  ASC
-  DESC
+input SortInput {
+  createdAt: String
+  email: String
 }
 
 type SystemConfigBank {
@@ -148,10 +119,23 @@ type SystemConfigBank {
   updatedBy: String
 }
 
-type UserAnalytics {
-  monthlyGrowth: [MonthlyUserGrowth!]!
-  roleDistribution: [RoleDistribution!]!
-  stats: UserStats!
+type UserEntity {
+  createdAt: DateTime!
+  createdBy: String
+  dateOfBirth: DateTime
+  deletedAt: DateTime
+  deletedBy: String
+  email: String
+  gender: Boolean!
+  id: ID!
+  imageUrl: String
+  isActive: Boolean!
+  isDeleted: Boolean!
+  name: String
+  phoneNumber: String
+  role: Roles!
+  updatedAt: DateTime
+  updatedBy: String
 }
 
 input UserFilter {
@@ -159,18 +143,5 @@ input UserFilter {
   isActive: Boolean
   pagination: PaginationInput
   role: Roles
-  sort: UserSort
-}
-
-input UserSort {
-  createdAt: SortOrder
-  email: SortOrder
-  name: SortOrder
-  updatedAt: SortOrder
-}
-
-type UserStats {
-  activeUsers: Int!
-  newUsersLast30Days: Int!
-  totalUsers: Int!
+  sort: SortInput
 }

@@ -3,20 +3,21 @@ import { PassportStrategy } from "@nestjs/passport"
 import { ExtractJwt, Strategy } from "passport-jwt"
 import { PrismaService } from "../../prisma/prisma.service"
 import { envConfig, TokenType } from "src/dynamic-modules"
+import { UserEntity } from "src/users/entities/users.entity"
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
     constructor(private readonly prisma: PrismaService) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            ignoreExpiration: true,
+            ignoreExpiration: false,
             secretOrKey: envConfig().jwt[TokenType.AccessToken].secret
         })
     }
 
-    async validate(payload: { userId: string }) {
+    async validate(payload: { sub: string }) {
         const user = await this.prisma.user.findUnique({
-            where: { id: payload.userId }
+            where: { id: payload.sub }
         })
 
         if (!user || user.isDeleted) {
@@ -27,6 +28,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
             throw new UnauthorizedException("User is not active")
         }
 
-        return user
+        return new UserEntity(user)
     }
 }

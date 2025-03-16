@@ -1,20 +1,20 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
 import { PrismaService } from "../prisma/prisma.service"
-import { CreateUserDto, UpdateUserDto, UserResponseDto } from "./dto"
-import { User, Roles } from "@prisma/client"
+import { CreateUserDto, UpdateUserDto } from "./dto"
+import { Roles } from "@prisma/client"
 import { UserFilter } from "./models/user.model"
 import { getRolesBelowOrEqual } from "../utils/role.utils"
-import { UserAnalytics } from "./models/user-analytics.model"
+import { UserEntity } from "./entities/users.entity"
 
 @Injectable()
 export class UsersService {
     constructor(private prisma: PrismaService) {}
 
-    private toUserResponse(user: User): UserResponseDto {
-        return new UserResponseDto(user)
+    private toUserEntity(user: any): UserEntity {
+        return new UserEntity(user)
     }
 
-    async create(createUserDto: CreateUserDto, currentUser: User): Promise<UserResponseDto> {
+    async create(createUserDto: CreateUserDto, currentUser: UserEntity): Promise<UserEntity> {
         const user = await this.prisma.user.create({
             data: {
                 ...createUserDto,
@@ -23,10 +23,10 @@ export class UsersService {
                 dateOfBirth: createUserDto.dateOfBirth ? new Date(createUserDto.dateOfBirth) : null
             }
         })
-        return this.toUserResponse(user)
+        return this.toUserEntity(user)
     }
 
-    async findAll(user: User, filter?: UserFilter) {
+    async findAll(user: UserEntity, filter?: UserFilter) {
         const where: any = { isDeleted: false }
         const allowedRoles = getRolesBelowOrEqual(user.role)
 
@@ -80,7 +80,7 @@ export class UsersService {
         })
 
         return {
-            items: users,
+            items: users.map((user) => this.toUserEntity(user)),
             meta: {
                 total,
                 page,
@@ -90,7 +90,7 @@ export class UsersService {
         }
     }
 
-    async findOne(id: string, currentUser: User): Promise<UserResponseDto> {
+    async findOne(id: string, currentUser: UserEntity): Promise<UserEntity> {
         const user = await this.prisma.user.findFirst({
             where: { id, isDeleted: false }
         })
@@ -105,14 +105,14 @@ export class UsersService {
             throw new ForbiddenException("You are not authorized to access this resource")
         }
 
-        return this.toUserResponse(user)
+        return this.toUserEntity(user)
     }
 
     async update(
         id: string,
         updateUserDto: UpdateUserDto,
-        currentUser: User
-    ): Promise<UserResponseDto> {
+        currentUser: UserEntity
+    ): Promise<UserEntity> {
         const user = await this.prisma.user.findUnique({
             where: { id }
         })
@@ -133,10 +133,10 @@ export class UsersService {
             }
         })
 
-        return this.toUserResponse(updatedUser)
+        return this.toUserEntity(updatedUser)
     }
 
-    async remove(id: string, currentUser: User): Promise<UserResponseDto> {
+    async remove(id: string, currentUser: UserEntity): Promise<UserEntity> {
         const user = await this.prisma.user.findUnique({
             where: { id }
         })
@@ -154,10 +154,10 @@ export class UsersService {
             }
         })
 
-        return this.toUserResponse(deletedUser)
+        return this.toUserEntity(deletedUser)
     }
 
-    async getUserAnalytics(currentUser: User): Promise<UserAnalytics> {
+    async getUserAnalytics(currentUser: UserEntity) {
         const allowedRoles = getRolesBelowOrEqual(currentUser.role)
 
         // Basic stats

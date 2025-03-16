@@ -8,7 +8,7 @@ import { AuthResponseDto } from "./dto/auth-response.dto"
 import { Auth } from "./decorators/auth.decorator"
 import { GetUser } from "./decorators"
 import { User } from "@prisma/client"
-import { UserResponseDto } from "src/users"
+import { UserEntity } from "src/users/entities/users.entity"
 
 @Controller("auth")
 @ApiTags("Authentication")
@@ -30,8 +30,8 @@ export class AuthController {
         status: 401,
         description: "User with this email already exists"
     })
-    async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
-        return new AuthResponseDto(await this.authService.register(registerDto))
+    async register(@Body() registerDto: RegisterDto) {
+        return this.authService.register(registerDto)
     }
 
     @Post("login")
@@ -45,14 +45,11 @@ export class AuthController {
         status: 401,
         description: "Invalid credentials"
     })
-    async login(@Body() authDto: AuthDto): Promise<AuthResponseDto> {
-        console.log("Login request received:", { email: authDto.email })
-        return new AuthResponseDto(await this.authService.login(authDto))
+    async login(@Body() authDto: AuthDto) {
+        return this.authService.login(authDto)
     }
 
     @Post("refresh")
-    // @ApiBearerAuth()
-    // @UseGuards(JwtAuthGuard)
     @Auth()
     @ApiOperation({ summary: "Refresh access token" })
     @ApiResponse({
@@ -64,13 +61,9 @@ export class AuthController {
         status: 401,
         description: "Invalid refresh token"
     })
-    refreshToken(
-        @Body() refreshTokenDto: RefreshTokenDto,
-        @Req()
-        req: Request & { user: User }
-    ): Promise<AuthResponseDto> {
-        console.log(req.user)
-        return this.authService.refreshTokens(refreshTokenDto, req.user)
+    refreshToken(@Body() refreshTokenDto: RefreshTokenDto, @GetUser() user: UserEntity) {
+        console.log(user)
+        return this.authService.refreshToken(refreshTokenDto, user)
     }
 
     @Post("logout")
@@ -103,13 +96,13 @@ export class AuthController {
     @ApiResponse({
         status: 200,
         description: "User details retrieved successfully",
-        type: UserResponseDto
+        type: UserEntity
     })
     @ApiResponse({
         status: 401,
         description: "Unauthorized"
     })
     getMe(@GetUser() user: User) {
-        return new UserResponseDto(user)
+        return new UserEntity(user)
     }
 }
