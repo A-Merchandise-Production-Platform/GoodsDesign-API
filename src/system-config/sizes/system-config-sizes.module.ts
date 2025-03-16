@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
-import { SystemConfigSizesController } from './system-config-sizes.controller';
 import { SystemConfigSizesService } from './system-config-sizes.service';
 import { PrismaModule } from '../../prisma';
+import { SystemConfigSizesResolver } from './system-config-sizes.resolver';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [SystemConfigSizesController],
-  providers: [SystemConfigSizesService],
+  providers: [SystemConfigSizesService, SystemConfigSizesResolver],
   exports: [SystemConfigSizesService],
 })
 export class SystemConfigSizesModule {}

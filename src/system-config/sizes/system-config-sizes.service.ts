@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma';
 import { CreateSystemConfigSizeDto, UpdateSystemConfigSizeDto } from './dto/system-config-size.dto';
 import { Prisma } from '@prisma/client';
@@ -10,6 +10,14 @@ export class SystemConfigSizesService {
   constructor(private prisma: PrismaService) {}
 
   async create(createDto: CreateSystemConfigSizeDto, userId?: string): Promise<SystemConfigSize> {
+    const existingSize = await this.prisma.systemConfigSize.findUnique({
+      where: { code: createDto.code },
+    });
+
+    if (existingSize) {
+      throw new ConflictException('A size with this code already exists.');
+    }
+
     return this.prisma.systemConfigSize.create({
       data: {
         ...createDto,
@@ -42,6 +50,14 @@ export class SystemConfigSizesService {
     updateDto: UpdateSystemConfigSizeDto,
     userId?: string,
   ): Promise<SystemConfigSize> {
+    const existingSize = await this.prisma.systemConfigSize.findUnique({
+      where: { code: updateDto.code },
+    });
+
+    if (existingSize && existingSize.id !== id) {
+      throw new ConflictException('A size with this code already exists.');
+    }
+
     await this.findOne(id);
 
     return this.prisma.systemConfigSize.update({

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma';
 import { CreateSystemConfigBankDto, UpdateSystemConfigBankDto } from './dto/system-config-bank.dto';
 import { Prisma } from '@prisma/client';
@@ -10,6 +10,22 @@ export class SystemConfigBanksService {
   constructor(private prisma: PrismaService) {}
 
   async create(createDto: CreateSystemConfigBankDto, userId?: string): Promise<SystemConfigBank> {
+    const existingBankByCode = await this.prisma.systemConfigBank.findUnique({
+      where: { code: createDto.code },
+    });
+
+    if (existingBankByCode) {
+      throw new ConflictException('A bank with this code already exists.');
+    }
+
+    const existingBankByBin = await this.prisma.systemConfigBank.findUnique({
+      where: { bin: createDto.bin },
+    });
+
+    if (existingBankByBin) {
+      throw new ConflictException('A bank with this bin already exists.');
+    }
+
     return this.prisma.systemConfigBank.create({
       data: {
         ...createDto,

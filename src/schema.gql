@@ -26,6 +26,29 @@ type CategoryEntity {
   updatedBy: String
 }
 
+input CreateSystemConfigBankDto {
+  bin: String!
+  code: String!
+  isTransfer: Boolean
+  logo: String!
+  lookupSupported: Boolean
+  name: String!
+  shortName: String!
+  support: Float
+  swiftCode: String
+  transferSupported: Boolean
+}
+
+input CreateSystemConfigColorDto {
+  code: String!
+  name: String!
+}
+
+input CreateSystemConfigSizeDto {
+  code: String!
+  isActive: Boolean
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -35,6 +58,21 @@ scalar DateTime
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
+
+type Mutation {
+  createSystemConfigBank(createSystemConfigBankDto: CreateSystemConfigBankDto!, userId: String): SystemConfigBank!
+  createSystemConfigColor(createSystemConfigColorDto: CreateSystemConfigColorDto!, userId: String): SystemConfigColor!
+  createSystemConfigSize(createSystemConfigSizeDto: CreateSystemConfigSizeDto!, userId: String): SystemConfigSize!
+  removeSystemConfigBank(id: String!, userId: String): SystemConfigBank!
+  removeSystemConfigColor(id: String!, userId: String): SystemConfigColor!
+  removeSystemConfigSize(id: String!, userId: String): SystemConfigSize!
+  restoreSystemConfigBank(id: String!, userId: String): SystemConfigBank!
+  restoreSystemConfigColor(id: String!, userId: String): SystemConfigColor!
+  restoreSystemConfigSize(id: String!, userId: String): SystemConfigSize!
+  updateSystemConfigBank(id: String!, updateSystemConfigBankDto: UpdateSystemConfigBankDto!, userId: String): SystemConfigBank!
+  updateSystemConfigColor(id: String!, updateSystemConfigColorDto: UpdateSystemConfigColorDto!, userId: String): SystemConfigColor!
+  updateSystemConfigSize(id: String!, updateSystemConfigSizeDto: UpdateSystemConfigSizeDto!, userId: String): SystemConfigSize!
+}
 
 type PaginatedUsers {
   items: [UserEntity!]!
@@ -77,7 +115,12 @@ type Query {
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
   products: [ProductEntity!]!
-  systemConfigBanks: [SystemConfigBank!]!
+  systemConfigBank(id: String!): SystemConfigBank!
+  systemConfigBanks(includeDeleted: Boolean): [SystemConfigBank!]!
+  systemConfigColor(id: String!): SystemConfigColor!
+  systemConfigColors(includeDeleted: Boolean): [SystemConfigColor!]!
+  systemConfigSize(id: String!): SystemConfigSize!
+  systemConfigSizes(includeDeleted: Boolean): [SystemConfigSize!]!
   user(id: String!): UserEntity!
   userAnalytics: UserEntity!
   users(filter: UserFilter): PaginatedUsers!
@@ -117,6 +160,58 @@ type SystemConfigBank {
   transferSupported: Boolean!
   updatedAt: DateTime
   updatedBy: String
+}
+
+type SystemConfigColor {
+  code: String!
+  createdAt: DateTime!
+  createdBy: String
+  deletedAt: DateTime
+  deletedBy: String
+  id: ID!
+  isActive: Boolean!
+  isDeleted: Boolean!
+  name: String!
+  updatedAt: DateTime
+  updatedBy: String
+}
+
+type SystemConfigSize {
+  code: String!
+  createdAt: DateTime!
+  createdBy: String!
+  deletedAt: DateTime
+  deletedBy: String
+  id: String!
+  isActive: Boolean
+  isDeleted: Boolean!
+  updatedAt: DateTime
+  updatedBy: String
+}
+
+input UpdateSystemConfigBankDto {
+  bin: String!
+  code: String!
+  isActive: Boolean
+  isTransfer: Boolean
+  logo: String!
+  lookupSupported: Boolean
+  name: String!
+  shortName: String!
+  support: Float
+  swiftCode: String
+  transferSupported: Boolean
+}
+
+input UpdateSystemConfigColorDto {
+  code: String
+  isActive: Boolean
+  name: String
+}
+
+input UpdateSystemConfigSizeDto {
+  code: String
+  isActive: Boolean
 }
 
 type UserEntity {

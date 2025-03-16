@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, PreconditionFailedException } from '@nestjs/common';
 import { PrismaService } from '../../prisma';
 import { CreateSystemConfigColorDto, UpdateSystemConfigColorDto } from './dto/system-config-color.dto';
 import { Prisma } from '@prisma/client';
@@ -10,6 +10,14 @@ export class SystemConfigColorsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createDto: CreateSystemConfigColorDto, userId?: string): Promise<SystemConfigColor> {
+    const existingColor = await this.prisma.systemConfigColor.findUnique({
+      where: { code: createDto.code },
+    });
+
+    if (existingColor) {
+      throw new PreconditionFailedException('A color with this code already exists.');
+    }
+
     return this.prisma.systemConfigColor.create({
       data: {
         ...createDto,
@@ -42,6 +50,14 @@ export class SystemConfigColorsService {
     updateDto: UpdateSystemConfigColorDto,
     userId?: string,
   ): Promise<SystemConfigColor> {
+    const existingColor = await this.prisma.systemConfigColor.findUnique({
+      where: { code: updateDto.code },
+    });
+
+    if (existingColor && existingColor.id !== id) {
+      throw new ConflictException('A color with this code already exists.');
+    }
+
     await this.findOne(id);
 
     return this.prisma.systemConfigColor.update({

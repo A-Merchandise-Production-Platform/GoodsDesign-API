@@ -15,7 +15,6 @@ import { join } from "path"
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default"
 import { BlankVariancesModule } from "./blank-variances/blank-variances.module"
 import GraphQLJSON from "graphql-type-json"
-// import { TestModule } from './test/test.module';
 
 @Module({
     imports: [
