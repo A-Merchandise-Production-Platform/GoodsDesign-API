@@ -25,7 +25,7 @@ export class SystemConfigBanksService {
     });
   }
 
-  async findOne(id: number): Promise<SystemConfigBank> {
+  async findOne(id: string): Promise<SystemConfigBank> {
     const bank = await this.prisma.systemConfigBank.findFirst({
       where: { id, isDeleted: false },
     });
@@ -38,7 +38,7 @@ export class SystemConfigBanksService {
   }
 
   async update(
-    id: number,
+    id: string,
     updateDto: UpdateSystemConfigBankDto,
     userId?: string,
   ): Promise<SystemConfigBank> {
@@ -54,7 +54,7 @@ export class SystemConfigBanksService {
     });
   }
 
-  async remove(id: number, userId?: string): Promise<SystemConfigBank> {
+  async remove(id: string, userId?: string): Promise<SystemConfigBank> {
     await this.findOne(id);
 
     return this.prisma.systemConfigBank.update({
@@ -67,7 +67,7 @@ export class SystemConfigBanksService {
     });
   }
 
-  async restore(id: number, userId?: string): Promise<SystemConfigBank> {
+  async restore(id: string, userId?: string): Promise<SystemConfigBank> {
     const bank = await this.prisma.systemConfigBank.findFirst({
       where: { id, isDeleted: true },
     });

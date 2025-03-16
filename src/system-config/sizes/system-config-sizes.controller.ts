@@ -25,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { GetUser } from '../../auth/decorators';
+import { User } from '@prisma/client';
 
 @ApiTags('System Config Sizes')
 @Controller('system-config/sizes')
@@ -41,9 +42,9 @@ export class SystemConfigSizesController {
   })
   create(
     @Body() createDto: CreateSystemConfigSizeDto,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.sizesService.create(createDto, userId);
+    return this.sizesService.create(createDto, user?.id);
   }
 
   @Get()
@@ -70,7 +71,7 @@ export class SystemConfigSizesController {
     description: 'The size has been found.',
     type: SystemConfigSizeResponseDto,
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.sizesService.findOne(id);
   }
 
@@ -82,11 +83,11 @@ export class SystemConfigSizesController {
     type: SystemConfigSizeResponseDto,
   })
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateDto: UpdateSystemConfigSizeDto,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.sizesService.update(id, updateDto, userId);
+    return this.sizesService.update(id, updateDto, user?.id);
   }
 
   @Delete(':id')
@@ -97,10 +98,10 @@ export class SystemConfigSizesController {
     type: SystemConfigSizeResponseDto,
   })
   remove(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUser('id') userId: string,
+    @Param('id', ParseIntPipe) id: string,
+    @GetUser() user: User,
   ) {
-    return this.sizesService.remove(id, userId);
+    return this.sizesService.remove(id, user?.id);
   }
 
   @Patch(':id/restore')
@@ -111,9 +112,9 @@ export class SystemConfigSizesController {
     type: SystemConfigSizeResponseDto,
   })
   restore(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUser('id') userId: string,
+    @Param('id', ParseIntPipe) id: string,
+    @GetUser() user: User,
   ) {
-    return this.sizesService.restore(id, userId);
+    return this.sizesService.restore(id, user?.id);
   }
 }

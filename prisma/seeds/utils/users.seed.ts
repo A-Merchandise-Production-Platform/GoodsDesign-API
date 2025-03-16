@@ -1,8 +1,7 @@
 import { PrismaClient, Roles } from "@prisma/client"
 import * as bcrypt from "bcrypt"
-import * as fs from "fs"
-import * as path from "path"
 import { v4 as uuidv4 } from "uuid"
+import { usersData } from "../data/users.data"
 
 const hashPassword = async (password: string) => {
     const salt = await bcrypt.genSalt()
@@ -10,14 +9,11 @@ const hashPassword = async (password: string) => {
 }
 
 export const seedUsers = async (prisma: PrismaClient) => {
-    const usersFilePath = path.join(__dirname, "users-data.seed.json")
-    const usersData = JSON.parse(fs.readFileSync(usersFilePath, "utf-8"))
-
     const hashedPassword = await hashPassword("123456")
 
     const users: { [key: string]: any } = {}
 
-    for (const userData of usersData) {
+    for (const userData of usersData.users) {
         const user = await prisma.user.upsert({
             where: { email: userData.email },
             update: {},

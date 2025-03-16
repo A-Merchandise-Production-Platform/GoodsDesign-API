@@ -25,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { GetUser } from '../../auth/decorators';
+import { User } from '@prisma/client';
 
 @ApiTags('System Config Banks')
 @Controller('system-config/banks')
@@ -41,9 +42,9 @@ export class SystemConfigBanksController {
   })
   create(
     @Body() createDto: CreateSystemConfigBankDto,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.banksService.create(createDto, userId);
+    return this.banksService.create(createDto, user?.id);
   }
 
   @Get()
@@ -70,7 +71,7 @@ export class SystemConfigBanksController {
     description: 'The bank has been found.',
     type: SystemConfigBankResponseDto,
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.banksService.findOne(id);
   }
 
@@ -82,11 +83,11 @@ export class SystemConfigBanksController {
     type: SystemConfigBankResponseDto,
   })
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateDto: UpdateSystemConfigBankDto,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.banksService.update(id, updateDto, userId);
+    return this.banksService.update(id, updateDto, user?.id);
   }
 
   @Delete(':id')
@@ -97,10 +98,10 @@ export class SystemConfigBanksController {
     type: SystemConfigBankResponseDto,
   })
   remove(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUser('id') userId: string,
+    @Param('id', ParseIntPipe) id: string,
+    @GetUser() user: User,
   ) {
-    return this.banksService.remove(id, userId);
+    return this.banksService.remove(id, user?.id);
   }
 
   @Patch(':id/restore')
@@ -111,9 +112,9 @@ export class SystemConfigBanksController {
     type: SystemConfigBankResponseDto,
   })
   restore(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUser('id') userId: string,
+    @Param('id', ParseIntPipe) id: string,
+    @GetUser() user: User,
   ) {
-    return this.banksService.restore(id, userId);
+    return this.banksService.restore(id, user?.id);
   }
 }

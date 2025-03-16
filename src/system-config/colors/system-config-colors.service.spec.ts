@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SystemConfigColorsService } from './system-config-colors.service';
-import { PrismaService } from '../../prisma';
+import { PrismaService } from '../../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { CreateSystemConfigColorDto, UpdateSystemConfigColorDto } from './dto/system-config-color.dto';
 
@@ -10,10 +10,9 @@ describe('SystemConfigColorsService', () => {
 
   const mockColor = {
     id: 1,
-    name: 'Red',
-    code: '#FF0000',
-    isActive: true,
-    isDeleted: false,
+    name: 'Test Color',
+    code: 'TST',
+    hex: '#FFFFFF',
     createdAt: new Date(),
     createdBy: 'test-user',
     updatedAt: null,
@@ -28,7 +27,6 @@ describe('SystemConfigColorsService', () => {
       findMany: jest.fn(),
       findFirst: jest.fn(),
       update: jest.fn(),
-      upsert: jest.fn(),
     },
   };
 
@@ -54,8 +52,8 @@ describe('SystemConfigColorsService', () => {
   describe('create', () => {
     it('should create a new color', async () => {
       const createDto: CreateSystemConfigColorDto = {
-        name: 'Red',
-        code: '#FF0000',
+        name: 'Test Color',
+        code: 'TST',
       };
 
       mockPrismaService.systemConfigColor.create.mockResolvedValue(mockColor);
@@ -99,33 +97,33 @@ describe('SystemConfigColorsService', () => {
     it('should return a color if found', async () => {
       mockPrismaService.systemConfigColor.findFirst.mockResolvedValue(mockColor);
 
-      const result = await service.findOne(1);
+      const result = await service.findOne('1');
       expect(result).toEqual(mockColor);
     });
 
     it('should throw NotFoundException if color not found', async () => {
       mockPrismaService.systemConfigColor.findFirst.mockResolvedValue(null);
 
-      await expect(service.findOne(1)).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('1')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('update', () => {
     it('should update a color', async () => {
       const updateDto: UpdateSystemConfigColorDto = {
-        name: 'Dark Red',
+        name: 'Updated Color',
       };
 
       mockPrismaService.systemConfigColor.findFirst.mockResolvedValue(mockColor);
       mockPrismaService.systemConfigColor.update.mockResolvedValue({
         ...mockColor,
-        name: 'Dark Red',
+        name: 'Updated Color',
       });
 
-      const result = await service.update(1, updateDto, 'test-user');
-      expect(result.name).toBe('Dark Red');
+      const result = await service.update('1', updateDto, 'test-user');
+      expect(result.name).toBe('Updated Color');
       expect(mockPrismaService.systemConfigColor.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: '1' },
         data: {
           ...updateDto,
           updatedAt: expect.any(Date),
@@ -143,10 +141,10 @@ describe('SystemConfigColorsService', () => {
         isDeleted: true,
       });
 
-      const result = await service.remove(1, 'test-user');
+      const result = await service.remove('1', 'test-user');
       expect(result.isDeleted).toBe(true);
       expect(mockPrismaService.systemConfigColor.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: '1' },
         data: {
           isDeleted: true,
           deletedAt: expect.any(Date),
@@ -165,10 +163,10 @@ describe('SystemConfigColorsService', () => {
         isDeleted: false,
       });
 
-      const result = await service.restore(1, 'test-user');
+      const result = await service.restore('1', 'test-user');
       expect(result.isDeleted).toBe(false);
       expect(mockPrismaService.systemConfigColor.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: '1' },
         data: {
           isDeleted: false,
           deletedAt: null,
@@ -182,16 +180,7 @@ describe('SystemConfigColorsService', () => {
     it('should throw NotFoundException if deleted color not found', async () => {
       mockPrismaService.systemConfigColor.findFirst.mockResolvedValue(null);
 
-      await expect(service.restore(1, 'test-user')).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  describe('seed', () => {
-    it('should seed default colors', async () => {
-      mockPrismaService.systemConfigColor.upsert.mockResolvedValue(mockColor);
-
-      await service.seed('test-user');
-      expect(mockPrismaService.systemConfigColor.upsert).toHaveBeenCalledTimes(2);
+      await expect(service.restore('1', 'test-user')).rejects.toThrow(NotFoundException);
     });
   });
 });

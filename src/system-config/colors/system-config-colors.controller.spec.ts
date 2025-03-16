@@ -78,7 +78,7 @@ describe('SystemConfigColorsController', () => {
     it('should return a color by id', async () => {
       mockSystemConfigColorsService.findOne.mockResolvedValue(mockColor);
 
-      const result = await controller.findOne(1);
+      const result = await controller.findOne("1");
       expect(result).toEqual(mockColor);
       expect(mockSystemConfigColorsService.findOne).toHaveBeenCalledWith(1);
     });
@@ -104,9 +104,9 @@ describe('SystemConfigColorsController', () => {
       const deletedColor = { ...mockColor, isDeleted: true };
       mockSystemConfigColorsService.remove.mockResolvedValue(deletedColor);
 
-      const result = await controller.remove(1, 'test-user');
+      const result = await controller.remove("1", 'test-user');
       expect(result).toEqual(deletedColor);
-      expect(mockSystemConfigColorsService.remove).toHaveBeenCalledWith(1, 'test-user');
+      expect(mockSystemConfigColorsService.remove).toHaveBeenCalledWith("1", 'test-user');
     });
   });
 
@@ -114,9 +114,9 @@ describe('SystemConfigColorsController', () => {
     it('should restore a color', async () => {
       mockSystemConfigColorsService.restore.mockResolvedValue(mockColor);
 
-      const result = await controller.restore(1, 'test-user');
+      const result = await controller.restore("1", 'test-user');
       expect(result).toEqual(mockColor);
-      expect(mockSystemConfigColorsService.restore).toHaveBeenCalledWith(1, 'test-user');
+      expect(mockSystemConfigColorsService.restore).toHaveBeenCalledWith("1", 'test-user');
     });
   });
 });

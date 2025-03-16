@@ -8,7 +8,7 @@ import * as bcrypt from "bcrypt"
 import { Roles, User } from "@prisma/client"
 import { envConfig, TokenType } from "../dynamic-modules"
 import { RedisService } from "../redis/redis.service"
-import { UserResponseDto } from "src/users"
+import { UserResponseDto } from "../users"
 
 @Injectable()
 export class AuthService {
@@ -48,7 +48,7 @@ export class AuthService {
         })
 
         // Generate tokens
-        const tokens = await this.signTokens(user.id)
+        const tokens = await this.signTokens(user?.id)
 
         return {
             user: new UserResponseDto(user),
@@ -73,7 +73,7 @@ export class AuthService {
         }
 
         // Generate tokens
-        const tokens = await this.signTokens(user.id)
+        const tokens = await this.signTokens(user?.id)
 
         return {
             user: new UserResponseDto(user),
@@ -105,9 +105,9 @@ export class AuthService {
     }
 
     async refreshTokens(refreshTokenDto: RefreshTokenDto, user: User) {
-        const storedToken = await this.redisService.getRefreshToken(user.id)
+        const storedToken = await this.redisService.getRefreshToken(user?.id)
 
-        const validRefreshToken = this.jwtService.verify(refreshTokenDto.refreshToken, {
+        const validRefreshToken = this.jwtService.verifyAsync(refreshTokenDto.refreshToken, {
             secret: envConfig().jwt[TokenType.RefreshToken].secret
         })
 
@@ -119,7 +119,7 @@ export class AuthService {
             throw new UnauthorizedException("Invalid refresh token")
         }
 
-        const tokens = await this.signTokens(user.id)
+        const tokens = await this.signTokens(user?.id)
 
         return {
             user: new UserResponseDto(user),

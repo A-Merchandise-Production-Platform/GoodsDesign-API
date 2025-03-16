@@ -25,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { GetUser } from '../../auth/decorators';
+import { User } from '@prisma/client';
 
 @ApiTags('System Config Colors')
 @Controller('system-config/colors')
@@ -41,9 +42,9 @@ export class SystemConfigColorsController {
   })
   create(
     @Body() createDto: CreateSystemConfigColorDto,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.colorsService.create(createDto, userId);
+    return this.colorsService.create(createDto, user?.id);
   }
 
   @Get()
@@ -70,7 +71,7 @@ export class SystemConfigColorsController {
     description: 'The color has been found.',
     type: SystemConfigColorResponseDto,
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.colorsService.findOne(id);
   }
 
@@ -82,11 +83,11 @@ export class SystemConfigColorsController {
     type: SystemConfigColorResponseDto,
   })
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateDto: UpdateSystemConfigColorDto,
-    @GetUser('id') userId: string,
+    @GetUser() user: User,
   ) {
-    return this.colorsService.update(id, updateDto, userId);
+    return this.colorsService.update(id, updateDto, user?.id);
   }
 
   @Delete(':id')
@@ -97,10 +98,10 @@ export class SystemConfigColorsController {
     type: SystemConfigColorResponseDto,
   })
   remove(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUser('id') userId: string,
+    @Param('id', ParseIntPipe) id: string,
+    @GetUser() user: User,
   ) {
-    return this.colorsService.remove(id, userId);
+    return this.colorsService.remove(id, user?.id);
   }
 
   @Patch(':id/restore')
@@ -111,9 +112,9 @@ export class SystemConfigColorsController {
     type: SystemConfigColorResponseDto,
   })
   restore(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUser('id') userId: string,
+    @Param('id', ParseIntPipe) id: string,
+    @GetUser() user: User,
   ) {
-    return this.colorsService.restore(id, userId);
+    return this.colorsService.restore(id, user?.id);
   }
 }

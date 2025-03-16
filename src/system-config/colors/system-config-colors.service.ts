@@ -25,7 +25,7 @@ export class SystemConfigColorsService {
     });
   }
 
-  async findOne(id: number): Promise<SystemConfigColor> {
+  async findOne(id: string): Promise<SystemConfigColor> {
     const color = await this.prisma.systemConfigColor.findFirst({
       where: { id, isDeleted: false },
     });
@@ -38,7 +38,7 @@ export class SystemConfigColorsService {
   }
 
   async update(
-    id: number,
+    id: string,
     updateDto: UpdateSystemConfigColorDto,
     userId?: string,
   ): Promise<SystemConfigColor> {
@@ -54,7 +54,7 @@ export class SystemConfigColorsService {
     });
   }
 
-  async remove(id: number, userId?: string): Promise<SystemConfigColor> {
+  async remove(id: string, userId?: string): Promise<SystemConfigColor> {
     await this.findOne(id);
 
     return this.prisma.systemConfigColor.update({
@@ -67,7 +67,7 @@ export class SystemConfigColorsService {
     });
   }
 
-  async restore(id: number, userId?: string): Promise<SystemConfigColor> {
+  async restore(id: string, userId?: string): Promise<SystemConfigColor> {
     const color = await this.prisma.systemConfigColor.findFirst({
       where: { id, isDeleted: true },
     });

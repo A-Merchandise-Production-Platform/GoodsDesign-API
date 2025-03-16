@@ -76,7 +76,7 @@ describe('SystemConfigSizesController', () => {
     it('should return a size by id', async () => {
       mockSystemConfigSizesService.findOne.mockResolvedValue(mockSize);
 
-      const result = await controller.findOne(1);
+      const result = await controller.findOne('1');
       expect(result).toEqual(mockSize);
       expect(mockSystemConfigSizesService.findOne).toHaveBeenCalledWith(1);
     });
@@ -91,7 +91,7 @@ describe('SystemConfigSizesController', () => {
       const updatedSize = { ...mockSize, code: 'L' };
       mockSystemConfigSizesService.update.mockResolvedValue(updatedSize);
 
-      const result = await controller.update(1, updateDto, 'test-user');
+      const result = await controller.update('1', updateDto, 'test-user');
       expect(result).toEqual(updatedSize);
       expect(mockSystemConfigSizesService.update).toHaveBeenCalledWith(1, updateDto, 'test-user');
     });
@@ -102,7 +102,7 @@ describe('SystemConfigSizesController', () => {
       const deletedSize = { ...mockSize, isDeleted: true };
       mockSystemConfigSizesService.remove.mockResolvedValue(deletedSize);
 
-      const result = await controller.remove(1, 'test-user');
+      const result = await controller.remove('1', 'test-user');
       expect(result).toEqual(deletedSize);
       expect(mockSystemConfigSizesService.remove).toHaveBeenCalledWith(1, 'test-user');
     });
@@ -112,7 +112,7 @@ describe('SystemConfigSizesController', () => {
     it('should restore a size', async () => {
       mockSystemConfigSizesService.restore.mockResolvedValue(mockSize);
 
-      const result = await controller.restore(1, 'test-user');
+      const result = await controller.restore('1', 'test-user');
       expect(result).toEqual(mockSize);
       expect(mockSystemConfigSizesService.restore).toHaveBeenCalledWith(1, 'test-user');
     });

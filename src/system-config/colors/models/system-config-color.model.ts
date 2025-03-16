@@ -3,7 +3,7 @@ import { Field, ID, ObjectType, Int } from '@nestjs/graphql';
 @ObjectType()
 export class SystemConfigColor {
   @Field(() => ID)
-  id: number;
+  id: string;
 
   @Field(() => String)
   name: string;
