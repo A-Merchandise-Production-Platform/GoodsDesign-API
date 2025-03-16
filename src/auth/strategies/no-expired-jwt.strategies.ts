@@ -6,7 +6,7 @@ import { envConfig, TokenType } from "src/dynamic-modules"
 import { UserEntity } from "src/users/entities/users.entity"
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
+export class NoExpiredJwtStrategy extends PassportStrategy(Strategy, "no-expired-jwt") {
     constructor(private readonly prisma: PrismaService) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

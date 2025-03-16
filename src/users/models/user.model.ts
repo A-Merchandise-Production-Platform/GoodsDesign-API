@@ -31,11 +31,11 @@ export class PaginationInput {
 export class SortInput {
     @Field(() => String, { nullable: true })
     @IsOptional()
-    email?: "asc" | "desc"
+    email?: SortOrder
 
     @Field(() => String, { nullable: true })
     @IsOptional()
-    createdAt?: "asc" | "desc"
+    createdAt?: SortOrder
 }
 
 @ObjectType()
