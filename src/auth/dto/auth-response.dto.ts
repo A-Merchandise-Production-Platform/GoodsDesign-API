@@ -1,7 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { UserResponseDto } from "src/users"
+import { UserEntity } from "src/users/entities/users.entity"
 
 export class AuthResponseDto {
+    @ApiProperty({
+        description: "The authenticated user",
+        type: UserEntity
+    })
+    user: UserEntity
+
     @ApiProperty({
         description: "JWT access token",
         example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -9,17 +15,14 @@ export class AuthResponseDto {
     accessToken: string
 
     @ApiProperty({
-        description: "JWT refresh token for obtaining new access tokens",
+        description: "JWT refresh token",
         example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     })
     refreshToken: string
 
-    @ApiProperty({
-        type: UserResponseDto
-    })
-    user: UserResponseDto
-
-    constructor(partial: Partial<AuthResponseDto>) {
-        Object.assign(this, partial)
+    constructor(user: UserEntity, accessToken: string, refreshToken: string) {
+        this.user = user
+        this.accessToken = accessToken
+        this.refreshToken = refreshToken
     }
 }

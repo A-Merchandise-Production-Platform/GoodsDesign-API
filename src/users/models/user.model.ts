@@ -1,6 +1,7 @@
 import { Field, ID, ObjectType, InputType, registerEnumType, Int } from "@nestjs/graphql"
 import { Roles } from "@prisma/client"
-import { IsOptional } from "class-validator"
+import { IsOptional, IsEmail, IsEnum } from "class-validator"
+import { UserEntity } from "../entities/users.entity"
 
 export enum SortOrder {
     ASC = "asc",
@@ -19,73 +20,71 @@ registerEnumType(Roles, {
 
 @InputType()
 export class PaginationInput {
-    @Field(() => Int, { defaultValue: 1 })
+    @Field(() => Number, { defaultValue: 1 })
     page: number
 
-    @Field(() => Int, { defaultValue: 10 })
+    @Field(() => Number, { defaultValue: 10 })
     limit: number
+}
+
+@InputType()
+export class SortInput {
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    email?: "asc" | "desc"
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    createdAt?: "asc" | "desc"
 }
 
 @ObjectType()
 export class PaginationMeta {
-    @Field(() => Int)
+    @Field(() => Number)
     total: number
 
-    @Field(() => Int)
+    @Field(() => Number)
     page: number
 
-    @Field(() => Int)
+    @Field(() => Number)
     limit: number
 
-    @Field(() => Int)
+    @Field(() => Number)
     totalPages: number
 }
 
 @ObjectType()
 export class PaginatedUsers {
-    @Field(() => [GraphQLUser])
-    items: GraphQLUser[]
+    @Field(() => [UserEntity])
+    items: UserEntity[]
 
     @Field(() => PaginationMeta)
     meta: PaginationMeta
 }
 
 @InputType()
-export class UserSort {
-    @Field(() => SortOrder, { nullable: true })
-    name?: SortOrder
-
-    @Field(() => SortOrder, { nullable: true })
-    email?: SortOrder
-
-    @Field(() => SortOrder, { nullable: true })
-    createdAt?: SortOrder
-
-    @Field(() => SortOrder, { nullable: true })
-    updatedAt?: SortOrder
-}
-
-@InputType()
 export class UserFilter {
     @Field(() => String, { nullable: true })
     @IsOptional()
+    @IsEmail()
     email?: string
 
     @Field(() => Roles, { nullable: true })
     @IsOptional()
+    @IsEnum(Roles)
     role?: Roles
 
     @Field(() => Boolean, { nullable: true })
     @IsOptional()
     isActive?: boolean
 
-    @Field(() => UserSort, { nullable: true })
-    @IsOptional()
-    sort?: UserSort
-
     @Field(() => PaginationInput, { nullable: true })
     @IsOptional()
     pagination?: PaginationInput
+
+    @Field(() => SortInput, { nullable: true })
+    @IsOptional()
+    sort?: SortInput
 }
 
 @ObjectType()
