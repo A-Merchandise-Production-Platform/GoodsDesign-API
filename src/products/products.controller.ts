@@ -19,14 +19,17 @@ import {
     ApiParam
 } from "@nestjs/swagger"
 import { ProductsService } from "./products.service"
-import { CreateProductDto, UpdateProductDto, ProductResponseDto } from "./dto"
+import { CreateProductDto, UpdateProductDto } from "./dto"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard"
-import { GetUser } from "../auth/decorators"
+import { Auth, GetUser } from "../auth/decorators"
+import { ProductEntity } from "./entities/products.entity"
+import { User } from "@prisma/client"
 
 @Controller("products")
 @ApiTags("Products")
 // @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+// @ApiBearerAuth()
+@Auth()
 export class ProductsController {
     constructor(private readonly productsService: ProductsService) {}
 
@@ -39,12 +42,15 @@ export class ProductsController {
     @ApiResponse({
         status: 201,
         description: "The product has been successfully created",
-        type: ProductResponseDto
+        type: ProductEntity
     })
     @ApiResponse({ status: 400, description: "Bad Request - Invalid input data" })
     @ApiResponse({ status: 401, description: "Unauthorized" })
-    async create(@Body() createProductDto: CreateProductDto, @GetUser("id") userId: string) {
-        return this.productsService.create(createProductDto, userId)
+    async create(
+        @Body() createProductDto: CreateProductDto,
+        @GetUser() user: User
+    ): Promise<ProductEntity> {
+        return this.productsService.create(createProductDto, user.id)
     }
 
     @Get()
@@ -61,13 +67,13 @@ export class ProductsController {
     @ApiResponse({
         status: 200,
         description: "List of products retrieved successfully",
-        type: [ProductResponseDto]
+        type: [ProductEntity]
     })
     @ApiResponse({ status: 401, description: "Unauthorized" })
     async findAll(
         @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
         includeDeleted = false
-    ) {
+    ): Promise<ProductEntity[]> {
         return this.productsService.findAll(includeDeleted)
     }
 
@@ -90,14 +96,14 @@ export class ProductsController {
     @ApiResponse({
         status: 200,
         description: "List of products in the category retrieved successfully",
-        type: [ProductResponseDto]
+        type: [ProductEntity]
     })
     @ApiResponse({ status: 401, description: "Unauthorized" })
     async findByCategory(
         @Param("categoryId") categoryId: string,
         @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
         includeDeleted = false
-    ) {
+    ): Promise<ProductEntity[]> {
         return this.productsService.findByCategory(categoryId, includeDeleted)
     }
 
@@ -120,7 +126,7 @@ export class ProductsController {
     @ApiResponse({
         status: 200,
         description: "Product retrieved successfully",
-        type: ProductResponseDto
+        type: ProductEntity
     })
     @ApiResponse({ status: 401, description: "Unauthorized" })
     @ApiResponse({ status: 404, description: "Product not found" })
@@ -128,7 +134,7 @@ export class ProductsController {
         @Param("id") id: string,
         @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
         includeDeleted = false
-    ) {
+    ): Promise<ProductEntity> {
         return this.productsService.findOne(id, includeDeleted)
     }
 
@@ -145,7 +151,7 @@ export class ProductsController {
     @ApiResponse({
         status: 200,
         description: "Product updated successfully",
-        type: ProductResponseDto
+        type: ProductEntity
     })
     @ApiResponse({ status: 400, description: "Bad Request - Invalid input data" })
     @ApiResponse({ status: 401, description: "Unauthorized" })
@@ -154,7 +160,7 @@ export class ProductsController {
         @Param("id") id: string,
         @Body() updateProductDto: UpdateProductDto,
         @GetUser("id") userId: string
-    ) {
+    ): Promise<ProductEntity> {
         return this.productsService.update(id, updateProductDto, userId)
     }
 
@@ -171,11 +177,11 @@ export class ProductsController {
     @ApiResponse({
         status: 200,
         description: "Product soft deleted successfully",
-        type: ProductResponseDto
+        type: ProductEntity
     })
     @ApiResponse({ status: 401, description: "Unauthorized" })
     @ApiResponse({ status: 404, description: "Product not found" })
-    async remove(@Param("id") id: string, @GetUser("id") userId: string) {
+    async remove(@Param("id") id: string, @GetUser("id") userId: string): Promise<ProductEntity> {
         return this.productsService.remove(id, userId)
     }
 
@@ -192,11 +198,11 @@ export class ProductsController {
     @ApiResponse({
         status: 200,
         description: "Product restored successfully",
-        type: ProductResponseDto
+        type: ProductEntity
     })
     @ApiResponse({ status: 401, description: "Unauthorized" })
     @ApiResponse({ status: 404, description: "Product not found or not deleted" })
-    async restore(@Param("id") id: string, @GetUser("id") userId: string) {
+    async restore(@Param("id") id: string, @GetUser("id") userId: string): Promise<ProductEntity> {
         return this.productsService.restore(id, userId)
     }
 
@@ -213,11 +219,14 @@ export class ProductsController {
     @ApiResponse({
         status: 200,
         description: "Product active status toggled successfully",
-        type: ProductResponseDto
+        type: ProductEntity
     })
     @ApiResponse({ status: 401, description: "Unauthorized" })
     @ApiResponse({ status: 404, description: "Product not found" })
-    async toggleActive(@Param("id") id: string, @GetUser("id") userId: string) {
+    async toggleActive(
+        @Param("id") id: string,
+        @GetUser("id") userId: string
+    ): Promise<ProductEntity> {
         return this.productsService.toggleActive(id, userId)
     }
 }

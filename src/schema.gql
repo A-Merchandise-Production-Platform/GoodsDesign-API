@@ -2,10 +2,11 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type BlankVariance {
+type BlankVariancesEntity {
   blankPrice: Int!
   id: ID!
   information: JSON!
+  product: ProductEntity
   productId: String!
 }
 
@@ -76,7 +77,7 @@ type PaginationMeta {
   totalPages: Int!
 }
 
-type Product {
+type ProductEntity {
   category: CategoryEntity
   categoryId: String!
   createdAt: DateTime!
@@ -95,11 +96,11 @@ type Product {
 }
 
 type Query {
-  blankVariance(id: String!): BlankVariance
-  blankVariances: [BlankVariance!]!
+  blankVariance(id: String!): BlankVariancesEntity
+  blankVariances: [BlankVariancesEntity!]!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
-  products: [Product!]!
+  products: [ProductEntity!]!
   systemConfigBanks: [SystemConfigBank!]!
   user(id: String!): GraphQLUser!
   userAnalytics: UserAnalytics!
