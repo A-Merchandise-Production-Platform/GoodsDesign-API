@@ -43,7 +43,8 @@ export class ProductsService {
             where: includeDeleted ? undefined : { isDeleted: false },
             orderBy: { createdAt: "desc" },
             include: {
-                category: true
+                category: true,
+                blankVariances: true
             }
         })
         return products.map((product) => new ProductEntity(product))
@@ -56,7 +57,8 @@ export class ProductsService {
                 ...(includeDeleted ? {} : { isDeleted: false })
             },
             include: {
-                category: true
+                category: true,
+                blankVariances: true
             }
         })
 

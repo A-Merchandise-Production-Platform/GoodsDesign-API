@@ -59,6 +59,7 @@ type PaginationMeta {
 }
 
 type ProductEntity {
+  blankVariances: [BlankVariancesEntity!]
   category: CategoryEntity
   categoryId: String!
   createdAt: DateTime!
