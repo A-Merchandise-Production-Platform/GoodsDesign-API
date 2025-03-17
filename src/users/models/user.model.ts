@@ -31,11 +31,11 @@ export class PaginationInput {
 export class SortInput {
     @Field(() => String, { nullable: true })
     @IsOptional()
-    email?: "asc" | "desc"
+    email?: SortOrder
 
     @Field(() => String, { nullable: true })
     @IsOptional()
-    createdAt?: "asc" | "desc"
+    createdAt?: SortOrder
 }
 
 @ObjectType()
@@ -85,59 +85,4 @@ export class UserFilter {
     @Field(() => SortInput, { nullable: true })
     @IsOptional()
     sort?: SortInput
-}
-
-@ObjectType()
-export class GraphQLUser {
-    @Field(() => ID)
-    id: string
-
-    @Field(() => String, { nullable: true })
-    email?: string
-
-    @Field(() => String, { nullable: true })
-    name?: string
-
-    @Field(() => String, { nullable: true })
-    phoneNumber?: string
-
-    @Field(() => Boolean)
-    gender: boolean
-
-    @Field(() => Date, { nullable: true })
-    dateOfBirth?: Date
-
-    @Field(() => String, { nullable: true })
-    imageUrl?: string
-
-    @Field(() => Boolean)
-    isActive: boolean
-
-    @Field(() => Boolean)
-    isDeleted: boolean
-
-    @Field(() => Date)
-    createdAt: Date
-
-    @Field(() => String, { nullable: true })
-    createdBy?: string
-
-    @Field(() => Date, { nullable: true })
-    updatedAt?: Date
-
-    @Field(() => String, { nullable: true })
-    updatedBy?: string
-
-    @Field(() => String, { nullable: true })
-    deletedBy?: string
-
-    @Field(() => Date, { nullable: true })
-    deletedAt?: Date
-
-    @Field(() => Roles)
-    role: Roles
-
-    constructor(partial: Partial<GraphQLUser>) {
-        Object.assign(this, partial)
-    }
 }

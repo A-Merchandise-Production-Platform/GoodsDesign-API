@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { Field, ID, ObjectType } from "@nestjs/graphql"
 import { CategoryEntity } from "src/categories/entities/categories.entity"
+import { BlankVariancesEntity } from "src/blank-variances/entities/blank-variances.entity"
 
 @ObjectType()
 export class ProductEntity {
@@ -119,6 +120,14 @@ export class ProductEntity {
         nullable: false
     })
     category?: CategoryEntity
+
+    @Field(() => [BlankVariancesEntity], { nullable: true })
+    @ApiProperty({
+        description: "The blank variances of the product",
+        type: [BlankVariancesEntity],
+        example: []
+    })
+    blankVariances?: BlankVariancesEntity[]
 
     constructor(partial: Partial<ProductEntity>) {
         Object.assign(this, partial)

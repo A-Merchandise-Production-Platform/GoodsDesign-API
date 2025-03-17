@@ -7,6 +7,7 @@ import { GraphqlJwtAuthGuard } from "src/auth/guards/graphql-jwt-auth.guard"
 import { CurrentUser } from "src/auth/decorators/current-user.decorator"
 import { CreateUserDto } from "./dto"
 import { UserEntity } from "./entities/users.entity"
+import { UserAnalyticsEntity } from "./entities/user-analytics.entity"
 
 registerEnumType(Roles, {
     name: "Roles",
@@ -38,8 +39,8 @@ export class UsersResolver {
         return this.usersService.findOne(id, currentUser)
     }
 
-    @Query(() => UserEntity, { name: "userAnalytics" })
-    async getUserAnalytics(@CurrentUser() currentUser: UserEntity) {
+    @Query(() => UserAnalyticsEntity, { name: "userAnalytics" })
+    async getUserAnalytics(@CurrentUser() currentUser: UserEntity): Promise<UserAnalyticsEntity> {
         return this.usersService.getUserAnalytics(currentUser)
     }
 }

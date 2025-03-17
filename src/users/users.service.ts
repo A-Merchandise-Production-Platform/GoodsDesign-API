@@ -5,6 +5,7 @@ import { Roles } from "@prisma/client"
 import { UserFilter } from "./models/user.model"
 import { getRolesBelowOrEqual } from "../utils/role.utils"
 import { UserEntity } from "./entities/users.entity"
+import { UserAnalyticsEntity } from "./entities/user-analytics.entity"
 
 @Injectable()
 export class UsersService {
@@ -157,7 +158,7 @@ export class UsersService {
         return this.toUserEntity(deletedUser)
     }
 
-    async getUserAnalytics(currentUser: UserEntity) {
+    async getUserAnalytics(currentUser: UserEntity): Promise<UserAnalyticsEntity> {
         const allowedRoles = getRolesBelowOrEqual(currentUser.role)
 
         // Basic stats
@@ -217,7 +218,7 @@ export class UsersService {
             }
         })
 
-        return {
+        return new UserAnalyticsEntity({
             stats: {
                 totalUsers,
                 activeUsers,
@@ -228,7 +229,7 @@ export class UsersService {
                 role: item.role,
                 count: item._count.role
             }))
-        }
+        })
     }
 
     private calculateMonthlyGrowth(
