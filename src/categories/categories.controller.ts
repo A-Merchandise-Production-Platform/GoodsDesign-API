@@ -35,36 +35,36 @@ export class CategoriesController {
         return this.categoriesService.create(createCategoryDto, user.id)
     }
 
-    @Get()
-    @ApiOperation({ summary: "Get all categories" })
-    @ApiQuery({
-        name: "includeDeleted",
-        required: false,
-        type: Boolean,
-        description: "Include deleted categories in the response"
-    })
-    async findAll(
-        @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
-        includeDeleted = false
-    ): Promise<CategoryEntity[]> {
-        return this.categoriesService.findAll(includeDeleted)
-    }
+    // @Get()
+    // @ApiOperation({ summary: "Get all categories" })
+    // @ApiQuery({
+    //     name: "includeDeleted",
+    //     required: false,
+    //     type: Boolean,
+    //     description: "Include deleted categories in the response"
+    // })
+    // async findAll(
+    //     @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
+    //     includeDeleted = false
+    // ): Promise<CategoryEntity[]> {
+    //     return this.categoriesService.findAll(includeDeleted)
+    // }
 
-    @Get(":id")
-    @ApiOperation({ summary: "Get a category by ID" })
-    @ApiQuery({
-        name: "includeDeleted",
-        required: false,
-        type: Boolean,
-        description: "Include deleted categories in the search"
-    })
-    async findOne(
-        @Param("id") id: string,
-        @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
-        includeDeleted = false
-    ): Promise<CategoryEntity> {
-        return this.categoriesService.findOne(id, includeDeleted)
-    }
+    // @Get(":id")
+    // @ApiOperation({ summary: "Get a category by ID" })
+    // @ApiQuery({
+    //     name: "includeDeleted",
+    //     required: false,
+    //     type: Boolean,
+    //     description: "Include deleted categories in the search"
+    // })
+    // async findOne(
+    //     @Param("id") id: string,
+    //     @Query("includeDeleted", new ParseBoolPipe({ optional: true }))
+    //     includeDeleted = false
+    // ): Promise<CategoryEntity> {
+    //     return this.categoriesService.findOne(id, includeDeleted)
+    // }
 
     @Patch(":id")
     @ApiOperation({ summary: "Update a category" })

@@ -26,6 +26,19 @@ type CategoryEntity {
   updatedBy: String
 }
 
+input CategorySearchEntity {
+  createdAtEnd: DateTime
+  createdAtStart: DateTime
+  createdBy: String
+  description: String
+  isActive: Boolean
+  isDeleted: Boolean
+  name: String
+  updatedAtEnd: DateTime
+  updatedAtStart: DateTime
+  updatedBy: String
+}
+
 input CreateSystemConfigBankDto {
   bin: String!
   code: String!
@@ -118,7 +131,7 @@ type ProductEntity {
 type Query {
   blankVariance(id: String!): BlankVariancesEntity
   blankVariances: [BlankVariancesEntity!]!
-  categories: [CategoryEntity!]!
+  categories(searchInput: CategorySearchEntity): [CategoryEntity!]!
   category(id: String!): CategoryEntity!
   products: [ProductEntity!]!
   systemConfigBank(id: String!): SystemConfigBank!

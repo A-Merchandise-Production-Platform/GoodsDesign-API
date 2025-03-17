@@ -3,6 +3,7 @@ import { PrismaService } from "../prisma/prisma.service"
 import { CreateCategoryDto } from "./dto/create-category.dto"
 import { UpdateCategoryDto } from "./dto/update-category.dto"
 import { CategoryEntity } from "./entities/categories.entity"
+import { CategorySearchEntity } from "./entities/category-search.entity"
 
 @Injectable()
 export class CategoriesService {
@@ -34,11 +35,64 @@ export class CategoriesService {
         return this.toCategoryResponse(category)
     }
 
-    async findAll(includeDeleted = false): Promise<CategoryEntity[]> {
-        const categories = await this.prisma.category.findMany({
-            where: includeDeleted ? undefined : { isDeleted: false }
-        })
+    async findAll(searchInput?: CategorySearchEntity): Promise<CategoryEntity[]> {
+        const where: any = {
+            isDeleted: false
+        }
 
+        if (searchInput) {
+            if (searchInput.name) {
+                where.name = {
+                    contains: searchInput.name,
+                    mode: "insensitive"
+                }
+            }
+
+            if (searchInput.description) {
+                where.description = {
+                    contains: searchInput.description,
+                    mode: "insensitive"
+                }
+            }
+
+            if (searchInput.isActive !== undefined) {
+                where.isActive = searchInput.isActive
+            }
+
+            if (searchInput.isDeleted !== undefined) {
+                where.isDeleted = searchInput.isDeleted
+            }
+
+            if (searchInput.createdBy) {
+                where.createdBy = searchInput.createdBy
+            }
+
+            if (searchInput.updatedBy) {
+                where.updatedBy = searchInput.updatedBy
+            }
+
+            if (searchInput.createdAtStart || searchInput.createdAtEnd) {
+                where.createdAt = {}
+                if (searchInput.createdAtStart) {
+                    where.createdAt.gte = searchInput.createdAtStart
+                }
+                if (searchInput.createdAtEnd) {
+                    where.createdAt.lte = searchInput.createdAtEnd
+                }
+            }
+
+            if (searchInput.updatedAtStart || searchInput.updatedAtEnd) {
+                where.updatedAt = {}
+                if (searchInput.updatedAtStart) {
+                    where.updatedAt.gte = searchInput.updatedAtStart
+                }
+                if (searchInput.updatedAtEnd) {
+                    where.updatedAt.lte = searchInput.updatedAtEnd
+                }
+            }
+        }
+
+        const categories = await this.prisma.category.findMany({ where })
         return Promise.all(categories.map((category) => this.toCategoryResponse(category)))
     }
 
