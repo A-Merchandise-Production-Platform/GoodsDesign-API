@@ -143,6 +143,7 @@ model SystemConfigColor {
 
 model SystemConfigSize {
   id         String   @id @default(uuid())
+  name       String
   code       String   @unique
   isActive   Boolean  @default(true)
   isDeleted  Boolean  @default(false)
