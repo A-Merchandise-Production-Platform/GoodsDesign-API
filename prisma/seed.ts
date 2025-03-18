@@ -8,22 +8,22 @@ async function main() {
     // Seed users
     await seedUsers(prisma);
     // Seed system configurations
-    await seedBanks(prisma);
-    await seedColors(prisma);
-    await seedSizes(prisma);
+    // await seedBanks(prisma);
+    // await seedColors(prisma);
+    // await seedSizes(prisma);
 
     // Seed categories and products
-    await seedCategories(prisma);
-    await seedProducts(prisma);
-    await seedProductPositionTypes(prisma);
-    await seedBlankVariances(prisma);
-    await seedProductDesigns(prisma);
-    await seedDesignPositions(prisma);
-    await seedCustomerOrders(prisma);
-    await seedPayments(prisma);
+    // await seedCategories(prisma);
+    // await seedProducts(prisma);
+    // await seedProductPositionTypes(prisma);
+    // await seedBlankVariances(prisma);
+    // await seedProductDesigns(prisma);
+    // await seedDesignPositions(prisma);
+    // await seedCustomerOrders(prisma);
+    // await seedPayments(prisma);
 
     // Seed tasks
-    await seedTasks(prisma);
+    // await seedTasks(prisma);
 
     console.log('Seeding completed successfully!');
   } catch (error) {

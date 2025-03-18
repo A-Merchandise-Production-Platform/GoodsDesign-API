@@ -1,5 +1,0 @@
-export * from "./dto"
-export * from "./models"
-export * from "./system-config-banks.module"
-export * from "./system-config-banks.service"
-export * from "./system-config-banks.resolver"

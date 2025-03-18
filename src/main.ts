@@ -1,11 +1,11 @@
 // src/main.ts
 
-import { HttpAdapterHost, NestFactory, Reflector } from "@nestjs/core"
 import { ClassSerializerInterceptor, ValidationPipe } from "@nestjs/common"
+import { HttpAdapterHost, NestFactory, Reflector } from "@nestjs/core"
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger"
 import { AppModule } from "./app.module"
-import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger"
-import { PrismaClientExceptionFilter } from "./prisma-client-exception"
 import { envConfig } from "./dynamic-modules"
+import { PrismaClientExceptionFilter } from "./prisma-client-exception"
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule)
@@ -34,5 +34,8 @@ async function bootstrap() {
     app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter))
 
     await app.listen(envConfig().port)
+    console.log(`Application is running on: http://localhost:${envConfig().port}`)
+    console.log(`Admin UI is available at: http://localhost:${envConfig().port}/admin`)
 }
+
 bootstrap()

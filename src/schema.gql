@@ -26,27 +26,50 @@ type CategoryEntity {
   updatedBy: String
 }
 
-input CreateSystemConfigBankDto {
-  bin: String!
-  code: String!
-  isTransfer: Boolean
-  logo: String!
-  lookupSupported: Boolean
-  name: String!
-  shortName: String!
-  support: Float
-  swiftCode: String
-  transferSupported: Boolean
+input CreateCustomerOrderDetailInput {
+  price: Int!
+  productId: String!
+  qualityCheckStatus: String! = "PENDING"
+  quantity: Int!
+  reworkStatus: String! = "NOT_REQUIRED"
+  status: String! = "PENDING"
 }
 
-input CreateSystemConfigColorDto {
-  code: String!
-  name: String!
+input CreateCustomerOrderInput {
+  customerId: String!
+  depositPaid: Int!
+  orderDetails: [CreateCustomerOrderDetailInput!]!
+  shippingPrice: Int!
 }
 
-input CreateSystemConfigSizeDto {
-  code: String!
-  isActive: Boolean
+type CustomerOrder {
+  customer: UserEntity!
+  customerId: String!
+  depositPaid: Float!
+  history: [OrderHistory!]!
+  id: ID!
+  orderDate: DateTime!
+  orderDetails: [CustomerOrderDetail!]!
+  payments: [Payment!]!
+  shippingPrice: Float!
+  status: OrderStatus!
+  totalPrice: Float!
+  transactions: [PaymentTransaction!]!
+}
+
+type CustomerOrderDetail {
+  customerOrderId: String!
+  id: ID!
+  price: Float!
+  productId: String!
+  quantity: Float!
+}
+
+input CustomerOrderFilterInput {
+  customerId: String
+  endDate: DateTime
+  startDate: DateTime
+  status: OrderStatus
 }
 
 """
@@ -65,18 +88,27 @@ type MonthlyGrowth {
 }
 
 type Mutation {
-  createSystemConfigBank(createSystemConfigBankDto: CreateSystemConfigBankDto!, userId: String): SystemConfigBank!
-  createSystemConfigColor(createSystemConfigColorDto: CreateSystemConfigColorDto!, userId: String): SystemConfigColor!
-  createSystemConfigSize(createSystemConfigSizeDto: CreateSystemConfigSizeDto!, userId: String): SystemConfigSize!
-  removeSystemConfigBank(id: String!, userId: String): SystemConfigBank!
-  removeSystemConfigColor(id: String!, userId: String): SystemConfigColor!
-  removeSystemConfigSize(id: String!, userId: String): SystemConfigSize!
-  restoreSystemConfigBank(id: String!, userId: String): SystemConfigBank!
-  restoreSystemConfigColor(id: String!, userId: String): SystemConfigColor!
-  restoreSystemConfigSize(id: String!, userId: String): SystemConfigSize!
-  updateSystemConfigBank(id: String!, updateSystemConfigBankDto: UpdateSystemConfigBankDto!, userId: String): SystemConfigBank!
-  updateSystemConfigColor(id: String!, updateSystemConfigColorDto: UpdateSystemConfigColorDto!, userId: String): SystemConfigColor!
-  updateSystemConfigSize(id: String!, updateSystemConfigSizeDto: UpdateSystemConfigSizeDto!, userId: String): SystemConfigSize!
+  createCustomerOrder(input: CreateCustomerOrderInput!): CustomerOrder!
+  removeCustomerOrder(id: ID!): CustomerOrder!
+  updateCustomerOrder(input: UpdateCustomerOrderInput!): CustomerOrder!
+}
+
+type OrderHistory {
+  customerOrderId: String!
+  id: ID!
+  notes: String
+  status: OrderStatus!
+  timestamp: DateTime!
+}
+
+"""Status of the customer order"""
+enum OrderStatus {
+  ACCEPTED
+  CANCELED
+  COMPLETED
+  DELIVERED
+  IN_PRODUCTION
+  PENDING
 }
 
 type PaginatedUsers {
@@ -94,6 +126,20 @@ type PaginationMeta {
   page: Float!
   total: Float!
   totalPages: Float!
+}
+
+type Payment {
+  amount: Float!
+  customerOrderId: String!
+  id: ID!
+  paymentDate: DateTime!
+}
+
+type PaymentTransaction {
+  customerOrderId: String!
+  id: ID!
+  paymentId: String!
+  status: String!
 }
 
 type ProductEntity {
@@ -120,13 +166,9 @@ type Query {
   blankVariances: [BlankVariancesEntity!]!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
+  customerOrder(id: ID!): CustomerOrder!
+  customerOrders(filter: CustomerOrderFilterInput): [CustomerOrder!]!
   products: [ProductEntity!]!
-  systemConfigBank(id: String!): SystemConfigBank!
-  systemConfigBanks(includeDeleted: Boolean): [SystemConfigBank!]!
-  systemConfigColor(id: String!): SystemConfigColor!
-  systemConfigColors(includeDeleted: Boolean): [SystemConfigColor!]!
-  systemConfigSize(id: String!): SystemConfigSize!
-  systemConfigSizes(includeDeleted: Boolean): [SystemConfigSize!]!
   user(id: String!): UserEntity!
   userAnalytics: UserAnalyticsEntity!
   users(filter: UserFilter): PaginatedUsers!
@@ -151,78 +193,12 @@ input SortInput {
   email: String
 }
 
-type SystemConfigBank {
-  bin: String!
-  code: String!
-  createdAt: DateTime!
-  createdBy: String
-  deletedAt: DateTime
-  deletedBy: String
-  id: ID!
-  isActive: Boolean!
-  isDeleted: Boolean!
-  isTransfer: Boolean!
-  logo: String!
-  lookupSupported: Boolean!
-  name: String!
-  shortName: String!
-  support: Int!
-  swiftCode: String
-  transferSupported: Boolean!
-  updatedAt: DateTime
-  updatedBy: String
-}
-
-type SystemConfigColor {
-  code: String!
-  createdAt: DateTime!
-  createdBy: String
-  deletedAt: DateTime
-  deletedBy: String
-  id: ID!
-  isActive: Boolean!
-  isDeleted: Boolean!
-  name: String!
-  updatedAt: DateTime
-  updatedBy: String
-}
-
-type SystemConfigSize {
-  code: String!
-  createdAt: DateTime!
-  createdBy: String!
-  deletedAt: DateTime
-  deletedBy: String
+input UpdateCustomerOrderInput {
+  depositPaid: Int
   id: String!
-  isActive: Boolean
-  isDeleted: Boolean!
-  updatedAt: DateTime
-  updatedBy: String
-}
-
-input UpdateSystemConfigBankDto {
-  bin: String!
-  code: String!
-  isActive: Boolean
-  isTransfer: Boolean
-  logo: String!
-  lookupSupported: Boolean
-  name: String!
-  shortName: String!
-  support: Float
-  swiftCode: String
-  transferSupported: Boolean
-}
-
-input UpdateSystemConfigColorDto {
-  code: String
-  isActive: Boolean
-  name: String
-}
-
-input UpdateSystemConfigSizeDto {
-  code: String
-  isActive: Boolean
+  notes: String
+  shippingPrice: Int
+  status: OrderStatus
 }
 
 type UserAnalyticsEntity {

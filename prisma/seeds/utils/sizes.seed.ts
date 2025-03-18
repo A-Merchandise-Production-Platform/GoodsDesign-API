@@ -12,6 +12,7 @@ export const seedSizes = async (prisma: PrismaClient) => {
       where: { code: size.code },
       update: {},
       create: {
+        name: size.name,
         ...size,
         createdBy: 'system',
       },

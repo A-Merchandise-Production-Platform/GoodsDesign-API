@@ -1,6 +1,7 @@
 interface Size {
-    code: string;
-  }
+  code: string;
+  name: string;
+}
   
   interface SizesData {
     sizes: Size[];
@@ -8,11 +9,11 @@ interface Size {
   
   export const sizesData: SizesData = {
     sizes: [
-      { code: "S" },
-      { code: "M" },
-      { code: "L" },
-      { code: "XL" },
-      { code: "XXL" },
-      { code: "XXXL" },
+      { code: "S", name: "Small" },
+      { code: "M", name: "Medium" },
+      { code: "L", name: "Large" },
+      { code: "XL", name: "Extra Large" },
+      { code: "XXL", name: "Double Extra Large" },
+      { code: "XXXL", name: "Triple Extra Large" },
     ],
   };

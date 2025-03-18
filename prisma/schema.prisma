@@ -42,8 +42,7 @@ model User {
   transactions  PaymentTransaction[]
   staffTasks    StaffTask[]
   factory       Factory?
-
-  @@map("Users")
+  Notification Notification[]
 }
 
 model Address {
@@ -104,39 +103,22 @@ model Product {
 model SystemConfigBank {
   id               String   @id @default(uuid())
   name             String
-  code             String   @unique
-  bin              String   @unique
+  code             String
+  bin              String
   shortName        String
   logo             String
-  transferSupported Boolean  @default(false)
-  lookupSupported  Boolean  @default(false)
-  support          Int      @default(0)
-  isTransfer       Boolean  @default(false)
-  swiftCode        String?
   isActive         Boolean  @default(true)
   isDeleted        Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  createdBy        String?
-  updatedAt        DateTime?
-  updatedBy        String?
-  deletedAt        DateTime?
-  deletedBy        String?
 
   @@map("SystemConfigBanks")
 }
 
 model SystemConfigColor {
   id         String   @id @default(uuid())
-  name       String   @unique
-  code       String   @unique
+  name       String
+  code       String
   isActive   Boolean  @default(true)
   isDeleted  Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  createdBy  String?
-  updatedAt  DateTime?
-  updatedBy  String?
-  deletedAt  DateTime?
-  deletedBy  String?
 
   @@map("SystemConfigColors")
 }
@@ -144,16 +126,10 @@ model SystemConfigColor {
 model SystemConfigSize {
   id         String   @id @default(uuid())
   name       String
-  code       String   @unique
+  code       String
   isActive   Boolean  @default(true)
   isDeleted  Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  createdBy  String?
-  updatedAt  DateTime?
-  updatedBy  String?
-  deletedAt  DateTime?
-  deletedBy  String?
-
+  
   @@map("SystemConfigSizes")
 }
 
@@ -464,4 +440,16 @@ model FactoryOrderDetail {
   orderDetail     CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
   
   @@map("FactoryOrderDetails")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String?
+  content   String?
+  url       String?
+  isRead    Boolean  @default(false)
+  userId    String
+  createdAt DateTime @default(now())
+
+  user      User @relation(fields: [userId], references: [id])
 }

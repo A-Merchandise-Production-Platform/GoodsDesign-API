@@ -1,5 +1,0 @@
-export * from "./dto"
-export * from "./models"
-export * from "./system-config-colors.module"
-export * from "./system-config-colors.service"
-export * from "./system-config-colors.resolver"

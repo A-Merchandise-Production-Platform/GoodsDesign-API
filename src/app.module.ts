@@ -2,6 +2,7 @@ import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo"
 import { Module } from "@nestjs/common"
 import { GraphQLModule } from "@nestjs/graphql"
+import { ScheduleModule } from "@nestjs/schedule"
 import GraphQLJSON from "graphql-type-json"
 import { join } from "path"
 import { AppController } from "./app.controller"
@@ -14,8 +15,10 @@ import { EnvModule } from "./dynamic-modules"
 import { PrismaModule } from "./prisma"
 import { ProductsModule } from "./products"
 import { RedisModule } from "./redis"
-import { SystemConfigModule } from "./system-config"
+import { NotificationsModule } from "./socket/notifications/notifications.module"
+import { SocketModule } from "./socket/socket.module"
 import { UsersModule } from "./users"
+import { ServeStaticModule } from "@nestjs/serve-static"
 
 @Module({
     imports: [
@@ -26,7 +29,7 @@ import { UsersModule } from "./users"
             resolvers: { JSON: GraphQLJSON },
             playground: false,
             plugins: [ApolloServerPluginLandingPageLocalDefault()],
-            sortSchema: true
+            sortSchema: true,
         }),
         PrismaModule,
         UsersModule,
@@ -34,9 +37,15 @@ import { UsersModule } from "./users"
         CategoriesModule,
         ProductsModule,
         RedisModule,
-        SystemConfigModule,
         BlankVariancesModule,
-        CustomerOrdersModule
+        CustomerOrdersModule,
+        NotificationsModule,
+        SocketModule,
+        ServeStaticModule.forRoot({
+            rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
+            serveRoot: '/admin'
+        }),
+        ScheduleModule.forRoot()
         // TestModule,
     ],
     controllers: [AppController],
