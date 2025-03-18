@@ -26,56 +26,69 @@ type CategoryEntity {
   updatedBy: String
 }
 
-input CreateCustomerOrderDetailInput {
-  price: Int!
+input CreateDesignPositionDto {
+  designId: String!
+  designJSON: JSON!
+  productPositionTypeId: String!
+}
+
+input CreateNotificationDto {
+  content: String
+  isRead: Boolean! = false
+  title: String
+  url: String
+  userId: String!
+}
+
+input CreateProductDesignDto {
+  blankVariantId: String!
+  isFinalized: Boolean! = false
+  isPublic: Boolean! = false
+  isTemplate: Boolean! = false
+  saved3DPreviewUrl: String!
+  userId: String!
+}
+
+input CreateProductPositionTypeDto {
+  basePrice: Int!
+  positionName: String!
   productId: String!
-  qualityCheckStatus: String! = "PENDING"
-  quantity: Int!
-  reworkStatus: String! = "NOT_REQUIRED"
-  status: String! = "PENDING"
 }
 
-input CreateCustomerOrderInput {
-  customerId: String!
-  depositPaid: Int!
-  orderDetails: [CreateCustomerOrderDetailInput!]!
-  shippingPrice: Int!
+input CreateSystemConfigBankDto {
+  bin: String!
+  code: String!
+  isActive: Boolean! = true
+  logo: String!
+  name: String!
+  shortName: String!
 }
 
-type CustomerOrder {
-  customer: UserEntity!
-  customerId: String!
-  depositPaid: Float!
-  history: [OrderHistory!]!
-  id: ID!
-  orderDate: DateTime!
-  orderDetails: [CustomerOrderDetail!]!
-  payments: [Payment!]!
-  shippingPrice: Float!
-  status: OrderStatus!
-  totalPrice: Float!
-  transactions: [PaymentTransaction!]!
+input CreateSystemConfigColorDto {
+  code: String!
+  isActive: Boolean! = true
+  name: String!
 }
 
-type CustomerOrderDetail {
-  customerOrderId: String!
-  id: ID!
-  price: Float!
-  productId: String!
-  quantity: Float!
-}
-
-input CustomerOrderFilterInput {
-  customerId: String
-  endDate: DateTime
-  startDate: DateTime
-  status: OrderStatus
+input CreateSystemConfigSizeDto {
+  code: String!
+  isActive: Boolean! = true
+  name: String!
 }
 
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type DesignPositionEntity {
+  design: ProductDesignEntity
+  designId: String!
+  designJSON: JSON!
+  id: ID!
+  positionType: ProductPositionTypeEntity
+  productPositionTypeId: String!
+}
 
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
@@ -88,27 +101,44 @@ type MonthlyGrowth {
 }
 
 type Mutation {
-  createCustomerOrder(input: CreateCustomerOrderInput!): CustomerOrder!
-  removeCustomerOrder(id: ID!): CustomerOrder!
-  updateCustomerOrder(input: UpdateCustomerOrderInput!): CustomerOrder!
+  createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
+  createNotification(input: CreateNotificationDto!): NotificationEntity!
+  createProductDesign(createProductDesignInput: CreateProductDesignDto!): ProductDesignEntity!
+  createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
+  createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
+  createSystemConfigColor(input: CreateSystemConfigColorDto!): SystemConfigColorEntity!
+  createSystemConfigSize(input: CreateSystemConfigSizeDto!): SystemConfigSizeEntity!
+  finalizeProductDesign(id: ID!): ProductDesignEntity!
+  makeProductDesignPublic(id: ID!): ProductDesignEntity!
+  makeProductDesignTemplate(id: ID!): ProductDesignEntity!
+  markAllNotificationsAsRead: [NotificationEntity!]!
+  markNotificationAsRead(id: ID!): NotificationEntity!
+  removeDesignPosition(id: ID!): DesignPositionEntity!
+  removeNotification(id: ID!): NotificationEntity!
+  removeProductDesign(id: ID!): ProductDesignEntity!
+  removeProductPositionType(id: ID!): ProductPositionTypeEntity!
+  removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
+  removeSystemConfigColor(id: ID!): SystemConfigColorEntity!
+  removeSystemConfigSize(id: ID!): SystemConfigSizeEntity!
+  updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
+  updateNotification(input: UpdateNotificationDto!): NotificationEntity!
+  updateProductDesign(updateProductDesignInput: UpdateProductDesignDto!): ProductDesignEntity!
+  updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
+  updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
+  updateSystemConfigColor(input: UpdateSystemConfigColorDto!): SystemConfigColorEntity!
+  updateSystemConfigSize(input: UpdateSystemConfigSizeDto!): SystemConfigSizeEntity!
 }
 
-type OrderHistory {
-  customerOrderId: String!
+type NotificationEntity {
+  content: String
+  createdAt: DateTime!
   id: ID!
-  notes: String
-  status: OrderStatus!
-  timestamp: DateTime!
-}
-
-"""Status of the customer order"""
-enum OrderStatus {
-  ACCEPTED
-  CANCELED
-  COMPLETED
-  DELIVERED
-  IN_PRODUCTION
-  PENDING
+  isRead: Boolean!
+  title: String
+  updatedAt: DateTime
+  url: String
+  user: UserEntity
+  userId: String!
 }
 
 type PaginatedUsers {
@@ -128,18 +158,18 @@ type PaginationMeta {
   totalPages: Float!
 }
 
-type Payment {
-  amount: Float!
-  customerOrderId: String!
+type ProductDesignEntity {
+  blankVariant: BlankVariancesEntity
+  blankVariantId: String!
+  createdAt: DateTime!
+  designPositions: [DesignPositionEntity!]
   id: ID!
-  paymentDate: DateTime!
-}
-
-type PaymentTransaction {
-  customerOrderId: String!
-  id: ID!
-  paymentId: String!
-  status: String!
+  isFinalized: Boolean!
+  isPublic: Boolean!
+  isTemplate: Boolean!
+  saved3DPreviewUrl: String!
+  user: UserEntity
+  userId: String!
 }
 
 type ProductEntity {
@@ -157,8 +187,19 @@ type ProductEntity {
   isDeleted: Boolean!
   model3DUrl: String
   name: String!
+  positionTypes: [ProductPositionTypeEntity!]
   updatedAt: DateTime
   updatedBy: String
+}
+
+type ProductPositionTypeEntity {
+  basePrice: Int!
+  designPositions: [DesignPositionEntity!]
+  id: ID!
+  positionName: String!
+  positionTypes: [ProductPositionTypeEntity!]
+  product: ProductEntity
+  productId: String!
 }
 
 type Query {
@@ -166,9 +207,21 @@ type Query {
   blankVariances: [BlankVariancesEntity!]!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
-  customerOrder(id: ID!): CustomerOrder!
-  customerOrders(filter: CustomerOrderFilterInput): [CustomerOrder!]!
+  designPosition(id: ID!): DesignPositionEntity!
+  designPositions(designId: String!): [DesignPositionEntity!]!
+  findAllProductDesigns: [ProductDesignEntity!]!
+  findOneProductDesign(id: ID!): ProductDesignEntity!
+  notification(id: ID!): NotificationEntity!
+  notifications: [NotificationEntity!]!
+  productPositionType(id: ID!): ProductPositionTypeEntity!
+  productPositionTypes(productId: String!): [ProductPositionTypeEntity!]!
   products: [ProductEntity!]!
+  systemConfigBank(id: ID!): SystemConfigBankEntity!
+  systemConfigBanks: [SystemConfigBankEntity!]!
+  systemConfigColor(id: ID!): SystemConfigColorEntity!
+  systemConfigColors: [SystemConfigColorEntity!]!
+  systemConfigSize(id: ID!): SystemConfigSizeEntity!
+  systemConfigSizes: [SystemConfigSizeEntity!]!
   user(id: String!): UserEntity!
   userAnalytics: UserAnalyticsEntity!
   users(filter: UserFilter): PaginatedUsers!
@@ -193,12 +246,88 @@ input SortInput {
   email: String
 }
 
-input UpdateCustomerOrderInput {
-  depositPaid: Int
-  id: String!
-  notes: String
-  shippingPrice: Int
-  status: OrderStatus
+type SystemConfigBankEntity {
+  bin: String!
+  code: String!
+  id: ID!
+  isActive: Boolean!
+  isDeleted: Boolean!
+  logo: String!
+  name: String!
+  shortName: String!
+}
+
+type SystemConfigColorEntity {
+  code: String!
+  id: ID!
+  isActive: Boolean!
+  isDeleted: Boolean!
+  name: String!
+}
+
+type SystemConfigSizeEntity {
+  code: String!
+  id: ID!
+  isActive: Boolean!
+  isDeleted: Boolean!
+  name: String!
+}
+
+input UpdateDesignPositionDto {
+  designId: String
+  designJSON: JSON
+  id: ID!
+  productPositionTypeId: String
+}
+
+input UpdateNotificationDto {
+  content: String
+  id: ID!
+  isRead: Boolean = false
+  title: String
+  url: String
+  userId: String
+}
+
+input UpdateProductDesignDto {
+  blankVariantId: String
+  id: ID!
+  isFinalized: Boolean = false
+  isPublic: Boolean = false
+  isTemplate: Boolean = false
+  saved3DPreviewUrl: String
+  userId: String
+}
+
+input UpdateProductPositionTypeDto {
+  basePrice: Int
+  id: ID!
+  positionName: String
+  productId: String
+}
+
+input UpdateSystemConfigBankDto {
+  bin: String
+  code: String
+  id: ID!
+  isActive: Boolean = true
+  logo: String
+  name: String
+  shortName: String
+}
+
+input UpdateSystemConfigColorDto {
+  code: String
+  id: ID!
+  isActive: Boolean = true
+  name: String
+}
+
+input UpdateSystemConfigSizeDto {
+  code: String
+  id: ID!
+  isActive: Boolean = true
+  name: String
 }
 
 type UserAnalyticsEntity {

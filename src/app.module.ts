@@ -10,7 +10,6 @@ import { AppService } from "./app.service"
 import { AuthModule } from "./auth"
 import { BlankVariancesModule } from "./blank-variances/blank-variances.module"
 import { CategoriesModule } from "./categories"
-import { CustomerOrdersModule } from "./customer-orders/customer-orders.module"
 import { EnvModule } from "./dynamic-modules"
 import { PrismaModule } from "./prisma"
 import { ProductsModule } from "./products"
@@ -19,6 +18,12 @@ import { NotificationsModule } from "./socket/notifications/notifications.module
 import { SocketModule } from "./socket/socket.module"
 import { UsersModule } from "./users"
 import { ServeStaticModule } from "@nestjs/serve-static"
+import { SystemConfigSizeModule } from "./system-config-size/system-config-size.module"
+import { SystemConfigColorModule } from "./system-config-color/system-config-color.module"
+import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
+import { ProductPositionTypeModule } from "./product-position-type/product-position-type.module"
+import { ProductDesignModule } from './product-design/product-design.module'
+import { DesignPositionModule } from './design-position/design-position.module'
 
 @Module({
     imports: [
@@ -38,9 +43,14 @@ import { ServeStaticModule } from "@nestjs/serve-static"
         ProductsModule,
         RedisModule,
         BlankVariancesModule,
-        CustomerOrdersModule,
         NotificationsModule,
         SocketModule,
+        SystemConfigSizeModule,
+        SystemConfigColorModule,
+        SystemConfigBankModule,
+        ProductPositionTypeModule,
+        ProductDesignModule,
+        DesignPositionModule,
         ServeStaticModule.forRoot({
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: '/admin'

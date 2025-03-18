@@ -44,7 +44,8 @@ export class ProductsService {
             orderBy: { createdAt: "desc" },
             include: {
                 category: true,
-                blankVariances: true
+                blankVariances: true,
+                positionTypes: true
             }
         })
         return products.map((product) => new ProductEntity(product))

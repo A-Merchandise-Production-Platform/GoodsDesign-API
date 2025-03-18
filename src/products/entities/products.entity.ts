@@ -2,6 +2,7 @@ import { ApiProperty } from "@nestjs/swagger"
 import { Field, ID, ObjectType } from "@nestjs/graphql"
 import { CategoryEntity } from "src/categories/entities/categories.entity"
 import { BlankVariancesEntity } from "src/blank-variances/entities/blank-variances.entity"
+import { ProductPositionTypeEntity } from "src/product-position-type/entities/product-position-type.entity"
 
 @ObjectType()
 export class ProductEntity {
@@ -132,4 +133,12 @@ export class ProductEntity {
     constructor(partial: Partial<ProductEntity>) {
         Object.assign(this, partial)
     }
+
+    @Field(() => [ProductPositionTypeEntity], { nullable: true })
+    @ApiProperty({
+        description: "The position types of the product",
+        type: [ProductPositionTypeEntity],
+        example: []
+    })
+    positionTypes?: ProductPositionTypeEntity[]
 }

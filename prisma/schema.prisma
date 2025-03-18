@@ -109,8 +109,6 @@ model SystemConfigBank {
   logo             String
   isActive         Boolean  @default(true)
   isDeleted        Boolean  @default(false)
-
-  @@map("SystemConfigBanks")
 }
 
 model SystemConfigColor {
@@ -119,8 +117,6 @@ model SystemConfigColor {
   code       String
   isActive   Boolean  @default(true)
   isDeleted  Boolean  @default(false)
-
-  @@map("SystemConfigColors")
 }
 
 model SystemConfigSize {
@@ -129,8 +125,6 @@ model SystemConfigSize {
   code       String
   isActive   Boolean  @default(true)
   isDeleted  Boolean  @default(false)
-  
-  @@map("SystemConfigSizes")
 }
 
 model BlankVariance {
@@ -186,8 +180,6 @@ model FavoriteDesign {
 
   user       User @relation(fields: [userId], references: [id])
   design     ProductDesign @relation(fields: [designId], references: [id])
-
-  @@map("FavoriteDesign")
 }
 
 model DesignPosition {
@@ -198,8 +190,6 @@ model DesignPosition {
 
   design               ProductDesign @relation(fields: [designId], references: [id])
   positionType         ProductPositionType @relation(fields: [productPositionTypeId], references: [id])
-  
-  @@map("DesignPosition")
 }
 
 enum OrderStatus {
@@ -239,7 +229,6 @@ model CustomerOrder {
   transactions  PaymentTransaction[]
   history       OrderHistory[]
 
-  @@map("CustomerOrders")
 }
 
 model CustomerOrderDetail {
@@ -257,7 +246,6 @@ model CustomerOrderDetail {
   checkQualities    CheckQuality[]
   factoryOrderDetails FactoryOrderDetail[]
   
-  @@map("CustomerOrderDetails")
 }
 
 enum PaymentType {
@@ -293,14 +281,12 @@ model Payment {
   amount       Int
   type         PaymentType
   paymentLog   String
-  createdDate  DateTime
+  createdAt  DateTime
   status       PaymentStatus
 
   order        CustomerOrder @relation(fields: [orderId], references: [id])
   customer     User @relation(fields: [customerId], references: [id])
   transactions PaymentTransaction[]
-
-  @@map("Payments")
 }
 
 model PaymentTransaction {
@@ -314,13 +300,12 @@ model PaymentTransaction {
   paymentMethod PaymentMethod
   status       TransactionStatus
   transactionLog String
-  createdDate  DateTime
+  createdAt  DateTime
 
   payment      Payment @relation(fields: [paymentId], references: [id])
   order        CustomerOrder @relation(fields: [orderId], references: [id])
   customer     User @relation(fields: [customerId], references: [id])
 
-  @@map("PaymentTransactions")
 }
 
 model OrderHistory {
@@ -332,7 +317,6 @@ model OrderHistory {
 
   order     CustomerOrder @relation(fields: [orderId], references: [id])
   
-  @@map("OrderHistory")
 }
 
 model Task {
@@ -347,7 +331,6 @@ model Task {
   checkQualities     CheckQuality[]
   staffTasks         StaffTask[]
 
-  @@map("Tasks")
 }
 
 model CheckQuality {
@@ -365,7 +348,6 @@ model CheckQuality {
   task             Task @relation(fields: [taskId], references: [id])
   orderDetail      CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
   
-  @@map("CheckQuality")
 }
 
 model StaffTask {
@@ -379,8 +361,6 @@ model StaffTask {
 
   user          User @relation(fields: [userId], references: [id])
   task          Task @relation(fields: [taskId], references: [id])
-
-  @@map("StaffTasks")
 }
 
 model FactoryProduct {
@@ -393,7 +373,6 @@ model FactoryProduct {
   factory              Factory @relation(fields: [factoryId], references: [factoryOwnerId])
   blankVariance        BlankVariance @relation(fields: [blankVarianceId], references: [id])
 
-  @@map("FactoryProducts")
 }
 
 model Factory {
@@ -405,7 +384,6 @@ model Factory {
   products       FactoryProduct[]
   orders         FactoryOrder[]
   
-  @@map("Factory")
 }
 
 model FactoryOrder {
@@ -421,7 +399,6 @@ model FactoryOrder {
   factory               Factory @relation(fields: [factoryId], references: [factoryOwnerId])
   orderDetails         FactoryOrderDetail[]
   
-  @@map("FactoryOrders")
 }
 
 model FactoryOrderDetail {
@@ -439,7 +416,6 @@ model FactoryOrderDetail {
   design          ProductDesign @relation(fields: [designId], references: [id])
   orderDetail     CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
   
-  @@map("FactoryOrderDetails")
 }
 
 model Notification {
@@ -450,6 +426,7 @@ model Notification {
   isRead    Boolean  @default(false)
   userId    String
   createdAt DateTime @default(now())
+  updatedAt DateTime?
 
   user      User @relation(fields: [userId], references: [id])
 }
