@@ -1,16 +1,17 @@
-import { ApiProperty } from "@nestjs/swagger"
+import { Field, InputType } from "@nestjs/graphql"
 import { IsBoolean, IsDateString, IsEmail, IsOptional, IsString, MinLength } from "class-validator"
 
+@InputType({ description: "Register input" })
 export class RegisterDto {
-    @ApiProperty({ description: "User email", example: "user@example.com" })
+    @Field(() => String)
     @IsEmail()
     email: string
 
-    @ApiProperty({ description: "User name", example: "John Doe" })
+    @Field(() => String)
     @IsString()
     name: string
 
-    @ApiProperty({ description: "User password", example: "strongPassword123" })
+    @Field(() => String)
     @IsString()
     @MinLength(6)
     password: string

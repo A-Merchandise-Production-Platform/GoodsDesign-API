@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common"
 import { JwtService } from "@nestjs/jwt"
 import { PrismaService } from "../prisma/prisma.service"
-import { AuthDto } from "./dto/auth.dto"
+import { LoginDto } from "./dto/login.dto"
 import { RegisterDto } from "./dto/register.dto"
 import { RefreshTokenDto } from "./dto/refresh-token.dto"
 import { TokenType, envConfig } from "../dynamic-modules"
@@ -17,8 +17,7 @@ export class AuthService {
     constructor(
         private prisma: PrismaService,
         private jwtService: JwtService,
-        private redisService: RedisService,
-        private usersService: UsersService
+        private redisService: RedisService
     ) {}
 
     async validateUser(email: string, password: string): Promise<UserEntity> {
@@ -39,8 +38,8 @@ export class AuthService {
         return new UserEntity(user)
     }
 
-    async login(authDto: AuthDto) {
-        const user = await this.validateUser(authDto.email, authDto.password)
+    async login(loginDto: LoginDto) {
+        const user = await this.validateUser(loginDto.email, loginDto.password)
 
         const [accessToken, refreshToken] = await Promise.all([
             this.generateToken(user.id, TokenType.AccessToken),
