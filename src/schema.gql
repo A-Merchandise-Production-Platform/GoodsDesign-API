@@ -29,6 +29,7 @@ type CategoryEntity {
   isActive: Boolean!
   isDeleted: Boolean!
   name: String!
+  products: [ProductEntity!]
   totalProducts: Int
   updatedAt: DateTime
   updatedBy: String
@@ -69,6 +70,15 @@ input CreateProductDesignDto {
   isTemplate: Boolean! = false
   saved3DPreviewUrl: String!
   userId: String!
+}
+
+"""Create Product"""
+input CreateProductDto {
+  categoryId: String!
+  description: String
+  imageUrl: String
+  model3DUrl: String
+  name: String!
 }
 
 input CreateProductPositionTypeDto {
@@ -140,6 +150,7 @@ type Mutation {
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
   createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
   createNotification(input: CreateNotificationDto!): NotificationEntity!
+  createProduct(input: CreateProductDto!): ProductEntity!
   createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
@@ -148,6 +159,7 @@ type Mutation {
   createUser(createUserInput: CreateUserDto!): UserEntity!
   deleteBlankVariance(id: String!): BlankVariancesEntity!
   deleteCategory(id: String!): CategoryEntity!
+  deleteProduct(id: String!): ProductEntity!
   deleteUser(id: String!): UserEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
@@ -163,11 +175,14 @@ type Mutation {
   removeSystemConfigColor(id: ID!): SystemConfigColorEntity!
   removeSystemConfigSize(id: ID!): SystemConfigSizeEntity!
   restoreCategory(id: String!): CategoryEntity!
+  restoreProduct(id: String!): ProductEntity!
   toggleActiveCategory(id: String!): CategoryEntity!
+  toggleActiveProduct(id: String!): ProductEntity!
   updateBlankVariance(id: String!, updateBlankVarianceInput: UpdateBlankVarianceDto!): BlankVariancesEntity!
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateNotification(input: UpdateNotificationDto!): NotificationEntity!
+  updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(input: UpdateProductDesignDto!): ProductDesignEntity!
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
@@ -202,6 +217,7 @@ type ProductDesignEntity {
   userId: String!
 }
 
+"""Product"""
 type ProductEntity {
   blankVariances: [BlankVariancesEntity!]
   category: CategoryEntity
@@ -241,6 +257,7 @@ type Query {
   getMe: UserEntity!
   notification(id: ID!): NotificationEntity!
   notifications: [NotificationEntity!]!
+  product(id: String!): ProductEntity!
   productDesign(id: ID!): ProductDesignEntity!
   productDesigns(userId: String): [ProductDesignEntity!]!
   productPositionType(id: ID!): ProductPositionTypeEntity!
@@ -338,6 +355,15 @@ input UpdateProductDesignDto {
   isPublic: Boolean
   isTemplate: Boolean
   saved3DPreviewUrl: String
+}
+
+"""Update Product"""
+input UpdateProductDto {
+  categoryId: String
+  description: String
+  imageUrl: String
+  model3DUrl: String
+  name: String
 }
 
 input UpdateProductPositionTypeDto {

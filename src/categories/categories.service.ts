@@ -36,7 +36,10 @@ export class CategoriesService {
 
     async findAll(includeDeleted = false): Promise<CategoryEntity[]> {
         const categories = await this.prisma.category.findMany({
-            where: includeDeleted ? undefined : { isDeleted: false }
+            where: includeDeleted ? undefined : { isDeleted: false },
+            include: {
+                products: true
+            }
         })
 
         return Promise.all(categories.map((category) => this.toCategoryResponse(category)))
@@ -47,6 +50,9 @@ export class CategoriesService {
             where: {
                 id,
                 ...(!includeDeleted && { isDeleted: false })
+            },
+            include: {
+                products: true
             }
         })
 

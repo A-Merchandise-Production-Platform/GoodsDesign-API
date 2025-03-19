@@ -1,5 +1,6 @@
 import { Field, ID, Int, ObjectType } from "@nestjs/graphql"
 import { ApiProperty } from "@nestjs/swagger"
+import { ProductEntity } from "src/products/entities/products.entity"
 
 @ObjectType()
 export class CategoryEntity {
@@ -41,6 +42,9 @@ export class CategoryEntity {
 
     @Field(() => Int, { nullable: true })
     totalProducts?: number
+
+    @Field(() => [ProductEntity], { nullable: true })
+    products?: ProductEntity[]
 
     constructor(partial: Partial<CategoryEntity>) {
         Object.assign(this, partial)
