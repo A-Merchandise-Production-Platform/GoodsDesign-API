@@ -33,6 +33,13 @@ type CategoryEntity {
   updatedBy: String
 }
 
+"""Create category input"""
+input CreateCategoryDto {
+  description: String
+  imageUrl: String
+  name: String!
+}
+
 input CreateDesignPositionDto {
   designId: String!
   designJSON: JSON!
@@ -121,6 +128,7 @@ input LoginDto {
 }
 
 type Mutation {
+  createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
   createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
   createNotification(input: CreateNotificationDto!): NotificationEntity!
   createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
@@ -129,6 +137,7 @@ type Mutation {
   createSystemConfigColor(input: CreateSystemConfigColorDto!): SystemConfigColorEntity!
   createSystemConfigSize(input: CreateSystemConfigSizeDto!): SystemConfigSizeEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!
+  deleteCategory(id: String!): CategoryEntity!
   deleteUser(id: String!): UserEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
@@ -143,6 +152,9 @@ type Mutation {
   removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
   removeSystemConfigColor(id: ID!): SystemConfigColorEntity!
   removeSystemConfigSize(id: ID!): SystemConfigSizeEntity!
+  restoreCategory(id: String!): CategoryEntity!
+  toggleActiveCategory(id: String!): CategoryEntity!
+  updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateNotification(input: UpdateNotificationDto!): NotificationEntity!
   updateProductDesign(input: UpdateProductDesignDto!): ProductDesignEntity!
@@ -279,6 +291,13 @@ type SystemConfigSizeEntity {
   isActive: Boolean!
   isDeleted: Boolean!
   name: String!
+}
+
+"""Update category input"""
+input UpdateCategoryDto {
+  description: String
+  imageUrl: String
+  name: String
 }
 
 input UpdateDesignPositionDto {
