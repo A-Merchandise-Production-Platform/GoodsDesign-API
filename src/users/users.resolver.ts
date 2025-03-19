@@ -1,13 +1,12 @@
-import { Query, Resolver, Args, registerEnumType, Mutation } from "@nestjs/graphql"
-import { UserFilter, PaginatedUsers } from "./models/user.model"
-import { UsersService } from "./users.service"
-import { Roles } from "@prisma/client"
 import { UseGuards } from "@nestjs/common"
-import { GraphqlJwtAuthGuard } from "src/auth/guards/graphql-jwt-auth.guard"
+import { Query, registerEnumType, Resolver, Args, Mutation } from "@nestjs/graphql"
+import { Roles } from "@prisma/client"
 import { CurrentUser } from "src/auth/decorators/current-user.decorator"
-import { CreateUserDto } from "./dto"
+import { GraphqlJwtAuthGuard } from "src/auth/guards/graphql-jwt-auth.guard"
 import { UserEntity } from "./entities/users.entity"
-import { UserAnalyticsEntity } from "./entities/user-analytics.entity"
+import { UsersService } from "./users.service"
+import { CreateUserDto } from "src/users/dto/create-user.dto"
+import { UpdateUserDto } from "src/users/dto/update-user.dto"
 
 registerEnumType(Roles, {
     name: "Roles",
@@ -19,28 +18,35 @@ registerEnumType(Roles, {
 export class UsersResolver {
     constructor(private usersService: UsersService) {}
 
-    @Query(() => PaginatedUsers, { name: "users" })
-    async getUsers(
-        @CurrentUser() user: UserEntity,
-        @Args("filter", { nullable: true }) filter?: UserFilter
-    ): Promise<PaginatedUsers> {
-        const result = await this.usersService.findAll(user, filter)
-        return {
-            items: result.items,
-            meta: result.meta
-        }
+    @Query(() => [UserEntity], { name: "users" })
+    async getUsers(@CurrentUser() user: UserEntity) {
+        return this.usersService.findAll(user)
     }
 
     @Query(() => UserEntity, { name: "user" })
-    async getUser(
-        @CurrentUser() currentUser: UserEntity,
-        @Args("id") id: string
-    ): Promise<UserEntity> {
-        return this.usersService.findOne(id, currentUser)
+    async getUser(@CurrentUser() user: UserEntity, @Args("id") id: string) {
+        return this.usersService.findOne(id, user)
     }
 
-    @Query(() => UserAnalyticsEntity, { name: "userAnalytics" })
-    async getUserAnalytics(@CurrentUser() currentUser: UserEntity): Promise<UserAnalyticsEntity> {
-        return this.usersService.getUserAnalytics(currentUser)
+    @Mutation(() => UserEntity, { name: "createUser" })
+    async createUser(
+        @CurrentUser() user: UserEntity,
+        @Args("createUserInput") createUserInput: CreateUserDto
+    ) {
+        return this.usersService.create(createUserInput, user)
+    }
+
+    @Mutation(() => UserEntity, { name: "updateUser" })
+    async updateUser(
+        @CurrentUser() user: UserEntity,
+        @Args("updateUserInput") updateUserInput: UpdateUserDto,
+        @Args("id") id: string
+    ) {
+        return this.usersService.update(id, updateUserInput, user)
+    }
+
+    @Mutation(() => UserEntity, { name: "deleteUser" })
+    async deleteUser(@CurrentUser() user: UserEntity, @Args("id") id: string) {
+        return this.usersService.remove(id, user)
     }
 }

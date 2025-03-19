@@ -76,6 +76,18 @@ input CreateSystemConfigSizeDto {
   name: String!
 }
 
+"""Create user input"""
+input CreateUserDto {
+  dateOfBirth: String
+  email: String!
+  gender: Boolean!
+  imageUrl: String
+  name: String!
+  password: String!
+  phoneNumber: String
+  role: String
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -95,11 +107,6 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON
 
-type MonthlyGrowth {
-  month: String!
-  users: Float!
-}
-
 type Mutation {
   createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
   createNotification(input: CreateNotificationDto!): NotificationEntity!
@@ -108,6 +115,8 @@ type Mutation {
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
   createSystemConfigColor(input: CreateSystemConfigColorDto!): SystemConfigColorEntity!
   createSystemConfigSize(input: CreateSystemConfigSizeDto!): SystemConfigSizeEntity!
+  createUser(createUserInput: CreateUserDto!): UserEntity!
+  deleteUser(id: String!): UserEntity!
   markAllNotificationsAsRead: [NotificationEntity!]!
   markNotificationAsRead(id: ID!): NotificationEntity!
   removeDesignPosition(id: ID!): DesignPositionEntity!
@@ -124,6 +133,7 @@ type Mutation {
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigColor(input: UpdateSystemConfigColorDto!): SystemConfigColorEntity!
   updateSystemConfigSize(input: UpdateSystemConfigSizeDto!): SystemConfigSizeEntity!
+  updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
 }
 
 type NotificationEntity {
@@ -136,23 +146,6 @@ type NotificationEntity {
   url: String
   user: UserEntity
   userId: String!
-}
-
-type PaginatedUsers {
-  items: [UserEntity!]!
-  meta: PaginationMeta!
-}
-
-input PaginationInput {
-  limit: Float! = 10
-  page: Float! = 1
-}
-
-type PaginationMeta {
-  limit: Float!
-  page: Float!
-  total: Float!
-  totalPages: Float!
 }
 
 type ProductDesignEntity {
@@ -219,13 +212,7 @@ type Query {
   systemConfigSize(id: ID!): SystemConfigSizeEntity!
   systemConfigSizes: [SystemConfigSizeEntity!]!
   user(id: String!): UserEntity!
-  userAnalytics: UserAnalyticsEntity!
-  users(filter: UserFilter): PaginatedUsers!
-}
-
-type RoleDistribution {
-  count: Float!
-  role: Roles!
+  users: [UserEntity!]!
 }
 
 """User roles"""
@@ -235,11 +222,6 @@ enum Roles {
   FACTORYOWNER
   MANAGER
   STAFF
-}
-
-input SortInput {
-  createdAt: String
-  email: String
 }
 
 type SystemConfigBankEntity {
@@ -322,16 +304,17 @@ input UpdateSystemConfigSizeDto {
   name: String
 }
 
-type UserAnalyticsEntity {
-  monthlyGrowth: [MonthlyGrowth!]!
-  roleDistribution: [RoleDistribution!]!
-  stats: UserAnalyticsStats!
-}
-
-type UserAnalyticsStats {
-  activeUsers: Float!
-  newUsersLast30Days: Float!
-  totalUsers: Float!
+"""Update user input"""
+input UpdateUserDto {
+  dateOfBirth: String
+  email: String
+  gender: Boolean
+  imageUrl: String
+  name: String
+  password: String
+  phoneNumber: String
+  role: String
+  updatedBy: String
 }
 
 type UserEntity {
@@ -351,12 +334,4 @@ type UserEntity {
   role: Roles!
   updatedAt: DateTime
   updatedBy: String
-}
-
-input UserFilter {
-  email: String
-  isActive: Boolean
-  pagination: PaginationInput
-  role: Roles
-  sort: SortInput
 }

@@ -1,3 +1,4 @@
+import { InputType, Field } from "@nestjs/graphql"
 import { ApiProperty } from "@nestjs/swagger"
 import { Roles } from "@prisma/client"
 import {
@@ -10,44 +11,41 @@ import {
     MinLength
 } from "class-validator"
 
+@InputType({ description: "Create user input" })
 export class CreateUserDto {
-    @ApiProperty({ description: "User email", example: "user@example.com" })
+    @Field(() => String)
     @IsEmail()
     email: string
 
-    @ApiProperty({ description: "User name", example: "John Doe" })
+    @Field(() => String)
     @IsString()
     name: string
 
-    @ApiProperty({ description: "User password", example: "strongPassword123" })
+    @Field(() => String)
     @IsString()
     @MinLength(6)
     password: string
 
-    @ApiProperty({ description: "User phone number", example: "+1234567890" })
+    @Field(() => String, { nullable: true })
     @IsString()
     @IsOptional()
     phoneNumber?: string
 
-    @ApiProperty({ description: "User gender", example: false })
+    @Field(() => Boolean)
     @IsBoolean()
     gender: boolean
 
-    @ApiProperty({ description: "User date of birth", required: false, example: "1990-01-01" })
+    @Field(() => String, { nullable: true })
     @IsDateString()
     @IsOptional()
     dateOfBirth?: string
 
-    @ApiProperty({
-        description: "User image URL",
-        required: false,
-        example: "https://example.com/image.jpg"
-    })
+    @Field(() => String, { nullable: true })
     @IsString()
     @IsOptional()
     imageUrl?: string
 
-    @ApiProperty({ description: "User role", enum: Roles, example: "CUSTOMER" })
+    @Field(() => String, { nullable: true })
     @IsEnum(Roles)
     role: Roles
 }

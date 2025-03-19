@@ -1,10 +1,10 @@
-import { ApiProperty, PartialType } from "@nestjs/swagger"
+import { Field, InputType, PartialType } from "@nestjs/graphql"
+import { IsOptional } from "class-validator"
 import { CreateUserDto } from "./create-user.dto"
-import { IsString, IsOptional } from "class-validator"
 
+@InputType({ description: "Update user input" })
 export class UpdateUserDto extends PartialType(CreateUserDto) {
-    @ApiProperty({ description: "Updated by user ID", required: false })
-    @IsString()
+    @Field(() => String, { nullable: true })
     @IsOptional()
     updatedBy?: string
 }
