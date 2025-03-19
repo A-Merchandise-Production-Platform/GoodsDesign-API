@@ -1,8 +1,12 @@
-import { Field, ID, InputType, PartialType } from '@nestjs/graphql';
-import { CreateDesignPositionDto } from './create-design-position.dto';
+import { Field, ID, InputType } from '@nestjs/graphql';
+import { JsonValue } from '@prisma/client/runtime/library';
+import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
-export class UpdateDesignPositionDto extends PartialType(CreateDesignPositionDto) {
+export class UpdateDesignPositionDto {
   @Field(() => ID)
   id: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  designJSON?: JsonValue;
 } 

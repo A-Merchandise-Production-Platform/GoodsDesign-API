@@ -1,7 +1,7 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import GraphQLJSON from 'graphql-type-json';
 import { ProductDesignEntity } from '../../product-design/entities/product-design.entity';
 import { ProductPositionTypeEntity } from '../../product-position-type/entities/product-position-type.entity';
+import GraphQLJSON from 'graphql-type-json';
 import { JsonValue } from '@prisma/client/runtime/library';
 
 @ObjectType()
@@ -16,7 +16,7 @@ export class DesignPositionEntity {
   productPositionTypeId: string;
 
   @Field(() => GraphQLJSON)
-  designJSON: JsonValue
+  designJSON: JsonValue;
 
   @Field(() => ProductDesignEntity, { nullable: true })
   design?: ProductDesignEntity;

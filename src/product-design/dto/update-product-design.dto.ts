@@ -1,8 +1,19 @@
-import { Field, ID, InputType, PartialType } from '@nestjs/graphql';
-import { CreateProductDesignDto } from './create-product-design.dto';
+import { Field, ID, InputType } from '@nestjs/graphql';
 
 @InputType()
-export class UpdateProductDesignDto extends PartialType(CreateProductDesignDto) {
+export class UpdateProductDesignDto {
   @Field(() => ID)
   id: string;
+
+  @Field({ nullable: true })
+  saved3DPreviewUrl?: string;
+
+  @Field({ nullable: true })
+  isFinalized?: boolean;
+
+  @Field({ nullable: true })
+  isPublic?: boolean;
+
+  @Field({ nullable: true })
+  isTemplate?: boolean;
 } 

@@ -18,11 +18,9 @@ export class DesignPositionService {
     });
   }
 
-  async findAll(designId: string): Promise<DesignPositionEntity[]> {
+  async findAll(designId?: string): Promise<DesignPositionEntity[]> {
     return this.prisma.designPosition.findMany({
-      where: {
-        designId,
-      },
+      where: designId ? { designId } : undefined,
       include: {
         design: true,
         positionType: true,

@@ -20,7 +20,7 @@ export class DesignPositionResolver {
 
   @Query(() => [DesignPositionEntity])
   async designPositions(
-    @Args('designId') designId: string,
+    @Args('designId', { nullable: true }) designId?: string,
   ) {
     return this.designPositionService.findAll(designId);
   }

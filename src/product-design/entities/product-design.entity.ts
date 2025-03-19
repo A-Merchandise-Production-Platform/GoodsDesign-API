@@ -1,7 +1,7 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { UserEntity } from '../../users/entities/users.entity';
-import { BlankVariancesEntity } from '../../blank-variances/entities/blank-variances.entity';
 import { DesignPositionEntity } from '../../design-position/entities/design-position.entity';
+import { UserEntity } from 'src/users/entities/users.entity';
+import { BlankVariancesEntity } from 'src/blank-variances/entities/blank-variances.entity';
 
 @ObjectType()
 export class ProductDesignEntity {
@@ -35,15 +35,6 @@ export class ProductDesignEntity {
   @Field(() => BlankVariancesEntity, { nullable: true })
   blankVariant?: BlankVariancesEntity;
 
-  // @Field(() => [FavoriteDesignEntity], { nullable: true })
-  // favorites?: FavoriteDesignEntity[];
-
   @Field(() => [DesignPositionEntity], { nullable: true })
   designPositions?: DesignPositionEntity[];
-
-  // @Field(() => [CustomerOrderDetailEntity], { nullable: true })
-  // orderDetails?: CustomerOrderDetailEntity[];
-
-  // @Field(() => [FactoryOrderDetailEntity], { nullable: true })
-  // factoryOrderDetails?: FactoryOrderDetailEntity[];
 } 

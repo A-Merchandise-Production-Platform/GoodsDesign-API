@@ -1,6 +1,5 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { ProductEntity } from '../../products/entities/products.entity';
-import { DesignPositionEntity } from '../../design-position/entities/design-position.entity';
 
 @ObjectType()
 export class ProductPositionTypeEntity {
@@ -18,9 +17,6 @@ export class ProductPositionTypeEntity {
 
   @Field(() => ProductEntity, { nullable: true })
   product?: ProductEntity;
-
-  @Field(() => [DesignPositionEntity], { nullable: true })
-  designPositions?: DesignPositionEntity[];
 
   @Field(() => [ProductPositionTypeEntity], { nullable: true })
   positionTypes?: ProductPositionTypeEntity[];

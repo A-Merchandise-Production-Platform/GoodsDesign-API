@@ -14,29 +14,26 @@ export class ProductDesignService {
       include: {
         user: true,
         blankVariant: true,
-        favorites: true,
-        designPositions: true,
-        orderDetails: true,
-        factoryOrderDetails: true,
+        designPositions: {
+          include: {
+            positionType: true,
+          },
+        },
       },
     });
   }
 
-  async findAll(userId: string): Promise<ProductDesignEntity[]> {
+  async findAll(userId?: string): Promise<ProductDesignEntity[]> {
     return this.prisma.productDesign.findMany({
-      where: {
-        userId,
-      },
+      where: userId ? { userId } : undefined,
       include: {
         user: true,
         blankVariant: true,
-        favorites: true,
-        designPositions: true,
-        orderDetails: true,
-        factoryOrderDetails: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
+        designPositions: {
+          include: {
+            positionType: true,
+          },
+        },
       },
     });
   }
@@ -47,10 +44,11 @@ export class ProductDesignService {
       include: {
         user: true,
         blankVariant: true,
-        favorites: true,
-        designPositions: true,
-        orderDetails: true,
-        factoryOrderDetails: true,
+        designPositions: {
+          include: {
+            positionType: true,
+          },
+        },
       },
     });
   }
@@ -62,10 +60,11 @@ export class ProductDesignService {
       include: {
         user: true,
         blankVariant: true,
-        favorites: true,
-        designPositions: true,
-        orderDetails: true,
-        factoryOrderDetails: true,
+        designPositions: {
+          include: {
+            positionType: true,
+          },
+        },
       },
     });
   }
@@ -76,61 +75,11 @@ export class ProductDesignService {
       include: {
         user: true,
         blankVariant: true,
-        favorites: true,
-        designPositions: true,
-        orderDetails: true,
-        factoryOrderDetails: true,
-      },
-    });
-  }
-
-  async finalize(id: string): Promise<ProductDesignEntity> {
-    return this.prisma.productDesign.update({
-      where: { id },
-      data: {
-        isFinalized: true,
-      },
-      include: {
-        user: true,
-        blankVariant: true,
-        favorites: true,
-        designPositions: true,
-        orderDetails: true,
-        factoryOrderDetails: true,
-      },
-    });
-  }
-
-  async makePublic(id: string): Promise<ProductDesignEntity> {
-    return this.prisma.productDesign.update({
-      where: { id },
-      data: {
-        isPublic: true,
-      },
-      include: {
-        user: true,
-        blankVariant: true,
-        favorites: true,
-        designPositions: true,
-        orderDetails: true,
-        factoryOrderDetails: true,
-      },
-    });
-  }
-
-  async makeTemplate(id: string): Promise<ProductDesignEntity> {
-    return this.prisma.productDesign.update({
-      where: { id },
-      data: {
-        isTemplate: true,
-      },
-      include: {
-        user: true,
-        blankVariant: true,
-        favorites: true,
-        designPositions: true,
-        orderDetails: true,
-        factoryOrderDetails: true,
+        designPositions: {
+          include: {
+            positionType: true,
+          },
+        },
       },
     });
   }

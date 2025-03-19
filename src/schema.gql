@@ -103,14 +103,11 @@ type MonthlyGrowth {
 type Mutation {
   createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
   createNotification(input: CreateNotificationDto!): NotificationEntity!
-  createProductDesign(createProductDesignInput: CreateProductDesignDto!): ProductDesignEntity!
+  createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
   createSystemConfigColor(input: CreateSystemConfigColorDto!): SystemConfigColorEntity!
   createSystemConfigSize(input: CreateSystemConfigSizeDto!): SystemConfigSizeEntity!
-  finalizeProductDesign(id: ID!): ProductDesignEntity!
-  makeProductDesignPublic(id: ID!): ProductDesignEntity!
-  makeProductDesignTemplate(id: ID!): ProductDesignEntity!
   markAllNotificationsAsRead: [NotificationEntity!]!
   markNotificationAsRead(id: ID!): NotificationEntity!
   removeDesignPosition(id: ID!): DesignPositionEntity!
@@ -122,7 +119,7 @@ type Mutation {
   removeSystemConfigSize(id: ID!): SystemConfigSizeEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateNotification(input: UpdateNotificationDto!): NotificationEntity!
-  updateProductDesign(updateProductDesignInput: UpdateProductDesignDto!): ProductDesignEntity!
+  updateProductDesign(input: UpdateProductDesignDto!): ProductDesignEntity!
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigColor(input: UpdateSystemConfigColorDto!): SystemConfigColorEntity!
@@ -194,7 +191,6 @@ type ProductEntity {
 
 type ProductPositionTypeEntity {
   basePrice: Int!
-  designPositions: [DesignPositionEntity!]
   id: ID!
   positionName: String!
   positionTypes: [ProductPositionTypeEntity!]
@@ -208,11 +204,11 @@ type Query {
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
   designPosition(id: ID!): DesignPositionEntity!
-  designPositions(designId: String!): [DesignPositionEntity!]!
-  findAllProductDesigns: [ProductDesignEntity!]!
-  findOneProductDesign(id: ID!): ProductDesignEntity!
+  designPositions(designId: String): [DesignPositionEntity!]!
   notification(id: ID!): NotificationEntity!
   notifications: [NotificationEntity!]!
+  productDesign(id: ID!): ProductDesignEntity!
+  productDesigns(userId: String): [ProductDesignEntity!]!
   productPositionType(id: ID!): ProductPositionTypeEntity!
   productPositionTypes(productId: String!): [ProductPositionTypeEntity!]!
   products: [ProductEntity!]!
@@ -274,10 +270,8 @@ type SystemConfigSizeEntity {
 }
 
 input UpdateDesignPositionDto {
-  designId: String
   designJSON: JSON
   id: ID!
-  productPositionTypeId: String
 }
 
 input UpdateNotificationDto {
@@ -290,13 +284,11 @@ input UpdateNotificationDto {
 }
 
 input UpdateProductDesignDto {
-  blankVariantId: String
   id: ID!
-  isFinalized: Boolean = false
-  isPublic: Boolean = false
-  isTemplate: Boolean = false
+  isFinalized: Boolean
+  isPublic: Boolean
+  isTemplate: Boolean
   saved3DPreviewUrl: String
-  userId: String
 }
 
 input UpdateProductPositionTypeDto {

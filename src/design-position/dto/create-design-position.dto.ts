@@ -1,6 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { JsonValue } from '@prisma/client/runtime/library';
-import GraphQLJSON from 'graphql-type-json';
+import { GraphQLJSON } from 'graphql-type-json';
 
 @InputType()
 export class CreateDesignPositionDto {

@@ -168,8 +168,16 @@ model ProductDesign {
   designPositions  DesignPosition[]
   orderDetails     CustomerOrderDetail[]
   factoryOrderDetails FactoryOrderDetail[]
+}
 
-  @@map("ProductDesigns")
+model DesignPosition {
+  id                   String @id @default(uuid())
+  designId             String
+  productPositionTypeId String
+  designJSON           Json
+
+  design               ProductDesign @relation(fields: [designId], references: [id])
+  positionType         ProductPositionType @relation(fields: [productPositionTypeId], references: [id])
 }
 
 model FavoriteDesign {
@@ -182,15 +190,7 @@ model FavoriteDesign {
   design     ProductDesign @relation(fields: [designId], references: [id])
 }
 
-model DesignPosition {
-  id                   String @id @default(uuid())
-  designId             String
-  productPositionTypeId String
-  designJSON           Json
 
-  design               ProductDesign @relation(fields: [designId], references: [id])
-  positionType         ProductPositionType @relation(fields: [productPositionTypeId], references: [id])
-}
 
 enum OrderStatus {
   PENDING
