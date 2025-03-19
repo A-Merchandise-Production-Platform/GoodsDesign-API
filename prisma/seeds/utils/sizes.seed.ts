@@ -8,13 +8,12 @@ export const seedSizes = async (prisma: PrismaClient) => {
   await prisma.systemConfigSize.deleteMany({});
 
   for (const size of sizesData.sizes) {
-    await prisma.systemConfigSize.upsert({
-      where: { code: size.code },
-      update: {},
-      create: {
+    await prisma.systemConfigSize.create({
+      data: {
         name: size.name,
-        ...size,
-        createdBy: 'system',
+        code: size.code,
+        isActive: true,
+        isDeleted: false
       },
     });
   }

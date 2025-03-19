@@ -16,46 +16,23 @@ export async function seedPayments(prisma: PrismaClient) {
       }
 
       // Create payment
-      const payment = await prisma.payment.upsert({
-        where: { id: paymentData.id },
-        update: {
-          orderId: paymentData.orderId,
-          customerId: user.id,
-          amount: paymentData.amount,
-          type: paymentData.type as PaymentType,
-          paymentLog: paymentData.paymentLog,
-          createdDate: new Date(paymentData.createdDate),
-          status: paymentData.status as PaymentStatus
-        },
-        create: {
+      const payment = await prisma.payment.create({
+        data: {
           id: paymentData.id,
           orderId: paymentData.orderId,
           customerId: user.id,
           amount: paymentData.amount,
           type: paymentData.type as PaymentType,
           paymentLog: paymentData.paymentLog,
-          createdDate: new Date(paymentData.createdDate),
+          createdAt: new Date(paymentData.createdDate),
           status: paymentData.status as PaymentStatus
         }
       });
 
       // Create transactions for this payment
       for (const transactionData of paymentData.transactions) {
-        await prisma.paymentTransaction.upsert({
-          where: { id: transactionData.id },
-          update: {
-            paymentId: payment.id,
-            orderId: payment.orderId,
-            customerId: payment.customerId,
-            amount: transactionData.amount,
-            type: transactionData.type as TransactionType,
-            paymentMethod: transactionData.paymentMethod as PaymentMethod,
-            status: transactionData.status as TransactionStatus,
-            paymentGatewayTransactionId: transactionData.paymentGatewayTransactionId,
-            transactionLog: transactionData.transactionLog,
-            createdDate: new Date(transactionData.createdDate)
-          },
-          create: {
+        await prisma.paymentTransaction.create({
+          data: {
             id: transactionData.id,
             paymentId: payment.id,
             orderId: payment.orderId,
@@ -66,7 +43,7 @@ export async function seedPayments(prisma: PrismaClient) {
             status: transactionData.status as TransactionStatus,
             paymentGatewayTransactionId: transactionData.paymentGatewayTransactionId,
             transactionLog: transactionData.transactionLog,
-            createdDate: new Date(transactionData.createdDate)
+            createdAt: new Date(transactionData.createdDate)
           }
         });
       }

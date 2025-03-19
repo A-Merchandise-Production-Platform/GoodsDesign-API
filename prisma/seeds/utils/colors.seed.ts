@@ -8,12 +8,12 @@ export const seedColors = async (prisma: PrismaClient) => {
   await prisma.systemConfigColor.deleteMany({});
 
   for (const color of colorsData.colors) {
-    await prisma.systemConfigColor.upsert({
-      where: { code: color.code },
-      update: {},
-      create: {
-        ...color,
-        createdBy: 'system',
+    await prisma.systemConfigColor.create({
+      data: {
+        name: color.name,
+        code: color.code,
+        isActive: true,
+        isDeleted: false
       },
     });
   }

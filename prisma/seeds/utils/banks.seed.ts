@@ -8,33 +8,16 @@ export const seedBanks = async (prisma: PrismaClient) => {
   await prisma.systemConfigBank.deleteMany({});
   
   for (const bank of banksData.banks) {
-    await prisma.systemConfigBank.upsert({
-          where: { code: bank.code },
-          update: {
-            name: bank.name,
-            bin: bank.bin,
-            shortName: bank.shortName,
-            logo: bank.logo,
-            transferSupported: bank.transferSupported,
-            lookupSupported: bank.lookupSupported,
-            swiftCode: bank.swiftCode,
-            isTransfer: bank.transferSupported,
-            isActive: true
-          },
-          create: {
-            code: bank.code,
-            name: bank.name,
-            bin: bank.bin,
-            shortName: bank.shortName,
-            logo: bank.logo,
-            transferSupported: bank.transferSupported,
-            lookupSupported: bank.lookupSupported,
-            swiftCode: bank.swiftCode,
-            support: 0,
-            isTransfer: bank.transferSupported,
-            isActive: true,
-            createdBy: 'system'
-          },
+    await prisma.systemConfigBank.create({
+      data: {
+        name: bank.name,
+        code: bank.code,
+        bin: bank.bin,
+        shortName: bank.shortName,
+        logo: bank.logo,
+        isActive: true,
+        isDeleted: false
+      },
     });
   }
 
