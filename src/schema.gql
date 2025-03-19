@@ -9,6 +9,7 @@ type AuthResponseDto {
   user: UserEntity!
 }
 
+"""Blank Variances"""
 type BlankVariancesEntity {
   blankPrice: Int!
   id: ID!
@@ -31,6 +32,13 @@ type CategoryEntity {
   totalProducts: Int
   updatedAt: DateTime
   updatedBy: String
+}
+
+"""Create Blank Variance"""
+input CreateBlankVarianceDto {
+  blankPrice: Int!
+  information: JSON!
+  productId: String!
 }
 
 """Create category input"""
@@ -128,6 +136,7 @@ input LoginDto {
 }
 
 type Mutation {
+  createBlankVariance(createBlankVarianceInput: CreateBlankVarianceDto!): BlankVariancesEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
   createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
   createNotification(input: CreateNotificationDto!): NotificationEntity!
@@ -137,6 +146,7 @@ type Mutation {
   createSystemConfigColor(input: CreateSystemConfigColorDto!): SystemConfigColorEntity!
   createSystemConfigSize(input: CreateSystemConfigSizeDto!): SystemConfigSizeEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!
+  deleteBlankVariance(id: String!): BlankVariancesEntity!
   deleteCategory(id: String!): CategoryEntity!
   deleteUser(id: String!): UserEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
@@ -154,6 +164,7 @@ type Mutation {
   removeSystemConfigSize(id: ID!): SystemConfigSizeEntity!
   restoreCategory(id: String!): CategoryEntity!
   toggleActiveCategory(id: String!): CategoryEntity!
+  updateBlankVariance(id: String!, updateBlankVarianceInput: UpdateBlankVarianceDto!): BlankVariancesEntity!
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateNotification(input: UpdateNotificationDto!): NotificationEntity!
@@ -291,6 +302,13 @@ type SystemConfigSizeEntity {
   isActive: Boolean!
   isDeleted: Boolean!
   name: String!
+}
+
+"""Update Blank Variance"""
+input UpdateBlankVarianceDto {
+  blankPrice: Int
+  information: JSON
+  productId: String
 }
 
 """Update category input"""

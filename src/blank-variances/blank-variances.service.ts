@@ -2,12 +2,14 @@ import { Injectable } from "@nestjs/common"
 import { PrismaService } from "../prisma/prisma.service"
 import { Prisma } from "@prisma/client"
 import { BlankVariancesEntity } from "./entities/blank-variances.entity"
+import { CreateBlankVarianceDto } from "src/blank-variances/dto/create-blank-variance.dto"
+import { UpdateBlankVarianceDto } from "src/blank-variances/dto/update-blank-variance.dto"
 
 @Injectable()
 export class BlankVariancesService {
     constructor(private prisma: PrismaService) {}
 
-    async create(data: Prisma.BlankVarianceCreateInput): Promise<BlankVariancesEntity> {
+    async create(data: CreateBlankVarianceDto): Promise<BlankVariancesEntity> {
         const blankVariance = await this.prisma.blankVariance.create({
             data,
             include: {
@@ -36,7 +38,7 @@ export class BlankVariancesService {
         return blankVariance ? new BlankVariancesEntity(blankVariance) : null
     }
 
-    async update(id: string, data: Prisma.BlankVarianceUpdateInput): Promise<BlankVariancesEntity> {
+    async update(id: string, data: UpdateBlankVarianceDto): Promise<BlankVariancesEntity> {
         const blankVariance = await this.prisma.blankVariance.update({
             where: { id },
             data,
