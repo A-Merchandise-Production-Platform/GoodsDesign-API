@@ -18,6 +18,14 @@ type BlankVariancesEntity {
   productId: String!
 }
 
+type CartItemEntity {
+  createdAt: DateTime!
+  designId: String!
+  id: ID!
+  quantity: Int!
+  userId: String!
+}
+
 type CategoryEntity {
   createdAt: DateTime!
   createdBy: String
@@ -40,6 +48,11 @@ input CreateBlankVarianceDto {
   blankPrice: Int!
   information: JSON!
   productId: String!
+}
+
+input CreateCartItemDto {
+  designId: String!
+  quantity: Int!
 }
 
 """Create category input"""
@@ -146,7 +159,9 @@ input LoginDto {
 }
 
 type Mutation {
+  clearCart: Boolean!
   createBlankVariance(createBlankVarianceInput: CreateBlankVarianceDto!): BlankVariancesEntity!
+  createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
   createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
   createNotification(input: CreateNotificationDto!): NotificationEntity!
@@ -158,6 +173,7 @@ type Mutation {
   createSystemConfigSize(input: CreateSystemConfigSizeDto!): SystemConfigSizeEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!
   deleteBlankVariance(id: String!): BlankVariancesEntity!
+  deleteCartItem(id: String!): CartItemEntity!
   deleteCategory(id: String!): CategoryEntity!
   deleteProduct(id: String!): ProductEntity!
   deleteUser(id: String!): UserEntity!
@@ -179,6 +195,7 @@ type Mutation {
   toggleActiveCategory(id: String!): CategoryEntity!
   toggleActiveProduct(id: String!): ProductEntity!
   updateBlankVariance(id: String!, updateBlankVarianceInput: UpdateBlankVarianceDto!): BlankVariancesEntity!
+  updateCartItem(id: String!, updateCartItemInput: UpdateCartItemDto!): CartItemEntity!
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateNotification(input: UpdateNotificationDto!): NotificationEntity!
@@ -248,8 +265,10 @@ type ProductPositionTypeEntity {
 }
 
 type Query {
+  allCartItems: [CartItemEntity!]!
   blankVariance(id: String!): BlankVariancesEntity
   blankVariances: [BlankVariancesEntity!]!
+  cartItem(id: String!): CartItemEntity!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
   designPosition(id: ID!): DesignPositionEntity!
@@ -270,6 +289,7 @@ type Query {
   systemConfigSize(id: ID!): SystemConfigSizeEntity!
   systemConfigSizes: [SystemConfigSizeEntity!]!
   user(id: String!): UserEntity!
+  userCartItems: [CartItemEntity!]!
   users: [UserEntity!]!
 }
 
@@ -326,6 +346,10 @@ input UpdateBlankVarianceDto {
   blankPrice: Int
   information: JSON
   productId: String
+}
+
+input UpdateCartItemDto {
+  quantity: Int!
 }
 
 """Update category input"""

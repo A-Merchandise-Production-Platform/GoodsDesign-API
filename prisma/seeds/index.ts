@@ -19,3 +19,4 @@ export * from './utils/factories.seed';
 export * from './utils/factory-products.seed';
 export * from './utils/factory-orders.seed';
 export * from './utils/factory-order-details.seed';
+export * from './utils/cart-items.seed';
