@@ -31,9 +31,10 @@ export class CreateUserDto {
     @IsOptional()
     phoneNumber?: string
 
-    @Field(() => Boolean)
+    @Field(() => Boolean, { nullable: true, defaultValue: false })
     @IsBoolean()
-    gender: boolean
+    @IsOptional()
+    gender?: boolean
 
     @Field(() => String, { nullable: true })
     @IsDateString()

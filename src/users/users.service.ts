@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
+import {
+    ConflictException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException
+} from "@nestjs/common"
 import { PrismaService } from "../prisma/prisma.service"
 import { getRolesBelowOrEqual } from "../utils/role.utils"
 import { CreateUserDto, UpdateUserDto } from "./dto"
@@ -13,9 +18,22 @@ export class UsersService {
     }
 
     async create(createUserDto: CreateUserDto, currentUser: UserEntity): Promise<UserEntity> {
+        const existingUser = await this.prisma.user.findFirst({
+            where: {
+                OR: [{ email: createUserDto.email }, { phoneNumber: createUserDto.phoneNumber }]
+            }
+        })
+
+        if (existingUser) {
+            throw new ConflictException("User already exists with this email or phone number    ")
+        }
+
         const user = await this.prisma.user.create({
             data: {
                 ...createUserDto,
+                imageUrl:
+                    createUserDto.imageUrl ||
+                    `https://api.dicebear.com/9.x/thumbs/svg?seed=${createUserDto.name}`,
                 isActive: true,
                 createdBy: currentUser.id,
                 dateOfBirth: createUserDto.dateOfBirth ? new Date(createUserDto.dateOfBirth) : null
@@ -35,7 +53,10 @@ export class UsersService {
             }
         }
         const users = await this.prisma.user.findMany({
-            where
+            where,
+            orderBy: {
+                createdAt: "desc"
+            }
         })
 
         return users.map((user) => this.toUserEntity(user))

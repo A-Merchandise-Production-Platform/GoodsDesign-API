@@ -120,5 +120,6 @@ export class AuthService {
 
     async logout(userId: string) {
         await this.redisService.removeRefreshToken(userId)
+        return "Logged out successfully"
     }
 }

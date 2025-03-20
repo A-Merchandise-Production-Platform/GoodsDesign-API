@@ -112,7 +112,7 @@ input CreateSystemConfigSizeDto {
 input CreateUserDto {
   dateOfBirth: String
   email: String!
-  gender: Boolean!
+  gender: Boolean = false
   imageUrl: String
   name: String!
   password: String!
@@ -401,7 +401,7 @@ input UpdateSystemConfigSizeDto {
 input UpdateUserDto {
   dateOfBirth: String
   email: String
-  gender: Boolean
+  gender: Boolean = false
   imageUrl: String
   name: String
   password: String
