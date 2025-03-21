@@ -1,4 +1,3 @@
-import { ApiProperty } from "@nestjs/swagger"
 import { Field, ID, ObjectType } from "@nestjs/graphql"
 import { CategoryEntity } from "src/categories/entities/categories.entity"
 import { BlankVariancesEntity } from "src/blank-variances/entities/blank-variances.entity"

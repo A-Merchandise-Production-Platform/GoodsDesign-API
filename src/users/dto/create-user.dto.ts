@@ -1,5 +1,4 @@
 import { InputType, Field } from "@nestjs/graphql"
-import { ApiProperty } from "@nestjs/swagger"
 import { Roles } from "@prisma/client"
 import {
     IsBoolean,

@@ -3,7 +3,6 @@ import { JwtService } from "@nestjs/jwt"
 import { Roles } from "@prisma/client"
 import { compare, hash } from "bcrypt"
 import { AuthResponseDto } from "src/auth/dto"
-import { MailService } from "src/mail/mail.service"
 import { TokenType, envConfig } from "../dynamic-modules"
 import { PrismaService } from "../prisma/prisma.service"
 import { RedisService } from "../redis/redis.service"
@@ -17,8 +16,7 @@ export class AuthService {
     constructor(
         private prisma: PrismaService,
         private jwtService: JwtService,
-        private redisService: RedisService,
-        private mailService: MailService
+        private redisService: RedisService
     ) {}
 
     async validateUser(email: string, password: string): Promise<UserEntity> {
@@ -48,8 +46,6 @@ export class AuthService {
         ])
 
         await this.redisService.setRefreshToken(user.id, refreshToken)
-
-        await this.mailService.sendUserConfirmation(user, accessToken)
 
         return new AuthResponseDto(new UserEntity(user), accessToken, refreshToken)
     }

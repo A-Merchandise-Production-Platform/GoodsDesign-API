@@ -26,7 +26,6 @@ import { ProductPositionTypeModule } from "./product-position-type/product-posit
 import { ProductDesignModule } from "./product-design/product-design.module"
 import { DesignPositionModule } from "./design-position/design-position.module"
 import { FactoryModule } from "./factory/factory.module"
-import { MailModule } from "./mail/mail.module"
 
 @Module({
     imports: [
@@ -60,8 +59,7 @@ import { MailModule } from "./mail/mail.module"
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: "/admin"
         }),
-        ScheduleModule.forRoot(),
-        MailModule
+        ScheduleModule.forRoot()
         // TestModule,
     ],
     controllers: [AppController],
