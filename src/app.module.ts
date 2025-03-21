@@ -9,6 +9,7 @@ import { AppController } from "./app.controller"
 import { AppService } from "./app.service"
 import { AuthModule } from "./auth"
 import { BlankVariancesModule } from "./blank-variances/blank-variances.module"
+import { CartItemsModule } from "./cart-items/cart-items.module"
 import { CategoriesModule } from "./categories"
 import { EnvModule } from "./dynamic-modules"
 import { PrismaModule } from "./prisma"
@@ -22,8 +23,9 @@ import { SystemConfigSizeModule } from "./system-config-size/system-config-size.
 import { SystemConfigColorModule } from "./system-config-color/system-config-color.module"
 import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
 import { ProductPositionTypeModule } from "./product-position-type/product-position-type.module"
-import { ProductDesignModule } from "./product-design/product-design.module"
-import { DesignPositionModule } from "./design-position/design-position.module"
+import { ProductDesignModule } from './product-design/product-design.module'
+import { DesignPositionModule } from './design-position/design-position.module'
+import { FactoryModule } from './factory/factory.module'
 
 @Module({
     imports: [
@@ -51,6 +53,8 @@ import { DesignPositionModule } from "./design-position/design-position.module"
         ProductPositionTypeModule,
         ProductDesignModule,
         DesignPositionModule,
+        CartItemsModule,
+        FactoryModule,
         ServeStaticModule.forRoot({
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: '/admin'
