@@ -19,7 +19,8 @@ import {
   seedFactories,
   seedFactoryProducts,
   seedFactoryOrders,
-  seedFactoryOrderDetails
+  seedFactoryOrderDetails,
+  seedCartItems
 } from './seeds';
 
 const prisma = new PrismaClient();
@@ -70,6 +71,7 @@ async function main() {
     await seedProductDesigns(prisma);
     await seedDesignPositions(prisma);
     await seedFavoriteDesigns(prisma);
+    await seedCartItems(prisma); // Add cart items after designs are seeded
     
     // Seed orders and payments
     await seedCustomerOrders(prisma);

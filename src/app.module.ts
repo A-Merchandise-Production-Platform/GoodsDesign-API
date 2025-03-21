@@ -9,6 +9,7 @@ import { AppController } from "./app.controller"
 import { AppService } from "./app.service"
 import { AuthModule } from "./auth"
 import { BlankVariancesModule } from "./blank-variances/blank-variances.module"
+import { CartItemsModule } from "./cart-items/cart-items.module"
 import { CategoriesModule } from "./categories"
 import { EnvModule } from "./dynamic-modules"
 import { PrismaModule } from "./prisma"
@@ -24,7 +25,8 @@ import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.
 import { ProductPositionTypeModule } from "./product-position-type/product-position-type.module"
 import { ProductDesignModule } from "./product-design/product-design.module"
 import { DesignPositionModule } from "./design-position/design-position.module"
-import { MailModule } from './mail/mail.module';
+import { FactoryModule } from "./factory/factory.module"
+import { MailModule } from "./mail/mail.module"
 
 @Module({
     imports: [
@@ -35,7 +37,7 @@ import { MailModule } from './mail/mail.module';
             resolvers: { JSON: GraphQLJSON },
             playground: false,
             plugins: [ApolloServerPluginLandingPageLocalDefault()],
-            sortSchema: true,
+            sortSchema: true
         }),
         PrismaModule,
         UsersModule,
@@ -52,9 +54,11 @@ import { MailModule } from './mail/mail.module';
         ProductPositionTypeModule,
         ProductDesignModule,
         DesignPositionModule,
+        CartItemsModule,
+        FactoryModule,
         ServeStaticModule.forRoot({
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
-            serveRoot: '/admin'
+            serveRoot: "/admin"
         }),
         ScheduleModule.forRoot(),
         MailModule

@@ -43,6 +43,8 @@ model User {
   staffTasks    StaffTask[]
   factory       Factory?
   Notification Notification[]
+
+  CartItems CartItem[]
 }
 
 model Address {
@@ -168,6 +170,8 @@ model ProductDesign {
   designPositions  DesignPosition[]
   orderDetails     CustomerOrderDetail[]
   factoryOrderDetails FactoryOrderDetail[]
+
+  CartItem CartItem[]
 }
 
 model DesignPosition {
@@ -468,4 +472,17 @@ model Notification {
   updatedAt DateTime?
 
   user      User @relation(fields: [userId], references: [id])
+}
+
+model CartItem {
+  id          String    @id @default(uuid())
+  userId      String
+  designId    String
+  quantity    Int
+  createdAt   DateTime  @default(now())
+
+  user        User @relation(fields: [userId], references: [id])
+  design      ProductDesign @relation(fields: [designId], references: [id])
+
+  @@map("CartItems")
 }
