@@ -24,6 +24,7 @@ import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.
 import { ProductPositionTypeModule } from "./product-position-type/product-position-type.module"
 import { ProductDesignModule } from "./product-design/product-design.module"
 import { DesignPositionModule } from "./design-position/design-position.module"
+import { MailModule } from './mail/mail.module';
 
 @Module({
     imports: [
@@ -55,7 +56,8 @@ import { DesignPositionModule } from "./design-position/design-position.module"
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: '/admin'
         }),
-        ScheduleModule.forRoot()
+        ScheduleModule.forRoot(),
+        MailModule
         // TestModule,
     ],
     controllers: [AppController],

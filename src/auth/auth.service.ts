@@ -11,13 +11,15 @@ import { UsersService } from "../users/users.service"
 import { UserEntity } from "../users/entities/users.entity"
 import { RedisService } from "../redis/redis.service"
 import { AuthResponseDto } from "src/auth/dto"
+import { MailService } from "src/mail/mail.service"
 
 @Injectable()
 export class AuthService {
     constructor(
         private prisma: PrismaService,
         private jwtService: JwtService,
-        private redisService: RedisService
+        private redisService: RedisService,
+        private mailService: MailService
     ) {}
 
     async validateUser(email: string, password: string): Promise<UserEntity> {
@@ -47,6 +49,8 @@ export class AuthService {
         ])
 
         await this.redisService.setRefreshToken(user.id, refreshToken)
+
+        await this.mailService.sendUserConfirmation(user, accessToken)
 
         return new AuthResponseDto(new UserEntity(user), accessToken, refreshToken)
     }

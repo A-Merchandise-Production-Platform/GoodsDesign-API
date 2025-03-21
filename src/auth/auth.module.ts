@@ -9,6 +9,7 @@ import { UsersModule } from "../users/users.module"
 import { AuthService } from "./auth.service"
 import { RolesGuard } from "./guards/roles.guard"
 import { JwtStrategy } from "./strategies/jwt.strategy"
+import { MailModule } from "src/mail/mail.module"
 
 @Module({
     imports: [
@@ -19,7 +20,8 @@ import { JwtStrategy } from "./strategies/jwt.strategy"
             signOptions: { expiresIn: envConfig().jwt[TokenType.AccessToken].expiresIn }
         }),
         RedisModule,
-        UsersModule
+        UsersModule,
+        MailModule
     ],
     providers: [AuthService, JwtStrategy, RolesGuard, AuthResolver],
     exports: [AuthService]
