@@ -18,13 +18,13 @@ export class CartItemsResolver {
     ): Promise<CartItemEntity[]> {
         return this.cartItemsService.findAll(user.id)
     }
-
+// get all cart-items in system
     @Query(() => [CartItemEntity], { name: "allCartItems" })
     async getAllCartItems(): Promise<CartItemEntity[]> {
         return this.cartItemsService.findAllItems()
     }
 
-    @Query(() => CartItemEntity, { name: "cartItem" })
+    @Query(() => CartItemEntity, { name: "cartItem" }) // get cart-items of current user
     async getCartItem(
         @Args("id") id: string,
         @CurrentUser() user: UserEntity

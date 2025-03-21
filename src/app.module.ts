@@ -25,6 +25,7 @@ import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.
 import { ProductPositionTypeModule } from "./product-position-type/product-position-type.module"
 import { ProductDesignModule } from './product-design/product-design.module'
 import { DesignPositionModule } from './design-position/design-position.module'
+import { FactoryModule } from './factory/factory.module'
 
 @Module({
     imports: [
@@ -53,6 +54,7 @@ import { DesignPositionModule } from './design-position/design-position.module'
         ProductDesignModule,
         DesignPositionModule,
         CartItemsModule,
+        FactoryModule,
         ServeStaticModule.forRoot({
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: '/admin'
