@@ -190,8 +190,6 @@ model FavoriteDesign {
   design     ProductDesign @relation(fields: [designId], references: [id])
 }
 
-
-
 enum OrderStatus {
   PENDING
   ACCEPTED
@@ -375,15 +373,56 @@ model FactoryProduct {
 
 }
 
+enum FactoryStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
 model Factory {
   factoryOwnerId String @id
-  information    Json
-  contract       Json
-
-  owner          User @relation(fields: [factoryOwnerId], references: [id])
-  products       FactoryProduct[]
-  orders         FactoryOrder[]
+  name                    String        // Factory business name
+  description             String?       // Description of the factory
+  businessLicenseUrl      String?       // Business license document URL
+  taxIdentificationNumber String?       // Tax ID
+  address                 String?       // Factory address
   
+  // Factory specific information
+  website                 String?       // Factory website
+  yearEstablished         Int?          // Year the factory was established
+  totalEmployees          Int?          // Number of employees
+  maxPrintingCapacity     Int?          // Overall maximum printing capacity per day
+  
+  // Quality and certifications
+  qualityCertifications   String?       // Details about quality certifications
+  primaryPrintingMethods  String?       // Main printing methods used
+  specializations         String?       // Specializations (e.g., eco-friendly, premium)
+  
+  // Contact information
+  contactPersonName       String?       // Name of primary contact
+  contactPersonRole       String?       // Role of primary contact
+  contactPhone            String?       // Factory contact phone
+  
+  // Operational details
+  operationalHours        String?       // Working hours
+  leadTime                Int?          // Average lead time in days
+  minimumOrderQuantity    Int?          // Minimum acceptable order quantity
+  
+  // Status tracking
+  factoryStatus           FactoryStatus @default(PENDING_APPROVAL)
+  statusNote              String?       // Note about status (especially for rejections)
+  contractAccepted        Boolean       @default(false)
+  contractAcceptedAt      DateTime?
+  reviewedBy              String?       // Admin who reviewed the application
+  reviewedAt              DateTime?
+  
+  // Keep the contract as JSON since it might be complex and vary over time
+  contract                Json?
+
+  owner                   User @relation(fields: [factoryOwnerId], references: [id])
+  products                FactoryProduct[]
+  orders                  FactoryOrder[]
 }
 
 model FactoryOrder {
