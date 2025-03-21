@@ -1,22 +1,34 @@
-import { Field, InputType } from '@nestjs/graphql';
-
+import { Field, InputType } from "@nestjs/graphql"
+import { IsNotEmpty, IsString, IsBoolean } from "class-validator"
 @InputType()
 export class CreateSystemConfigBankDto {
-  @Field()
-  name: string;
+    @Field()
+    @IsNotEmpty()
+    @IsString()
+    name: string
 
-  @Field()
-  code: string;
+    @Field()
+    @IsNotEmpty()
+    @IsString()
+    code: string
 
-  @Field()
-  bin: string;
+    @Field()
+    @IsNotEmpty()
+    @IsString()
+    bin: string
 
-  @Field()
-  shortName: string;
+    @Field()
+    @IsNotEmpty()
+    @IsString()
+    shortName: string
 
-  @Field()
-  logo: string;
+    @Field()
+    @IsNotEmpty()
+    @IsString()
+    logo: string
 
-  @Field({ defaultValue: true })
-  isActive?: boolean;
-} 
+    @Field({ defaultValue: true })
+    @IsNotEmpty()
+    @IsBoolean()
+    isActive?: boolean
+}

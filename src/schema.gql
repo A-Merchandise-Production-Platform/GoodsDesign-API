@@ -281,6 +281,9 @@ input RefreshTokenDto {
 """Register input"""
 input RegisterDto {
   email: String!
+
+  """True if registering as factory owner, false for customer"""
+  isFactoryOwner: Boolean! = false
   name: String!
   password: String!
 }

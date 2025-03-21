@@ -15,4 +15,12 @@ export class RegisterDto {
     @IsString()
     @MinLength(6)
     password: string
+
+    @Field(() => Boolean, {
+        description: "True if registering as factory owner, false for customer",
+        defaultValue: false
+    })
+    @IsBoolean()
+    @IsOptional()
+    isFactoryOwner?: boolean
 }

@@ -62,14 +62,30 @@ export class AuthService {
 
         const hashedPassword = await hash(registerDto.password, 10)
 
+        // Determine the role based on isFactoryOwner flag
+        const role = registerDto.isFactoryOwner ? Roles.FACTORYOWNER : Roles.CUSTOMER
+
+        // Create user with appropriate role
         const user = await this.prisma.user.create({
             data: {
-                ...registerDto,
+                email: registerDto.email,
+                name: registerDto.name,
                 password: hashedPassword,
-                role: Roles.CUSTOMER,
+                role: role,
                 isActive: true
             }
         })
+
+        // If registering as factory owner, create an empty factory record
+        if (registerDto.isFactoryOwner) {
+            await this.prisma.factory.create({
+                data: {
+                    factoryOwnerId: user.id,
+                    name: `${user.name}'s Factory`, // Default name based on user's name
+                    factoryStatus: "PENDING_APPROVAL"
+                }
+            })
+        }
 
         const [accessToken, refreshToken] = await Promise.all([
             this.generateToken(user.id, TokenType.AccessToken),
