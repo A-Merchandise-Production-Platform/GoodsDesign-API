@@ -23,17 +23,6 @@ export class FactoryResolver {
     }
 
     @Mutation(() => FactoryEntity)
-    async updateFactoryInfo(
-        @CurrentUser() user: UserEntity,
-        @Args("updateFactoryInfoInput") updateFactoryInfoDto: UpdateFactoryInfoDto
-    ) {
-        if (user.role !== "FACTORYOWNER") {
-            throw new ForbiddenException("Only factory owners can update factory information");
-        }
-        return this.factoryService.updateFactoryInfo(user.id, updateFactoryInfoDto);
-    }
-
-    @Mutation(() => FactoryEntity)
     async updateFactoryContract(
         @CurrentUser() user: UserEntity,
         @Args("updateFactoryContractInput") updateFactoryContractDto: UpdateFactoryContractDto

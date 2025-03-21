@@ -30,35 +30,6 @@ export class FactoryService {
         return this.toFactoryEntity(factory);
     }
 
-    async updateFactoryInfo(
-        ownerId: string,
-        updateFactoryInfoDto: UpdateFactoryInfoDto
-    ): Promise<FactoryEntity> {
-        const factory = await this.prisma.factory.findUnique({
-            where: { factoryOwnerId: ownerId }
-        });
-
-        if (!factory) {
-            throw new NotFoundException("Factory not found");
-        }
-
-        // Convert DTO to plain object for JSON storage
-        const factoryInfo = {
-            ...updateFactoryInfoDto,
-            createdAt: factory.information["createdAt"] // Preserve original creation date
-        };
-
-        const updatedFactory = await this.prisma.factory.update({
-            where: { factoryOwnerId: ownerId },
-            data: {
-                information: factoryInfo
-            },
-            include: { owner: true }
-        });
-
-        return this.toFactoryEntity(updatedFactory);
-    }
-
     async updateFactoryContract(
         ownerId: string,
         updateFactoryContractDto: UpdateFactoryContractDto

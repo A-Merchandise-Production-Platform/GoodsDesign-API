@@ -175,16 +175,6 @@ type FactoryInformation {
   taxIdentificationNumber: String!
 }
 
-"""Factory information input"""
-input FactoryInformationInput {
-  businessLicenseNumber: String!
-  factoryAddress: String!
-  factoryEmail: String!
-  factoryName: String!
-  factoryPhoneNumber: String!
-  taxIdentificationNumber: String!
-}
-
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -221,7 +211,6 @@ type Mutation {
   markNotificationAsRead(id: ID!): NotificationEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
-  registerFactoryOwner(registerFactoryOwnerInput: RegisterFactoryOwnerDto!): AuthResponseDto!
   removeDesignPosition(id: ID!): DesignPositionEntity!
   removeNotification(id: ID!): NotificationEntity!
   removeProductDesign(id: ID!): ProductDesignEntity!
@@ -238,7 +227,6 @@ type Mutation {
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryContract(updateFactoryContractInput: UpdateFactoryContractDto!): FactoryEntity!
-  updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateNotification(input: UpdateNotificationDto!): NotificationEntity!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(input: UpdateProductDesignDto!): ProductDesignEntity!
@@ -350,18 +338,6 @@ input RegisterDto {
   password: String!
 }
 
-"""Register factory owner input"""
-input RegisterFactoryOwnerDto {
-  dateOfBirth: String
-  email: String!
-  factoryInformation: FactoryInformationInput!
-  gender: Boolean = false
-  imageUrl: String
-  name: String!
-  password: String!
-  phoneNumber: String
-}
-
 """User roles"""
 enum Roles {
   ADMIN
@@ -431,16 +407,6 @@ input UpdateFactoryContractDto {
   productionCostPerUnit: Float!
   qualityThreshold: Float!
   responseTimeLimit: Float!
-}
-
-"""Update factory information input"""
-input UpdateFactoryInfoDto {
-  businessLicenseNumber: String!
-  factoryAddress: String!
-  factoryEmail: String!
-  factoryName: String!
-  factoryPhoneNumber: String!
-  taxIdentificationNumber: String!
 }
 
 input UpdateNotificationDto {

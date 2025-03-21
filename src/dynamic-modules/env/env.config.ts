@@ -16,6 +16,13 @@ export const envConfig = () => ({
     redis: {
         url: process.env.REDIS_URL || "redis://localhost:6380",
         ttl: process.env.REDIS_TTL || "604800" //60 * 60 * 24 * 7
+    },
+    mail: {
+        host: process.env.MAIL_HOST || "smtp.gmail.com",
+        user: process.env.MAIL_USER || "mainega69@gmail.com",
+        password: process.env.MAIL_PASSWORD || "zqcp fjht khon aodo",
+        from: process.env.MAIL_FROM || "mainega69@gmail.com",
+        port: process.env.MAIL_PORT || 587
     }
 })
 
