@@ -385,7 +385,7 @@ model Factory {
   description             String? // Description of the factory
   businessLicenseUrl      String? // Business license document URL
   taxIdentificationNumber String? // Tax ID
-  addressId               String  @unique // Factory address
+  addressId               String? @unique // Factory address, optional but unique when present
 
   // Factory specific information
   website             String? // Factory website
@@ -410,6 +410,7 @@ model Factory {
 
   // Status tracking
   factoryStatus      FactoryStatus @default(PENDING_APPROVAL)
+  isSubmitted        Boolean       @default(false)  // Track if factory info has been submitted for approval
   statusNote         String? // Note about status (especially for rejections)
   contractAccepted   Boolean       @default(false)
   contractAcceptedAt DateTime?
@@ -422,7 +423,7 @@ model Factory {
   owner    User             @relation(fields: [factoryOwnerId], references: [id])
   products FactoryProduct[]
   orders   FactoryOrder[]
-  address  Address          @relation(fields: [addressId], references: [id])
+  address  Address?         @relation(fields: [addressId], references: [id])
 }
 
 model FactoryOrder {

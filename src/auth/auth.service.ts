@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common"
 import { JwtService } from "@nestjs/jwt"
-import { Roles } from "@prisma/client"
+import { FactoryStatus, Roles } from "@prisma/client"
 import { compare, hash } from "bcrypt"
 import { AuthResponseDto } from "src/auth/dto"
 import { TokenType, envConfig } from "../dynamic-modules"
@@ -80,7 +80,19 @@ export class AuthService {
                 data: {
                     factoryOwnerId: user.id,
                     name: `${user.name}'s Factory`,
-                    factoryStatus: "PENDING_APPROVAL"
+                    factoryStatus: FactoryStatus.PENDING_APPROVAL,
+                    establishedDate: new Date(),
+                    totalEmployees: 1,
+                    maxPrintingCapacity: 0,
+                    printingMethods: [],
+                    specializations: [],
+                    contactPersonName: user.name,
+                    contactPersonRole: "Factory Owner",
+                    contactPhone: user.phoneNumber || "",
+                    operationalHours: "",
+                    leadTime: 0,
+                    minimumOrderQuantity: 0,
+                    contract: null
                 }
             })
         }

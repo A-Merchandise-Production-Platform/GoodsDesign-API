@@ -1,68 +1,105 @@
-import { Field, ID, ObjectType } from "@nestjs/graphql";
-import { UserEntity } from "src/users/entities/users.entity";
+import { Field, Int, ObjectType, registerEnumType } from "@nestjs/graphql"
+import { FactoryStatus } from "@prisma/client"
+import { ProductEntity } from "src/products/entities/products.entity"
+import { UserEntity } from "src/users/entities/users.entity"
 
-@ObjectType()
-class FactoryContract {
-    @Field(() => String)
-    contractNumber: string;
-
-    @Field(() => String)
-    effectiveDate: string;
-
-    @Field(() => String, { nullable: true })
-    expirationDate?: string;
-
-    @Field(() => Number)
-    productionCommitment: number;
-
-    @Field(() => Number)
-    qualityThreshold: number;
-
-    @Field(() => Number)
-    responseTimeLimit: number;
-
-    @Field(() => Number)
-    productionCostPerUnit: number;
-
-    @Field(() => Number)
-    paymentTerm: number;
-}
-
-@ObjectType()
-class FactoryInformation {
-    @Field(() => String)
-    factoryName: string;
-
-    @Field(() => String)
-    factoryAddress: string;
-
-    @Field(() => String)
-    businessLicenseNumber: string;
-
-    @Field(() => String)
-    taxIdentificationNumber: string;
-
-    @Field(() => String)
-    factoryPhoneNumber: string;
-
-    @Field(() => String)
-    factoryEmail: string;
-
-    @Field(() => String)
-    createdAt: string;
-}
+registerEnumType(FactoryStatus, {
+    name: "FactoryStatus"
+})
 
 @ObjectType()
 export class FactoryEntity {
-    @Field(() => ID)
-    factoryOwnerId: string;
+    @Field(() => String)
+    id: string
 
-    @Field(() => FactoryInformation)
-    information: FactoryInformation;
+    @Field(() => String)
+    name: string
 
-    @Field(() => FactoryContract)
-    contract: FactoryContract;
+    @Field(() => String, { nullable: true })
+    description: string
+
+    @Field(() => String, { nullable: true })
+    businessLicenseUrl: string
+
+    @Field(() => String, { nullable: true })
+    taxIdentificationNumber: string
+
+    @Field(() => String, { nullable: true })
+    addressId: string
+
+    @Field(() => String, { nullable: true })
+    website: string
+
+    @Field(() => Date, { nullable: true })
+    establishedDate: Date
+
+    @Field(() => Int, { nullable: true })
+    totalEmployees: number
+
+    @Field(() => Int, { nullable: true })
+    maxPrintingCapacity: number
+
+    @Field(() => String, { nullable: true })
+    qualityCertifications: string
+
+    @Field(() => [String])
+    printingMethods: string[]
+
+    @Field(() => [String])
+    specializations: string[]
+
+    @Field(() => String, { nullable: true })
+    contactPersonName: string
+
+    @Field(() => String, { nullable: true })
+    contactPersonRole: string
+
+    @Field(() => String, { nullable: true })
+    contactPersonPhone: string
+
+    @Field(() => String, { nullable: true })
+    operationalHours: string
+
+    @Field(() => Int, { nullable: true })
+    leadTime: number
+
+    @Field(() => Int, { nullable: true })
+    minimumOrderQuantity: number
+
+    @Field(() => FactoryStatus, { nullable: true })
+    factoryStatus: FactoryStatus
+
+    @Field(() => Boolean, { nullable: true })
+    isSubmitted: boolean
+
+    @Field(() => String, { nullable: true })
+    statusNote: string
+
+    @Field(() => Boolean, { nullable: true })
+    contractAccepted: boolean
+
+    @Field(() => Date, { nullable: true })
+    contractAcceptedAt: Date
+
+    @Field(() => String, { nullable: true })
+    reviewedBy: string
+
+    @Field(() => Date, { nullable: true })
+    reviewedAt: Date
+
+    @Field(() => String, { nullable: true })
+    contract: string
 
     @Field(() => UserEntity)
-    owner?: UserEntity;
+    owner: UserEntity
+
+    @Field(() => [ProductEntity])
+    products: ProductEntity[]
+
+    // @Field(() => [FactoryOrderEntity])
+    // orders: FactoryOrderEntity[]
+
+    constructor(partial: Partial<FactoryEntity>) {
+        Object.assign(this, partial)
+    }
 }
