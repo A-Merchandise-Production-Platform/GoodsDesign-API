@@ -2,135 +2,147 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-"""Authentication response"""
+"""
+Authentication response
+"""
 type AuthResponseDto {
-  accessToken: String!
-  refreshToken: String!
-  user: UserEntity!
+    accessToken: String!
+    refreshToken: String!
+    user: UserEntity!
 }
 
-"""Blank Variances"""
+"""
+Blank Variances
+"""
 type BlankVariancesEntity {
-  blankPrice: Int!
-  id: ID!
-  information: JSON!
-  product: ProductEntity
-  productId: String!
+    blankPrice: Int!
+    id: ID!
+    information: JSON!
+    product: ProductEntity
+    productId: String!
 }
 
 type CartItemEntity {
-  createdAt: DateTime!
-  designId: String!
-  id: ID!
-  quantity: Int!
-  userId: String!
+    createdAt: DateTime!
+    designId: String!
+    id: ID!
+    quantity: Int!
+    userId: String!
 }
 
 type CategoryEntity {
-  createdAt: DateTime!
-  createdBy: String
-  deletedAt: DateTime
-  deletedBy: String
-  description: String
-  id: ID!
-  imageUrl: String
-  isActive: Boolean!
-  isDeleted: Boolean!
-  name: String!
-  products: [ProductEntity!]
-  totalProducts: Int
-  updatedAt: DateTime
-  updatedBy: String
+    createdAt: DateTime!
+    createdBy: String
+    deletedAt: DateTime
+    deletedBy: String
+    description: String
+    id: ID!
+    imageUrl: String
+    isActive: Boolean!
+    isDeleted: Boolean!
+    name: String!
+    products: [ProductEntity!]
+    totalProducts: Int
+    updatedAt: DateTime
+    updatedBy: String
 }
 
-"""Create Blank Variance"""
+"""
+Create Blank Variance
+"""
 input CreateBlankVarianceDto {
-  blankPrice: Int!
-  information: JSON!
-  productId: String!
+    blankPrice: Int!
+    information: JSON!
+    productId: String!
 }
 
 input CreateCartItemDto {
-  designId: String!
-  quantity: Int!
+    designId: String!
+    quantity: Int!
 }
 
-"""Create category input"""
+"""
+Create category input
+"""
 input CreateCategoryDto {
-  description: String
-  imageUrl: String
-  name: String!
+    description: String
+    imageUrl: String
+    name: String!
 }
 
 input CreateDesignPositionDto {
-  designId: String!
-  designJSON: JSON!
-  productPositionTypeId: String!
+    designId: String!
+    designJSON: JSON!
+    productPositionTypeId: String!
 }
 
 input CreateNotificationDto {
-  content: String
-  isRead: Boolean! = false
-  title: String
-  url: String
-  userId: String!
+    content: String
+    isRead: Boolean! = false
+    title: String
+    url: String
+    userId: String!
 }
 
 input CreateProductDesignDto {
-  blankVariantId: String!
-  isFinalized: Boolean! = false
-  isPublic: Boolean! = false
-  isTemplate: Boolean! = false
-  saved3DPreviewUrl: String!
-  userId: String!
+    blankVariantId: String!
+    isFinalized: Boolean! = false
+    isPublic: Boolean! = false
+    isTemplate: Boolean! = false
+    saved3DPreviewUrl: String!
+    userId: String!
 }
 
-"""Create Product"""
+"""
+Create Product
+"""
 input CreateProductDto {
-  categoryId: String!
-  description: String
-  imageUrl: String
-  model3DUrl: String
-  name: String!
+    categoryId: String!
+    description: String
+    imageUrl: String
+    model3DUrl: String
+    name: String!
 }
 
 input CreateProductPositionTypeDto {
-  basePrice: Int!
-  positionName: String!
-  productId: String!
+    basePrice: Int!
+    positionName: String!
+    productId: String!
 }
 
 input CreateSystemConfigBankDto {
-  bin: String!
-  code: String!
-  isActive: Boolean! = true
-  logo: String!
-  name: String!
-  shortName: String!
+    bin: String!
+    code: String!
+    isActive: Boolean! = true
+    logo: String!
+    name: String!
+    shortName: String!
 }
 
 input CreateSystemConfigColorDto {
-  code: String!
-  isActive: Boolean! = true
-  name: String!
+    code: String!
+    isActive: Boolean! = true
+    name: String!
 }
 
 input CreateSystemConfigSizeDto {
-  code: String!
-  isActive: Boolean! = true
-  name: String!
+    code: String!
+    isActive: Boolean! = true
+    name: String!
 }
 
-"""Create user input"""
+"""
+Create user input
+"""
 input CreateUserDto {
-  dateOfBirth: String
-  email: String!
-  gender: Boolean = false
-  imageUrl: String
-  name: String!
-  password: String!
-  phoneNumber: String
-  role: String
+    dateOfBirth: String
+    email: String!
+    gender: Boolean = false
+    imageUrl: String
+    name: String!
+    password: String!
+    phoneNumber: String
+    role: String
 }
 
 """
@@ -139,51 +151,68 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type DesignPositionEntity {
-  design: ProductDesignEntity
-  designId: String!
-  designJSON: JSON!
-  id: ID!
-  positionType: ProductPositionTypeEntity
-  productPositionTypeId: String!
+    design: ProductDesignEntity
+    designId: String!
+    designJSON: JSON!
+    id: ID!
+    positionType: ProductPositionTypeEntity
+    productPositionTypeId: String!
+}
+
+type District {
+    districtId: Int!
+    districtName: String!
+    provinceId: Int!
+}
+
+type FactoryContract {
+    contractNumber: String!
+    effectiveDate: String!
+    expirationDate: String
+    paymentTerm: Float!
+    productionCommitment: Float!
+    productionCostPerUnit: Float!
+    qualityThreshold: Float!
+    responseTimeLimit: Float!
 }
 
 type FactoryEntity {
-  addressId: String
-  businessLicenseUrl: String
-  contactPersonName: String
-  contactPersonPhone: String
-  contactPersonRole: String
-  contract: String
-  contractAccepted: Boolean
-  contractAcceptedAt: DateTime
-  description: String
-  establishedDate: DateTime
-  factoryStatus: FactoryStatus
-  id: String!
-  isSubmitted: Boolean
-  leadTime: Int
-  maxPrintingCapacity: Int
-  minimumOrderQuantity: Int
-  name: String!
-  operationalHours: String
-  owner: UserEntity!
-  printingMethods: [String!]!
-  products: [ProductEntity!]!
-  qualityCertifications: String
-  reviewedAt: DateTime
-  reviewedBy: String
-  specializations: [String!]!
-  statusNote: String
-  taxIdentificationNumber: String
-  totalEmployees: Int
-  website: String
+    addressId: String
+    businessLicenseUrl: String
+    contactPersonName: String
+    contactPersonPhone: String
+    contactPersonRole: String
+    contract: String
+    contractAccepted: Boolean
+    contractAcceptedAt: DateTime
+    description: String
+    establishedDate: DateTime
+    factoryStatus: FactoryStatus
+    id: String!
+    isSubmitted: Boolean
+    leadTime: Int
+    maxPrintingCapacity: Int
+    minimumOrderQuantity: Int
+    name: String!
+    operationalHours: String
+    owner: UserEntity!
+    printingMethods: [String!]!
+    products: [ProductEntity!]!
+    qualityCertifications: String
+    reviewedAt: DateTime
+    reviewedBy: String
+    specializations: [String!]!
+    statusNote: String
+    taxIdentificationNumber: String
+    totalEmployees: Int
+    website: String
 }
 
 enum FactoryStatus {
-  APPROVED
-  PENDING_APPROVAL
-  REJECTED
-  SUSPENDED
+    APPROVED
+    PENDING_APPROVAL
+    REJECTED
+    SUSPENDED
 }
 
 """
@@ -191,332 +220,380 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON
 
-"""Login input"""
+"""
+Login input
+"""
 input LoginDto {
-  email: String!
-  password: String!
+    email: String!
+    password: String!
 }
 
 type Mutation {
-  clearCart: Boolean!
-  createBlankVariance(createBlankVarianceInput: CreateBlankVarianceDto!): BlankVariancesEntity!
-  createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
-  createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
-  createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
-  createNotification(input: CreateNotificationDto!): NotificationEntity!
-  createProduct(input: CreateProductDto!): ProductEntity!
-  createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
-  createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
-  createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
-  createSystemConfigColor(input: CreateSystemConfigColorDto!): SystemConfigColorEntity!
-  createSystemConfigSize(input: CreateSystemConfigSizeDto!): SystemConfigSizeEntity!
-  createUser(createUserInput: CreateUserDto!): UserEntity!
-  deleteBlankVariance(id: String!): BlankVariancesEntity!
-  deleteCartItem(id: String!): CartItemEntity!
-  deleteCategory(id: String!): CategoryEntity!
-  deleteProduct(id: String!): ProductEntity!
-  deleteUser(id: String!): UserEntity!
-  login(loginInput: LoginDto!): AuthResponseDto!
-  logout: String!
-  markAllNotificationsAsRead: [NotificationEntity!]!
-  markNotificationAsRead(id: ID!): NotificationEntity!
-  refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
-  register(registerInput: RegisterDto!): AuthResponseDto!
-  removeDesignPosition(id: ID!): DesignPositionEntity!
-  removeNotification(id: ID!): NotificationEntity!
-  removeProductDesign(id: ID!): ProductDesignEntity!
-  removeProductPositionType(id: ID!): ProductPositionTypeEntity!
-  removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
-  removeSystemConfigColor(id: ID!): SystemConfigColorEntity!
-  removeSystemConfigSize(id: ID!): SystemConfigSizeEntity!
-  restoreCategory(id: String!): CategoryEntity!
-  restoreProduct(id: String!): ProductEntity!
-  toggleActiveCategory(id: String!): CategoryEntity!
-  toggleActiveProduct(id: String!): ProductEntity!
-  updateBlankVariance(id: String!, updateBlankVarianceInput: UpdateBlankVarianceDto!): BlankVariancesEntity!
-  updateCartItem(id: String!, updateCartItemInput: UpdateCartItemDto!): CartItemEntity!
-  updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
-  updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
-  updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
-  updateNotification(input: UpdateNotificationDto!): NotificationEntity!
-  updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
-  updateProductDesign(input: UpdateProductDesignDto!): ProductDesignEntity!
-  updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
-  updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
-  updateSystemConfigColor(input: UpdateSystemConfigColorDto!): SystemConfigColorEntity!
-  updateSystemConfigSize(input: UpdateSystemConfigSizeDto!): SystemConfigSizeEntity!
-  updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
+    clearCart: Boolean!
+    createBlankVariance(createBlankVarianceInput: CreateBlankVarianceDto!): BlankVariancesEntity!
+    createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
+    createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
+    createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
+    createNotification(input: CreateNotificationDto!): NotificationEntity!
+    createProduct(input: CreateProductDto!): ProductEntity!
+    createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
+    createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
+    createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
+    createSystemConfigColor(input: CreateSystemConfigColorDto!): SystemConfigColorEntity!
+    createSystemConfigSize(input: CreateSystemConfigSizeDto!): SystemConfigSizeEntity!
+    createUser(createUserInput: CreateUserDto!): UserEntity!
+    deleteBlankVariance(id: String!): BlankVariancesEntity!
+    deleteCartItem(id: String!): CartItemEntity!
+    deleteCategory(id: String!): CategoryEntity!
+    deleteProduct(id: String!): ProductEntity!
+    deleteUser(id: String!): UserEntity!
+    login(loginInput: LoginDto!): AuthResponseDto!
+    logout: String!
+    markAllNotificationsAsRead: [NotificationEntity!]!
+    markNotificationAsRead(id: ID!): NotificationEntity!
+    refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
+    register(registerInput: RegisterDto!): AuthResponseDto!
+    removeDesignPosition(id: ID!): DesignPositionEntity!
+    removeNotification(id: ID!): NotificationEntity!
+    removeProductDesign(id: ID!): ProductDesignEntity!
+    removeProductPositionType(id: ID!): ProductPositionTypeEntity!
+    removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
+    removeSystemConfigColor(id: ID!): SystemConfigColorEntity!
+    removeSystemConfigSize(id: ID!): SystemConfigSizeEntity!
+    restoreCategory(id: String!): CategoryEntity!
+    restoreProduct(id: String!): ProductEntity!
+    toggleActiveCategory(id: String!): CategoryEntity!
+    toggleActiveProduct(id: String!): ProductEntity!
+    updateBlankVariance(
+        id: String!
+        updateBlankVarianceInput: UpdateBlankVarianceDto!
+    ): BlankVariancesEntity!
+    updateCartItem(id: String!, updateCartItemInput: UpdateCartItemDto!): CartItemEntity!
+    updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
+    updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
+    updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
+    updateNotification(input: UpdateNotificationDto!): NotificationEntity!
+    updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
+    updateProductDesign(input: UpdateProductDesignDto!): ProductDesignEntity!
+    updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
+    updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
+    updateSystemConfigColor(input: UpdateSystemConfigColorDto!): SystemConfigColorEntity!
+    updateSystemConfigSize(input: UpdateSystemConfigSizeDto!): SystemConfigSizeEntity!
+    updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
 }
 
 type NotificationEntity {
-  content: String
-  createdAt: DateTime!
-  id: ID!
-  isRead: Boolean!
-  title: String
-  updatedAt: DateTime
-  url: String
-  user: UserEntity
-  userId: String!
+    content: String
+    createdAt: DateTime!
+    id: ID!
+    isRead: Boolean!
+    title: String
+    updatedAt: DateTime
+    url: String
+    user: UserEntity
+    userId: String!
 }
 
 type ProductDesignEntity {
-  blankVariant: BlankVariancesEntity
-  blankVariantId: String!
-  createdAt: DateTime!
-  designPositions: [DesignPositionEntity!]
-  id: ID!
-  isFinalized: Boolean!
-  isPublic: Boolean!
-  isTemplate: Boolean!
-  saved3DPreviewUrl: String!
-  user: UserEntity
-  userId: String!
+    blankVariant: BlankVariancesEntity
+    blankVariantId: String!
+    createdAt: DateTime!
+    designPositions: [DesignPositionEntity!]
+    id: ID!
+    isFinalized: Boolean!
+    isPublic: Boolean!
+    isTemplate: Boolean!
+    saved3DPreviewUrl: String!
+    user: UserEntity
+    userId: String!
 }
 
-"""Product"""
+"""
+Product
+"""
 type ProductEntity {
-  blankVariances: [BlankVariancesEntity!]
-  category: CategoryEntity
-  categoryId: String!
-  createdAt: DateTime!
-  createdBy: String
-  deletedAt: DateTime
-  deletedBy: String
-  description: String
-  id: ID!
-  imageUrl: String
-  isActive: Boolean!
-  isDeleted: Boolean!
-  model3DUrl: String
-  name: String!
-  positionTypes: [ProductPositionTypeEntity!]
-  updatedAt: DateTime
-  updatedBy: String
+    blankVariances: [BlankVariancesEntity!]
+    category: CategoryEntity
+    categoryId: String!
+    createdAt: DateTime!
+    createdBy: String
+    deletedAt: DateTime
+    deletedBy: String
+    description: String
+    id: ID!
+    imageUrl: String
+    isActive: Boolean!
+    isDeleted: Boolean!
+    model3DUrl: String
+    name: String!
+    positionTypes: [ProductPositionTypeEntity!]
+    updatedAt: DateTime
+    updatedBy: String
 }
 
 type ProductPositionTypeEntity {
-  basePrice: Int!
-  id: ID!
-  positionName: String!
-  positionTypes: [ProductPositionTypeEntity!]
-  product: ProductEntity
-  productId: String!
+    basePrice: Int!
+    id: ID!
+    positionName: String!
+    positionTypes: [ProductPositionTypeEntity!]
+    product: ProductEntity
+    productId: String!
+}
+
+type Province {
+    provinceId: Int!
+    provinceName: String!
 }
 
 type Query {
-  allCartItems: [CartItemEntity!]!
-  blankVariance(id: String!): BlankVariancesEntity
-  blankVariances: [BlankVariancesEntity!]!
-  cartItem(id: String!): CartItemEntity!
-  categories: [CategoryEntity!]!
-  category(id: String!): CategoryEntity!
-  designPosition(id: ID!): DesignPositionEntity!
-  designPositions(designId: String): [DesignPositionEntity!]!
-  getMe: UserEntity!
-  notification(id: ID!): NotificationEntity!
-  notifications: [NotificationEntity!]!
-  product(id: String!): ProductEntity!
-  productDesign(id: ID!): ProductDesignEntity!
-  productDesigns(userId: String): [ProductDesignEntity!]!
-  productPositionType(id: ID!): ProductPositionTypeEntity!
-  productPositionTypes(productId: String!): [ProductPositionTypeEntity!]!
-  products: [ProductEntity!]!
-  systemConfigBank(id: ID!): SystemConfigBankEntity!
-  systemConfigBanks: [SystemConfigBankEntity!]!
-  systemConfigColor(id: ID!): SystemConfigColorEntity!
-  systemConfigColors: [SystemConfigColorEntity!]!
-  systemConfigSize(id: ID!): SystemConfigSizeEntity!
-  systemConfigSizes: [SystemConfigSizeEntity!]!
-  user(id: String!): UserEntity!
-  userCartItems: [CartItemEntity!]!
-  users: [UserEntity!]!
+    allCartItems: [CartItemEntity!]!
+    availableServices(fromDistrict: Int!, toDistrict: Int!): [ShippingService!]!
+    blankVariance(id: String!): BlankVariancesEntity
+    blankVariances: [BlankVariancesEntity!]!
+    cartItem(id: String!): CartItemEntity!
+    categories: [CategoryEntity!]!
+    category(id: String!): CategoryEntity!
+    designPosition(id: ID!): DesignPositionEntity!
+    designPositions(designId: String): [DesignPositionEntity!]!
+    districts(provinceId: Int!): [District!]!
+    getMe: UserEntity!
+    notification(id: ID!): NotificationEntity!
+    notifications: [NotificationEntity!]!
+    product(id: String!): ProductEntity!
+    productDesign(id: ID!): ProductDesignEntity!
+    productDesigns(userId: String): [ProductDesignEntity!]!
+    productPositionType(id: ID!): ProductPositionTypeEntity!
+    productPositionTypes(productId: String!): [ProductPositionTypeEntity!]!
+    products: [ProductEntity!]!
+    provinces: [Province!]!
+    systemConfigBank(id: ID!): SystemConfigBankEntity!
+    systemConfigBanks: [SystemConfigBankEntity!]!
+    systemConfigColor(id: ID!): SystemConfigColorEntity!
+    systemConfigColors: [SystemConfigColorEntity!]!
+    systemConfigSize(id: ID!): SystemConfigSizeEntity!
+    systemConfigSizes: [SystemConfigSizeEntity!]!
+    user(id: String!): UserEntity!
+    userCartItems: [CartItemEntity!]!
+    users: [UserEntity!]!
+    wards(districtId: Int!): [Ward!]!
 }
 
-"""Refresh token input"""
+"""
+Refresh token input
+"""
 input RefreshTokenDto {
-  refreshToken: String!
+    refreshToken: String!
 }
 
-"""Register input"""
+"""
+Register input
+"""
 input RegisterDto {
-  email: String!
+    email: String!
 
-  """True if registering as factory owner, false for customer"""
-  isFactoryOwner: Boolean! = false
-  name: String!
-  password: String!
+    """
+    True if registering as factory owner, false for customer
+    """
+    isFactoryOwner: Boolean! = false
+    name: String!
+    password: String!
 }
 
-"""User roles"""
+"""
+User roles
+"""
 enum Roles {
-  ADMIN
-  CUSTOMER
-  FACTORYOWNER
-  MANAGER
-  STAFF
+    ADMIN
+    CUSTOMER
+    FACTORYOWNER
+    MANAGER
+    STAFF
+}
+
+type ShippingService {
+    serviceId: Int!
+    serviceTypeId: Int!
+    shortName: String!
 }
 
 type SystemConfigBankEntity {
-  bin: String!
-  code: String!
-  id: ID!
-  isActive: Boolean!
-  isDeleted: Boolean!
-  logo: String!
-  name: String!
-  shortName: String!
+    bin: String!
+    code: String!
+    id: ID!
+    isActive: Boolean!
+    isDeleted: Boolean!
+    logo: String!
+    name: String!
+    shortName: String!
 }
 
 type SystemConfigColorEntity {
-  code: String!
-  id: ID!
-  isActive: Boolean!
-  isDeleted: Boolean!
-  name: String!
+    code: String!
+    id: ID!
+    isActive: Boolean!
+    isDeleted: Boolean!
+    name: String!
 }
 
 type SystemConfigSizeEntity {
-  code: String!
-  id: ID!
-  isActive: Boolean!
-  isDeleted: Boolean!
-  name: String!
+    code: String!
+    id: ID!
+    isActive: Boolean!
+    isDeleted: Boolean!
+    name: String!
 }
 
-"""Update Blank Variance"""
+"""
+Update Blank Variance
+"""
 input UpdateBlankVarianceDto {
-  blankPrice: Int
-  information: JSON
-  productId: String
+    blankPrice: Int
+    information: JSON
+    productId: String
 }
 
 input UpdateCartItemDto {
-  quantity: Int!
+    quantity: Int!
 }
 
-"""Update category input"""
+"""
+Update category input
+"""
 input UpdateCategoryDto {
-  description: String
-  imageUrl: String
-  name: String
+    description: String
+    imageUrl: String
+    name: String
 }
 
 input UpdateDesignPositionDto {
-  designJSON: JSON
-  id: ID!
+    designJSON: JSON
+    id: ID!
 }
 
-"""Update factory information input"""
+"""
+Update factory information input
+"""
 input UpdateFactoryInfoDto {
-  addressId: String
-  businessLicenseUrl: String
-  contactPersonName: String
-  contactPersonPhone: String
-  contactPersonRole: String
-  description: String
-  establishedDate: DateTime
-  leadTime: Int
-  maxPrintingCapacity: Int
-  minimumOrderQuantity: Int
-  name: String
-  operationalHours: String
-  printingMethods: [String!]
-  qualityCertifications: String
-  specializations: [String!]
+    addressId: String
+    businessLicenseUrl: String
+    contactPersonName: String
+    contactPersonPhone: String
+    contactPersonRole: String
+    description: String
+    establishedDate: DateTime
+    leadTime: Int
+    maxPrintingCapacity: Int
+    minimumOrderQuantity: Int
+    name: String
+    operationalHours: String
+    printingMethods: [String!]
+    qualityCertifications: String
+    specializations: [String!]
 
-  """Set to true to submit factory information for approval"""
-  submit: Boolean
-  taxIdentificationNumber: String
-  totalEmployees: Int
-  website: String
+    """
+    Set to true to submit factory information for approval
+    """
+    submit: Boolean
+    taxIdentificationNumber: String
+    totalEmployees: Int
+    website: String
 }
 
 input UpdateNotificationDto {
-  content: String
-  id: ID!
-  isRead: Boolean = false
-  title: String
-  url: String
-  userId: String
+    content: String
+    id: ID!
+    isRead: Boolean = false
+    title: String
+    url: String
+    userId: String
 }
 
 input UpdateProductDesignDto {
-  id: ID!
-  isFinalized: Boolean
-  isPublic: Boolean
-  isTemplate: Boolean
-  saved3DPreviewUrl: String
+    id: ID!
+    isFinalized: Boolean
+    isPublic: Boolean
+    isTemplate: Boolean
+    saved3DPreviewUrl: String
 }
 
-"""Update Product"""
+"""
+Update Product
+"""
 input UpdateProductDto {
-  categoryId: String
-  description: String
-  imageUrl: String
-  model3DUrl: String
-  name: String
+    categoryId: String
+    description: String
+    imageUrl: String
+    model3DUrl: String
+    name: String
 }
 
 input UpdateProductPositionTypeDto {
-  basePrice: Int
-  id: ID!
-  positionName: String
-  productId: String
+    basePrice: Int
+    id: ID!
+    positionName: String
+    productId: String
 }
 
 input UpdateSystemConfigBankDto {
-  bin: String
-  code: String
-  id: ID!
-  isActive: Boolean = true
-  logo: String
-  name: String
-  shortName: String
+    bin: String
+    code: String
+    id: ID!
+    isActive: Boolean = true
+    logo: String
+    name: String
+    shortName: String
 }
 
 input UpdateSystemConfigColorDto {
-  code: String
-  id: ID!
-  isActive: Boolean = true
-  name: String
+    code: String
+    id: ID!
+    isActive: Boolean = true
+    name: String
 }
 
 input UpdateSystemConfigSizeDto {
-  code: String
-  id: ID!
-  isActive: Boolean = true
-  name: String
+    code: String
+    id: ID!
+    isActive: Boolean = true
+    name: String
 }
 
-"""Update user input"""
+"""
+Update user input
+"""
 input UpdateUserDto {
-  dateOfBirth: String
-  email: String
-  gender: Boolean = false
-  imageUrl: String
-  name: String
-  password: String
-  phoneNumber: String
-  role: String
-  updatedBy: String
+    dateOfBirth: String
+    email: String
+    gender: Boolean = false
+    imageUrl: String
+    name: String
+    password: String
+    phoneNumber: String
+    role: String
+    updatedBy: String
 }
 
 type UserEntity {
-  createdAt: DateTime!
-  createdBy: String
-  dateOfBirth: DateTime
-  deletedAt: DateTime
-  deletedBy: String
-  email: String
-  gender: Boolean!
-  id: ID!
-  imageUrl: String
-  isActive: Boolean!
-  isDeleted: Boolean!
-  name: String
-  phoneNumber: String
-  role: Roles!
-  updatedAt: DateTime
-  updatedBy: String
+    createdAt: DateTime!
+    createdBy: String
+    dateOfBirth: DateTime
+    deletedAt: DateTime
+    deletedBy: String
+    email: String
+    gender: Boolean!
+    id: ID!
+    imageUrl: String
+    isActive: Boolean!
+    isDeleted: Boolean!
+    name: String
+    phoneNumber: String
+    role: Roles!
+    updatedAt: DateTime
+    updatedBy: String
+}
+
+type Ward {
+    districtId: Int!
+    wardCode: String!
+    wardName: String!
 }

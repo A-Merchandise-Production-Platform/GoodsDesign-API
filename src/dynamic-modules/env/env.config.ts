@@ -16,6 +16,11 @@ export const envConfig = () => ({
     redis: {
         url: process.env.REDIS_URL || "redis://localhost:6380",
         ttl: process.env.REDIS_TTL || "604800" //60 * 60 * 24 * 7
+    },
+    shipping: {
+        token: process.env.GHN_TOKEN || "",
+        shopId: process.env.GHN_SHOP_ID || "",
+        baseUrl: process.env.GHN_BASE_URL || ""
     }
 })
 
