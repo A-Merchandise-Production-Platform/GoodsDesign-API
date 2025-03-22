@@ -69,7 +69,7 @@ export class ShippingService {
     const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
-      return formatProvinces(JSON.parse(cached));
+      return JSON.parse(cached)
     }
 
     const provinces = await this.handleRequest<ProvinceResponse[]>(this.ENDPOINTS.PROVINCE);
@@ -87,7 +87,7 @@ export class ShippingService {
     const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
-      return formatDistricts(JSON.parse(cached));
+      return JSON.parse(cached);
     }
 
     const districts = await this.handleRequest<DistrictResponse[]>(
@@ -108,13 +108,17 @@ export class ShippingService {
     const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
-      return formatWards(JSON.parse(cached));
+      return JSON.parse(cached);
     }
 
     const wards = await this.handleRequest<WardResponse[]>(
       this.ENDPOINTS.WARD,
       { district_id: districtId }
     );
+
+    if (wards === null) {
+      return [];
+    }
 
     await this.redisService.setCache(
       cacheKey,
@@ -178,7 +182,15 @@ export class ShippingService {
   }
 
   async getWard(wardCode: string): Promise<Ward> {
-    // Get all provinces and districts to find the matching ward
+    // Check if wardCode is valid from redis
+    const cacheKey = `shipping:wards:${wardCode}`;
+    const cached = await this.redisService.getCache(cacheKey);
+
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    // Get all provinces and districts to find the matching war
     const provinces = await this.getProvinces();
     for (const province of provinces) {
       const districts = await this.getDistricts(province.provinceId);

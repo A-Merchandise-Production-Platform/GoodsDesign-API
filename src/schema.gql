@@ -181,6 +181,11 @@ type FactoryInformation {
   taxIdentificationNumber: String!
 }
 
+input GetAvailableServicesDto {
+  fromDistrict: Int!
+  toDistrict: Int!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -306,7 +311,7 @@ type Province {
 
 type Query {
   allCartItems: [CartItemEntity!]!
-  availableServices(fromDistrict: Int!, toDistrict: Int!): [ShippingService!]!
+  availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
   blankVariance(id: String!): BlankVariancesEntity
   blankVariances: [BlankVariancesEntity!]!
   cartItem(id: String!): CartItemEntity!
@@ -337,7 +342,7 @@ type Query {
   user(id: String!): UserEntity!
   userCartItems: [CartItemEntity!]!
   users: [UserEntity!]!
-  ward(wardId: String!): Ward!
+  ward(wardCode: String!): Ward!
   wards(districtId: Int!): [Ward!]!
 }
 
