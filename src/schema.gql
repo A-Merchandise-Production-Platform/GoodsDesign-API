@@ -147,6 +147,12 @@ type DesignPositionEntity {
   productPositionTypeId: String!
 }
 
+type District {
+  districtId: Int!
+  districtName: String!
+  provinceId: Int!
+}
+
 type FactoryContract {
   contractNumber: String!
   effectiveDate: String!
@@ -293,8 +299,14 @@ type ProductPositionTypeEntity {
   productId: String!
 }
 
+type Province {
+  provinceId: Int!
+  provinceName: String!
+}
+
 type Query {
   allCartItems: [CartItemEntity!]!
+  availableServices(fromDistrict: Int!, toDistrict: Int!): [ShippingService!]!
   blankVariance(id: String!): BlankVariancesEntity
   blankVariances: [BlankVariancesEntity!]!
   cartItem(id: String!): CartItemEntity!
@@ -302,6 +314,7 @@ type Query {
   category(id: String!): CategoryEntity!
   designPosition(id: ID!): DesignPositionEntity!
   designPositions(designId: String): [DesignPositionEntity!]!
+  districts(provinceId: Int!): [District!]!
   getMe: UserEntity!
   myFactory: FactoryEntity!
   notification(id: ID!): NotificationEntity!
@@ -312,6 +325,7 @@ type Query {
   productPositionType(id: ID!): ProductPositionTypeEntity!
   productPositionTypes(productId: String!): [ProductPositionTypeEntity!]!
   products: [ProductEntity!]!
+  provinces: [Province!]!
   systemConfigBank(id: ID!): SystemConfigBankEntity!
   systemConfigBanks: [SystemConfigBankEntity!]!
   systemConfigColor(id: ID!): SystemConfigColorEntity!
@@ -321,6 +335,7 @@ type Query {
   user(id: String!): UserEntity!
   userCartItems: [CartItemEntity!]!
   users: [UserEntity!]!
+  wards(districtId: Int!): [Ward!]!
 }
 
 """Refresh token input"""
@@ -345,6 +360,12 @@ enum Roles {
   FACTORYOWNER
   MANAGER
   STAFF
+}
+
+type ShippingService {
+  serviceId: Int!
+  serviceTypeId: Int!
+  shortName: String!
 }
 
 type SystemConfigBankEntity {
@@ -496,4 +517,10 @@ type UserEntity {
   role: Roles!
   updatedAt: DateTime
   updatedBy: String
+}
+
+type Ward {
+  districtId: Int!
+  wardCode: String!
+  wardName: String!
 }

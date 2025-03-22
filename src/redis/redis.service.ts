@@ -31,4 +31,12 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async removeRefreshToken(userId: string) {
     await this.client.del(`refresh_token:${userId}`);
   }
+
+  async getCache(key: string) {
+    return await this.client.get(key);
+  }
+
+  async setCache(key: string, value: string) {
+    await this.client.set(key, value, { EX: parseInt(envConfig().redis.ttl as string) });
+  }
 }

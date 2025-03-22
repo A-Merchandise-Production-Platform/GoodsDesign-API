@@ -26,6 +26,7 @@ import { ProductPositionTypeModule } from "./product-position-type/product-posit
 import { ProductDesignModule } from "./product-design/product-design.module"
 import { DesignPositionModule } from "./design-position/design-position.module"
 import { FactoryModule } from "./factory/factory.module"
+import { ShippingModule } from './shipping/shipping.module'
 
 @Module({
     imports: [
@@ -55,6 +56,7 @@ import { FactoryModule } from "./factory/factory.module"
         DesignPositionModule,
         CartItemsModule,
         FactoryModule,
+        ShippingModule,
         ServeStaticModule.forRoot({
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: "/admin"
