@@ -27,6 +27,7 @@ import { ProductDesignModule } from "./product-design/product-design.module"
 import { DesignPositionModule } from "./design-position/design-position.module"
 import { FactoryModule } from "./factory/factory.module"
 import { ShippingModule } from "./shipping/shipping.module"
+import { FileModule } from "./file/file.module"
 
 @Module({
     imports: [
@@ -34,9 +35,14 @@ import { ShippingModule } from "./shipping/shipping.module"
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
             autoSchemaFile: join(process.cwd(), "src/schema.gql"),
+            csrfPrevention: false,
             resolvers: { JSON: GraphQLJSON },
             playground: false,
-            plugins: [ApolloServerPluginLandingPageLocalDefault()],
+            plugins: [
+                ApolloServerPluginLandingPageLocalDefault({
+                    embed: true
+                })
+            ],
             sortSchema: true
         }),
         PrismaModule,
@@ -57,6 +63,7 @@ import { ShippingModule } from "./shipping/shipping.module"
         CartItemsModule,
         FactoryModule,
         ShippingModule,
+        FileModule,
         ServeStaticModule.forRoot({
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: "/admin"
