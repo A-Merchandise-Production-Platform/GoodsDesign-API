@@ -154,4 +154,42 @@ export class ShippingService {
 
     return formattedServices as unknown as ShippingServiceModel[];
   }
+
+  async getProvince(provinceId: number): Promise<Province> {
+    const provinces = await this.getProvinces();
+    const province = provinces.find(p => p.provinceId === provinceId);
+    if (!province) {
+      throw new Error(`Province with ID ${provinceId} not found`);
+    }
+    return province;
+  }
+
+  async getDistrict(districtId: number): Promise<District> {
+    // Get all provinces to find the matching district
+    const provinces = await this.getProvinces();
+    for (const province of provinces) {
+      const districts = await this.getDistricts(province.provinceId);
+      const district = districts.find(d => d.districtId === districtId);
+      if (district) {
+        return district;
+      }
+    }
+    throw new Error(`District with ID ${districtId} not found`);
+  }
+
+  async getWard(wardCode: string): Promise<Ward> {
+    // Get all provinces and districts to find the matching ward
+    const provinces = await this.getProvinces();
+    for (const province of provinces) {
+      const districts = await this.getDistricts(province.provinceId);
+      for (const district of districts) {
+        const wards = await this.getWards(district.districtId);
+        const ward = wards.find(w => w.wardCode === wardCode);
+        if (ward) {
+          return ward;
+        }
+      }
+    }
+    throw new Error(`Ward with ID ${wardCode} not found`);
+  }
 } 

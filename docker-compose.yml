@@ -19,6 +19,13 @@ services:
     ports:
       - '6380:6379'
 
+  redisinsight:
+    container_name: goodsdesign-redisinsight
+    image: redis/redisinsight:latest
+    restart: always
+    ports:
+      - '5540:5540'
+
 volumes:
   postgres:
 

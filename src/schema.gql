@@ -314,6 +314,7 @@ type Query {
   category(id: String!): CategoryEntity!
   designPosition(id: ID!): DesignPositionEntity!
   designPositions(designId: String): [DesignPositionEntity!]!
+  district(districtId: Int!): District!
   districts(provinceId: Int!): [District!]!
   getMe: UserEntity!
   myFactory: FactoryEntity!
@@ -325,6 +326,7 @@ type Query {
   productPositionType(id: ID!): ProductPositionTypeEntity!
   productPositionTypes(productId: String!): [ProductPositionTypeEntity!]!
   products: [ProductEntity!]!
+  province(provinceId: Int!): Province!
   provinces: [Province!]!
   systemConfigBank(id: ID!): SystemConfigBankEntity!
   systemConfigBanks: [SystemConfigBankEntity!]!
@@ -335,6 +337,7 @@ type Query {
   user(id: String!): UserEntity!
   userCartItems: [CartItemEntity!]!
   users: [UserEntity!]!
+  ward(wardId: String!): Ward!
   wards(districtId: Int!): [Ward!]!
 }
 
