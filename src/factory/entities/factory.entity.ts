@@ -10,9 +10,6 @@ registerEnumType(FactoryStatus, {
 @ObjectType()
 export class FactoryEntity {
     @Field(() => String)
-    id: string
-
-    @Field(() => String)
     name: string
 
     @Field(() => String, { nullable: true })
@@ -88,7 +85,7 @@ export class FactoryEntity {
     reviewedAt: Date
 
     @Field(() => String, { nullable: true })
-    contract: string
+    contractUrl: string
 
     @Field(() => UserEntity)
     owner: UserEntity

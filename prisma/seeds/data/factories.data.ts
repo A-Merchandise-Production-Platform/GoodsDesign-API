@@ -41,7 +41,10 @@ export const factoriesData = [
         reviewedBy: "admin-id",
         reviewedAt: new Date("2023-01-10"),
 
-        // Contract
+        // Contract URL
+        contractUrl: "https://storage.googleapis.com/goodsdesign/contracts/factory1-contract.pdf",
+
+        // Legacy contract data for reference
         contract: {
             startDate: new Date("2023-01-15"),
             endDate: new Date("2024-01-15"),
@@ -88,6 +91,9 @@ export const factoriesData = [
         contractAcceptedAt: null,
         reviewedBy: null,
         reviewedAt: null,
+
+        // Contract URL
+        contractUrl: null,
 
         // Contract
         contract: null

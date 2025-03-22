@@ -418,7 +418,7 @@ model Factory {
   reviewedAt         DateTime?
 
   // Keep the contract as JSON since it might be complex and vary over time
-  contract Json?
+  contractUrl String?
 
   owner    User             @relation(fields: [factoryOwnerId], references: [id])
   products FactoryProduct[]

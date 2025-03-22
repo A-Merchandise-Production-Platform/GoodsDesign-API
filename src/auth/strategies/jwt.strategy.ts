@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from "passport-jwt"
 import { PrismaService } from "../../prisma/prisma.service"
 import { envConfig, TokenType } from "src/dynamic-modules"
 import { UserEntity } from "src/users/entities/users.entity"
+import { FactoryEntity } from "src/factory/entities/factory.entity"
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
@@ -17,17 +18,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
 
     async validate(payload: { sub: string }) {
         const user = await this.prisma.user.findUnique({
-            where: { id: payload.sub }
+            where: { id: payload.sub, isDeleted: false, isActive: true },
+            include: {
+                factory: true
+            }
         })
 
-        if (!user || user.isDeleted) {
-            throw new UnauthorizedException("Unauthorized")
-        }
-
-        if (!user.isActive) {
-            throw new UnauthorizedException("User is not active")
-        }
-
-        return new UserEntity(user)
+        return new UserEntity({
+            ...user,
+            factory: user.factory ? new FactoryEntity(user.factory) : null
+        })
     }
 }

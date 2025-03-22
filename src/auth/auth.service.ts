@@ -10,6 +10,7 @@ import { UserEntity } from "../users/entities/users.entity"
 import { LoginDto } from "./dto/login.dto"
 import { RefreshTokenDto } from "./dto/refresh-token.dto"
 import { RegisterDto } from "./dto/register.dto"
+import { FactoryEntity } from "src/factory/entities/factory.entity"
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,10 @@ export class AuthService {
 
     async validateUser(email: string, password: string): Promise<UserEntity> {
         const user = await this.prisma.user.findFirst({
-            where: { email, isDeleted: false }
+            where: { email, isDeleted: false },
+            include: {
+                factory: true
+            }
         })
 
         if (!user) {
@@ -34,7 +38,10 @@ export class AuthService {
             throw new UnauthorizedException("Invalid credentials")
         }
 
-        return new UserEntity(user)
+        return new UserEntity({
+            ...user,
+            factory: user.factory ? new FactoryEntity(user.factory) : null
+        })
     }
 
     async login(loginDto: LoginDto) {
@@ -47,7 +54,9 @@ export class AuthService {
 
         await this.redisService.setRefreshToken(user.id, refreshToken)
 
-        return new AuthResponseDto(new UserEntity(user), accessToken, refreshToken)
+        console.log(user)
+
+        return new AuthResponseDto(user, accessToken, refreshToken)
     }
 
     async register(registerDto: RegisterDto) {
@@ -75,8 +84,15 @@ export class AuthService {
             }
         })
 
+        const [accessToken, refreshToken] = await Promise.all([
+            this.generateToken(user.id, TokenType.AccessToken),
+            this.generateToken(user.id, TokenType.RefreshToken)
+        ])
+
+        await this.redisService.setRefreshToken(user.id, refreshToken)
+
         if (registerDto.isFactoryOwner) {
-            await this.prisma.factory.create({
+            const factory = await this.prisma.factory.create({
                 data: {
                     factoryOwnerId: user.id,
                     name: `${user.name}'s Factory`,
@@ -92,24 +108,33 @@ export class AuthService {
                     operationalHours: "",
                     leadTime: 0,
                     minimumOrderQuantity: 0,
-                    contract: null
+                    contractUrl: ""
                 }
             })
+
+            console.log(factory)
+
+            return new AuthResponseDto(
+                new UserEntity({
+                    ...user,
+                    factory: new FactoryEntity({
+                        ...factory
+                    })
+                }),
+                accessToken,
+                refreshToken
+            )
         }
-
-        const [accessToken, refreshToken] = await Promise.all([
-            this.generateToken(user.id, TokenType.AccessToken),
-            this.generateToken(user.id, TokenType.RefreshToken)
-        ])
-
-        await this.redisService.setRefreshToken(user.id, refreshToken)
 
         return new AuthResponseDto(new UserEntity(user), accessToken, refreshToken)
     }
 
     async refreshToken(refreshTokenDto: RefreshTokenDto, currentUser: UserEntity) {
         const user = await this.prisma.user.findFirst({
-            where: { id: currentUser.id, isDeleted: false }
+            where: { id: currentUser.id, isDeleted: false },
+            include: {
+                factory: true
+            }
         })
 
         const storedToken = await this.redisService.getRefreshToken(user.id)
@@ -129,7 +154,14 @@ export class AuthService {
 
         await this.redisService.setRefreshToken(user.id, refreshToken)
 
-        return new AuthResponseDto(new UserEntity(user), accessToken, refreshToken)
+        return new AuthResponseDto(
+            new UserEntity({
+                ...user,
+                factory: user.factory ? new FactoryEntity(user.factory) : null
+            }),
+            accessToken,
+            refreshToken
+        )
     }
 
     private async generateToken(userId: string, type: TokenType): Promise<string> {

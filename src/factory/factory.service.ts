@@ -92,18 +92,22 @@ export class FactoryService {
             },
             include: {
                 address: true,
-                products: true,
+                products: {
+                    include: {
+                        blankVariance: true
+                    }
+                },
                 orders: true
             }
         })
 
         return new FactoryEntity({
             ...updatedFactory,
-            contract: updatedFactory.contract ? JSON.stringify(updatedFactory.contract) : null,
             products: updatedFactory.products.map(
                 (product) =>
                     new ProductEntity({
-                        ...product
+                        ...product.blankVariance,
+                        id: product.id
                     })
             )
         })
@@ -114,22 +118,26 @@ export class FactoryService {
             where: { factoryOwnerId: userId },
             include: {
                 address: true,
-                products: true,
+                products: {
+                    include: {
+                        blankVariance: true
+                    }
+                },
                 orders: true
             }
         })
 
-        return factory
-            ? new FactoryEntity({
-                  ...factory,
-                  contract: factory.contract ? JSON.stringify(factory.contract) : null,
-                  products: factory.products.map(
-                      (product) =>
-                          new ProductEntity({
-                              ...product
-                          })
-                  )
-              })
-            : null
+        if (!factory) return null
+
+        return new FactoryEntity({
+            ...factory,
+            products: factory.products.map(
+                (product) =>
+                    new ProductEntity({
+                        ...product.blankVariance,
+                        id: product.id
+                    })
+            )
+        })
     }
 }

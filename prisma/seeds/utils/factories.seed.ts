@@ -65,7 +65,7 @@ export async function seedFactories(prisma: PrismaClient) {
                 contractAcceptedAt: factory.contractAcceptedAt,
                 reviewedBy: factory.reviewedBy,
                 reviewedAt: factory.reviewedAt,
-                contract: factory.contract
+                contractUrl: factory.contractUrl
             }
         })
     }

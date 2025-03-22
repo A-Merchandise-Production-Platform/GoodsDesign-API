@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType } from "@nestjs/graphql"
 import { Roles } from "@prisma/client"
+import { FactoryEntity } from "src/factory/entities/factory.entity"
 
 @ObjectType()
 export class UserEntity {
@@ -50,6 +51,9 @@ export class UserEntity {
 
     @Field(() => String, { nullable: true })
     deletedBy?: string
+
+    @Field(() => FactoryEntity, { nullable: true })
+    factory?: FactoryEntity
 
     constructor(partial: Partial<UserEntity>) {
         Object.assign(this, partial)
