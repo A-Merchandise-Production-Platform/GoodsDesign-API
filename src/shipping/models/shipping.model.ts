@@ -44,3 +44,15 @@ export class ShippingService {
   @Field(() => Int)
   serviceTypeId: number;
 }
+
+@ObjectType()
+export class ShippingFee {
+  @Field(() => Int)
+  total: number;
+
+  // @Field(() => Int)
+  // serviceId: number;
+
+  // @Field(() => String)
+  // serviceName: string;
+}

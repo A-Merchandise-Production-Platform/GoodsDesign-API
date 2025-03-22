@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { envConfig } from 'src/dynamic-modules';
 import { RedisService } from 'src/redis/redis.service';
 import { lastValueFrom } from 'rxjs';
-import { Province, District, Ward, ShippingService as ShippingServiceModel } from './models/shipping.model';
+import { Province, District, Ward, ShippingService as ShippingServiceModel, ShippingFee } from './models/shipping.model';
 import { 
   formatProvinces, 
   ProvinceResponse,
@@ -11,6 +11,7 @@ import {
 import { DistrictResponse, formatDistricts } from './dto/district.dto';
 import { WardResponse } from './dto/ward.dto';
 import { formatWards } from './dto/ward.dto';
+import { CalculateShippingFeeDto } from './dto/calculate-shipping-fee.dto';
 
 @Injectable()
 export class ShippingService {
@@ -60,7 +61,7 @@ export class ShippingService {
       const response = await lastValueFrom(request);
       return response.data.data;
     } catch (error) {
-      throw new Error(`Shipping API error: ${error.message}`);
+      throw new Error(`Shipping API error: ${error?.response?.data?.message}`);
     }
   }
 
@@ -203,5 +204,31 @@ export class ShippingService {
       }
     }
     throw new Error(`Ward with ID ${wardCode} not found`);
+  }
+
+  async calculateShippingFee(input: CalculateShippingFeeDto): Promise<ShippingFee> {
+    const body = {
+      service_id: input.serviceId,
+      service_type_id: input.serviceTypeId,
+      from_district_id: input.fromDistrictId,
+      from_ward_code: input.fromWardCode,
+      to_district_id: input.toDistrictId,
+      to_ward_code: input.toWardCode,
+      weight: input.weight,
+      length: input.length,
+      width: input.width,
+      height: input.height
+    };
+
+    const response = await this.handleRequest<any>(
+      this.ENDPOINTS.CALCULATE_FEE,
+      {},
+      'POST',
+      body
+    );
+
+    return {
+      total: response.total,
+    };
   }
 } 

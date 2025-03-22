@@ -18,6 +18,19 @@ type BlankVariancesEntity {
   productId: String!
 }
 
+input CalculateShippingFeeDto {
+  fromDistrictId: Int!
+  fromWardCode: String!
+  height: Int = 10
+  length: Int = 10
+  serviceId: Int
+  serviceTypeId: Int = 2
+  toDistrictId: Int!
+  toWardCode: String!
+  weight: Int = 1000
+  width: Int = 10
+}
+
 type CartItemEntity {
   createdAt: DateTime!
   designId: String!
@@ -198,6 +211,7 @@ input LoginDto {
 }
 
 type Mutation {
+  calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   clearCart: Boolean!
   createBlankVariance(createBlankVarianceInput: CreateBlankVarianceDto!): BlankVariancesEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
@@ -368,6 +382,10 @@ enum Roles {
   FACTORYOWNER
   MANAGER
   STAFF
+}
+
+type ShippingFee {
+  total: Int!
 }
 
 type ShippingService {

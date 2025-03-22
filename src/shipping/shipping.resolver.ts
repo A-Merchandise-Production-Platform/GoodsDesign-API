@@ -1,6 +1,7 @@
-import { Args, Int, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Query, Mutation, Resolver } from '@nestjs/graphql';
 import { GetAvailableServicesDto } from './dto/get-available-services.dto';
-import { District, Province, ShippingService as ShippingServiceModel, Ward } from './models/shipping.model';
+import { CalculateShippingFeeDto } from './dto/calculate-shipping-fee.dto';
+import { District, Province, ShippingService as ShippingServiceModel, Ward, ShippingFee } from './models/shipping.model';
 import { ShippingService } from './shipping.service';
 
 @Resolver()
@@ -48,5 +49,12 @@ export class ShippingResolver {
       servicesInput.fromDistrict,
       servicesInput.toDistrict,
     );
+  }
+
+  @Mutation(() => ShippingFee)
+  async calculateShippingFee(
+    @Args('input') input: CalculateShippingFeeDto,
+  ) {
+    return this.shippingService.calculateShippingFee(input);
   }
 } 
