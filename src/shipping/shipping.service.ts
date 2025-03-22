@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { envConfig } from 'src/dynamic-modules';
 import { RedisService } from 'src/redis/redis.service';
 import { lastValueFrom } from 'rxjs';
-import { Province, District, Ward, ShippingService as ShippingServiceModel } from './models/shipping.model';
+import { Province, District, Ward, ShippingService as ShippingServiceModel, ShippingFee } from './models/shipping.model';
 import { 
   formatProvinces, 
   ProvinceResponse,
@@ -11,6 +11,7 @@ import {
 import { DistrictResponse, formatDistricts } from './dto/district.dto';
 import { WardResponse } from './dto/ward.dto';
 import { formatWards } from './dto/ward.dto';
+import { CalculateShippingFeeDto } from './dto/calculate-shipping-fee.dto';
 
 @Injectable()
 export class ShippingService {
@@ -60,7 +61,7 @@ export class ShippingService {
       const response = await lastValueFrom(request);
       return response.data.data;
     } catch (error) {
-      throw new Error(`Shipping API error: ${error.message}`);
+      throw new Error(`Shipping API error: ${error?.response?.data?.message}`);
     }
   }
 
@@ -69,7 +70,7 @@ export class ShippingService {
     const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
-      return formatProvinces(JSON.parse(cached));
+      return JSON.parse(cached)
     }
 
     const provinces = await this.handleRequest<ProvinceResponse[]>(this.ENDPOINTS.PROVINCE);
@@ -87,7 +88,7 @@ export class ShippingService {
     const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
-      return formatDistricts(JSON.parse(cached));
+      return JSON.parse(cached);
     }
 
     const districts = await this.handleRequest<DistrictResponse[]>(
@@ -108,13 +109,17 @@ export class ShippingService {
     const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
-      return formatWards(JSON.parse(cached));
+      return JSON.parse(cached);
     }
 
     const wards = await this.handleRequest<WardResponse[]>(
       this.ENDPOINTS.WARD,
       { district_id: districtId }
     );
+
+    if (wards === null) {
+      return [];
+    }
 
     await this.redisService.setCache(
       cacheKey,
@@ -153,5 +158,77 @@ export class ShippingService {
     );
 
     return formattedServices as unknown as ShippingServiceModel[];
+  }
+
+  async getProvince(provinceId: number): Promise<Province> {
+    const provinces = await this.getProvinces();
+    const province = provinces.find(p => p.provinceId === provinceId);
+    if (!province) {
+      throw new Error(`Province with ID ${provinceId} not found`);
+    }
+    return province;
+  }
+
+  async getDistrict(districtId: number): Promise<District> {
+    // Get all provinces to find the matching district
+    const provinces = await this.getProvinces();
+    for (const province of provinces) {
+      const districts = await this.getDistricts(province.provinceId);
+      const district = districts.find(d => d.districtId === districtId);
+      if (district) {
+        return district;
+      }
+    }
+    throw new Error(`District with ID ${districtId} not found`);
+  }
+
+  async getWard(wardCode: string): Promise<Ward> {
+    // Check if wardCode is valid from redis
+    const cacheKey = `shipping:wards:${wardCode}`;
+    const cached = await this.redisService.getCache(cacheKey);
+
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    // Get all provinces and districts to find the matching war
+    const provinces = await this.getProvinces();
+    for (const province of provinces) {
+      const districts = await this.getDistricts(province.provinceId);
+      for (const district of districts) {
+        const wards = await this.getWards(district.districtId);
+        const ward = wards.find(w => w.wardCode === wardCode);
+        if (ward) {
+          return ward;
+        }
+      }
+    }
+    throw new Error(`Ward with ID ${wardCode} not found`);
+  }
+
+  async calculateShippingFee(input: CalculateShippingFeeDto): Promise<ShippingFee> {
+    const body = {
+      service_id: input.serviceId,
+      service_type_id: input.serviceTypeId,
+      from_district_id: input.fromDistrictId,
+      from_ward_code: input.fromWardCode,
+      to_district_id: input.toDistrictId,
+      to_ward_code: input.toWardCode,
+      weight: input.weight,
+      length: input.length,
+      width: input.width,
+      height: input.height
+    };
+
+    const response = await this.handleRequest<any>(
+      this.ENDPOINTS.CALCULATE_FEE,
+      {},
+      'POST',
+      body
+    );
+
+    return {
+      total: response.total,
+    };
   }
 } 

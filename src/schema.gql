@@ -22,6 +22,19 @@ type BlankVariancesEntity {
     productId: String!
 }
 
+input CalculateShippingFeeDto {
+    fromDistrictId: Int!
+    fromWardCode: String!
+    height: Int = 10
+    length: Int = 10
+    serviceId: Int
+    serviceTypeId: Int = 2
+    toDistrictId: Int!
+    toWardCode: String!
+    weight: Int = 1000
+    width: Int = 10
+}
+
 type CartItemEntity {
     createdAt: DateTime!
     designId: String!
@@ -215,6 +228,16 @@ enum FactoryStatus {
     SUSPENDED
 }
 
+input GetAvailableServicesDto {
+    fromDistrict: Int!
+    toDistrict: Int!
+}
+
+input GetAvailableServicesDto {
+    fromDistrict: Int!
+    toDistrict: Int!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -229,6 +252,7 @@ input LoginDto {
 }
 
 type Mutation {
+    calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
     clearCart: Boolean!
     createBlankVariance(createBlankVarianceInput: CreateBlankVarianceDto!): BlankVariancesEntity!
     createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
@@ -271,7 +295,7 @@ type Mutation {
     updateCartItem(id: String!, updateCartItemInput: UpdateCartItemDto!): CartItemEntity!
     updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
     updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
-    updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
+    updateFactoryContract(updateFactoryContractInput: UpdateFactoryContractDto!): FactoryEntity!
     updateNotification(input: UpdateNotificationDto!): NotificationEntity!
     updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
     updateProductDesign(input: UpdateProductDesignDto!): ProductDesignEntity!
@@ -347,7 +371,7 @@ type Province {
 
 type Query {
     allCartItems: [CartItemEntity!]!
-    availableServices(fromDistrict: Int!, toDistrict: Int!): [ShippingService!]!
+    availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
     blankVariance(id: String!): BlankVariancesEntity
     blankVariances: [BlankVariancesEntity!]!
     cartItem(id: String!): CartItemEntity!
@@ -355,8 +379,10 @@ type Query {
     category(id: String!): CategoryEntity!
     designPosition(id: ID!): DesignPositionEntity!
     designPositions(designId: String): [DesignPositionEntity!]!
+    district(districtId: Int!): District!
     districts(provinceId: Int!): [District!]!
     getMe: UserEntity!
+    myFactory: FactoryEntity!
     notification(id: ID!): NotificationEntity!
     notifications: [NotificationEntity!]!
     product(id: String!): ProductEntity!
@@ -365,6 +391,7 @@ type Query {
     productPositionType(id: ID!): ProductPositionTypeEntity!
     productPositionTypes(productId: String!): [ProductPositionTypeEntity!]!
     products: [ProductEntity!]!
+    province(provinceId: Int!): Province!
     provinces: [Province!]!
     systemConfigBank(id: ID!): SystemConfigBankEntity!
     systemConfigBanks: [SystemConfigBankEntity!]!
@@ -375,6 +402,7 @@ type Query {
     user(id: String!): UserEntity!
     userCartItems: [CartItemEntity!]!
     users: [UserEntity!]!
+    ward(wardCode: String!): Ward!
     wards(districtId: Int!): [Ward!]!
 }
 
@@ -408,6 +436,10 @@ enum Roles {
     FACTORYOWNER
     MANAGER
     STAFF
+}
+
+type ShippingFee {
+    total: Int!
 }
 
 type ShippingService {

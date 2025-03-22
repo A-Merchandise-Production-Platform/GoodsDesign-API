@@ -1,6 +1,8 @@
-import { Resolver, Query, Args, Int } from '@nestjs/graphql';
+import { Args, Int, Query, Mutation, Resolver } from '@nestjs/graphql';
+import { GetAvailableServicesDto } from './dto/get-available-services.dto';
+import { CalculateShippingFeeDto } from './dto/calculate-shipping-fee.dto';
+import { District, Province, ShippingService as ShippingServiceModel, Ward, ShippingFee } from './models/shipping.model';
 import { ShippingService } from './shipping.service';
-import { Province, District, Ward, ShippingService as ShippingServiceModel } from './models/shipping.model';
 
 @Resolver()
 export class ShippingResolver {
@@ -11,9 +13,21 @@ export class ShippingResolver {
     return this.shippingService.getProvinces();
   }
 
+  //Get a province by id
+  @Query(() => Province)
+  async province(@Args('provinceId', { type: () => Int }) provinceId: number) {
+    return this.shippingService.getProvince(provinceId);
+  }
+
   @Query(() => [District])
   async districts(@Args('provinceId', { type: () => Int }) provinceId: number) {
     return this.shippingService.getDistricts(provinceId);
+  }
+
+  //Get a district by id
+  @Query(() => District)
+  async district(@Args('districtId', { type: () => Int }) districtId: number) {
+    return this.shippingService.getDistrict(districtId);
   }
 
   @Query(() => [Ward])
@@ -21,11 +35,26 @@ export class ShippingResolver {
     return this.shippingService.getWards(districtId);
   }
 
+  //Get a ward by id
+  @Query(() => Ward)
+  async ward(@Args('wardCode', { type: () => String }) wardCode: string) {
+    return this.shippingService.getWard(wardCode);
+  }
+
   @Query(() => [ShippingServiceModel])
   async availableServices(
-    @Args('fromDistrict', { type: () => Int }) fromDistrict: number,
-    @Args('toDistrict', { type: () => Int }) toDistrict: number,
+    @Args('servicesInput') servicesInput: GetAvailableServicesDto,
   ) {
-    return this.shippingService.getAvailableServices(fromDistrict, toDistrict);
+    return this.shippingService.getAvailableServices(
+      servicesInput.fromDistrict,
+      servicesInput.toDistrict,
+    );
+  }
+
+  @Mutation(() => ShippingFee)
+  async calculateShippingFee(
+    @Args('input') input: CalculateShippingFeeDto,
+  ) {
+    return this.shippingService.calculateShippingFee(input);
   }
 } 
