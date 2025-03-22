@@ -22,7 +22,7 @@ async function bootstrap() {
     // Enable file uploads for GraphQL
     app.use(
         graphqlUploadExpress({
-          maxFileSize: 1000000,
+          maxFileSize: 50000000, //50mb
           maxFiles: 5,
           overrideSendResponse: false, // This is necessary for nest.js/koa.js
         }),

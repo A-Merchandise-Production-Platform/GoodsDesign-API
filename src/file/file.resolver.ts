@@ -14,10 +14,6 @@ export class FileResolver {
     @Args({ name: 'file', type: () => GraphQLUpload }) file: FileUpload
   ) {
     console.log("FILE", file, file.createReadStream().readableLength);
-    const MAX_FILE_SIZE = 1000000; // 1MB
-    if (file.createReadStream().readableLength > MAX_FILE_SIZE) {
-      throw new BadRequestException('File size too large');
-    }
     const url = await this.fileService.uploadFile({
       buffer: await this.streamToBuffer(file.createReadStream()),
       originalname: file.filename,
