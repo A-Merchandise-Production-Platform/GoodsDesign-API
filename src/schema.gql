@@ -158,13 +158,6 @@ type FactoryContract {
   responseTimeLimit: Float!
 }
 
-type FactoryEntity {
-  contract: FactoryContract!
-  factoryOwnerId: ID!
-  information: FactoryInformation!
-  owner: UserEntity!
-}
-
 type FactoryInformation {
   businessLicenseNumber: String!
   createdAt: String!
@@ -226,7 +219,6 @@ type Mutation {
   updateCartItem(id: String!, updateCartItemInput: UpdateCartItemDto!): CartItemEntity!
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
-  updateFactoryContract(updateFactoryContractInput: UpdateFactoryContractDto!): FactoryEntity!
   updateNotification(input: UpdateNotificationDto!): NotificationEntity!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(input: UpdateProductDesignDto!): ProductDesignEntity!
@@ -303,7 +295,6 @@ type Query {
   designPosition(id: ID!): DesignPositionEntity!
   designPositions(designId: String): [DesignPositionEntity!]!
   getMe: UserEntity!
-  myFactory: FactoryEntity!
   notification(id: ID!): NotificationEntity!
   notifications: [NotificationEntity!]!
   product(id: String!): ProductEntity!
@@ -395,18 +386,6 @@ input UpdateCategoryDto {
 input UpdateDesignPositionDto {
   designJSON: JSON
   id: ID!
-}
-
-"""Update factory contract input"""
-input UpdateFactoryContractDto {
-  contractNumber: String!
-  effectiveDate: String!
-  expirationDate: String
-  paymentTerm: Float!
-  productionCommitment: Float!
-  productionCostPerUnit: Float!
-  qualityThreshold: Float!
-  responseTimeLimit: Float!
 }
 
 input UpdateNotificationDto {

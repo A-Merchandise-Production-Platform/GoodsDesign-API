@@ -75,12 +75,11 @@ export class AuthService {
             }
         })
 
-        // If registering as factory owner, create an empty factory record
         if (registerDto.isFactoryOwner) {
             await this.prisma.factory.create({
                 data: {
                     factoryOwnerId: user.id,
-                    name: `${user.name}'s Factory`, // Default name based on user's name
+                    name: `${user.name}'s Factory`,
                     factoryStatus: "PENDING_APPROVAL"
                 }
             })
