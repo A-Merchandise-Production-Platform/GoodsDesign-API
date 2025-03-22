@@ -194,6 +194,10 @@ type FactoryInformation {
   taxIdentificationNumber: String!
 }
 
+type FileUploadResponse {
+  url: String!
+}
+
 input GetAvailableServicesDto {
   fromDistrict: Int!
   toDistrict: Int!
@@ -260,6 +264,7 @@ type Mutation {
   updateSystemConfigColor(input: UpdateSystemConfigColorDto!): SystemConfigColorEntity!
   updateSystemConfigSize(input: UpdateSystemConfigSizeDto!): SystemConfigSizeEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
+  uploadFile(file: Upload!): FileUploadResponse!
 }
 
 type NotificationEntity {
@@ -525,6 +530,9 @@ input UpdateUserDto {
   role: String
   updatedBy: String
 }
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
 
 type UserEntity {
   createdAt: DateTime!
