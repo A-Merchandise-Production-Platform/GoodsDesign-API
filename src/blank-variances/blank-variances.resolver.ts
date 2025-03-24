@@ -1,8 +1,7 @@
 import { Resolver, Query, Args, Mutation } from "@nestjs/graphql"
 import { BlankVariancesService } from "./blank-variances.service"
 import { BlankVariancesEntity } from "./entities/blank-variances.entity"
-import { CreateBlankVarianceDto } from "./dto/create-blank-variance.dto"
-import { UpdateBlankVarianceDto } from "./dto/update-blank-variance.dto"
+import { CreateBlankVarianceDto, UpdateBlankVarianceDto } from "./dto"
 @Resolver(() => BlankVariancesEntity)
 export class BlankVariancesResolver {
     constructor(private readonly blankVariancesService: BlankVariancesService) {}

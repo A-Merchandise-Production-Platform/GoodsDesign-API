@@ -1,13 +1,10 @@
 import { UseGuards } from "@nestjs/common"
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql"
-import { AuthService } from "src/auth/auth.service"
-import { CurrentUser } from "src/auth/decorators/current-user.decorator"
-import { AuthResponseDto } from "src/auth/dto/auth-response.dto"
-import { LoginDto } from "src/auth/dto/login.dto"
-import { RefreshTokenDto } from "src/auth/dto/refresh-token.dto"
-import { RegisterDto } from "src/auth/dto/register.dto"
-import { GraphqlJwtAuthGuard } from "src/auth/guards/graphql-jwt-auth.guard"
-import { UserEntity } from "src/users/entities/users.entity"
+import { AuthService } from "./auth.service"
+import { CurrentUser } from "./decorators"
+import { AuthResponseDto, RegisterDto, LoginDto, RefreshTokenDto } from "./dto"
+import { GraphqlJwtAuthGuard } from "./guards"
+import { UserEntity } from "src/users"
 
 @Resolver()
 export class AuthResolver {

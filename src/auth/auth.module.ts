@@ -1,14 +1,14 @@
 import { Module } from "@nestjs/common"
-import { JwtModule } from "@nestjs/jwt"
-import { PassportModule } from "@nestjs/passport"
-import { AuthResolver } from "src/auth/auth.resolver"
-import { envConfig, TokenType } from "src/dynamic-modules"
-import { PrismaModule } from "../prisma/prisma.module"
-import { RedisModule } from "../redis/redis.module"
-import { UsersModule } from "../users/users.module"
-import { AuthService } from "./auth.service"
-import { RolesGuard } from "./guards/roles.guard"
-import { JwtStrategy } from "./strategies/jwt.strategy"
+import { JwtModule } from "@nestjs/jwt";
+import { PassportModule } from "@nestjs/passport";
+import { envConfig, TokenType } from "src/dynamic-modules";
+import { PrismaModule } from "src/prisma";
+import { RedisModule } from "src/redis";
+import { UsersModule } from "src/users";
+import { AuthResolver } from "./auth.resolver";
+import { AuthService } from "./auth.service";
+import { RolesGuard } from "./guards";
+import { JwtStrategy } from "./strategies";
 
 @Module({
     imports: [
