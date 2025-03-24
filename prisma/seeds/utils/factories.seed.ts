@@ -16,21 +16,43 @@ export async function seedFactories(prisma: PrismaClient) {
             continue
         }
 
-        await prisma.factory.create({
+        // Create address first
+        const address = await prisma.address.create({
             data: {
-                factoryOwnerId: user.id,
+                provinceID: 1, // Example default values
+                districtID: 1,
+                wardCode: "00001",
+                street: factory.address,
+                userId: user.id
+            }
+        })
+
+        await prisma.factory.upsert({
+            where: {
+                factoryOwnerId: user.id
+            },
+            update: {},
+            create: {
+                owner: {
+                    connect: { id: user.id }
+                },
                 name: factory.name,
                 description: factory.description,
                 businessLicenseUrl: factory.businessLicenseUrl,
                 taxIdentificationNumber: factory.taxIdentificationNumber,
-                address: factory.address,
+                address: {
+                    connect: { id: address.id }
+                },
                 website: factory.website,
-                yearEstablished: factory.yearEstablished,
+                establishedDate: new Date(factory.yearEstablished, 0, 1), // Convert year to datetime
                 totalEmployees: factory.totalEmployees,
                 maxPrintingCapacity: factory.maxPrintingCapacity,
                 qualityCertifications: factory.qualityCertifications,
-                primaryPrintingMethods: factory.primaryPrintingMethods,
-                specializations: factory.specializations,
+                printingMethods: factory.primaryPrintingMethods.split(", "),
+                specializations:
+                    typeof factory.specializations === "string"
+                        ? factory.specializations.split(", ")
+                        : [],
                 contactPersonName: factory.contactPersonName,
                 contactPersonRole: factory.contactPersonRole,
                 contactPhone: factory.contactPhone,
@@ -43,7 +65,7 @@ export async function seedFactories(prisma: PrismaClient) {
                 contractAcceptedAt: factory.contractAcceptedAt,
                 reviewedBy: factory.reviewedBy,
                 reviewedAt: factory.reviewedAt,
-                contract: factory.contract
+                contractUrl: factory.contractUrl
             }
         })
     }
