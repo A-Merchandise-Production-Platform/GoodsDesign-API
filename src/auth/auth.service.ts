@@ -54,8 +54,6 @@ export class AuthService {
 
         await this.redisService.setRefreshToken(user.id, refreshToken)
 
-        console.log(user)
-
         return new AuthResponseDto(user, accessToken, refreshToken)
     }
 
@@ -111,8 +109,6 @@ export class AuthService {
                     contractUrl: ""
                 }
             })
-
-            console.log(factory)
 
             return new AuthResponseDto(
                 new UserEntity({

@@ -30,6 +30,7 @@ import { FactoryModule } from "./factory/factory.module"
 import { ShippingModule } from "./shipping/shipping.module"
 import { FileModule } from "./file/file.module"
 import { MailModule } from "./mail/mail.module"
+import { AddressesModule } from "./addresses/addresses.module"
 
 @Module({
     imports: [
@@ -72,7 +73,8 @@ import { MailModule } from "./mail/mail.module"
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: "/admin"
         }),
-        ScheduleModule.forRoot()
+        ScheduleModule.forRoot(),
+        AddressesModule
         // TestModule,
     ],
     controllers: [AppController],
