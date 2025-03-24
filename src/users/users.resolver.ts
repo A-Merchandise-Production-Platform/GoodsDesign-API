@@ -1,17 +1,11 @@
 import { UseGuards } from "@nestjs/common"
-import { Query, registerEnumType, Resolver, Args, Mutation } from "@nestjs/graphql"
-import { Roles } from "@prisma/client"
+import { Args, Mutation, Query, Resolver } from "@nestjs/graphql"
 import { CurrentUser } from "src/auth/decorators/current-user.decorator"
 import { GraphqlJwtAuthGuard } from "src/auth/guards/graphql-jwt-auth.guard"
-import { UserEntity } from "./entities/users.entity"
-import { UsersService } from "./users.service"
 import { CreateUserDto } from "src/users/dto/create-user.dto"
 import { UpdateUserDto } from "src/users/dto/update-user.dto"
-
-registerEnumType(Roles, {
-    name: "Roles",
-    description: "User roles"
-})
+import { UserEntity } from "./entities/users.entity"
+import { UsersService } from "./users.service"
 
 @Resolver(() => UserEntity)
 @UseGuards(GraphqlJwtAuthGuard)

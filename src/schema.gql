@@ -2,6 +2,18 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AddressEntity {
+  districtID: Float!
+  factory: FactoryEntity
+  factoryId: String!
+  id: String!
+  provinceID: Float!
+  street: String!
+  user: UserEntity
+  userId: String!
+  wardCode: String!
+}
+
 """Authentication response"""
 type AuthResponseDto {
   accessToken: String!
@@ -56,6 +68,15 @@ type CategoryEntity {
   updatedBy: String
 }
 
+"""Create Address Input"""
+input CreateAddressInput {
+  districtID: String!
+  factoryId: String
+  provinceID: String!
+  street: String!
+  wardCode: String!
+}
+
 """Create Blank Variance"""
 input CreateBlankVarianceDto {
   blankPrice: Int!
@@ -87,6 +108,16 @@ input CreateNotificationDto {
   title: String
   url: String
   userId: String!
+}
+
+input CreateOrderDetailDto {
+  designId: String!
+  quantity: Int!
+}
+
+input CreateOrderDto {
+  orderDetails: [CreateOrderDetailDto!]!
+  shippingPrice: Int!
 }
 
 input CreateProductDesignDto {
@@ -144,6 +175,28 @@ input CreateUserDto {
   password: String!
   phoneNumber: String
   role: String
+}
+
+type CustomerOrderDetailEntity {
+  designId: String!
+  id: ID!
+  orderId: String!
+  price: Int!
+  qualityCheckStatus: String!
+  quantity: Int!
+  reworkStatus: String!
+  status: String!
+}
+
+type CustomerOrderEntity {
+  customerId: String!
+  depositPaid: Int!
+  id: ID!
+  orderDate: DateTime!
+  orderDetails: [CustomerOrderDetailEntity!]
+  shippingPrice: Int!
+  status: String!
+  totalPrice: Int!
 }
 
 """
@@ -227,11 +280,13 @@ input LoginDto {
 type Mutation {
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   clearCart: Boolean!
+  createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createBlankVariance(createBlankVarianceInput: CreateBlankVarianceDto!): BlankVariancesEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
   createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
   createNotification(input: CreateNotificationDto!): NotificationEntity!
+  createOrder(createOrderInput: CreateOrderDto!): CustomerOrderEntity!
   createProduct(input: CreateProductDto!): ProductEntity!
   createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
@@ -239,6 +294,7 @@ type Mutation {
   createSystemConfigColor(input: CreateSystemConfigColorDto!): SystemConfigColorEntity!
   createSystemConfigSize(input: CreateSystemConfigSizeDto!): SystemConfigSizeEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!
+  deleteAddress(id: String!): AddressEntity!
   deleteBlankVariance(id: String!): BlankVariancesEntity!
   deleteCartItem(id: String!): CartItemEntity!
   deleteCategory(id: String!): CategoryEntity!
@@ -261,6 +317,7 @@ type Mutation {
   restoreProduct(id: String!): ProductEntity!
   toggleActiveCategory(id: String!): CategoryEntity!
   toggleActiveProduct(id: String!): ProductEntity!
+  updateAddress(id: String!, updateAddressInput: UpdateAddressInput!): AddressEntity!
   updateBlankVariance(id: String!, updateBlankVarianceInput: UpdateBlankVarianceDto!): BlankVariancesEntity!
   updateCartItem(id: String!, updateCartItemInput: UpdateCartItemDto!): CartItemEntity!
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
@@ -339,6 +396,8 @@ type Province {
 }
 
 type Query {
+  address(id: String!): AddressEntity!
+  addresses: [AddressEntity!]!
   allCartItems: [CartItemEntity!]!
   availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
   blankVariance(id: String!): BlankVariancesEntity
@@ -370,6 +429,8 @@ type Query {
   systemConfigSizes: [SystemConfigSizeEntity!]!
   user(id: String!): UserEntity!
   userCartItems: [CartItemEntity!]!
+  userOrder(id: String!): CustomerOrderEntity!
+  userOrders: [CustomerOrderEntity!]!
   users: [UserEntity!]!
   ward(wardCode: String!): Ward!
   wards(districtId: Int!): [Ward!]!
@@ -434,6 +495,14 @@ type SystemConfigSizeEntity {
   isActive: Boolean!
   isDeleted: Boolean!
   name: String!
+}
+
+input UpdateAddressInput {
+  districtID: String
+  factoryId: String
+  provinceID: String
+  street: String
+  wardCode: String
 }
 
 """Update Blank Variance"""
