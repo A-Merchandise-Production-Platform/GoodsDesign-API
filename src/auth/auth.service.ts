@@ -22,7 +22,7 @@ export class AuthService {
 
     async validateUser(email: string, password: string): Promise<UserEntity> {
         const user = await this.prisma.user.findFirst({
-            where: { email, isDeleted: false },
+            where: { email, isDeleted: false, isActive: true },
             include: {
                 factory: true
             }
