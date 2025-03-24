@@ -11,6 +11,7 @@ import { AuthModule } from "./auth"
 import { BlankVariancesModule } from "./blank-variances/blank-variances.module"
 import { CartItemsModule } from "./cart-items/cart-items.module"
 import { CategoriesModule } from "./categories"
+import { CustomerOrdersModule } from "./customer-orders/customer-orders.module"
 import { EnvModule } from "./dynamic-modules"
 import { PrismaModule } from "./prisma"
 import { ProductsModule } from "./products"
@@ -64,6 +65,7 @@ import { FileModule } from "./file/file.module"
         FactoryModule,
         ShippingModule,
         FileModule,
+        CustomerOrdersModule,
         ServeStaticModule.forRoot({
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: "/admin"

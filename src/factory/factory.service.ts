@@ -9,6 +9,7 @@ import { FactoryEntity } from "src/factory/entities/factory.entity"
 import { ProductEntity } from "src/products/entities/products.entity"
 import { PrismaService } from "../prisma/prisma.service"
 import { UpdateFactoryInfoDto } from "./dto/update-factory-info.dto"
+import { UserEntity } from "src/users/entities/users.entity"
 
 @Injectable()
 export class FactoryService {
@@ -27,6 +28,10 @@ export class FactoryService {
 
         if (user.role !== Roles.FACTORYOWNER) {
             throw new ForbiddenException("Only factory owners can update factory information")
+        }
+
+        if (userId !== user.factory.factoryOwnerId) {
+            throw new ForbiddenException("You are not allowed to update this factory")
         }
 
         // Check if the factory already exists for this user
@@ -123,7 +128,8 @@ export class FactoryService {
                         blankVariance: true
                     }
                 },
-                orders: true
+                orders: true,
+                owner: true
             }
         })
 
@@ -137,7 +143,11 @@ export class FactoryService {
                         ...product.blankVariance,
                         id: product.id
                     })
-            )
+            ),
+            owner: new UserEntity({
+                ...factory.owner,
+                id: factory.owner.id
+            })
         })
     }
 }
