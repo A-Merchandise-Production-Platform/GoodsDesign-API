@@ -89,6 +89,16 @@ input CreateNotificationDto {
   userId: String!
 }
 
+input CreateOrderDetailDto {
+  designId: String!
+  quantity: Int!
+}
+
+input CreateOrderDto {
+  orderDetails: [CreateOrderDetailDto!]!
+  shippingPrice: Int!
+}
+
 input CreateProductDesignDto {
   blankVariantId: String!
   isFinalized: Boolean! = false
@@ -144,6 +154,28 @@ input CreateUserDto {
   password: String!
   phoneNumber: String
   role: String
+}
+
+type CustomerOrderDetailEntity {
+  designId: String!
+  id: ID!
+  orderId: String!
+  price: Int!
+  qualityCheckStatus: String!
+  quantity: Int!
+  reworkStatus: String!
+  status: String!
+}
+
+type CustomerOrderEntity {
+  customerId: String!
+  depositPaid: Int!
+  id: ID!
+  orderDate: DateTime!
+  orderDetails: [CustomerOrderDetailEntity!]
+  shippingPrice: Int!
+  status: String!
+  totalPrice: Int!
 }
 
 """
@@ -232,6 +264,7 @@ type Mutation {
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
   createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
   createNotification(input: CreateNotificationDto!): NotificationEntity!
+  createOrder(createOrderInput: CreateOrderDto!): CustomerOrderEntity!
   createProduct(input: CreateProductDto!): ProductEntity!
   createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
@@ -370,6 +403,8 @@ type Query {
   systemConfigSizes: [SystemConfigSizeEntity!]!
   user(id: String!): UserEntity!
   userCartItems: [CartItemEntity!]!
+  userOrder(id: String!): CustomerOrderEntity!
+  userOrders: [CustomerOrderEntity!]!
   users: [UserEntity!]!
   ward(wardCode: String!): Ward!
   wards(districtId: Int!): [Ward!]!
