@@ -1,29 +1,107 @@
-import { Field, InputType } from "@nestjs/graphql";
-import { IsString, IsOptional } from "class-validator";
+import { Field, InputType, Int } from "@nestjs/graphql"
+import { IsString, IsOptional, IsDate, IsInt, IsArray, IsBoolean } from "class-validator"
 
 @InputType({ description: "Update factory information input" })
 export class UpdateFactoryInfoDto {
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
     @IsString()
-    factoryName: string;
+    @IsOptional()
+    name?: string
 
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
     @IsString()
-    factoryAddress: string;
+    @IsOptional()
+    description?: string
 
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
     @IsString()
-    businessLicenseNumber: string;
+    @IsOptional()
+    businessLicenseUrl?: string
 
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
     @IsString()
-    taxIdentificationNumber: string;
+    @IsOptional()
+    taxIdentificationNumber?: string
 
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
     @IsString()
-    factoryPhoneNumber: string;
+    @IsOptional()
+    addressId?: string
 
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
     @IsString()
-    factoryEmail: string;
+    @IsOptional()
+    website?: string
+
+    @Field(() => Date, { nullable: true })
+    @IsDate()
+    @IsOptional()
+    establishedDate?: Date
+
+    @Field(() => Int, { nullable: true })
+    @IsInt()
+    @IsOptional()
+    totalEmployees?: number
+
+    @Field(() => Int, { nullable: true })
+    @IsInt()
+    @IsOptional()
+    maxPrintingCapacity?: number
+
+    @Field(() => String, { nullable: true })
+    @IsString()
+    @IsOptional()
+    qualityCertifications?: string
+
+    @Field(() => [String], { nullable: true })
+    @IsArray()
+    @IsOptional()
+    printingMethods?: string[]
+
+    @Field(() => [String], { nullable: true })
+    @IsArray()
+    @IsOptional()
+    specializations?: string[]
+
+    @Field(() => String, { nullable: true })
+    @IsString()
+    @IsOptional()
+    contactPersonName?: string
+
+    @Field(() => String, { nullable: true })
+    @IsString()
+    @IsOptional()
+    contactPersonRole?: string
+
+    @Field(() => String, { nullable: true })
+    @IsString()
+    @IsOptional()
+    contactPersonPhone?: string
+
+    @Field(() => String, { nullable: true })
+    @IsString()
+    @IsOptional()
+    operationalHours?: string
+
+    @Field(() => Int, { nullable: true })
+    @IsInt()
+    @IsOptional()
+    leadTime?: number
+
+    @Field(() => Int, { nullable: true })
+    @IsInt()
+    @IsOptional()
+    minimumOrderQuantity?: number
+
+    @Field(() => Boolean, {
+        nullable: true,
+        description: "Set to true to submit factory information for approval"
+    })
+    @IsBoolean()
+    @IsOptional()
+    submit?: boolean
+
+    constructor(partial: Partial<UpdateFactoryInfoDto>) {
+        Object.assign(this, partial)
+    }
 }

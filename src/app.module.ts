@@ -11,6 +11,7 @@ import { AuthModule } from "./auth"
 import { BlankVariancesModule } from "./blank-variances/blank-variances.module"
 import { CartItemsModule } from "./cart-items/cart-items.module"
 import { CategoriesModule } from "./categories"
+import { CustomerOrdersModule } from "./customer-orders/customer-orders.module"
 import { EnvModule } from "./dynamic-modules"
 import { PrismaModule } from "./prisma"
 import { ProductsModule } from "./products"
@@ -26,7 +27,7 @@ import { ProductPositionTypeModule } from "./product-position-type/product-posit
 import { ProductDesignModule } from "./product-design/product-design.module"
 import { DesignPositionModule } from "./design-position/design-position.module"
 import { FactoryModule } from "./factory/factory.module"
-import { ShippingModule } from './shipping/shipping.module'
+import { ShippingModule } from "./shipping/shipping.module"
 import { FileModule } from "./file/file.module"
 import { MailModule } from "./mail/mail.module"
 
@@ -39,10 +40,12 @@ import { MailModule } from "./mail/mail.module"
             csrfPrevention: false,
             resolvers: { JSON: GraphQLJSON },
             playground: false,
-            plugins: [ApolloServerPluginLandingPageLocalDefault({
-                embed: true,
-            })],
-            sortSchema: true,
+            plugins: [
+                ApolloServerPluginLandingPageLocalDefault({
+                    embed: true
+                })
+            ],
+            sortSchema: true
         }),
         PrismaModule,
         UsersModule,
@@ -64,6 +67,7 @@ import { MailModule } from "./mail/mail.module"
         ShippingModule,
         FileModule,
         MailModule,
+        CustomerOrdersModule,
         ServeStaticModule.forRoot({
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: "/admin"

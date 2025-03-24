@@ -59,6 +59,7 @@ CREATE TABLE "Addresses" (
     "wardCode" TEXT NOT NULL,
     "street" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "factoryId" TEXT,
 
     CONSTRAINT "Addresses_pkey" PRIMARY KEY ("id")
 );
@@ -320,27 +321,28 @@ CREATE TABLE "Factory" (
     "description" TEXT,
     "businessLicenseUrl" TEXT,
     "taxIdentificationNumber" TEXT,
-    "address" TEXT,
+    "addressId" TEXT,
     "website" TEXT,
-    "yearEstablished" INTEGER,
-    "totalEmployees" INTEGER,
-    "maxPrintingCapacity" INTEGER,
+    "establishedDate" TIMESTAMP(3) NOT NULL,
+    "totalEmployees" INTEGER NOT NULL,
+    "maxPrintingCapacity" INTEGER NOT NULL,
     "qualityCertifications" TEXT,
-    "primaryPrintingMethods" TEXT,
-    "specializations" TEXT,
+    "printingMethods" TEXT[],
+    "specializations" TEXT[],
     "contactPersonName" TEXT,
     "contactPersonRole" TEXT,
     "contactPhone" TEXT,
-    "operationalHours" TEXT,
+    "operationalHours" TEXT NOT NULL,
     "leadTime" INTEGER,
-    "minimumOrderQuantity" INTEGER,
+    "minimumOrderQuantity" INTEGER NOT NULL,
     "factoryStatus" "FactoryStatus" NOT NULL DEFAULT 'PENDING_APPROVAL',
+    "isSubmitted" BOOLEAN NOT NULL DEFAULT false,
     "statusNote" TEXT,
     "contractAccepted" BOOLEAN NOT NULL DEFAULT false,
     "contractAcceptedAt" TIMESTAMP(3),
     "reviewedBy" TEXT,
     "reviewedAt" TIMESTAMP(3),
-    "contract" JSONB,
+    "contractUrl" TEXT,
 
     CONSTRAINT "Factory_pkey" PRIMARY KEY ("factoryOwnerId")
 );
@@ -401,6 +403,9 @@ CREATE TABLE "CartItems" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Factory_addressId_key" ON "Factory"("addressId");
 
 -- AddForeignKey
 ALTER TABLE "Addresses" ADD CONSTRAINT "Addresses_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -479,6 +484,9 @@ ALTER TABLE "FactoryProduct" ADD CONSTRAINT "FactoryProduct_blankVarianceId_fkey
 
 -- AddForeignKey
 ALTER TABLE "Factory" ADD CONSTRAINT "Factory_factoryOwnerId_fkey" FOREIGN KEY ("factoryOwnerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Factory" ADD CONSTRAINT "Factory_addressId_fkey" FOREIGN KEY ("addressId") REFERENCES "Addresses"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "FactoryOrder" ADD CONSTRAINT "FactoryOrder_factoryId_fkey" FOREIGN KEY ("factoryId") REFERENCES "Factory"("factoryOwnerId") ON DELETE RESTRICT ON UPDATE CASCADE;

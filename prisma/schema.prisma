@@ -16,46 +16,48 @@ enum Roles {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique 
-  name          String?
-  phoneNumber   String?
-  password      String    @default("")
-  gender        Boolean   @default(false)
-  dateOfBirth   DateTime?
-  imageUrl      String?   @default("")
-  isActive      Boolean   @default(false)
-  isDeleted     Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  createdBy     String?
-  updatedAt     DateTime?
-  updatedBy     String?
-  deletedBy     String?
-  deletedAt     DateTime?
-  role          Roles
+  id          String    @id @default(uuid())
+  email       String    @unique
+  name        String?
+  phoneNumber String?
+  password    String    @default("")
+  gender      Boolean   @default(false)
+  dateOfBirth DateTime?
+  imageUrl    String?   @default("")
+  isActive    Boolean   @default(false)
+  isDeleted   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  createdBy   String?
+  updatedAt   DateTime?
+  updatedBy   String?
+  deletedBy   String?
+  deletedAt   DateTime?
+  role        Roles
 
-  addresses     Address[]
-  designs       ProductDesign[]
-  favorites     FavoriteDesign[]
-  orders        CustomerOrder[]
-  payments      Payment[]
-  transactions  PaymentTransaction[]
-  staffTasks    StaffTask[]
-  factory       Factory?
+  addresses    Address[]
+  designs      ProductDesign[]
+  favorites    FavoriteDesign[]
+  orders       CustomerOrder[]
+  payments     Payment[]
+  transactions PaymentTransaction[]
+  staffTasks   StaffTask[]
+  factory      Factory?
   Notification Notification[]
 
   CartItems CartItem[]
 }
 
 model Address {
-  id         String @id @default(uuid())
+  id         String  @id @default(uuid())
   provinceID Int
   districtID Int
   wardCode   String
   street     String
   userId     String
+  factoryId  String?
 
-  user       User   @relation(fields: [userId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
+  factory Factory?
 
   @@map("Addresses")
 }
@@ -74,7 +76,7 @@ model Category {
   deletedAt   DateTime?
   deletedBy   String?
 
-  products    Product[]
+  products Product[]
 
   @@map("Categories")
 }
@@ -95,7 +97,7 @@ model Product {
   deletedBy   String?
   categoryId  String
 
-  category    Category  @relation(fields: [categoryId], references: [id])
+  category       Category              @relation(fields: [categoryId], references: [id])
   blankVariances BlankVariance[]
   positionTypes  ProductPositionType[]
 
@@ -103,95 +105,95 @@ model Product {
 }
 
 model SystemConfigBank {
-  id               String   @id @default(uuid())
-  name             String
-  code             String
-  bin              String
-  shortName        String
-  logo             String
-  isActive         Boolean  @default(true)
-  isDeleted        Boolean  @default(false)
+  id        String  @id @default(uuid())
+  name      String
+  code      String
+  bin       String
+  shortName String
+  logo      String
+  isActive  Boolean @default(true)
+  isDeleted Boolean @default(false)
 }
 
 model SystemConfigColor {
-  id         String   @id @default(uuid())
-  name       String
-  code       String
-  isActive   Boolean  @default(true)
-  isDeleted  Boolean  @default(false)
+  id        String  @id @default(uuid())
+  name      String
+  code      String
+  isActive  Boolean @default(true)
+  isDeleted Boolean @default(false)
 }
 
 model SystemConfigSize {
-  id         String   @id @default(uuid())
-  name       String
-  code       String
-  isActive   Boolean  @default(true)
-  isDeleted  Boolean  @default(false)
+  id        String  @id @default(uuid())
+  name      String
+  code      String
+  isActive  Boolean @default(true)
+  isDeleted Boolean @default(false)
 }
 
 model BlankVariance {
-  id          String    @id @default(uuid())
+  id          String @id @default(uuid())
   productId   String
   information Json
   blankPrice  Int
 
-  product     Product @relation(fields: [productId], references: [id])
-  designs     ProductDesign[]
-  factories   FactoryProduct[]
-  
+  product   Product          @relation(fields: [productId], references: [id])
+  designs   ProductDesign[]
+  factories FactoryProduct[]
+
   @@map("BlankVariances")
 }
 
 model ProductPositionType {
-  id           String    @id @default(uuid())
+  id           String @id @default(uuid())
   productId    String
   positionName String
   basePrice    Int
 
-  product      Product @relation(fields: [productId], references: [id])
+  product         Product          @relation(fields: [productId], references: [id])
   designPositions DesignPosition[]
-  
+
   @@map("ProductPositionType")
 }
 
 model ProductDesign {
-  id                String    @id @default(uuid())
-  userId           String
-  blankVariantId   String
+  id                String   @id @default(uuid())
+  userId            String
+  blankVariantId    String
   saved3DPreviewUrl String
-  isFinalized      Boolean   @default(false)
-  createdAt        DateTime  @default(now())
-  isPublic         Boolean   @default(false)
-  isTemplate       Boolean   @default(false)
+  isFinalized       Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  isPublic          Boolean  @default(false)
+  isTemplate        Boolean  @default(false)
 
-  user             User @relation(fields: [userId], references: [id])
-  blankVariant     BlankVariance @relation(fields: [blankVariantId], references: [id])
-  favorites        FavoriteDesign[]
-  designPositions  DesignPosition[]
-  orderDetails     CustomerOrderDetail[]
+  user                User                  @relation(fields: [userId], references: [id])
+  blankVariant        BlankVariance         @relation(fields: [blankVariantId], references: [id])
+  favorites           FavoriteDesign[]
+  designPositions     DesignPosition[]
+  orderDetails        CustomerOrderDetail[]
   factoryOrderDetails FactoryOrderDetail[]
 
   CartItem CartItem[]
 }
 
 model DesignPosition {
-  id                   String @id @default(uuid())
-  designId             String
+  id                    String @id @default(uuid())
+  designId              String
   productPositionTypeId String
-  designJSON           Json
+  designJSON            Json
 
-  design               ProductDesign @relation(fields: [designId], references: [id])
-  positionType         ProductPositionType @relation(fields: [productPositionTypeId], references: [id])
+  design       ProductDesign       @relation(fields: [designId], references: [id])
+  positionType ProductPositionType @relation(fields: [productPositionTypeId], references: [id])
 }
 
 model FavoriteDesign {
-  id         String    @id @default(uuid())
-  userId     String
-  designId   String
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  designId  String
+  createdAt DateTime @default(now())
 
-  user       User @relation(fields: [userId], references: [id])
-  design     ProductDesign @relation(fields: [designId], references: [id])
+  user   User          @relation(fields: [userId], references: [id])
+  design ProductDesign @relation(fields: [designId], references: [id])
 }
 
 enum OrderStatus {
@@ -225,29 +227,27 @@ model CustomerOrder {
   depositPaid   Int
   orderDate     DateTime
 
-  customer      User @relation(fields: [customerId], references: [id])
-  orderDetails  CustomerOrderDetail[]
-  payments      Payment[]
-  transactions  PaymentTransaction[]
-  history       OrderHistory[]
-
+  customer     User                  @relation(fields: [customerId], references: [id])
+  orderDetails CustomerOrderDetail[]
+  payments     Payment[]
+  transactions PaymentTransaction[]
+  history      OrderHistory[]
 }
 
 model CustomerOrderDetail {
   id                 String             @id @default(uuid())
-  orderId           String
-  designId          String
-  price             Int
-  quantity          Int
-  status            OrderStatus
+  orderId            String
+  designId           String
+  price              Int
+  quantity           Int
+  status             OrderStatus
   qualityCheckStatus QualityCheckStatus
-  reworkStatus      ReworkStatus
+  reworkStatus       ReworkStatus
 
-  order             CustomerOrder @relation(fields: [orderId], references: [id])
-  design            ProductDesign @relation(fields: [designId], references: [id])
-  checkQualities    CheckQuality[]
+  order               CustomerOrder        @relation(fields: [orderId], references: [id])
+  design              ProductDesign        @relation(fields: [designId], references: [id])
+  checkQualities      CheckQuality[]
   factoryOrderDetails FactoryOrderDetail[]
-  
 }
 
 enum PaymentType {
@@ -277,83 +277,79 @@ enum TransactionStatus {
 }
 
 model Payment {
-  id           String        @id @default(uuid())
-  orderId      String
-  customerId   String
-  amount       Int
-  type         PaymentType
-  paymentLog   String
+  id         String        @id @default(uuid())
+  orderId    String
+  customerId String
+  amount     Int
+  type       PaymentType
+  paymentLog String
   createdAt  DateTime
-  status       PaymentStatus
+  status     PaymentStatus
 
-  order        CustomerOrder @relation(fields: [orderId], references: [id])
-  customer     User @relation(fields: [customerId], references: [id])
+  order        CustomerOrder        @relation(fields: [orderId], references: [id])
+  customer     User                 @relation(fields: [customerId], references: [id])
   transactions PaymentTransaction[]
 }
 
 model PaymentTransaction {
-  id           String            @id @default(uuid())
-  paymentId    String
-  orderId      String
-  customerId   String
+  id                          String            @id @default(uuid())
+  paymentId                   String
+  orderId                     String
+  customerId                  String
   paymentGatewayTransactionId String
-  amount       Int
-  type         TransactionType
-  paymentMethod PaymentMethod
-  status       TransactionStatus
-  transactionLog String
-  createdAt  DateTime
+  amount                      Int
+  type                        TransactionType
+  paymentMethod               PaymentMethod
+  status                      TransactionStatus
+  transactionLog              String
+  createdAt                   DateTime
 
-  payment      Payment @relation(fields: [paymentId], references: [id])
-  order        CustomerOrder @relation(fields: [orderId], references: [id])
-  customer     User @relation(fields: [customerId], references: [id])
-
+  payment  Payment       @relation(fields: [paymentId], references: [id])
+  order    CustomerOrder @relation(fields: [orderId], references: [id])
+  customer User          @relation(fields: [customerId], references: [id])
 }
 
 model OrderHistory {
-  id        String    @id @default(uuid())
+  id        String   @id @default(uuid())
   orderId   String
   status    String
   timestamp DateTime
   note      String?
 
-  order     CustomerOrder @relation(fields: [orderId], references: [id])
-  
+  order CustomerOrder @relation(fields: [orderId], references: [id])
 }
 
 model Task {
-  id                  String @id @default(uuid())
-  description         String
+  id                 String   @id @default(uuid())
+  description        String
   taskname           String
   status             String
   startDate          DateTime
   expiredTime        DateTime
   qualityCheckStatus String
 
-  checkQualities     CheckQuality[]
-  staffTasks         StaffTask[]
-
+  checkQualities CheckQuality[]
+  staffTasks     StaffTask[]
 }
 
 model CheckQuality {
-  id               String    @id @default(uuid())
-  taskId           String
-  orderDetailId    String
-  totalChecked     Int
-  passedQuantity   Int
-  failedQuantity   Int
-  status           String
-  reworkRequired   Boolean
-  note             String?
-  checkedAt        DateTime
+  id             String   @id @default(uuid())
+  taskId         String
+  orderDetailId  String
+  totalChecked   Int
+  passedQuantity Int
+  failedQuantity Int
+  status         String
+  reworkRequired Boolean
+  note           String?
+  checkedAt      DateTime
 
-  task             Task @relation(fields: [taskId], references: [id])
-  orderDetail      CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
-  
+  task        Task                @relation(fields: [taskId], references: [id])
+  orderDetail CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
 }
 
 model StaffTask {
-  id            String @id @default(uuid())
+  id            String    @id @default(uuid())
   userId        String
   taskId        String
   assignedDate  DateTime
@@ -361,20 +357,19 @@ model StaffTask {
   status        String
   completedDate DateTime?
 
-  user          User @relation(fields: [userId], references: [id])
-  task          Task @relation(fields: [taskId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id])
 }
 
 model FactoryProduct {
-  id                    String @id @default(uuid())
-  factoryId            String
-  blankVarianceId      String
-  productionCapacity   Int
+  id                      String @id @default(uuid())
+  factoryId               String
+  blankVarianceId         String
+  productionCapacity      Int
   estimatedProductionTime Int
 
-  factory              Factory @relation(fields: [factoryId], references: [factoryOwnerId])
-  blankVariance        BlankVariance @relation(fields: [blankVarianceId], references: [id])
-
+  factory       Factory       @relation(fields: [factoryId], references: [factoryOwnerId])
+  blankVariance BlankVariance @relation(fields: [blankVarianceId], references: [id])
 }
 
 enum FactoryStatus {
@@ -385,104 +380,104 @@ enum FactoryStatus {
 }
 
 model Factory {
-  factoryOwnerId String @id
-  name                    String        // Factory business name
-  description             String?       // Description of the factory
-  businessLicenseUrl      String?       // Business license document URL
-  taxIdentificationNumber String?       // Tax ID
-  address                 String?       // Factory address
-  
-  // Factory specific information
-  website                 String?       // Factory website
-  yearEstablished         Int?          // Year the factory was established
-  totalEmployees          Int?          // Number of employees
-  maxPrintingCapacity     Int?          // Overall maximum printing capacity per day
-  
-  // Quality and certifications
-  qualityCertifications   String?       // Details about quality certifications
-  primaryPrintingMethods  String?       // Main printing methods used
-  specializations         String?       // Specializations (e.g., eco-friendly, premium)
-  
-  // Contact information
-  contactPersonName       String?       // Name of primary contact
-  contactPersonRole       String?       // Role of primary contact
-  contactPhone            String?       // Factory contact phone
-  
-  // Operational details
-  operationalHours        String?       // Working hours
-  leadTime                Int?          // Average lead time in days
-  minimumOrderQuantity    Int?          // Minimum acceptable order quantity
-  
-  // Status tracking
-  factoryStatus           FactoryStatus @default(PENDING_APPROVAL)
-  statusNote              String?       // Note about status (especially for rejections)
-  contractAccepted        Boolean       @default(false)
-  contractAcceptedAt      DateTime?
-  reviewedBy              String?       // Admin who reviewed the application
-  reviewedAt              DateTime?
-  
-  // Keep the contract as JSON since it might be complex and vary over time
-  contract                Json?
+  factoryOwnerId          String  @id
+  name                    String // Factory business name
+  description             String? // Description of the factory
+  businessLicenseUrl      String? // Business license document URL
+  taxIdentificationNumber String? // Tax ID
+  addressId               String? @unique // Factory address, optional but unique when present
 
-  owner                   User @relation(fields: [factoryOwnerId], references: [id])
-  products                FactoryProduct[]
-  orders                  FactoryOrder[]
+  // Factory specific information
+  website             String? // Factory website
+  establishedDate     DateTime // Date the factory was established
+  totalEmployees      Int // Number of employees
+  maxPrintingCapacity Int // Overall maximum printing capacity per day
+
+  // Quality and certifications
+  qualityCertifications String? // Details about quality certifications
+  printingMethods       String[] // Main printing methods used
+  specializations       String[] // Specializations (e.g., eco-friendly, premium)
+
+  // Contact information
+  contactPersonName String? // Name of primary contact
+  contactPersonRole String? // Role of primary contact
+  contactPhone      String? // Factory contact phone
+
+  // Operational details
+  operationalHours     String // Working hours
+  leadTime             Int? // Average lead time in days
+  minimumOrderQuantity Int // Minimum acceptable order quantity
+
+  // Status tracking
+  factoryStatus      FactoryStatus @default(PENDING_APPROVAL)
+  isSubmitted        Boolean       @default(false)  // Track if factory info has been submitted for approval
+  statusNote         String? // Note about status (especially for rejections)
+  contractAccepted   Boolean       @default(false)
+  contractAcceptedAt DateTime?
+  reviewedBy         String? // Admin who reviewed the application
+  reviewedAt         DateTime?
+
+  // Keep the contract as JSON since it might be complex and vary over time
+  contractUrl String?
+
+  owner    User             @relation(fields: [factoryOwnerId], references: [id])
+  products FactoryProduct[]
+  orders   FactoryOrder[]
+  address  Address?         @relation(fields: [addressId], references: [id])
 }
 
 model FactoryOrder {
-  id                     String    @id @default(uuid())
-  factoryId             String
-  status                String
+  id                      String    @id @default(uuid())
+  factoryId               String
+  status                  String
   estimatedCompletionDate DateTime
-  totalItems            Int
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime?
-  totalProductionCost   Int
+  totalItems              Int
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime?
+  totalProductionCost     Int
 
-  factory               Factory @relation(fields: [factoryId], references: [factoryOwnerId])
-  orderDetails         FactoryOrderDetail[]
-  
+  factory      Factory              @relation(fields: [factoryId], references: [factoryOwnerId])
+  orderDetails FactoryOrderDetail[]
 }
 
 model FactoryOrderDetail {
-  id               String    @id @default(uuid())
-  designId         String
-  factoryOrderId   String
-  orderDetailId    String
-  quantity         Int
-  status          String
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime?
-  productionCost  Int
+  id             String    @id @default(uuid())
+  designId       String
+  factoryOrderId String
+  orderDetailId  String
+  quantity       Int
+  status         String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime?
+  productionCost Int
 
-  factoryOrder    FactoryOrder @relation(fields: [factoryOrderId], references: [id])
-  design          ProductDesign @relation(fields: [designId], references: [id])
-  orderDetail     CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
-  
+  factoryOrder FactoryOrder        @relation(fields: [factoryOrderId], references: [id])
+  design       ProductDesign       @relation(fields: [designId], references: [id])
+  orderDetail  CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
 }
 
 model Notification {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   title     String?
   content   String?
   url       String?
-  isRead    Boolean  @default(false)
+  isRead    Boolean   @default(false)
   userId    String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
 
-  user      User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model CartItem {
-  id          String    @id @default(uuid())
-  userId      String
-  designId    String
-  quantity    Int
-  createdAt   DateTime  @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  designId  String
+  quantity  Int
+  createdAt DateTime @default(now())
 
-  user        User @relation(fields: [userId], references: [id])
-  design      ProductDesign @relation(fields: [designId], references: [id])
+  user   User          @relation(fields: [userId], references: [id])
+  design ProductDesign @relation(fields: [designId], references: [id])
 
   @@map("CartItems")
 }

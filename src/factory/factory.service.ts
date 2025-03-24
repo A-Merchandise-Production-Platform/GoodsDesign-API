@@ -1,67 +1,153 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
-import { UpdateFactoryInfoDto } from "./dto/update-factory-info.dto";
-import { UpdateFactoryContractDto } from "./dto/update-factory-contract.dto";
-import { FactoryEntity } from "./entities/factory.entity";
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException
+} from "@nestjs/common"
+import { Roles } from "@prisma/client"
+import { FactoryEntity } from "src/factory/entities/factory.entity"
+import { ProductEntity } from "src/products/entities/products.entity"
+import { PrismaService } from "../prisma/prisma.service"
+import { UpdateFactoryInfoDto } from "./dto/update-factory-info.dto"
+import { UserEntity } from "src/users/entities/users.entity"
 
 @Injectable()
 export class FactoryService {
     constructor(private prisma: PrismaService) {}
 
-    private toFactoryEntity(factory: any): FactoryEntity {
-        return {
-            factoryOwnerId: factory.factoryOwnerId,
-            information: factory.information,
-            contract: factory.contract,
-            owner: factory.owner
-        };
-    }
+    async updateFactoryInfo(userId: string, dto: UpdateFactoryInfoDto) {
+        // First, check if the user is a factory owner
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { factory: true }
+        })
 
-    async getFactoryByOwnerId(ownerId: string): Promise<FactoryEntity> {
-        const factory = await this.prisma.factory.findUnique({
-            where: { factoryOwnerId: ownerId },
-            include: { owner: true }
-        });
-
-        if (!factory) {
-            throw new NotFoundException("Factory not found");
+        if (!user) {
+            throw new NotFoundException("User not found")
         }
 
-        return this.toFactoryEntity(factory);
-    }
-
-    async updateFactoryContract(
-        ownerId: string,
-        updateFactoryContractDto: UpdateFactoryContractDto
-    ): Promise<FactoryEntity> {
-        const factory = await this.prisma.factory.findUnique({
-            where: { factoryOwnerId: ownerId }
-        });
-
-        if (!factory) {
-            throw new NotFoundException("Factory not found");
+        if (user.role !== Roles.FACTORYOWNER) {
+            throw new ForbiddenException("Only factory owners can update factory information")
         }
 
-        // Convert DTO to plain object for JSON storage
-        const contractInfo = {
-            contractNumber: updateFactoryContractDto.contractNumber,
-            effectiveDate: updateFactoryContractDto.effectiveDate,
-            expirationDate: updateFactoryContractDto.expirationDate,
-            productionCommitment: updateFactoryContractDto.productionCommitment,
-            qualityThreshold: updateFactoryContractDto.qualityThreshold,
-            responseTimeLimit: updateFactoryContractDto.responseTimeLimit,
-            productionCostPerUnit: updateFactoryContractDto.productionCostPerUnit,
-            paymentTerm: updateFactoryContractDto.paymentTerm
-        };
+        if (userId !== user.factory.factoryOwnerId) {
+            throw new ForbiddenException("You are not allowed to update this factory")
+        }
 
-        const updatedFactory = await this.prisma.factory.update({
-            where: { factoryOwnerId: ownerId },
-            data: {
-                contract: contractInfo
+        // Check if the factory already exists for this user
+        const existingFactory = user.factory
+
+        // Check if the factory is already submitted for approval
+        if (existingFactory && existingFactory.isSubmitted) {
+            throw new BadRequestException(
+                "Factory information has already been submitted for approval and cannot be updated"
+            )
+        }
+
+        // Set isSubmitted to true if submit flag is provided
+        const isSubmitted = dto.submit === true
+
+        // Update or create factory information
+        const updatedFactory = await this.prisma.factory.upsert({
+            where: {
+                factoryOwnerId: userId
             },
-            include: { owner: true }
-        });
+            update: {
+                name: dto.name,
+                description: dto.description,
+                businessLicenseUrl: dto.businessLicenseUrl,
+                taxIdentificationNumber: dto.taxIdentificationNumber,
+                addressId: dto.addressId,
+                website: dto.website,
+                establishedDate: dto.establishedDate,
+                totalEmployees: dto.totalEmployees,
+                maxPrintingCapacity: dto.maxPrintingCapacity,
+                qualityCertifications: dto.qualityCertifications,
+                printingMethods: dto.printingMethods,
+                specializations: dto.specializations,
+                contactPersonName: dto.contactPersonName,
+                contactPersonRole: dto.contactPersonRole,
+                contactPhone: dto.contactPersonPhone,
+                operationalHours: dto.operationalHours,
+                leadTime: dto.leadTime,
+                minimumOrderQuantity: dto.minimumOrderQuantity,
+                isSubmitted: isSubmitted
+            },
+            create: {
+                factoryOwnerId: userId,
+                name: dto.name || "New Factory",
+                description: dto.description,
+                businessLicenseUrl: dto.businessLicenseUrl,
+                taxIdentificationNumber: dto.taxIdentificationNumber,
+                addressId: dto.addressId,
+                website: dto.website,
+                establishedDate: dto.establishedDate || new Date(),
+                totalEmployees: dto.totalEmployees || 0,
+                maxPrintingCapacity: dto.maxPrintingCapacity || 0,
+                qualityCertifications: dto.qualityCertifications,
+                printingMethods: dto.printingMethods || [],
+                specializations: dto.specializations || [],
+                contactPersonName: dto.contactPersonName,
+                contactPersonRole: dto.contactPersonRole,
+                contactPhone: dto.contactPersonPhone,
+                operationalHours: dto.operationalHours || "9AM-5PM",
+                leadTime: dto.leadTime,
+                minimumOrderQuantity: dto.minimumOrderQuantity || 0,
+                isSubmitted: isSubmitted
+            },
+            include: {
+                address: true,
+                products: {
+                    include: {
+                        blankVariance: true
+                    }
+                },
+                orders: true
+            }
+        })
 
-        return this.toFactoryEntity(updatedFactory);
+        return new FactoryEntity({
+            ...updatedFactory,
+            products: updatedFactory.products.map(
+                (product) =>
+                    new ProductEntity({
+                        ...product.blankVariance,
+                        id: product.id
+                    })
+            )
+        })
+    }
+
+    async getMyFactory(userId: string) {
+        const factory = await this.prisma.factory.findUnique({
+            where: { factoryOwnerId: userId },
+            include: {
+                address: true,
+                products: {
+                    include: {
+                        blankVariance: true
+                    }
+                },
+                orders: true,
+                owner: true
+            }
+        })
+
+        if (!factory) return null
+
+        return new FactoryEntity({
+            ...factory,
+            products: factory.products.map(
+                (product) =>
+                    new ProductEntity({
+                        ...product.blankVariance,
+                        id: product.id
+                    })
+            ),
+            owner: new UserEntity({
+                ...factory.owner,
+                id: factory.owner.id
+            })
+        })
     }
 }

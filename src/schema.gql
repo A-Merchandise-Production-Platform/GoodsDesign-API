@@ -166,32 +166,42 @@ type District {
   provinceId: Int!
 }
 
-type FactoryContract {
-  contractNumber: String!
-  effectiveDate: String!
-  expirationDate: String
-  paymentTerm: Float!
-  productionCommitment: Float!
-  productionCostPerUnit: Float!
-  qualityThreshold: Float!
-  responseTimeLimit: Float!
-}
-
 type FactoryEntity {
-  contract: FactoryContract!
-  factoryOwnerId: ID!
-  information: FactoryInformation!
+  addressId: String
+  businessLicenseUrl: String
+  contactPersonName: String
+  contactPersonPhone: String
+  contactPersonRole: String
+  contractAccepted: Boolean
+  contractAcceptedAt: DateTime
+  contractUrl: String
+  description: String
+  establishedDate: DateTime
+  factoryStatus: FactoryStatus
+  isSubmitted: Boolean
+  leadTime: Int
+  maxPrintingCapacity: Int
+  minimumOrderQuantity: Int
+  name: String!
+  operationalHours: String
   owner: UserEntity!
+  printingMethods: [String!]!
+  products: [ProductEntity!]!
+  qualityCertifications: String
+  reviewedAt: DateTime
+  reviewedBy: String
+  specializations: [String!]!
+  statusNote: String
+  taxIdentificationNumber: String
+  totalEmployees: Int
+  website: String
 }
 
-type FactoryInformation {
-  businessLicenseNumber: String!
-  createdAt: String!
-  factoryAddress: String!
-  factoryEmail: String!
-  factoryName: String!
-  factoryPhoneNumber: String!
-  taxIdentificationNumber: String!
+enum FactoryStatus {
+  APPROVED
+  PENDING_APPROVAL
+  REJECTED
+  SUSPENDED
 }
 
 type FileUploadResponse {
@@ -255,7 +265,7 @@ type Mutation {
   updateCartItem(id: String!, updateCartItemInput: UpdateCartItemDto!): CartItemEntity!
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
-  updateFactoryContract(updateFactoryContractInput: UpdateFactoryContractDto!): FactoryEntity!
+  updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateNotification(input: UpdateNotificationDto!): NotificationEntity!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(input: UpdateProductDesignDto!): ProductDesignEntity!
@@ -341,7 +351,7 @@ type Query {
   district(districtId: Int!): District!
   districts(provinceId: Int!): [District!]!
   getMe: UserEntity!
-  myFactory: FactoryEntity!
+  getMyFactory: FactoryEntity!
   notification(id: ID!): NotificationEntity!
   notifications: [NotificationEntity!]!
   product(id: String!): ProductEntity!
@@ -449,16 +459,29 @@ input UpdateDesignPositionDto {
   id: ID!
 }
 
-"""Update factory contract input"""
-input UpdateFactoryContractDto {
-  contractNumber: String!
-  effectiveDate: String!
-  expirationDate: String
-  paymentTerm: Float!
-  productionCommitment: Float!
-  productionCostPerUnit: Float!
-  qualityThreshold: Float!
-  responseTimeLimit: Float!
+"""Update factory information input"""
+input UpdateFactoryInfoDto {
+  addressId: String
+  businessLicenseUrl: String
+  contactPersonName: String
+  contactPersonPhone: String
+  contactPersonRole: String
+  description: String
+  establishedDate: DateTime
+  leadTime: Int
+  maxPrintingCapacity: Int
+  minimumOrderQuantity: Int
+  name: String
+  operationalHours: String
+  printingMethods: [String!]
+  qualityCertifications: String
+  specializations: [String!]
+
+  """Set to true to submit factory information for approval"""
+  submit: Boolean
+  taxIdentificationNumber: String
+  totalEmployees: Int
+  website: String
 }
 
 input UpdateNotificationDto {
@@ -541,6 +564,7 @@ type UserEntity {
   deletedAt: DateTime
   deletedBy: String
   email: String
+  factory: FactoryEntity
   gender: Boolean!
   id: ID!
   imageUrl: String
