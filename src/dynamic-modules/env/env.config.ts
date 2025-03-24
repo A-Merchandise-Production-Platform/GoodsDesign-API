@@ -44,6 +44,9 @@ export const envConfig = () => ({
     upload: {
         maxFileSize: process.env.UPLOAD_MAX_FILE_SIZE || 50000000, //50mb
         maxFiles: process.env.UPLOAD_MAX_FILES || 1
+    },
+    resend: {
+        apiKey: process.env.RESEND_API_KEY || "",
     }
 })
 

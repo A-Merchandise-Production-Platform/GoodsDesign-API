@@ -59,6 +59,7 @@
         "prisma-graphql-type-decimal": "^3.0.0",
         "redis": "^4.7.0",
         "reflect-metadata": "^0.2.2",
+        "resend": "^4.1.2",
         "rxjs": "^7.8.2",
         "socket.io": "^4.8.1",
         "uuid": "^11.1.0"
