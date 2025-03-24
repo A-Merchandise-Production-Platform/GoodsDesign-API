@@ -3,6 +3,10 @@ import { DEFAULT_DATABASE_URL, DEFAULT_PORT } from "./env.constants"
 export const envConfig = () => ({
     databaseUrl: process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
     port: process.env.PORT || DEFAULT_PORT,
+    app: {
+        frontendUrl: process.env.APP_FRONTEND_URL || "http://localhost:3000",
+        backendUrl: process.env.APP_BACKEND_URL || "http://localhost:3000",
+    },
     jwt: {
         [TokenType.AccessToken]: {
             secret: process.env.JWT_ACCESS_TOKEN_SECRET || "access-token",
@@ -30,7 +34,7 @@ export const envConfig = () => ({
         },
         vnpay: {
             returnUrl: process.env.PAYMENT_VNPAY_RETURN_URL || "",
-            paymentUrl: process.env.PAYMENT_VNPAY_PAYMENT_URL || "",
+            vnpUrl: process.env.PAYMENT_VNPAY_VNP_URL || "",
             tmnCode: process.env.PAYMENT_VNPAY_TMN_CODE || "",
             hashSecret: process.env.PAYMENT_VNPAY_HASH_SECRET || "",
             version: process.env.PAYMENT_VNPAY_VERSION || "2.1.0"
