@@ -1,4 +1,5 @@
 import { Field, ID, Int, ObjectType } from "@nestjs/graphql"
+import { ProductDesignEntity } from "src/product-design/entities/product-design.entity"
 
 @ObjectType()
 export class CartItemEntity {
@@ -8,14 +9,14 @@ export class CartItemEntity {
     @Field(() => String)
     userId: string
 
-    @Field(() => String)
-    designId: string
-
     @Field(() => Int)
     quantity: number
 
     @Field(() => Date)
     createdAt: Date
+
+    @Field(() => ProductDesignEntity)
+    design: ProductDesignEntity
 
     constructor(partial: Partial<CartItemEntity>) {
         Object.assign(this, partial)

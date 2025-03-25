@@ -42,9 +42,8 @@ model User {
   transactions PaymentTransaction[]
   staffTasks   StaffTask[]
   factory      Factory?
-  Notification Notification[]
-
-  CartItems CartItem[]
+  notification Notification[]
+  cartItems CartItem[]
 }
 
 model Address {
@@ -100,6 +99,7 @@ model Product {
   category       Category              @relation(fields: [categoryId], references: [id])
   blankVariances BlankVariance[]
   positionTypes  ProductPositionType[]
+  discounts      SystemConfigDiscount[]
 
   @@map("Products")
 }
@@ -129,6 +129,21 @@ model SystemConfigSize {
   code      String
   isActive  Boolean @default(true)
   isDeleted Boolean @default(false)
+}
+
+model SystemConfigDiscount {
+  id              String   @id @default(uuid())
+  name            String
+  minQuantity     Int
+  discountPercent Float
+  isActive        Boolean  @default(true)
+  isDeleted       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+
+  @@unique([productId, minQuantity])
 }
 
 model BlankVariance {
@@ -173,7 +188,7 @@ model ProductDesign {
   orderDetails        CustomerOrderDetail[]
   factoryOrderDetails FactoryOrderDetail[]
 
-  CartItem CartItem[]
+  cartItem CartItem[]
 }
 
 model DesignPosition {

@@ -2,6 +2,7 @@ import { Field, ID, ObjectType } from "@nestjs/graphql"
 import { CategoryEntity } from "src/categories/entities/categories.entity"
 import { BlankVariancesEntity } from "src/blank-variances/entities/blank-variances.entity"
 import { ProductPositionTypeEntity } from "src/product-position-type/entities/product-position-type.entity"
+import { SystemConfigDiscountEntity } from "src/system-config-discount/entities/system-config-discount.entity"
 
 @ObjectType({ description: "Product" })
 export class ProductEntity {
@@ -55,6 +56,9 @@ export class ProductEntity {
 
     @Field(() => [ProductPositionTypeEntity], { nullable: true })
     positionTypes?: ProductPositionTypeEntity[]
+
+    @Field(() => [SystemConfigDiscountEntity], { nullable: true })
+    discounts?: SystemConfigDiscountEntity[]
 
     constructor(partial: Partial<ProductEntity>) {
         Object.assign(this, partial)

@@ -4,12 +4,14 @@ import { CustomerOrderEntity } from "./entities/customer-order.entity"
 import { CreateOrderDto } from "./dto"
 import { CartItemsService } from "../cart-items/cart-items.service"
 import { OrderStatus, QualityCheckStatus, ReworkStatus } from "@prisma/client"
+import { SystemConfigDiscountService } from "../system-config-discount/system-config-discount.service"
 
 @Injectable()
 export class CustomerOrdersService {
     constructor(
         private prisma: PrismaService,
-        private cartItemsService: CartItemsService
+        private cartItemsService: CartItemsService,
+        private discountService: SystemConfigDiscountService
     ) {}
 
     async create(createOrderDto: CreateOrderDto, userId: string): Promise<CustomerOrderEntity> {
@@ -50,7 +52,14 @@ export class CustomerOrdersService {
                         0
                     )
 
-                    const itemPrice = blankPrice + positionPrices
+                    const baseItemPrice = blankPrice + positionPrices
+
+                    // Get applicable discount from configuration based on product and quantity
+                    const discount = await this.discountService.getApplicableDiscount(
+                        design.blankVariant.productId,
+                        detail.quantity
+                    )
+                    const itemPrice = baseItemPrice * (1 - discount)
                     const detailTotalPrice = itemPrice * detail.quantity
 
                     totalOrderPrice += detailTotalPrice
@@ -61,7 +70,8 @@ export class CustomerOrdersService {
                         price: itemPrice,
                         status: OrderStatus.PENDING,
                         qualityCheckStatus: QualityCheckStatus.PENDING,
-                        reworkStatus: ReworkStatus.NOT_REQUIRED
+                        reworkStatus: ReworkStatus.NOT_REQUIRED,
+                        appliedDiscount: discount
                     }
                 })
             )
@@ -91,8 +101,22 @@ export class CustomerOrdersService {
                 }
             })
 
-            // Clear the user's cart after creating the order
-            await this.cartItemsService.clearCart(userId)
+            // Remove the ordered items from the cart
+            await Promise.all(
+                createOrderDto.orderDetails.map(async (detail) => {
+                    // Find the cart item for this design
+                    const cartItem = await tx.cartItem.findFirst({
+                        where: {
+                            userId,
+                            designId: detail.designId
+                        }
+                    })
+
+                    if (cartItem) {
+                        await this.cartItemsService.removeCartItem(cartItem.id, userId)
+                    }
+                })
+            )
 
             return new CustomerOrderEntity(order)
         })
