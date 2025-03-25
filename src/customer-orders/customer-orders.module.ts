@@ -1,11 +1,13 @@
 import { Module } from "@nestjs/common"
 import { CustomerOrdersService } from "./customer-orders.service"
 import { CustomerOrdersResolver } from "./customer-orders.resolver"
-import { PrismaService } from "../prisma/prisma.service"
-import { CartItemsService } from "../cart-items/cart-items.service"
+import { PrismaModule } from "../prisma/prisma.module"
+import { CartItemsModule } from "../cart-items/cart-items.module"
+import { SystemConfigDiscountModule } from "../system-config-discount/system-config-discount.module"
 
 @Module({
-    providers: [CustomerOrdersResolver, CustomerOrdersService, PrismaService, CartItemsService],
+    imports: [PrismaModule, CartItemsModule, SystemConfigDiscountModule],
+    providers: [CustomerOrdersService, CustomerOrdersResolver],
     exports: [CustomerOrdersService]
 })
 export class CustomerOrdersModule {}

@@ -3,6 +3,7 @@ import { PrismaService } from "../prisma/prisma.service"
 import { CreateProductDto, UpdateProductDto } from "./dto"
 import { ProductEntity } from "./entities/products.entity"
 import { CategoriesService } from "src/categories"
+import { SystemConfigDiscountEntity } from "src/system-config-discount/entities/system-config-discount.entity"
 
 @Injectable()
 export class ProductsService {
@@ -45,10 +46,19 @@ export class ProductsService {
             include: {
                 category: true,
                 blankVariances: true,
-                positionTypes: true
+                positionTypes: true,
+                discounts: true
             }
         })
-        return products.map((product) => new ProductEntity(product))
+        return products.map(
+            (product) =>
+                new ProductEntity({
+                    ...product,
+                    discounts: product.discounts.map(
+                        (discount) => new SystemConfigDiscountEntity(discount)
+                    )
+                })
+        )
     }
 
     async findOne(id: string, includeDeleted = false): Promise<ProductEntity> {
@@ -59,7 +69,8 @@ export class ProductsService {
             },
             include: {
                 category: true,
-                blankVariances: true
+                blankVariances: true,
+                discounts: true
             }
         })
 
@@ -67,7 +78,10 @@ export class ProductsService {
             throw new NotFoundException(`Product with ID "${id}" not found`)
         }
 
-        return new ProductEntity(product)
+        return new ProductEntity({
+            ...product,
+            discounts: product.discounts.map((discount) => new SystemConfigDiscountEntity(discount))
+        })
     }
 
     async update(
