@@ -1,9 +1,9 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
-import { GraphqlJwtAuthGuard } from 'src/auth/guards/graphql-jwt-auth.guard';
-import { PaymentGateway, PaymentGatewayService } from './payment-gateway.service';
+import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth';
-import { User } from '@prisma/client';
+import { GraphqlJwtAuthGuard } from 'src/auth/guards/graphql-jwt-auth.guard';
+import { UserEntity } from 'src/users';
+import { PaymentGateway, PaymentGatewayService } from './payment-gateway.service';
 
 @Resolver()
 @UseGuards(GraphqlJwtAuthGuard)
@@ -14,7 +14,7 @@ export class PaymentGatewayResolver {
   async createPayment(
     @Args('gateway') gateway: PaymentGateway,
     @Args('paymentId') paymentId: string,
-    @CurrentUser() { id: userId }: User,
+    @CurrentUser() { id: userId }: UserEntity,
   ) {
     switch (gateway) {
       case PaymentGateway.PAYOS:
@@ -32,11 +32,4 @@ export class PaymentGatewayResolver {
     }
   }
 
-  // @Mutation(() => Boolean)
-  // async verifyPayment(
-  //   @Args('gateway') gateway: PaymentGateway,
-  //   @Args('paymentData') paymentData: any,
-  // ) {
-  //   return this.paymentGatewayService.verifyPayment(gateway, paymentData);
-  // }
 } 

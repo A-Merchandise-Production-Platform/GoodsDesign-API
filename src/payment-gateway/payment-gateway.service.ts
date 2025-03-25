@@ -1,5 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { PaymentStatus } from '@prisma/client';
+import PayOS from '@payos/node';
+import { CheckoutRequestType, CheckoutResponseDataType, WebhookDataType, WebhookType } from '@payos/node/lib/type';
+import { PaymentMethod, PaymentStatus, TransactionStatus, TransactionType } from '@prisma/client';
 import { envConfig } from 'src/dynamic-modules';
 import { PrismaService } from 'src/prisma';
 
@@ -8,36 +10,88 @@ export enum PaymentGateway {
   VNPAY = 'VNPAY',
 }
 
+
+export interface VNPayQueryParams {
+  vnp_Amount: string;
+  vnp_BankCode: string;
+  vnp_BankTranNo: string;
+  vnp_CardType: string;
+  vnp_OrderInfo: string;
+  vnp_PayDate: string;
+  vnp_ResponseCode: string;
+  vnp_TmnCode: string;
+  vnp_TransactionNo: string;
+  vnp_TransactionStatus: string;
+  vnp_TxnRef: string;
+}
+
 @Injectable()
 export class PaymentGatewayService implements OnModuleInit {
-  constructor(private prisma: PrismaService) {}
+  private readonly payOS: PayOS;
+
+  constructor(private prisma: PrismaService) {
+    this.payOS = new PayOS(
+      envConfig().payment.payos.clientId,
+      envConfig().payment.payos.apiKey,
+      envConfig().payment.payos.checksumKey
+    );
+  }
 
   async onModuleInit() {
     console.log('PaymentGatewayService initialized');
 
     //find 1 paymentId
-    const payment = await this.prisma.payment.findFirst({
-    });
+    // const payment = await this.prisma.payment.findFirst({
+    // });
 
-    if (payment) {
-      const vnpUrl = await this.createVNPayPayment({
-        paymentId: payment.id,
-        userId: payment.customerId,
-      });
-      console.log('VNPay payment created link', vnpUrl);
-    }
+    // if (payment) {
+    //   const vnpUrl = await this.createVNPayPayment({
+    //     paymentId: payment.id,
+    //     userId: payment.customerId,
+    //   });
+    // }
   }
 
   async createPayOSPayment(paymentData: {
     paymentId: string;
     userId: string;
   }) {
-    const clientId = envConfig().payment.payos.clientId;
-    const apiKey = envConfig().payment.payos.apiKey;
-    const checksumKey = envConfig().payment.payos.checksumKey;
+    const payment = await this.prisma.payment.findFirst({
+      where: { id: paymentData.paymentId },
+    });
 
-    // TODO: Implement PayOS payment creation
-    throw new Error('PayOS payment not implemented');
+    if (!payment) {
+      throw new Error('Payment not found');
+    }
+
+    //gen number 6 digits By date
+    const orderCode = new Date().getTime().toString().slice(-6);
+
+    const paymentTransaction = await this.prisma.paymentTransaction.create({
+      data: {
+        paymentId: payment.id,
+        amount: payment.amount,
+        status: TransactionStatus.PENDING,
+        paymentMethod: PaymentMethod.PAYOS,
+        transactionLog: `Payment transaction for paymentId_${payment.id}`,
+        customerId: payment.customerId,
+        type: TransactionType.PAYMENT,
+        paymentGatewayTransactionId: orderCode,
+        createdAt: new Date(),
+      },
+    });
+
+    const createPaymentLinkRequest: CheckoutRequestType = {
+      amount: payment.amount,
+      orderCode: parseInt(orderCode),
+      description: `Payment_${payment.id}`,
+      cancelUrl: envConfig().payment.payos.cancelUrl,
+      returnUrl: envConfig().payment.payos.returnUrl,
+    }
+
+    const checkoutResponse: CheckoutResponseDataType = await this.payOS.createPaymentLink(createPaymentLinkRequest);
+    
+    return checkoutResponse.checkoutUrl;
   }
 
   async createVNPayPayment(paymentData: {
@@ -53,13 +107,44 @@ export class PaymentGatewayService implements OnModuleInit {
     // Create payment transaction
     const date = new Date();
     
-    const createDate = date.toISOString().replace(/[-:]/g, '').split('.')[0];
-    const orderId = paymentData.paymentId;
-    const amount = 10000
+    //yyyyMMddHHmmss 
+    const createDate = date.getFullYear().toString() +
+      (date.getMonth() + 1).toString().padStart(2, '0') +
+      date.getDate().toString().padStart(2, '0') +
+      date.getHours().toString().padStart(2, '0') +
+      date.getMinutes().toString().padStart(2, '0') +
+      date.getSeconds().toString().padStart(2, '0');
+
+      //Find payment by paymentId
+      const payment = await this.prisma.payment.findFirst({
+        where: { id: paymentData.paymentId },
+      });
+
+      if (!payment) {
+        throw new Error('Payment not found');
+      }
+
+      //create payment transaction
+      const paymentTransaction = await this.prisma.paymentTransaction.create({
+        data: {
+          paymentId: payment.id,
+          amount: payment.amount,
+          status: TransactionStatus.PENDING,
+          paymentMethod: PaymentMethod.VNPAY,
+          transactionLog: `Payment transaction for paymentId_${payment.id}`,
+          customerId: payment.customerId,
+          type: TransactionType.PAYMENT,
+          paymentGatewayTransactionId: "",
+          createdAt: new Date(),
+        },
+      });
+
+    const orderId = paymentTransaction.id;
+    const amount = payment.amount;
     const bankCode = "VNBANK"
     
-    const orderInfo = `PaymentForPaymentId ${orderId}`;
-    const orderType = 'billpayment';
+    const orderInfo = `PaymentForPaymentId_${orderId}`;
+    const orderType = 'other';
     const locale = 'vn';
     const currCode = 'VND';
 
@@ -71,7 +156,8 @@ export class PaymentGatewayService implements OnModuleInit {
       vnp_TmnCode: tmnCode,
       vnp_Locale: locale,
       vnp_CurrCode: currCode,
-      vnp_TxnRef: "123",
+      vnp_TxnRef: orderId,
+      vnp_BankCode: bankCode,
       vnp_OrderInfo: orderInfo,
       vnp_OrderType: orderType,
       vnp_Amount: (amount * 100).toString(),
@@ -88,11 +174,8 @@ export class PaymentGatewayService implements OnModuleInit {
         return acc;
       }, {} as Record<string, string>);
 
-    console.log('sortedParams', sortedParams);
-
     // Create signature
-    const querystring = require('qs');
-    const signData = querystring.stringify(sortedParams, { encode: false });
+    const signData = new URLSearchParams(sortedParams).toString();
     const crypto = require('crypto');
     const hmac = crypto.createHmac('sha512', hashSecret);
     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
@@ -101,7 +184,7 @@ export class PaymentGatewayService implements OnModuleInit {
     sortedParams['vnp_SecureHash'] = signed;
 
     // Create final URL
-    const url = `${vnpUrl}?${querystring.stringify(sortedParams, { encode: false })}`;
+    const url = `${vnpUrl}?${new URLSearchParams(sortedParams).toString()}`;
 
     //result
     console.log('VNPay payment created link', url);
@@ -119,13 +202,99 @@ export class PaymentGatewayService implements OnModuleInit {
     }
   }
 
-  private async verifyPayOSPayment(paymentData: any) {
-    // TODO: Implement PayOS payment verification
-    throw new Error('PayOS verification not implemented');
+  public async verifyPayOSPayment(webhook: WebhookType) {
+    //check signature
+    const webhookData: WebhookDataType = this.payOS.verifyPaymentWebhookData(webhook);
+
+    const paymentTransaction = await this.prisma.paymentTransaction.findFirst({
+      where: { paymentGatewayTransactionId: webhookData.orderCode.toString() },
+    });
+
+    if (!paymentTransaction) {
+      throw new Error('Payment transaction not found');
+    }
+
+    if (webhookData.code === '00') {
+      await this.prisma.payment.update({
+        where: { id: paymentTransaction.paymentId },
+        data: { status: PaymentStatus.COMPLETED },
+      });
+
+      await this.prisma.paymentTransaction.update({
+        where: { id: paymentTransaction.id },
+        data: { status: TransactionStatus.COMPLETED },
+      });
+    }else{
+      await this.prisma.paymentTransaction.update({
+        where: { id: paymentTransaction.id },
+        data: { status: TransactionStatus.FAILED },
+      });
+    }
+
+    return {
+      message: 'success',
+    }
   }
 
-  private async verifyVNPayPayment(paymentData: any) {
-    // TODO: Implement VNPay payment verification
-    throw new Error('VNPay verification not implemented');
+  async verifyVNPayPayment(query: VNPayQueryParams) {
+    const vnpParams = { ...query };
+    const secureHash = vnpParams['vnp_SecureHash'];
+
+    delete vnpParams['vnp_SecureHash'];
+
+    // Sort parameters alphabetically
+    const sortedParams = Object.keys(vnpParams)
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = vnpParams[key];
+        return acc;
+      }, {} as Record<string, string>);
+
+    console.log('sortedParams', sortedParams);
+
+    const hashSecret = envConfig().payment.vnpay.hashSecret;
+    const signData = new URLSearchParams(sortedParams).toString();
+    const crypto = require('crypto');
+    const hmac = crypto.createHmac('sha512', hashSecret);
+    const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+
+    console.log('signed', signed);
+    console.log('secureHash', secureHash);
+
+    if (secureHash === signed) {
+      const transactionId = vnpParams['vnp_TxnRef'];
+      const rspCode = vnpParams['vnp_ResponseCode'];
+
+      //find payment by transactionId
+      const payment = await this.prisma.paymentTransaction.findFirst({
+        where: { id: transactionId },
+      });
+
+      if (!payment) {
+        return { RspCode: '98', Message: 'Payment not found' };
+      }
+      
+      // Update payment status in database
+      if (rspCode === '00') {
+        await this.prisma.payment.update({
+          where: { id: payment.paymentId },
+          data: { status: PaymentStatus.COMPLETED },
+        });
+        //update payment transaction
+        await this.prisma.paymentTransaction.update({
+          where: { id: transactionId },
+          data: { status: TransactionStatus.COMPLETED },
+        });
+      }else{
+        await this.prisma.paymentTransaction.update({
+          where: { id: transactionId },
+          data: { status: TransactionStatus.FAILED },
+        });
+      }
+      
+      return { RspCode: '00', Message: 'success' };
+    } else {
+      return { RspCode: '97', Message: 'Fail checksum' };
+    }
   }
 } 

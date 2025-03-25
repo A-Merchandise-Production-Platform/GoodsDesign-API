@@ -30,7 +30,9 @@ export const envConfig = () => ({
         payos: {
             clientId: process.env.PAYMENT_PAYOS_CLIENT_ID || "",
             apiKey: process.env.PAYMENT_PAYOS_API_KEY || "",
-            checksumKey: process.env.PAYMENT_PAYOS_CHECKSUM_KEY || ""
+            checksumKey: process.env.PAYMENT_PAYOS_CHECKSUM_KEY || "",
+            cancelUrl: process.env.PAYMENT_PAYOS_CANCEL_URL || "",
+            returnUrl: process.env.PAYMENT_PAYOS_RETURN_URL || ""
         },
         vnpay: {
             returnUrl: process.env.PAYMENT_VNPAY_RETURN_URL || "",

@@ -44,6 +44,7 @@
         "@nestjs/schedule": "^5.0.1",
         "@nestjs/serve-static": "^5.0.3",
         "@nestjs/websockets": "^11.0.12",
+        "@payos/node": "^1.0.10",
         "@prisma/client": "^6.5.0",
         "@socket.io/admin-ui": "^0.5.1",
         "axios": "^1.8.4",

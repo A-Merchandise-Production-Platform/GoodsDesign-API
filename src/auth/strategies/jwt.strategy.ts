@@ -26,7 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
 
         return new UserEntity({
             ...user,
-            factory: user.factory ? new FactoryEntity(user.factory) : null
+            factory: user?.factory ? new FactoryEntity(user.factory) : null
         })
     }
 }
