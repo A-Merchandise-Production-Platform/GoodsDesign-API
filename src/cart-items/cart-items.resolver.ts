@@ -13,15 +13,8 @@ export class CartItemsResolver {
     constructor(private cartItemsService: CartItemsService) {}
 
     @Query(() => [CartItemEntity], { name: "userCartItems" })
-    async getUserCartItems(
-        @CurrentUser() user: UserEntity
-    ): Promise<CartItemEntity[]> {
-        return this.cartItemsService.findAll(user.id)
-    }
-// get all cart-items in system
-    @Query(() => [CartItemEntity], { name: "allCartItems" })
-    async getAllCartItems(): Promise<CartItemEntity[]> {
-        return this.cartItemsService.findAllItems()
+    async getUserCartItems(@CurrentUser() user: UserEntity): Promise<CartItemEntity[]> {
+        return this.cartItemsService.getUserCartItems(user.id)
     }
 
     @Query(() => CartItemEntity, { name: "cartItem" }) // get cart-items of current user
@@ -29,7 +22,7 @@ export class CartItemsResolver {
         @Args("id") id: string,
         @CurrentUser() user: UserEntity
     ): Promise<CartItemEntity> {
-        return this.cartItemsService.findOne(id, user.id)
+        return this.cartItemsService.getCartItemById(id, user.id)
     }
 
     @Mutation(() => CartItemEntity, { name: "createCartItem" })
@@ -37,7 +30,7 @@ export class CartItemsResolver {
         @Args("createCartItemInput") createCartItemDto: CreateCartItemDto,
         @CurrentUser() user: UserEntity
     ): Promise<CartItemEntity> {
-        return this.cartItemsService.create(createCartItemDto, user.id)
+        return this.cartItemsService.addDesignToCart(createCartItemDto, user.id)
     }
 
     @Mutation(() => CartItemEntity, { name: "updateCartItem" })
@@ -46,7 +39,7 @@ export class CartItemsResolver {
         @Args("updateCartItemInput") updateCartItemDto: UpdateCartItemDto,
         @CurrentUser() user: UserEntity
     ): Promise<CartItemEntity> {
-        return this.cartItemsService.update(id, updateCartItemDto, user.id)
+        return this.cartItemsService.updateCartItemQuantity(id, updateCartItemDto, user.id)
     }
 
     @Mutation(() => CartItemEntity, { name: "deleteCartItem" })
@@ -54,14 +47,12 @@ export class CartItemsResolver {
         @Args("id") id: string,
         @CurrentUser() user: UserEntity
     ): Promise<CartItemEntity> {
-        return this.cartItemsService.remove(id, user.id)
+        return this.cartItemsService.removeCartItem(id, user.id)
     }
 
     @Mutation(() => Boolean, { name: "clearCart" })
-    async clearCart(
-        @CurrentUser() user: UserEntity
-    ): Promise<boolean> {
-        await this.cartItemsService.clearCart(user.id)
+    async clearCart(@CurrentUser() user: UserEntity): Promise<boolean> {
+        await this.cartItemsService.removeAllUserCartItems(user.id)
         return true
     }
 }

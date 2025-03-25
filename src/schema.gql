@@ -45,7 +45,7 @@ input CalculateShippingFeeDto {
 
 type CartItemEntity {
   createdAt: DateTime!
-  designId: String!
+  design: ProductDesignEntity!
   id: ID!
   quantity: Int!
   userId: String!
@@ -157,6 +157,13 @@ input CreateSystemConfigColorDto {
   code: String!
   isActive: Boolean! = true
   name: String!
+}
+
+input CreateSystemConfigDiscountDto {
+  discountPercent: Float!
+  minQuantity: Float!
+  name: String!
+  productId: String!
 }
 
 input CreateSystemConfigSizeDto {
@@ -292,6 +299,7 @@ type Mutation {
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
   createSystemConfigColor(input: CreateSystemConfigColorDto!): SystemConfigColorEntity!
+  createSystemConfigDiscount(createDiscountInput: CreateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
   createSystemConfigSize(input: CreateSystemConfigSizeDto!): SystemConfigSizeEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!
   deleteAddress(id: String!): AddressEntity!
@@ -312,6 +320,7 @@ type Mutation {
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
   removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
   removeSystemConfigColor(id: ID!): SystemConfigColorEntity!
+  removeSystemConfigDiscount(id: String!): SystemConfigDiscountEntity!
   removeSystemConfigSize(id: ID!): SystemConfigSizeEntity!
   restoreCategory(id: String!): CategoryEntity!
   restoreProduct(id: String!): ProductEntity!
@@ -329,6 +338,7 @@ type Mutation {
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigColor(input: UpdateSystemConfigColorDto!): SystemConfigColorEntity!
+  updateSystemConfigDiscount(id: String!, updateDiscountInput: UpdateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
   updateSystemConfigSize(input: UpdateSystemConfigSizeDto!): SystemConfigSizeEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   uploadFile(file: Upload!): FileUploadResponse!
@@ -370,6 +380,7 @@ type ProductEntity {
   deletedAt: DateTime
   deletedBy: String
   description: String
+  discounts: [SystemConfigDiscountEntity!]
   id: ID!
   imageUrl: String
   isActive: Boolean!
@@ -398,7 +409,6 @@ type Province {
 type Query {
   address(id: String!): AddressEntity!
   addresses: [AddressEntity!]!
-  allCartItems: [CartItemEntity!]!
   availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
   blankVariance(id: String!): BlankVariancesEntity
   blankVariances: [BlankVariancesEntity!]!
@@ -409,6 +419,7 @@ type Query {
   designPositions(designId: String): [DesignPositionEntity!]!
   district(districtId: Int!): District!
   districts(provinceId: Int!): [District!]!
+  getApplicableDiscount(productId: String!, quantity: Float!): Float!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
   notification(id: ID!): NotificationEntity!
@@ -425,6 +436,8 @@ type Query {
   systemConfigBanks: [SystemConfigBankEntity!]!
   systemConfigColor(id: ID!): SystemConfigColorEntity!
   systemConfigColors: [SystemConfigColorEntity!]!
+  systemConfigDiscount(id: String!): SystemConfigDiscountEntity!
+  systemConfigDiscounts: [SystemConfigDiscountEntity!]!
   systemConfigSize(id: ID!): SystemConfigSizeEntity!
   systemConfigSizes: [SystemConfigSizeEntity!]!
   user(id: String!): UserEntity!
@@ -487,6 +500,18 @@ type SystemConfigColorEntity {
   isActive: Boolean!
   isDeleted: Boolean!
   name: String!
+}
+
+type SystemConfigDiscountEntity {
+  createdAt: DateTime!
+  discountPercent: Float!
+  id: ID!
+  isActive: Boolean!
+  isDeleted: Boolean!
+  minQuantity: Float!
+  name: String!
+  product: ProductEntity!
+  updatedAt: DateTime!
 }
 
 type SystemConfigSizeEntity {
@@ -601,6 +626,13 @@ input UpdateSystemConfigColorDto {
   id: ID!
   isActive: Boolean = true
   name: String
+}
+
+input UpdateSystemConfigDiscountDto {
+  discountPercent: Float
+  minQuantity: Float
+  name: String
+  productId: String
 }
 
 input UpdateSystemConfigSizeDto {
