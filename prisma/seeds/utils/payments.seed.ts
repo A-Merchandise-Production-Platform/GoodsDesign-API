@@ -35,7 +35,6 @@ export async function seedPayments(prisma: PrismaClient) {
           data: {
             id: transactionData.id,
             paymentId: payment.id,
-            orderId: payment.orderId,
             customerId: payment.customerId,
             amount: transactionData.amount,
             type: transactionData.type as TransactionType,

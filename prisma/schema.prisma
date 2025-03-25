@@ -245,7 +245,6 @@ model CustomerOrder {
   customer     User                  @relation(fields: [customerId], references: [id])
   orderDetails CustomerOrderDetail[]
   payments     Payment[]
-  transactions PaymentTransaction[]
   history      OrderHistory[]
 }
 
@@ -309,7 +308,6 @@ model Payment {
 model PaymentTransaction {
   id                          String            @id @default(uuid())
   paymentId                   String
-  orderId                     String
   customerId                  String
   paymentGatewayTransactionId String
   amount                      Int
@@ -320,7 +318,6 @@ model PaymentTransaction {
   createdAt                   DateTime
 
   payment  Payment       @relation(fields: [paymentId], references: [id])
-  order    CustomerOrder @relation(fields: [orderId], references: [id])
   customer User          @relation(fields: [customerId], references: [id])
 }
 

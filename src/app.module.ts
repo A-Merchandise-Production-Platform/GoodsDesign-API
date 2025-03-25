@@ -31,6 +31,8 @@ import { ShippingModule } from "./shipping/shipping.module"
 import { FileModule } from "./file/file.module"
 import { MailModule } from "./mail/mail.module"
 import { AddressesModule } from "./addresses/addresses.module"
+import { PaymentGatewayModule } from "./payment-gateway/payment-gateway.module"
+import { PaymentTransactionModule } from "./payment-transaction/payment-transaction.module"
 
 @Module({
     imports: [
@@ -74,7 +76,8 @@ import { AddressesModule } from "./addresses/addresses.module"
             serveRoot: "/admin"
         }),
         ScheduleModule.forRoot(),
-        AddressesModule
+        AddressesModule,
+        PaymentGatewayModule,
         // TestModule,
     ],
     controllers: [AppController],
