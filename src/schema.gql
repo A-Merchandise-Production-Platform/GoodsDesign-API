@@ -325,6 +325,7 @@ type Mutation {
   removeSystemConfigSize(id: ID!): SystemConfigSizeEntity!
   restoreCategory(id: String!): CategoryEntity!
   restoreProduct(id: String!): ProductEntity!
+  sendEmail(to: String!): Boolean!
   toggleActiveCategory(id: String!): CategoryEntity!
   toggleActiveProduct(id: String!): ProductEntity!
   updateAddress(id: String!, updateAddressInput: UpdateAddressInput!): AddressEntity!

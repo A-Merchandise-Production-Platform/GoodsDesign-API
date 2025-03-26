@@ -3,6 +3,7 @@ import PayOS from '@payos/node';
 import { CheckoutRequestType, CheckoutResponseDataType, WebhookDataType, WebhookType } from '@payos/node/lib/type';
 import { PaymentMethod, PaymentStatus, TransactionStatus, TransactionType } from '@prisma/client';
 import { envConfig } from 'src/dynamic-modules';
+import { MailService } from 'src/mail';
 import { PrismaService } from 'src/prisma';
 
 export enum PaymentGateway {
@@ -29,7 +30,7 @@ export interface VNPayQueryParams {
 export class PaymentGatewayService implements OnModuleInit {
   private readonly payOS: PayOS;
 
-  constructor(private prisma: PrismaService) {
+  constructor(private prisma: PrismaService, private mailService: MailService) {
     this.payOS = new PayOS(
       envConfig().payment.payos.clientId,
       envConfig().payment.payos.apiKey,
@@ -224,6 +225,21 @@ export class PaymentGatewayService implements OnModuleInit {
         where: { id: paymentTransaction.id },
         data: { status: TransactionStatus.COMPLETED },
       });
+
+      //get customer email
+      const customer = await this.prisma.user.findFirst({ 
+        where: { id: paymentTransaction.customerId },
+      });
+
+      if (!customer) {
+        throw new Error('Customer not found');
+      }
+
+      await this.mailService.sendInvoiceEmail({
+        to: customer.email,
+        orderId: paymentTransaction.id,
+        amount: paymentTransaction.amount,
+      });
     }else{
       await this.prisma.paymentTransaction.update({
         where: { id: paymentTransaction.id },
@@ -285,10 +301,25 @@ export class PaymentGatewayService implements OnModuleInit {
           where: { id: transactionId },
           data: { status: TransactionStatus.COMPLETED },
         });
-      }else{
+
+        //get customer email
+        const customer = await this.prisma.user.findFirst({ 
+          where: { id: payment.customerId },
+        });
+
+        if (!customer) {
+          throw new Error('Customer not found');
+        }
+
+        await this.mailService.sendInvoiceEmail({
+          to: customer.email,
+          orderId: payment.id,
+          amount: payment.amount,
+        });
+        
         await this.prisma.paymentTransaction.update({
           where: { id: transactionId },
-          data: { status: TransactionStatus.FAILED },
+          data: { status: TransactionStatus.COMPLETED },
         });
       }
       
