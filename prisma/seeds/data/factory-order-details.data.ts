@@ -1,6 +1,7 @@
 import { factoryOrdersData } from './factory-orders.data';
 import { productDesignsData } from './product-designs.data';
 import { customerOrderDetailsData } from './customer-order-details.data';
+import { OrderStatus } from '@prisma/client';
 
 export const factoryOrderDetailsData = [
   {
@@ -9,7 +10,7 @@ export const factoryOrderDetailsData = [
     factoryOrderId: factoryOrdersData[0].id,
     orderDetailId: 'detail001',
     quantity: 2,
-    status: 'PENDING',
+    status: OrderStatus.PENDING,
     productionCost: 100,
   },
   {
@@ -18,7 +19,7 @@ export const factoryOrderDetailsData = [
     factoryOrderId: factoryOrdersData[1].id,
     orderDetailId: 'detail002',
     quantity: 3,
-    status: 'IN_PROGRESS',
+    status: OrderStatus.IN_PRODUCTION,
     productionCost: 150,
   },
 ]; 
