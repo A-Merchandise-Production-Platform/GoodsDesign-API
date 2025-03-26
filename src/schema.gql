@@ -153,23 +153,11 @@ input CreateSystemConfigBankDto {
   shortName: String!
 }
 
-input CreateSystemConfigColorDto {
-  code: String!
-  isActive: Boolean! = true
-  name: String!
-}
-
 input CreateSystemConfigDiscountDto {
   discountPercent: Float!
   minQuantity: Float!
   name: String!
   productId: String!
-}
-
-input CreateSystemConfigSizeDto {
-  code: String!
-  isActive: Boolean! = true
-  name: String!
 }
 
 """Create user input"""
@@ -299,9 +287,7 @@ type Mutation {
   createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
-  createSystemConfigColor(input: CreateSystemConfigColorDto!): SystemConfigColorEntity!
   createSystemConfigDiscount(createDiscountInput: CreateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
-  createSystemConfigSize(input: CreateSystemConfigSizeDto!): SystemConfigSizeEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!
   deleteAddress(id: String!): AddressEntity!
   deleteBlankVariance(id: String!): BlankVariancesEntity!
@@ -320,9 +306,7 @@ type Mutation {
   removeProductDesign(id: ID!): ProductDesignEntity!
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
   removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
-  removeSystemConfigColor(id: ID!): SystemConfigColorEntity!
   removeSystemConfigDiscount(id: String!): SystemConfigDiscountEntity!
-  removeSystemConfigSize(id: ID!): SystemConfigSizeEntity!
   restoreCategory(id: String!): CategoryEntity!
   restoreProduct(id: String!): ProductEntity!
   sendEmail(to: String!): Boolean!
@@ -339,9 +323,7 @@ type Mutation {
   updateProductDesign(input: UpdateProductDesignDto!): ProductDesignEntity!
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
-  updateSystemConfigColor(input: UpdateSystemConfigColorDto!): SystemConfigColorEntity!
   updateSystemConfigDiscount(id: String!, updateDiscountInput: UpdateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
-  updateSystemConfigSize(input: UpdateSystemConfigSizeDto!): SystemConfigSizeEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   uploadFile(file: Upload!): FileUploadResponse!
 }
@@ -436,12 +418,8 @@ type Query {
   provinces: [Province!]!
   systemConfigBank(id: ID!): SystemConfigBankEntity!
   systemConfigBanks: [SystemConfigBankEntity!]!
-  systemConfigColor(id: ID!): SystemConfigColorEntity!
-  systemConfigColors: [SystemConfigColorEntity!]!
   systemConfigDiscount(id: String!): SystemConfigDiscountEntity!
   systemConfigDiscounts: [SystemConfigDiscountEntity!]!
-  systemConfigSize(id: ID!): SystemConfigSizeEntity!
-  systemConfigSizes: [SystemConfigSizeEntity!]!
   user(id: String!): UserEntity!
   userCartItems: [CartItemEntity!]!
   userOrder(id: String!): CustomerOrderEntity!
@@ -496,14 +474,6 @@ type SystemConfigBankEntity {
   shortName: String!
 }
 
-type SystemConfigColorEntity {
-  code: String!
-  id: ID!
-  isActive: Boolean!
-  isDeleted: Boolean!
-  name: String!
-}
-
 type SystemConfigDiscountEntity {
   createdAt: DateTime!
   discountPercent: Float!
@@ -514,14 +484,6 @@ type SystemConfigDiscountEntity {
   name: String!
   product: ProductEntity!
   updatedAt: DateTime!
-}
-
-type SystemConfigSizeEntity {
-  code: String!
-  id: ID!
-  isActive: Boolean!
-  isDeleted: Boolean!
-  name: String!
 }
 
 input UpdateAddressInput {
@@ -623,25 +585,11 @@ input UpdateSystemConfigBankDto {
   shortName: String
 }
 
-input UpdateSystemConfigColorDto {
-  code: String
-  id: ID!
-  isActive: Boolean = true
-  name: String
-}
-
 input UpdateSystemConfigDiscountDto {
   discountPercent: Float
   minQuantity: Float
   name: String
   productId: String
-}
-
-input UpdateSystemConfigSizeDto {
-  code: String
-  id: ID!
-  isActive: Boolean = true
-  name: String
 }
 
 """Update user input"""

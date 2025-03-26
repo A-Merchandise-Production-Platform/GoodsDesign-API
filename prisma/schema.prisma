@@ -100,6 +100,7 @@ model Product {
   blankVariances BlankVariance[]
   positionTypes  ProductPositionType[]
   discounts      SystemConfigDiscount[]
+  variants       SystemConfigVariant[]
 
   @@map("Products")
 }
@@ -115,21 +116,6 @@ model SystemConfigBank {
   isDeleted Boolean @default(false)
 }
 
-model SystemConfigColor {
-  id        String  @id @default(uuid())
-  name      String
-  code      String
-  isActive  Boolean @default(true)
-  isDeleted Boolean @default(false)
-}
-
-model SystemConfigSize {
-  id        String  @id @default(uuid())
-  name      String
-  code      String
-  isActive  Boolean @default(true)
-  isDeleted Boolean @default(false)
-}
 
 model SystemConfigDiscount {
   id              String   @id @default(uuid())
@@ -144,6 +130,16 @@ model SystemConfigDiscount {
   product         Product  @relation(fields: [productId], references: [id])
 
   @@unique([productId, minQuantity])
+}
+
+model SystemConfigVariant {
+  id        String  @id @default(uuid())
+  productId String
+  name      String
+  value     Json
+  isActive  Boolean @default(true)
+  isDeleted Boolean @default(false)
+  product   Product  @relation(fields: [productId], references: [id])
 }
 
 model BlankVariance {

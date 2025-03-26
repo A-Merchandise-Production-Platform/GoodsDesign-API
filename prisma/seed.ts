@@ -1,8 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import {
     seedBanks,
-    seedColors,
-    seedSizes,
     seedUsers,
     seedCategories,
     seedProducts,
@@ -21,7 +19,8 @@ import {
     seedFactoryOrders,
     seedFactoryOrderDetails,
     seedCartItems,
-    seedDiscounts
+    seedDiscounts,
+    seedSystemConfigVariants
 } from "./seeds"
 
 const prisma = new PrismaClient()
@@ -52,8 +51,6 @@ async function main() {
 
         // Seed system configurations first
         await seedBanks(prisma)
-        await seedColors(prisma)
-        await seedSizes(prisma)
 
         // Seed users first as they are referenced by many other tables
         await seedUsers(prisma)
@@ -63,7 +60,7 @@ async function main() {
         await seedProducts(prisma)
         await seedProductPositionTypes(prisma)
         await seedBlankVariances(prisma)
-
+        await seedSystemConfigVariants(prisma)
         await seedDiscounts(prisma)
 
         // Seed factories and their products
