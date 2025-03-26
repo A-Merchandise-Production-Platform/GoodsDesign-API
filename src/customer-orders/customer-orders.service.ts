@@ -3,7 +3,7 @@ import { PrismaService } from "../prisma/prisma.service"
 import { CustomerOrderEntity } from "./entities/customer-order.entity"
 import { CreateOrderDto } from "./dto"
 import { CartItemsService } from "../cart-items/cart-items.service"
-import { OrderStatus, QualityCheckStatus, ReworkStatus } from "@prisma/client"
+import { OrderStatus, PaymentStatus, PaymentType, QualityCheckStatus, ReworkStatus } from "@prisma/client"
 import { SystemConfigDiscountService } from "../system-config-discount/system-config-discount.service"
 
 @Injectable()
@@ -98,6 +98,19 @@ export class CustomerOrdersService {
                 },
                 include: {
                     orderDetails: true
+                }
+            })
+
+            // create payment
+            await tx.payment.create({
+                data: {
+                    customerId: userId,
+                    orderId: order.id,
+                    amount: totalOrderPrice,
+                    status: PaymentStatus.PENDING,
+                    createdAt: new Date(),
+                    type: PaymentType.DEPOSIT,
+                    paymentLog: "Initial deposit payment for order " + order.id
                 }
             })
 

@@ -6,7 +6,18 @@ export async function seedFactoryOrderDetails(prisma: PrismaClient) {
   
   for (const factoryOrderDetail of factoryOrderDetailsData) {
     await prisma.factoryOrderDetail.create({
-      data: factoryOrderDetail,
+      data: {
+        id: factoryOrderDetail.id,
+        designId: factoryOrderDetail.designId,
+        factoryOrderId: factoryOrderDetail.factoryOrderId,
+        orderDetailId: factoryOrderDetail.orderDetailId,
+        quantity: factoryOrderDetail.quantity,
+        status: factoryOrderDetail.status,
+        price: 100, // Default price, should be copied from CustomerOrderDetail
+        productionCost: factoryOrderDetail.productionCost,
+        completedQty: 0,
+        rejectedQty: 0
+      },
     });
   }
 

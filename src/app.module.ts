@@ -20,8 +20,6 @@ import { NotificationsModule } from "./socket/notifications/notifications.module
 import { SocketModule } from "./socket/socket.module"
 import { UsersModule } from "./users"
 import { ServeStaticModule } from "@nestjs/serve-static"
-import { SystemConfigSizeModule } from "./system-config-size/system-config-size.module"
-import { SystemConfigColorModule } from "./system-config-color/system-config-color.module"
 import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
 import { ProductPositionTypeModule } from "./product-position-type/product-position-type.module"
 import { ProductDesignModule } from "./product-design/product-design.module"
@@ -59,8 +57,6 @@ import { PaymentTransactionModule } from "./payment-transaction/payment-transact
         BlankVariancesModule,
         NotificationsModule,
         SocketModule,
-        SystemConfigSizeModule,
-        SystemConfigColorModule,
         SystemConfigBankModule,
         ProductPositionTypeModule,
         ProductDesignModule,

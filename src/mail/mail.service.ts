@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Resend } from 'resend';
 import { envConfig } from 'src/dynamic-modules';
+import { MAIL_CONSTANT, MailTemplateInvoice, MailTemplateMap, MailTemplateType } from './mail.constant';
 
 @Injectable()
 export class MailService {
@@ -89,4 +90,26 @@ export class MailService {
   public async retrieveEmail(id: string) {
     return this.getEmail(id);
   }
+
+  public async sendInvoiceEmail(params: {
+    to: string;
+    orderId: string;
+    amount: number;
+  }) {
+    const { to, orderId, amount } = params;
+    const invoiceParams: MailTemplateInvoice = {
+      email: to,
+      orderId,
+      amount,
+    };
+
+    return this.sendEmail(
+      {
+        from: MAIL_CONSTANT.FROM_EMAIL,
+        to,
+        subject: MailTemplateMap[MailTemplateType.INVOICE].subject,
+        html: MailTemplateMap[MailTemplateType.INVOICE].htmlGenerate(invoiceParams),
+      });
+  }
+    
 } 

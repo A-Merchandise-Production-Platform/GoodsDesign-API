@@ -100,6 +100,7 @@ model Product {
   blankVariances BlankVariance[]
   positionTypes  ProductPositionType[]
   discounts      SystemConfigDiscount[]
+  variants       SystemConfigVariant[]
 
   @@map("Products")
 }
@@ -115,21 +116,6 @@ model SystemConfigBank {
   isDeleted Boolean @default(false)
 }
 
-model SystemConfigColor {
-  id        String  @id @default(uuid())
-  name      String
-  code      String
-  isActive  Boolean @default(true)
-  isDeleted Boolean @default(false)
-}
-
-model SystemConfigSize {
-  id        String  @id @default(uuid())
-  name      String
-  code      String
-  isActive  Boolean @default(true)
-  isDeleted Boolean @default(false)
-}
 
 model SystemConfigDiscount {
   id              String   @id @default(uuid())
@@ -144,6 +130,16 @@ model SystemConfigDiscount {
   product         Product  @relation(fields: [productId], references: [id])
 
   @@unique([productId, minQuantity])
+}
+
+model SystemConfigVariant {
+  id        String  @id @default(uuid())
+  productId String
+  name      String
+  value     Json
+  isActive  Boolean @default(true)
+  isDeleted Boolean @default(false)
+  product   Product  @relation(fields: [productId], references: [id])
 }
 
 model BlankVariance {
@@ -213,6 +209,7 @@ model FavoriteDesign {
 
 enum OrderStatus {
   PENDING
+  ASSIGNED_TO_FACTORY
   ACCEPTED
   IN_PRODUCTION
   COMPLETED
@@ -242,10 +239,17 @@ model CustomerOrder {
   depositPaid   Int
   orderDate     DateTime
 
+  // Đánh giá chất lượng sản xuất
+  rating            Int?               // Đánh giá từ 1-5 sao
+  ratingComment     String?            // Nhận xét về chất lượng sản xuất
+  ratedAt           DateTime?          // Thời điểm đánh giá
+  ratedBy           String?            // Người đánh giá
+
   customer     User                  @relation(fields: [customerId], references: [id])
   orderDetails CustomerOrderDetail[]
   payments     Payment[]
   history      OrderHistory[]
+  factoryOrder FactoryOrder[]
 }
 
 model CustomerOrderDetail {
@@ -438,34 +442,101 @@ model Factory {
   address  Address?         @relation(fields: [addressId], references: [id])
 }
 
-model FactoryOrder {
-  id                      String    @id @default(uuid())
-  factoryId               String
-  status                  String
-  estimatedCompletionDate DateTime
-  totalItems              Int
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime?
-  totalProductionCost     Int
-
-  factory      Factory              @relation(fields: [factoryId], references: [factoryOwnerId])
-  orderDetails FactoryOrderDetail[]
+enum FactoryOrderStatus {
+  PENDING_ACCEPTANCE  // Đợi factory chấp nhận
+  ACCEPTED            // Factory đã chấp nhận  
+  EXPIRED             // Factory không phản hồi trong thời gian quy định
+  REJECTED            // Factory từ chối
+  IN_PRODUCTION       // Đang sản xuất
+  COMPLETED           // Đã hoàn thành sản xuất
+  SHIPPED             // Đã gửi hàng về kho chính
+  CANCELLED           // Đã hủy
 }
 
+model FactoryOrder {
+  id                  String             @id @default(uuid())
+  factoryId           String
+  customerOrderId     String             
+  status              FactoryOrderStatus 
+  assignedAt          DateTime           
+  acceptanceDeadline  DateTime           
+  acceptedAt          DateTime?
+  rejectionReason     String?
+  estimatedCompletionDate DateTime?
+  completedAt         DateTime?
+  shippedAt           DateTime?
+  totalItems          Int
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime?          @updatedAt
+  totalProductionCost Int
+
+  // Tiến độ sản xuất
+  lastUpdated       DateTime?          @updatedAt
+  currentProgress   Int?               // Tiến độ hiện tại (phần trăm)
+  delayReason       String?            // Lý do trễ hạn nếu có
+  isDelayed         Boolean            @default(false) // Đánh dấu đơn hàng bị trễ
+
+  factory            Factory               @relation(fields: [factoryId], references: [factoryOwnerId])
+  customerOrder      CustomerOrder         @relation(fields: [customerOrderId], references: [id])
+  orderDetails       FactoryOrderDetail[]
+  progressReports    FactoryProgressReport[]
+  qualityIssues      QualityIssue[]
+}
+
+
 model FactoryOrderDetail {
-  id             String    @id @default(uuid())
+  id             String      @id @default(uuid())
   designId       String
   factoryOrderId String
   orderDetailId  String
   quantity       Int
-  status         String
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime?
+  price          Int         // Thêm field giá (sao chép từ CustomerOrderDetail)
+  status         OrderStatus // Thay đổi kiểu từ String sang OrderStatus
+  completedQty   Int         @default(0) // Thêm field số lượng đã hoàn thành
+  rejectedQty    Int         @default(0) // Thêm field số lượng bị từ chối
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime?   @updatedAt
   productionCost Int
 
   factoryOrder FactoryOrder        @relation(fields: [factoryOrderId], references: [id])
   design       ProductDesign       @relation(fields: [designId], references: [id])
   orderDetail  CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
+}
+
+model FactoryProgressReport {
+  id                 String    @id @default(uuid())
+  factoryOrderId     String
+  reportDate         DateTime  @default(now())
+  completedQty       Int
+  estimatedCompletion DateTime
+  notes              String?
+  photoUrls          String[]
+  
+  factoryOrder       FactoryOrder @relation(fields: [factoryOrderId], references: [id])
+}
+
+enum QualityIssueStatus {
+  REPORTED
+  INVESTIGATING
+  RESOLVED
+  REJECTED
+}
+
+model QualityIssue {
+  id                String             @id @default(uuid())
+  factoryOrderId    String
+  reportedAt        DateTime           @default(now())
+  reportedBy        String?            // Người báo cáo vấn đề
+  assignedTo        String?            // Người được giao xử lý
+  issueType         String
+  description       String
+  photoUrls         String[]
+  status            QualityIssueStatus
+  resolution        String?
+  resolvedAt        DateTime?
+  resolvedBy        String?            // Người đã giải quyết vấn đề
+  
+  factoryOrder      FactoryOrder       @relation(fields: [factoryOrderId], references: [id])
 }
 
 model Notification {
