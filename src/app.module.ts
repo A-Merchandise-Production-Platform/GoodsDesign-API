@@ -3,8 +3,10 @@ import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo"
 import { Module } from "@nestjs/common"
 import { GraphQLModule } from "@nestjs/graphql"
 import { ScheduleModule } from "@nestjs/schedule"
+import { ServeStaticModule } from "@nestjs/serve-static"
 import GraphQLJSON from "graphql-type-json"
 import { join } from "path"
+import { AddressesModule } from "./addresses/addresses.module"
 import { AppController } from "./app.controller"
 import { AppService } from "./app.service"
 import { AuthModule } from "./auth"
@@ -12,25 +14,23 @@ import { BlankVariancesModule } from "./blank-variances/blank-variances.module"
 import { CartItemsModule } from "./cart-items/cart-items.module"
 import { CategoriesModule } from "./categories"
 import { CustomerOrdersModule } from "./customer-orders/customer-orders.module"
-import { EnvModule } from "./dynamic-modules"
-import { PrismaModule } from "./prisma"
-import { ProductsModule } from "./products"
-import { RedisModule } from "./redis"
-import { NotificationsModule } from "./socket/notifications/notifications.module"
-import { SocketModule } from "./socket/socket.module"
-import { UsersModule } from "./users"
-import { ServeStaticModule } from "@nestjs/serve-static"
-import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
-import { ProductPositionTypeModule } from "./product-position-type/product-position-type.module"
-import { ProductDesignModule } from "./product-design/product-design.module"
 import { DesignPositionModule } from "./design-position/design-position.module"
+import { EnvModule } from "./dynamic-modules"
 import { FactoryModule } from "./factory/factory.module"
-import { ShippingModule } from "./shipping/shipping.module"
 import { FileModule } from "./file/file.module"
 import { MailModule } from "./mail/mail.module"
-import { AddressesModule } from "./addresses/addresses.module"
 import { PaymentGatewayModule } from "./payment-gateway/payment-gateway.module"
-import { PaymentTransactionModule } from "./payment-transaction/payment-transaction.module"
+import { PrismaModule } from "./prisma"
+import { ProductDesignModule } from "./product-design/product-design.module"
+import { ProductPositionTypeModule } from "./product-position-type/product-position-type.module"
+import { ProductsModule } from "./products"
+import { RedisModule } from "./redis"
+import { ShippingModule } from "./shipping/shipping.module"
+import { NotificationsModule } from "./socket/notifications/notifications.module"
+import { SocketModule } from "./socket/socket.module"
+import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
+import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
+import { UsersModule } from "./users"
 
 @Module({
     imports: [
@@ -74,6 +74,7 @@ import { PaymentTransactionModule } from "./payment-transaction/payment-transact
         ScheduleModule.forRoot(),
         AddressesModule,
         PaymentGatewayModule,
+        SystemConfigVariantModule,
         // TestModule,
     ],
     controllers: [AppController],

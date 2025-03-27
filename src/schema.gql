@@ -160,6 +160,13 @@ input CreateSystemConfigDiscountDto {
   productId: String!
 }
 
+input CreateSystemConfigVariantInput {
+  isActive: Boolean
+  name: String!
+  productId: String!
+  value: JSONObject!
+}
+
 """Create user input"""
 input CreateUserDto {
   dateOfBirth: String
@@ -266,6 +273,11 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON
 
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
+
 """Login input"""
 input LoginDto {
   email: String!
@@ -288,6 +300,7 @@ type Mutation {
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
   createSystemConfigDiscount(createDiscountInput: CreateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
+  createSystemConfigVariant(createSystemConfigVariantInput: CreateSystemConfigVariantInput!): SystemConfigVariant!
   createUser(createUserInput: CreateUserDto!): UserEntity!
   deleteAddress(id: String!): AddressEntity!
   deleteBlankVariance(id: String!): BlankVariancesEntity!
@@ -307,6 +320,7 @@ type Mutation {
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
   removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
   removeSystemConfigDiscount(id: String!): SystemConfigDiscountEntity!
+  removeSystemConfigVariant(id: String!): SystemConfigVariant!
   restoreCategory(id: String!): CategoryEntity!
   restoreProduct(id: String!): ProductEntity!
   sendEmail(to: String!): Boolean!
@@ -324,6 +338,7 @@ type Mutation {
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigDiscount(id: String!, updateDiscountInput: UpdateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
+  updateSystemConfigVariant(id: String!, updateSystemConfigVariantInput: CreateSystemConfigVariantInput!): SystemConfigVariant!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   uploadFile(file: Upload!): FileUploadResponse!
 }
@@ -420,6 +435,9 @@ type Query {
   systemConfigBanks: [SystemConfigBankEntity!]!
   systemConfigDiscount(id: String!): SystemConfigDiscountEntity!
   systemConfigDiscounts: [SystemConfigDiscountEntity!]!
+  systemConfigVariant(id: String!): SystemConfigVariant!
+  systemConfigVariants: [SystemConfigVariant!]!
+  systemConfigVariantsByProduct(productId: String!): [SystemConfigVariant!]!
   user(id: String!): UserEntity!
   userCartItems: [CartItemEntity!]!
   userOrder(id: String!): CustomerOrderEntity!
@@ -484,6 +502,16 @@ type SystemConfigDiscountEntity {
   name: String!
   product: ProductEntity!
   updatedAt: DateTime!
+}
+
+type SystemConfigVariant {
+  id: String!
+  isActive: Boolean!
+  isDeleted: Boolean!
+  name: String!
+  product: ProductEntity
+  productId: String!
+  value: JSONObject!
 }
 
 input UpdateAddressInput {
