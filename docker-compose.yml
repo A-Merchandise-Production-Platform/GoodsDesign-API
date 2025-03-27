@@ -1,7 +1,7 @@
 services:
   # api:
+  #   # image: lequocuy/goodsdesignapi:latest
   #   build: .
-  #   container_name: goodsdesign-api
   #   restart: always
   #   ports:
   #     - "5000:5000"

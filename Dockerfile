@@ -17,7 +17,7 @@ COPY --chown=node:node --from=build /usr/src/app/package-lock.json .
 RUN npm install --omit=dev --legacy-peer-deps
 COPY --chown=node:node --from=build /usr/src/app/node_modules/.prisma/client ./node_modules/.prisma/client
 # copy schema graphql
-COPY --chown=node:node --from=build /usr/src/app/src/schema.graphql ./src/schema.graphql
+COPY --chown=node:node --from=build /usr/src/app/src/schema.gql ./src/schema.gql
 
 ENV NODE_ENV=production
 EXPOSE 5000
