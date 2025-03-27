@@ -1,42 +1,24 @@
-# Build stage
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
-
-# Install dependencies
-RUN npm install
-
-# Copy source code
+FROM node:18 as build
+WORKDIR /usr/src/app
+COPY package.json .
+COPY package-lock.json .
+RUN npm install --legacy-peer-deps
 COPY . .
-
-# Generate Prisma client
 RUN npx prisma generate
-
-# Build application
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+FROM node:18-slim
+RUN apt update && apt install libssl-dev dumb-init -y --no-install-recommends
+WORKDIR /usr/src/app
+COPY --chown=node:node --from=build /usr/src/app/dist ./dist
+COPY --chown=node:node --from=build /usr/src/app/.env .env.production.local
+COPY --chown=node:node --from=build /usr/src/app/package.json .
+COPY --chown=node:node --from=build /usr/src/app/package-lock.json .
+RUN npm install --omit=dev --legacy-peer-deps
+COPY --chown=node:node --from=build /usr/src/app/node_modules/.prisma/client ./node_modules/.prisma/client
+# copy schema graphql
+COPY --chown=node:node --from=build /usr/src/app/src/schema.graphql ./src/schema.graphql
 
-WORKDIR /app
-
-# Copy package files and install production dependencies
-COPY package*.json ./
-COPY prisma ./prisma/
-RUN npm install --production
-
-# Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
-
-# Generate Prisma client in production
-RUN npx prisma generate
-
-# Expose port
-EXPOSE 3000
-
-# Start the application
-CMD ["npm", "run", "start:prod"] 
+ENV NODE_ENV=production
+EXPOSE 5000
+CMD ["dumb-init", "node", "dist/src/main"]

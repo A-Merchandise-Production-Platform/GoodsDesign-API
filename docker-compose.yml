@@ -1,4 +1,16 @@
 services:
+  # api:
+  #   build: .
+  #   container_name: goodsdesign-api
+  #   restart: always
+  #   ports:
+  #     - "5000:5000"
+  #   env_file:
+  #     - .env.production.local
+  #   depends_on:
+  #     - goodsdesign-db
+  #     - redis
+
   goodsdesign-db:
     container_name: goodsdesign-db
     image: postgres:13.5
@@ -17,7 +29,7 @@ services:
     image: redis:alpine
     restart: always
     ports:
-      - '6380:6379'
+      - '6379:6379'
 
   redisinsight:
     container_name: goodsdesign-redisinsight
