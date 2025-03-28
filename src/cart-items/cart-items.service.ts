@@ -69,7 +69,16 @@ export class CartItemsService {
                     include: {
                         blankVariant: {
                             include: {
-                                product: true,
+                                product: {
+                                    include: {
+                                        discounts: {
+                                            include: {
+                                                product: true
+                                            }
+                                        },
+                                        category: true,
+                                    }
+                                },
                                 systemVariant: true
                             }
                         },
@@ -80,6 +89,7 @@ export class CartItemsService {
                         }
                     },
                 },
+                user: true
             }
         })
 
