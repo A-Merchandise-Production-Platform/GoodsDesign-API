@@ -1,19 +1,25 @@
 import { Field, InputType } from '@nestjs/graphql';
+import { IsOptional, IsString } from 'class-validator';
 
 @InputType()
 export class CreateProductDesignDto {
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
+  @IsOptional()
   userId?: string;
 
-  @Field()
+  @Field(() => String)
+  @IsString()
   blankVariantId: string;
 
-  @Field({ defaultValue: false })
+  @Field(() => Boolean, { defaultValue: false })
+  @IsOptional()
   isFinalized?: boolean;
 
-  @Field({ defaultValue: false })
+  @Field(() => Boolean, { defaultValue: false })
+  @IsOptional()
   isPublic?: boolean;
 
-  @Field({ defaultValue: false })
+  @Field(() => Boolean, { defaultValue: false })
+  @IsOptional()
   isTemplate?: boolean;
 } 

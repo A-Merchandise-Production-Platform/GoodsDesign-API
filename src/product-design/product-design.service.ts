@@ -9,10 +9,21 @@ export class ProductDesignService {
   constructor(private prisma: PrismaService) {}
 
   async create(createProductDesignDto: CreateProductDesignDto): Promise<ProductDesignEntity> {
+    const { userId, blankVariantId, ...designData } = createProductDesignDto;
+
+    if (!blankVariantId) {
+      throw new Error('blankVariantId is required');
+    }
+    
     return this.prisma.productDesign.create({
       data: {
-        ...createProductDesignDto,
-        userId: createProductDesignDto?.userId
+        ...designData,
+        user: {
+          connect: { id: userId }
+        },
+        blankVariant: {
+          connect: { id: blankVariantId }
+        }
       },
       include: {
         user: true,
