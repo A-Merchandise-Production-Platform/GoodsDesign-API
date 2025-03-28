@@ -410,6 +410,7 @@ type Query {
   category(id: String!): CategoryEntity!
   designPosition(id: ID!): DesignPositionEntity!
   designPositions(designId: String): [DesignPositionEntity!]!
+  distinctVariantAttributes(productId: String!): VariantAttributes!
   district(districtId: Int!): District!
   districts(provinceId: Int!): [District!]!
   getApplicableDiscount(productId: String!, quantity: Float!): Float!
@@ -659,6 +660,12 @@ type UserEntity {
   role: Roles!
   updatedAt: DateTime
   updatedBy: String
+}
+
+type VariantAttributes {
+  colors: [String!]!
+  models: [String!]!
+  sizes: [String!]!
 }
 
 type Ward {

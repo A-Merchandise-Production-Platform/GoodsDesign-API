@@ -87,4 +87,28 @@ export class SystemConfigVariantService {
       data: { isDeleted: true },
     });
   }
+
+  async getDistinctVariantAttributes(productId: string) {
+    try {
+      const variants = await this.prisma.systemConfigVariant.findMany({
+        where: {
+          productId,
+          isDeleted: false,
+        },
+        select: {
+          color: true,
+          size: true,
+          model: true,
+        },
+      });
+
+      return {
+        colors: [...new Set(variants.map(v => v.color).filter(Boolean))],
+        sizes: [...new Set(variants.map(v => v.size).filter(Boolean))],
+        models: [...new Set(variants.map(v => v.model).filter(Boolean))],
+      };
+    } catch (error) {
+      throw new Error(`Failed to fetch distinct variant attributes: ${error.message}`);
+    }
+  }
 } 

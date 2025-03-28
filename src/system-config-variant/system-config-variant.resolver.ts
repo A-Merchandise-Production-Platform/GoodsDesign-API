@@ -5,6 +5,7 @@ import { CreateSystemConfigVariantInput } from './dto/create-system-config-varia
 import { UseGuards } from '@nestjs/common';
 import { GraphqlJwtAuthGuard } from '../auth/guards/graphql-jwt-auth.guard';
 import { UpdateSystemConfigVariantInput } from './dto/update-system-config-variant.input';
+import { VariantAttributes } from './entities/variant-attributes.type';
 
 @Resolver(() => SystemConfigVariant)
 @UseGuards(GraphqlJwtAuthGuard)
@@ -43,5 +44,10 @@ export class SystemConfigVariantResolver {
   @Mutation(() => SystemConfigVariant)
   async removeSystemConfigVariant(@Args('id', { type: () => String }) id: string) {
     return this.systemConfigVariantService.remove(id);
+  }
+
+  @Query(() => VariantAttributes, { name: 'distinctVariantAttributes' })
+  async getDistinctVariantAttributes(@Args('productId', { type: () => String }) productId: string) {
+    return this.systemConfigVariantService.getDistinctVariantAttributes(productId);
   }
 } 

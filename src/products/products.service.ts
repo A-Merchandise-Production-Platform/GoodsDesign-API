@@ -46,9 +46,13 @@ export class ProductsService {
             orderBy: { createdAt: "desc" },
             include: {
                 category: true,
-                blankVariances: true,
+                blankVariances: {
+                    include: {
+                        systemVariant: true
+                    }
+                },
                 positionTypes: true,
-                discounts: true
+                discounts: true,
             }
         })
         return products.map(
@@ -71,7 +75,11 @@ export class ProductsService {
             },
             include: {
                 category: true,
-                blankVariances: true,
+                blankVariances: {
+                    include: {
+                        systemVariant: true
+                    }
+                },
                 discounts: true
             }
         })
