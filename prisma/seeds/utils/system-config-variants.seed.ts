@@ -5,35 +5,38 @@ export async function seedSystemConfigVariants(prisma: PrismaClient) {
   try {
     console.log('Seeding system config variants...');
 
-    for (const variant of variantsData.variants) {
-      // Check if variant with same name exists for the product
-      const existingVariant = await prisma.systemConfigVariant.findFirst({
-        where: {
-          productId: variant.productId,
-          name: variant.name,
-          isDeleted: false
-        }
-      });
-
-      if (!existingVariant) {
-        await prisma.systemConfigVariant.create({
-          data: {
-            name: variant.name,
-            value: variant.value,
+    // Create all variants in a transaction to ensure consistency
+    await prisma.$transaction(async (tx) => {
+      for (const variant of variantsData.variants) {
+        await tx.systemConfigVariant.upsert({
+          where: {
+            id: variant.id,
+          },
+          update: {
             productId: variant.productId,
-            isActive: true,
-            isDeleted: false
+            size: variant.size,
+            color: variant.color,
+            model: variant.model,
+            isActive: variant.isActive,
+            isDeleted: variant.isDeleted
+          },
+          create: {
+            id: variant.id,
+            productId: variant.productId,
+            size: variant.size,
+            color: variant.color,
+            model: variant.model,
+            isActive: variant.isActive,
+            isDeleted: variant.isDeleted
           }
         });
-        console.log(`✅ Created variant: ${variant.name} for product: ${variant.productId}`);
-      } else {
-        console.log(
-          `⏩ Variant ${variant.name} for product ${variant.productId} already exists, skipping...`
-        );
       }
-    }
+    });
 
-    console.log('✅ System config variants seeded successfully!');
+    // Verify the variants were created
+    const count = await prisma.systemConfigVariant.count();
+    console.log(`✅ Created ${count} system config variants`);
+
   } catch (error) {
     console.error('Error seeding system config variants:', error);
     throw error;

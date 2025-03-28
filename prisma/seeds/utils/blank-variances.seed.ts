@@ -10,13 +10,13 @@ export async function seedBlankVariances(prisma: PrismaClient) {
         where: { id: variance.id },
         update: {
           productId: variance.productId,
-          information: JSON.parse(JSON.stringify(variance.information)),
+          systemVariantId: variance.systemVariantId,
           blankPrice: variance.blankPrice,
         },
         create: {
           id: variance.id,
           productId: variance.productId,
-          information: JSON.parse(JSON.stringify(variance.information)),
+          systemVariantId: variance.systemVariantId,
           blankPrice: variance.blankPrice,
         },
       });

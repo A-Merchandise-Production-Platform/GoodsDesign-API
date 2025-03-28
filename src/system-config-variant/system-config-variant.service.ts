@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSystemConfigVariantInput } from './dto/create-system-config-variant.input';
+import { UpdateSystemConfigVariantInput } from './dto/update-system-config-variant.input';
 
 @Injectable()
 export class SystemConfigVariantService {
@@ -9,13 +10,10 @@ export class SystemConfigVariantService {
   async create(createSystemConfigVariantInput: CreateSystemConfigVariantInput) {
     return this.prisma.systemConfigVariant.create({
       data: {
-        name: createSystemConfigVariantInput.name,
-        value: createSystemConfigVariantInput.value,
         productId: createSystemConfigVariantInput.productId,
-        isActive: createSystemConfigVariantInput.isActive ?? true,
-      },
-      include: {
-        product: true,
+        size: createSystemConfigVariantInput.size,
+        color: createSystemConfigVariantInput.color,
+        model: createSystemConfigVariantInput.model,
       },
     });
   }
@@ -53,16 +51,14 @@ export class SystemConfigVariantService {
     });
   }
 
-  async update(id: string, updateData: Partial<CreateSystemConfigVariantInput>) {
+  async update(id: string, updateSystemConfigVariantInput: UpdateSystemConfigVariantInput) {
     return this.prisma.systemConfigVariant.update({
       where: { id },
       data: {
-        name: updateData.name,
-        value: updateData.value,
-        isActive: updateData.isActive,
-      },
-      include: {
-        product: true,
+        size: updateSystemConfigVariantInput.size,
+        color: updateSystemConfigVariantInput.color,
+        model: updateSystemConfigVariantInput.model,
+        isActive: updateSystemConfigVariantInput.isActive,
       },
     });
   }

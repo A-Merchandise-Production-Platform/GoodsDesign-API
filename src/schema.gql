@@ -125,7 +125,6 @@ input CreateProductDesignDto {
   isFinalized: Boolean! = false
   isPublic: Boolean! = false
   isTemplate: Boolean! = false
-  saved3DPreviewUrl: String!
   userId: String!
 }
 
@@ -364,7 +363,6 @@ type ProductDesignEntity {
   isFinalized: Boolean!
   isPublic: Boolean!
   isTemplate: Boolean!
-  saved3DPreviewUrl: String!
   user: UserEntity
   userId: String!
 }
@@ -584,7 +582,6 @@ input UpdateProductDesignDto {
   isFinalized: Boolean
   isPublic: Boolean
   isTemplate: Boolean
-  saved3DPreviewUrl: String
 }
 
 """Update Product"""

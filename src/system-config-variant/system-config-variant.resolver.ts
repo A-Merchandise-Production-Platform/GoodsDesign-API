@@ -2,13 +2,16 @@ import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { SystemConfigVariantService } from './system-config-variant.service';
 import { CreateSystemConfigVariantInput } from './dto/create-system-config-variant.input';
 import { SystemConfigVariant } from './entities/system-config-variant.model';
+import { UpdateSystemConfigVariantInput } from './dto/update-system-config-variant.input';
 
 @Resolver(() => SystemConfigVariant)
 export class SystemConfigVariantResolver {
   constructor(private readonly systemConfigVariantService: SystemConfigVariantService) {}
 
   @Mutation(() => SystemConfigVariant)
-  createSystemConfigVariant(@Args('createSystemConfigVariantInput') createSystemConfigVariantInput: CreateSystemConfigVariantInput) {
+  createSystemConfigVariant(
+    @Args('createSystemConfigVariantInput') createSystemConfigVariantInput: CreateSystemConfigVariantInput,
+  ) {
     return this.systemConfigVariantService.create(createSystemConfigVariantInput);
   }
 
@@ -29,8 +32,8 @@ export class SystemConfigVariantResolver {
 
   @Mutation(() => SystemConfigVariant)
   updateSystemConfigVariant(
-    @Args('id', { type: () => String }) id: string,
-    @Args('updateSystemConfigVariantInput') updateSystemConfigVariantInput: CreateSystemConfigVariantInput,
+    @Args('id') id: string,
+    @Args('updateSystemConfigVariantInput') updateSystemConfigVariantInput: UpdateSystemConfigVariantInput,
   ) {
     return this.systemConfigVariantService.update(id, updateSystemConfigVariantInput);
   }

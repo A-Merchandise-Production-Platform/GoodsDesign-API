@@ -59,8 +59,8 @@ async function main() {
         await seedCategories(prisma)
         await seedProducts(prisma)
         await seedProductPositionTypes(prisma)
-        await seedBlankVariances(prisma)
         await seedSystemConfigVariants(prisma)
+        await seedBlankVariances(prisma)
         await seedDiscounts(prisma)
 
         // Seed factories and their products

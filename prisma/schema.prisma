@@ -135,22 +135,25 @@ model SystemConfigDiscount {
 model SystemConfigVariant {
   id        String  @id @default(uuid())
   productId String
-  name      String
-  value     Json
+  size      String?
+  color     String?
+  model     String?
   isActive  Boolean @default(true)
   isDeleted Boolean @default(false)
   product   Product  @relation(fields: [productId], references: [id])
+  blankVariances BlankVariance[]
 }
 
 model BlankVariance {
-  id          String @id @default(uuid())
-  productId   String
-  information Json
-  blankPrice  Int
+  id              String @id @default(uuid())
+  productId       String
+  systemVariantId String
+  blankPrice      Int
 
-  product   Product          @relation(fields: [productId], references: [id])
-  designs   ProductDesign[]
-  factories FactoryProduct[]
+  product        Product            @relation(fields: [productId], references: [id])
+  systemVariant  SystemConfigVariant @relation(fields: [systemVariantId], references: [id])
+  designs        ProductDesign[]
+  factories      FactoryProduct[]
 
   @@map("BlankVariances")
 }
