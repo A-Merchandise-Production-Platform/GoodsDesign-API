@@ -1,17 +1,14 @@
 import { Injectable } from "@nestjs/common"
-import { PrismaService } from "../prisma/prisma.service"
-import { Prisma } from "@prisma/client"
-import { BlankVariancesEntity } from "./entities/blank-variances.entity"
 import { CreateBlankVarianceDto } from "src/blank-variances/dto/create-blank-variance.dto"
 import { UpdateBlankVarianceDto } from "src/blank-variances/dto/update-blank-variance.dto"
-import { CreateBlankVarianceInput } from "src/blank-variances/dto/create-blank-variance.input"
-import { UpdateBlankVarianceInput } from "src/blank-variances/dto/update-blank-variance.input"
+import { PrismaService } from "../prisma/prisma.service"
+import { BlankVariancesEntity } from "./entities/blank-variances.entity"
 
 @Injectable()
 export class BlankVariancesService {
     constructor(private prisma: PrismaService) {}
 
-    async create(createBlankVarianceInput: CreateBlankVarianceInput): Promise<BlankVariancesEntity> {
+    async create(createBlankVarianceInput: CreateBlankVarianceDto): Promise<BlankVariancesEntity> {
         const blankVariance = await this.prisma.blankVariance.create({
             data: {
                 productId: createBlankVarianceInput.productId,
@@ -19,7 +16,8 @@ export class BlankVariancesService {
                 blankPrice: createBlankVarianceInput.blankPrice,
             },
             include: {
-                product: true
+                product: true,
+                systemVariant: true,
             }
         })
         return new BlankVariancesEntity(blankVariance)
@@ -28,7 +26,8 @@ export class BlankVariancesService {
     async findAll(): Promise<BlankVariancesEntity[]> {
         const blankVariances = await this.prisma.blankVariance.findMany({
             include: {
-                product: true
+                product: true,
+                systemVariant: true,
             }
         })
         return blankVariances.map((variance) => new BlankVariancesEntity(variance))
@@ -38,13 +37,14 @@ export class BlankVariancesService {
         const blankVariance = await this.prisma.blankVariance.findUnique({
             where: { id },
             include: {
-                product: true
+                product: true,
+                systemVariant: true,
             }
         })
         return blankVariance ? new BlankVariancesEntity(blankVariance) : null
     }
 
-    async update(id: string, updateBlankVarianceInput: UpdateBlankVarianceInput): Promise<BlankVariancesEntity> {
+    async update(id: string, updateBlankVarianceInput: UpdateBlankVarianceDto): Promise<BlankVariancesEntity> {
         const blankVariance = await this.prisma.blankVariance.update({
             where: { id },
             data: {
@@ -52,7 +52,8 @@ export class BlankVariancesService {
                 blankPrice: updateBlankVarianceInput.blankPrice,
             },
             include: {
-                product: true
+                product: true,
+                systemVariant: true,
             }
         })
         return new BlankVariancesEntity(blankVariance)
@@ -62,7 +63,8 @@ export class BlankVariancesService {
         const blankVariance = await this.prisma.blankVariance.delete({
             where: { id },
             include: {
-                product: true
+                product: true,
+                systemVariant: true,
             }
         })
         return new BlankVariancesEntity(blankVariance)

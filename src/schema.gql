@@ -25,9 +25,10 @@ type AuthResponseDto {
 type BlankVariancesEntity {
   blankPrice: Int!
   id: ID!
-  information: JSON!
-  product: ProductEntity
+  product: ProductEntity!
   productId: String!
+  systemVariant: SystemConfigVariant!
+  systemVariantId: String!
 }
 
 input CalculateShippingFeeDto {
@@ -79,9 +80,9 @@ input CreateAddressInput {
 
 """Create Blank Variance"""
 input CreateBlankVarianceDto {
-  blankPrice: Int!
-  information: JSON!
+  blankPrice: Float!
   productId: String!
+  systemVariantId: String!
 }
 
 input CreateCartItemDto {
@@ -160,10 +161,10 @@ input CreateSystemConfigDiscountDto {
 }
 
 input CreateSystemConfigVariantInput {
-  isActive: Boolean
-  name: String!
+  color: String
+  model: String
   productId: String!
-  value: JSONObject!
+  size: String
 }
 
 """Create user input"""
@@ -272,11 +273,6 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON
 
-"""
-The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSONObject
-
 """Login input"""
 input LoginDto {
   email: String!
@@ -337,7 +333,7 @@ type Mutation {
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigDiscount(id: String!, updateDiscountInput: UpdateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
-  updateSystemConfigVariant(id: String!, updateSystemConfigVariantInput: CreateSystemConfigVariantInput!): SystemConfigVariant!
+  updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariant!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   uploadFile(file: Upload!): FileUploadResponse!
 }
@@ -503,13 +499,15 @@ type SystemConfigDiscountEntity {
 }
 
 type SystemConfigVariant {
-  id: String!
+  blankVariances: [BlankVariancesEntity!]!
+  color: String
+  id: ID!
   isActive: Boolean!
   isDeleted: Boolean!
-  name: String!
-  product: ProductEntity
+  model: String
+  product: ProductEntity!
   productId: String!
-  value: JSONObject!
+  size: String
 }
 
 input UpdateAddressInput {
@@ -522,9 +520,9 @@ input UpdateAddressInput {
 
 """Update Blank Variance"""
 input UpdateBlankVarianceDto {
-  blankPrice: Int
-  information: JSON
+  blankPrice: Float
   productId: String
+  systemVariantId: String
 }
 
 input UpdateCartItemDto {
@@ -615,6 +613,15 @@ input UpdateSystemConfigDiscountDto {
   minQuantity: Float
   name: String
   productId: String
+}
+
+input UpdateSystemConfigVariantInput {
+  color: String
+  id: String!
+  isActive: Boolean
+  model: String
+  productId: String
+  size: String
 }
 
 """Update user input"""

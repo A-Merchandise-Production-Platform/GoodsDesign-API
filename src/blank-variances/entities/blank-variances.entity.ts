@@ -1,7 +1,6 @@
 import { Field, ID, Int, ObjectType } from "@nestjs/graphql"
-import { JsonValue } from "@prisma/client/runtime/library"
-import GraphQLJSON from "graphql-type-json"
 import { ProductEntity } from "src/products/entities/products.entity"
+import { SystemConfigVariant } from "src/system-config-variant/entities/system-config-variant.entity"
 
 @ObjectType({ description: "Blank Variances" })
 export class BlankVariancesEntity {
@@ -11,14 +10,17 @@ export class BlankVariancesEntity {
     @Field(() => String)
     productId: string
 
-    @Field(() => GraphQLJSON)
-    information: JsonValue
+    @Field(() => String)
+    systemVariantId: string
 
     @Field(() => Int)
     blankPrice: number
 
-    @Field(() => ProductEntity, { nullable: true })
-    product?: ProductEntity
+    @Field(() => ProductEntity)
+    product: ProductEntity
+
+    @Field(() => SystemConfigVariant)
+    systemVariant: SystemConfigVariant
 
     constructor(partial: Partial<BlankVariancesEntity>) {
         Object.assign(this, partial)

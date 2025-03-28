@@ -1,27 +1,25 @@
-import { Field, InputType } from '@nestjs/graphql';
-import { IsString, IsNotEmpty, IsArray, IsBoolean, IsOptional } from 'class-validator';
-import { GraphQLJSONObject } from 'graphql-type-json';
-import { Prisma } from '@prisma/client';
+import { InputType, Field } from '@nestjs/graphql';
+import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 
 @InputType()
 export class CreateSystemConfigVariantInput {
   @Field()
+  @IsNotEmpty()
   @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @Field(() => GraphQLJSONObject)
-  @IsArray()
-  @IsNotEmpty()
-  value: Prisma.InputJsonValue;
-
-  @Field()
-  @IsString()
-  @IsNotEmpty()
   productId: string;
 
   @Field({ nullable: true })
-  @IsBoolean()
   @IsOptional()
-  isActive?: boolean;
+  @IsString()
+  size?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  color?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  model?: string;
 } 

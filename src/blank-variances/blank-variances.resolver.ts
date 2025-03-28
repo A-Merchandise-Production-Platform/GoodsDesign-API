@@ -1,9 +1,9 @@
-import { Resolver, Query, Args, Mutation } from "@nestjs/graphql"
+import { Args, Mutation, Query, Resolver } from "@nestjs/graphql"
 import { BlankVariancesService } from "./blank-variances.service"
 import { BlankVariancesEntity } from "./entities/blank-variances.entity"
-import { CreateBlankVarianceDto, UpdateBlankVarianceDto } from "./dto"
-import { CreateBlankVarianceInput, UpdateBlankVarianceInput } from "./dto"
-import { BlankVariance } from "./entities/blank-variances.entity"
+import { CreateBlankVarianceDto } from "./dto/create-blank-variance.dto"
+import { UpdateBlankVarianceDto } from "./dto/update-blank-variance.dto"
+
 @Resolver(() => BlankVariancesEntity)
 export class BlankVariancesResolver {
     constructor(private readonly blankVariancesService: BlankVariancesService) {}
@@ -18,18 +18,18 @@ export class BlankVariancesResolver {
         return this.blankVariancesService.findOne(id)
     }
 
-    @Mutation(() => BlankVariance)
+    @Mutation(() => BlankVariancesEntity)
     async createBlankVariance(
-        @Args('createBlankVarianceInput') createBlankVarianceInput: CreateBlankVarianceInput
-    ): Promise<BlankVariance> {
+        @Args('createBlankVarianceInput') createBlankVarianceInput: CreateBlankVarianceDto
+    ): Promise<BlankVariancesEntity> {
         return this.blankVariancesService.create(createBlankVarianceInput)
     }
 
-    @Mutation(() => BlankVariance)
+    @Mutation(() => BlankVariancesEntity)
     async updateBlankVariance(
         @Args('id') id: string,
-        @Args('updateBlankVarianceInput') updateBlankVarianceInput: UpdateBlankVarianceInput
-    ): Promise<BlankVariance> {
+        @Args('updateBlankVarianceInput') updateBlankVarianceInput: UpdateBlankVarianceDto
+    ): Promise<BlankVariancesEntity> {
         return this.blankVariancesService.update(id, updateBlankVarianceInput)
     }
 

@@ -13,7 +13,12 @@ export class ProductDesignService {
       data: createProductDesignDto,
       include: {
         user: true,
-        blankVariant: true,
+        blankVariant: {
+          include: {
+            product: true,
+            systemVariant: true,
+          },
+        },
         designPositions: {
           include: {
             positionType: true,
@@ -28,7 +33,12 @@ export class ProductDesignService {
       where: userId ? { userId } : undefined,
       include: {
         user: true,
-        blankVariant: true,
+        blankVariant: {
+          include: {
+            product: true,
+            systemVariant: true,
+          },
+        },
         designPositions: {
           include: {
             positionType: true,
@@ -43,7 +53,12 @@ export class ProductDesignService {
       where: { id },
       include: {
         user: true,
-        blankVariant: true,
+        blankVariant: {
+          include: {
+            product: true,
+            systemVariant: true,
+          },
+        },
         designPositions: {
           include: {
             positionType: true,
@@ -59,7 +74,12 @@ export class ProductDesignService {
       data: updateProductDesignDto,
       include: {
         user: true,
-        blankVariant: true,
+        blankVariant: {
+          include: {
+            product: true,
+            systemVariant: true,
+          },
+        },
         designPositions: {
           include: {
             positionType: true,
@@ -74,7 +94,12 @@ export class ProductDesignService {
       where: { id },
       include: {
         user: true,
-        blankVariant: true,
+        blankVariant: {
+          include: {
+            product: true,
+            systemVariant: true,
+          },
+        },
         designPositions: {
           include: {
             positionType: true,

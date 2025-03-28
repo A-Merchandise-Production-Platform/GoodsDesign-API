@@ -1,7 +1,7 @@
-import { Field, InputType, Int } from "@nestjs/graphql"
-import { JsonValue } from "@prisma/client/runtime/library"
-import GraphQLJSON from "graphql-type-json"
-import { IsNotEmpty, IsNumber, IsObject, IsString } from "class-validator"
+import { Field, InputType } from "@nestjs/graphql"
+import { IsNotEmpty, IsNumber, IsString } from "class-validator"
+
+
 @InputType({ description: "Create Blank Variance" })
 export class CreateBlankVarianceDto {
     @Field()
@@ -9,12 +9,12 @@ export class CreateBlankVarianceDto {
     @IsString()
     productId: string
 
-    @Field(() => GraphQLJSON)
+    @Field()
     @IsNotEmpty()
-    @IsObject()
-    information: JsonValue
+    @IsString()
+    systemVariantId: string
 
-    @Field(() => Int)
+    @Field()
     @IsNotEmpty()
     @IsNumber()
     blankPrice: number

@@ -1,45 +1,47 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/graphql';
 import { SystemConfigVariantService } from './system-config-variant.service';
+import { SystemConfigVariant } from './entities/system-config-variant.entity';
 import { CreateSystemConfigVariantInput } from './dto/create-system-config-variant.input';
-import { SystemConfigVariant } from './entities/system-config-variant.model';
+import { UseGuards } from '@nestjs/common';
+import { GraphqlJwtAuthGuard } from '../auth/guards/graphql-jwt-auth.guard';
 import { UpdateSystemConfigVariantInput } from './dto/update-system-config-variant.input';
 
 @Resolver(() => SystemConfigVariant)
+@UseGuards(GraphqlJwtAuthGuard)
 export class SystemConfigVariantResolver {
   constructor(private readonly systemConfigVariantService: SystemConfigVariantService) {}
 
   @Mutation(() => SystemConfigVariant)
-  createSystemConfigVariant(
+  async createSystemConfigVariant(
     @Args('createSystemConfigVariantInput') createSystemConfigVariantInput: CreateSystemConfigVariantInput,
   ) {
     return this.systemConfigVariantService.create(createSystemConfigVariantInput);
   }
 
-  @Query(() => [SystemConfigVariant])
-  systemConfigVariants() {
+  @Query(() => [SystemConfigVariant], { name: 'systemConfigVariants' })
+  async findAll() {
     return this.systemConfigVariantService.findAll();
   }
 
-  @Query(() => SystemConfigVariant)
-  systemConfigVariant(@Args('id', { type: () => String }) id: string) {
+  @Query(() => SystemConfigVariant, { name: 'systemConfigVariant' })
+  async findOne(@Args('id', { type: () => String }) id: string) {
     return this.systemConfigVariantService.findOne(id);
   }
 
-  @Query(() => [SystemConfigVariant])
-  systemConfigVariantsByProduct(@Args('productId', { type: () => String }) productId: string) {
-    return this.systemConfigVariantService.findByProductId(productId);
+  @Query(() => [SystemConfigVariant], { name: 'systemConfigVariantsByProduct' })
+  async findByProduct(@Args('productId', { type: () => String }) productId: string) {
+    return this.systemConfigVariantService.findByProduct(productId);
   }
 
   @Mutation(() => SystemConfigVariant)
-  updateSystemConfigVariant(
-    @Args('id') id: string,
+  async updateSystemConfigVariant(
     @Args('updateSystemConfigVariantInput') updateSystemConfigVariantInput: UpdateSystemConfigVariantInput,
   ) {
-    return this.systemConfigVariantService.update(id, updateSystemConfigVariantInput);
+    return this.systemConfigVariantService.update(updateSystemConfigVariantInput.id, updateSystemConfigVariantInput);
   }
 
   @Mutation(() => SystemConfigVariant)
-  removeSystemConfigVariant(@Args('id', { type: () => String }) id: string) {
+  async removeSystemConfigVariant(@Args('id', { type: () => String }) id: string) {
     return this.systemConfigVariantService.remove(id);
   }
 } 
