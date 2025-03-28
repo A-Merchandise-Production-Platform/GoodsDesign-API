@@ -5,6 +5,8 @@ import { CreateProductDesignDto } from './dto/create-product-design.dto';
 import { UpdateProductDesignDto } from './dto/update-product-design.dto';
 import { UseGuards } from '@nestjs/common';
 import { GraphqlJwtAuthGuard } from '../auth/guards/graphql-jwt-auth.guard';
+import { CurrentUser } from 'src/auth';
+import { UserEntity } from 'src/users/entities/users.entity';
 
 @Resolver(() => ProductDesignEntity)
 @UseGuards(GraphqlJwtAuthGuard)
@@ -14,15 +16,19 @@ export class ProductDesignResolver {
   @Mutation(() => ProductDesignEntity)
   async createProductDesign(
     @Args('input') input: CreateProductDesignDto,
+    @CurrentUser() { id }: UserEntity
   ) {
-    return this.productDesignService.create(input);
+    return this.productDesignService.create({
+      ...input,
+      userId: id
+    });
   }
 
   @Query(() => [ProductDesignEntity])
   async productDesigns(
-    @Args('userId', { nullable: true }) userId?: string,
+    @CurrentUser() { id }: UserEntity
   ) {
-    return this.productDesignService.findAll(userId);
+    return this.productDesignService.findAll(id);
   }
 
   @Query(() => ProductDesignEntity)
