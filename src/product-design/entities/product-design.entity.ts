@@ -15,9 +15,6 @@ export class ProductDesignEntity {
   blankVariantId: string;
 
   @Field()
-  saved3DPreviewUrl: string;
-
-  @Field()
   isFinalized: boolean;
 
   @Field()

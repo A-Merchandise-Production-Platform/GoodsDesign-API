@@ -6,9 +6,6 @@ export class UpdateProductDesignDto {
   id: string;
 
   @Field({ nullable: true })
-  saved3DPreviewUrl?: string;
-
-  @Field({ nullable: true })
   isFinalized?: boolean;
 
   @Field({ nullable: true })

@@ -171,7 +171,6 @@ model ProductDesign {
   id                String   @id @default(uuid())
   userId            String
   blankVariantId    String
-  saved3DPreviewUrl String
   isFinalized       Boolean  @default(false)
   createdAt         DateTime @default(now())
   isPublic          Boolean  @default(false)

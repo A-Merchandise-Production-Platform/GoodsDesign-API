@@ -8,9 +8,6 @@ export class CreateProductDesignDto {
   @Field()
   blankVariantId: string;
 
-  @Field()
-  saved3DPreviewUrl: string;
-
   @Field({ defaultValue: false })
   isFinalized?: boolean;
 

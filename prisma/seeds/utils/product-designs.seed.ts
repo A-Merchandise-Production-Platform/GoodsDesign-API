@@ -20,7 +20,6 @@ export async function seedProductDesigns(prisma: PrismaClient) {
         update: {
           userId: user.id,
           blankVariantId: design.blankVariantId,
-          saved3DPreviewUrl: design.saved3DPreviewUrl,
           isFinalized: design.isFinalized,
           isPublic: design.isPublic,
           isTemplate: design.isTemplate
@@ -29,7 +28,6 @@ export async function seedProductDesigns(prisma: PrismaClient) {
           id: design.id,
           userId: user.id,
           blankVariantId: design.blankVariantId,
-          saved3DPreviewUrl: design.saved3DPreviewUrl,
           isFinalized: design.isFinalized,
           isPublic: design.isPublic,
           isTemplate: design.isTemplate
