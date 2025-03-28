@@ -15,7 +15,7 @@ export class ProductDesignResolver {
 
   @Mutation(() => ProductDesignEntity)
   async createProductDesign(
-    @Args('input') input: CreateProductDesignDto,
+    @Args('input') input: Omit<CreateProductDesignDto, 'userId'>,
     @CurrentUser() { id }: UserEntity
   ) {
     return this.productDesignService.create({
