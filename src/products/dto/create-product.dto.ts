@@ -25,6 +25,6 @@ export class CreateProductDto {
 
     @Field(() => String)
     @IsNotEmpty()
-    @IsUUID()
+    @IsString()
     categoryId: string
 }
