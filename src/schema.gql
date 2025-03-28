@@ -70,9 +70,9 @@ type CategoryEntity {
 
 """Create Address Input"""
 input CreateAddressInput {
-  districtID: String!
+  districtID: Float!
   factoryId: String
-  provinceID: String!
+  provinceID: Float!
   street: String!
   wardCode: String!
 }
@@ -487,9 +487,9 @@ type SystemConfigDiscountEntity {
 }
 
 input UpdateAddressInput {
-  districtID: String
+  districtID: Float
   factoryId: String
-  provinceID: String
+  provinceID: Float
   street: String
   wardCode: String
 }
