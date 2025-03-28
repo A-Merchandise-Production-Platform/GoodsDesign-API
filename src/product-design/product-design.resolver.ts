@@ -40,9 +40,10 @@ export class ProductDesignResolver {
 
   @Mutation(() => ProductDesignEntity)
   async updateProductDesign(
+    @Args("id") id: string,
     @Args('input') input: UpdateProductDesignDto,
   ) {
-    return this.productDesignService.update(input.id, input);
+    return this.productDesignService.update(id, input);
   }
 
   @Mutation(() => ProductDesignEntity)

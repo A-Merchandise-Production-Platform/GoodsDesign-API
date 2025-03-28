@@ -10,7 +10,10 @@ export class ProductDesignService {
 
   async create(createProductDesignDto: CreateProductDesignDto): Promise<ProductDesignEntity> {
     return this.prisma.productDesign.create({
-      data: createProductDesignDto,
+      data: {
+        ...createProductDesignDto,
+        userId: createProductDesignDto?.userId
+      },
       include: {
         user: true,
         blankVariant: {

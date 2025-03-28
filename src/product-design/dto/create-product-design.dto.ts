@@ -2,8 +2,8 @@ import { Field, InputType } from '@nestjs/graphql';
 
 @InputType()
 export class CreateProductDesignDto {
-  @Field()
-  userId: string;
+  @Field({ nullable: true })
+  userId?: string;
 
   @Field()
   blankVariantId: string;

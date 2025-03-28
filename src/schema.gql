@@ -126,7 +126,7 @@ input CreateProductDesignDto {
   isFinalized: Boolean! = false
   isPublic: Boolean! = false
   isTemplate: Boolean! = false
-  userId: String!
+  userId: String
 }
 
 """Create Product"""
@@ -329,7 +329,7 @@ type Mutation {
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateNotification(input: UpdateNotificationDto!): NotificationEntity!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
-  updateProductDesign(input: UpdateProductDesignDto!): ProductDesignEntity!
+  updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigDiscount(id: String!, updateDiscountInput: UpdateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
@@ -576,10 +576,11 @@ input UpdateNotificationDto {
 }
 
 input UpdateProductDesignDto {
-  id: ID!
-  isFinalized: Boolean
-  isPublic: Boolean
-  isTemplate: Boolean
+  blankVariantId: String
+  isFinalized: Boolean = false
+  isPublic: Boolean = false
+  isTemplate: Boolean = false
+  userId: String
 }
 
 """Update Product"""
