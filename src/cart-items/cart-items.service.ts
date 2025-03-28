@@ -16,6 +16,14 @@ export class CartItemsService {
         return user
     }
 
+    async getCartItemCount(userId: string): Promise<number> {
+        const count = await this.prisma.cartItem.count({
+            where: { userId }
+        })
+
+        return count
+    }
+
     async addDesignToCart(
         createCartItemDto: CreateCartItemDto,
         userId: string
