@@ -17,7 +17,7 @@ export class CartItemsResolver {
         return this.cartItemsService.getUserCartItems(user.id)
     }
 
-    @Query(() => CartItemEntity, { name: "getCartItem" }) // get cart-items of current user
+    @Query(() => CartItemEntity, { name: "getCartItem" })
     async getCartItem(
         @Args("id") id: string,
         @CurrentUser() user: UserEntity
@@ -54,5 +54,10 @@ export class CartItemsResolver {
     async clearCart(@CurrentUser() user: UserEntity): Promise<boolean> {
         await this.cartItemsService.removeAllUserCartItems(user.id)
         return true
+    }
+
+    @Query(() => Number, { name: "getCartItemCount" })
+    async getCartItemCount(@CurrentUser() user: UserEntity): Promise<number> {
+        return this.cartItemsService.getCartItemCount(user.id)
     }
 }
