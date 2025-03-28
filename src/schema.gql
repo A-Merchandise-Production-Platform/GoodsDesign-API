@@ -414,6 +414,7 @@ type Query {
   districts(provinceId: Int!): [District!]!
   getApplicableDiscount(productId: String!, quantity: Float!): Float!
   getCartItem(id: String!): CartItemEntity!
+  getCartItemCount: Float!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
   notification(id: ID!): NotificationEntity!
