@@ -17,7 +17,7 @@ export class CartItemsResolver {
         return this.cartItemsService.getUserCartItems(user.id)
     }
 
-    @Query(() => CartItemEntity, { name: "cartItem" }) // get cart-items of current user
+    @Query(() => CartItemEntity, { name: "getCartItem" }) // get cart-items of current user
     async getCartItem(
         @Args("id") id: string,
         @CurrentUser() user: UserEntity

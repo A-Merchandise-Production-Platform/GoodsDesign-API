@@ -4,12 +4,12 @@ import { IsNotEmpty } from "class-validator"
 
 @InputType({ description: "Create Address Input" })
 export class CreateAddressInput {
-    @Field(() => String)
+    @Field(() => Number)
     @IsNotEmpty()
     @IsNumber()
     provinceID: number
 
-    @Field(() => String)
+    @Field(() => Number)
     @IsNotEmpty()
     @IsNumber()
     districtID: number

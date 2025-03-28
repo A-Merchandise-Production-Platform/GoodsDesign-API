@@ -71,9 +71,9 @@ type CategoryEntity {
 
 """Create Address Input"""
 input CreateAddressInput {
-  districtID: String!
+  districtID: Float!
   factoryId: String
-  provinceID: String!
+  provinceID: Float!
   street: String!
   wardCode: String!
 }
@@ -405,7 +405,6 @@ type Query {
   availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
   blankVariance(id: String!): BlankVariancesEntity
   blankVariances: [BlankVariancesEntity!]!
-  cartItem(id: String!): CartItemEntity!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
   designPosition(id: ID!): DesignPositionEntity!
@@ -413,6 +412,7 @@ type Query {
   district(districtId: Int!): District!
   districts(provinceId: Int!): [District!]!
   getApplicableDiscount(productId: String!, quantity: Float!): Float!
+  getCartItem(id: String!): CartItemEntity!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
   notification(id: ID!): NotificationEntity!
@@ -511,9 +511,9 @@ type SystemConfigVariant {
 }
 
 input UpdateAddressInput {
-  districtID: String
+  districtID: Float
   factoryId: String
-  provinceID: String
+  provinceID: Float
   street: String
   wardCode: String
 }
