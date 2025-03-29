@@ -14,6 +14,26 @@ export class ProductDesignService {
     if (!systemConfigVariantId) {
       throw new Error('systemConfigVariantId is required');
     }
+
+    const systemConfigVariant = await this.prisma.systemConfigVariant.findFirst({
+      where: {
+        id: systemConfigVariantId
+      }
+    })
+
+    //get position type
+    const positionType = await this.prisma.productPositionType.findMany({
+      where: {
+        productId: systemConfigVariant.productId
+      }
+    })
+
+    const designPositionsData = positionType.map(p => {
+      return {
+        designJSON: null,
+        productPositionTypeId: p.id
+      }
+    })
     
     return this.prisma.productDesign.create({
       data: {
@@ -23,6 +43,11 @@ export class ProductDesignService {
         },
         systemConfigVariant: {
           connect: { id: systemConfigVariantId }
+        },
+        designPositions: {
+          createMany: {
+            data: designPositionsData
+          }
         }
       },
       include: {

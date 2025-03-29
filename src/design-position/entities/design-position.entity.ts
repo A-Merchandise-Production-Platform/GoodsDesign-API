@@ -6,9 +6,6 @@ import { JsonValue } from '@prisma/client/runtime/library';
 
 @ObjectType()
 export class DesignPositionEntity {
-  @Field(() => ID)
-  id: string;
-
   @Field()
   designId: string;
 

@@ -24,14 +24,18 @@ export async function seedDesignPositions(prisma: PrismaClient) {
       }
 
       await prisma.designPosition.upsert({
-        where: { id: position.id },
+        where: { 
+          designPositionId: {
+            designId: position.designId,
+            productPositionTypeId: position.productPositionTypeId,
+          }
+         },
         update: {
           designId: position.designId,
           productPositionTypeId: position.productPositionTypeId,
           designJSON: JSON.parse(JSON.stringify(position.designJSON))
         },
         create: {
-          id: position.id,
           designId: position.designId,
           productPositionTypeId: position.productPositionTypeId,
           designJSON: JSON.parse(JSON.stringify(position.designJSON))

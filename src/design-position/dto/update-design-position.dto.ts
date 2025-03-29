@@ -4,8 +4,11 @@ import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
 export class UpdateDesignPositionDto {
-  @Field(() => ID)
-  id: string;
+  @Field()
+  designId: string;
+
+  @Field()
+  productPositionTypeId: string;
 
   @Field(() => GraphQLJSON, { nullable: true })
   designJSON?: JsonValue;

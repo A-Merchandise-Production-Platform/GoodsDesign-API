@@ -6,6 +6,7 @@ interface Variant {
   model: string | null;
   isActive: boolean;
   isDeleted: boolean;
+  price: number
 }
 
 interface VariantsData {
@@ -21,7 +22,8 @@ export const variantsData: VariantsData = {
       color: "#ffffff",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var002",
@@ -30,7 +32,8 @@ export const variantsData: VariantsData = {
       color: "#000000",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var003",
@@ -39,7 +42,8 @@ export const variantsData: VariantsData = {
       color: "#000080",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var004",
@@ -48,7 +52,8 @@ export const variantsData: VariantsData = {
       color: "#ff0000",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var005",
@@ -57,7 +62,8 @@ export const variantsData: VariantsData = {
       color: "#ffffff",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var006",
@@ -66,7 +72,8 @@ export const variantsData: VariantsData = {
       color: "#000000",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var007",
@@ -75,7 +82,8 @@ export const variantsData: VariantsData = {
       color: "#000080",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var008",
@@ -84,7 +92,8 @@ export const variantsData: VariantsData = {
       color: "#ff0000",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var009",
@@ -93,7 +102,8 @@ export const variantsData: VariantsData = {
       color: "#ffffff",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var010",
@@ -102,7 +112,8 @@ export const variantsData: VariantsData = {
       color: "#000000",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var011",
@@ -111,7 +122,8 @@ export const variantsData: VariantsData = {
       color: "#000080",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var012",
@@ -120,7 +132,8 @@ export const variantsData: VariantsData = {
       color: "#ff0000",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var013",
@@ -129,7 +142,8 @@ export const variantsData: VariantsData = {
       color: "#ffffff",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var014",
@@ -138,7 +152,8 @@ export const variantsData: VariantsData = {
       color: "#000000",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var015",
@@ -147,7 +162,8 @@ export const variantsData: VariantsData = {
       color: "#000080",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     },
     {
       id: "var016",
@@ -156,7 +172,8 @@ export const variantsData: VariantsData = {
       color: "#ff0000",
       model: null,
       isActive: true,
-      isDeleted: false
+      isDeleted: false,
+      price: 100000
     }
   ]
 };
