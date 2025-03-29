@@ -215,9 +215,9 @@ export class ShippingService {
       to_district_id: input.toDistrictId,
       to_ward_code: input.toWardCode,
       weight: input.weight,
-      // length: input.length,
-      // width: input.width,
-      // height: input.height
+      length: input.length,
+      width: input.width,
+      height: input.height
     };
 
     console.log(body)
