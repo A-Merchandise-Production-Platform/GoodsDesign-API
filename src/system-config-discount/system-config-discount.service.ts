@@ -93,4 +93,38 @@ export class SystemConfigDiscountService {
 
         return discounts.length > 0 ? discounts[0].discountPercent : 0
     }
+
+    async getApplicableDiscountByProductId(productId: string, quantity: number): Promise<number> {
+        const discounts = await this.prisma.systemConfigDiscount.findMany({
+            where: {
+                productId,
+                isDeleted: false,
+                isActive: true,
+                minQuantity: {
+                    lte: quantity || 0
+                }
+            },
+            orderBy: {
+                discountPercent: "desc"
+            },
+            take: 1
+        })
+
+        return discounts.length > 0 ? discounts[0].discountPercent : 0
+    }
+
+    async getAllDiscountByProductId(productId: string): Promise<SystemConfigDiscountEntity[]> {
+        const discounts = await this.prisma.systemConfigDiscount.findMany({
+            where: {
+                productId,
+                isDeleted: false,
+                isActive: true
+            },
+            include: {
+                product: true
+            }
+        })
+
+        return discounts.map((discount) => new SystemConfigDiscountEntity(discount))
+    }
 }

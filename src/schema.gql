@@ -131,7 +131,7 @@ input CreateSystemConfigBankDto {
 
 input CreateSystemConfigDiscountDto {
   discountPercent: Float!
-  minQuantity: Float!
+  minQuantity: Int!
   name: String!
   productId: String!
 }
@@ -379,6 +379,7 @@ type Query {
   distinctVariantAttributes(productId: String!): VariantAttributes!
   district(districtId: Int!): District!
   districts(provinceId: Int!): [District!]!
+  getAllDiscountByProductId(productId: String!): [SystemConfigDiscountEntity!]!
   getApplicableDiscount(productId: String!, quantity: Float!): Float!
   getCartItem(id: String!): CartItemEntity!
   getCartItemCount: Float!
@@ -574,7 +575,7 @@ input UpdateSystemConfigBankDto {
 
 input UpdateSystemConfigDiscountDto {
   discountPercent: Float
-  minQuantity: Float
+  minQuantity: Int
   name: String
   productId: String
 }

@@ -48,4 +48,11 @@ export class SystemConfigDiscountResolver {
     async removeSystemConfigDiscount(@Args("id") id: string): Promise<SystemConfigDiscountEntity> {
         return this.discountService.remove(id)
     }
+
+    @Query(() => [SystemConfigDiscountEntity])
+    async getAllDiscountByProductId(
+        @Args("productId") productId: string
+    ): Promise<SystemConfigDiscountEntity[]> {
+        return this.discountService.getAllDiscountByProductId(productId)
+    }
 }
