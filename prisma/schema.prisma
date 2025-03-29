@@ -178,13 +178,14 @@ model ProductDesign {
 }
 
 model DesignPosition {
-  id                    String @id @default(uuid())
   designId              String
   productPositionTypeId String
   designJSON            Json
 
   design       ProductDesign       @relation(fields: [designId], references: [id])
   positionType ProductPositionType @relation(fields: [productPositionTypeId], references: [id])
+
+  @@id(name: "designPositionId", [designId, productPositionTypeId])
 }
 
 model FavoriteDesign {

@@ -8,20 +8,6 @@ import { DesignPositionEntity } from './entities/design-position.entity';
 export class DesignPositionService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createDesignPositionDto: CreateDesignPositionDto): Promise<DesignPositionEntity> {
-    return this.prisma.designPosition.create({
-      data: createDesignPositionDto,
-      include: {
-        design: {
-          include: {
-            systemConfigVariant: true
-          }
-        },
-        positionType: true,
-      },
-    });
-  }
-
   async findAll(designId?: string): Promise<DesignPositionEntity[]> {
     return this.prisma.designPosition.findMany({
       where: designId ? { designId } : undefined,
@@ -36,9 +22,14 @@ export class DesignPositionService {
     });
   }
 
-  async findOne(id: string): Promise<DesignPositionEntity> {
+  async findOne(designId, productPositionTypeId): Promise<DesignPositionEntity> {
     return this.prisma.designPosition.findUnique({
-      where: { id },
+      where: { 
+        designPositionId: {
+          designId,
+          productPositionTypeId
+        }
+      },
       include: {
         design: {
           include: {
@@ -50,24 +41,15 @@ export class DesignPositionService {
     });
   }
 
-  async update(id: string, updateDesignPositionDto: UpdateDesignPositionDto): Promise<DesignPositionEntity> {
+  async update(designId, productPositionTypeId, updateDesignPositionDto: UpdateDesignPositionDto): Promise<DesignPositionEntity> {
     return this.prisma.designPosition.update({
-      where: { id },
+      where: {
+        designPositionId: {
+          designId,
+          productPositionTypeId
+        }
+       },
       data: updateDesignPositionDto,
-      include: {
-        design: {
-          include: {
-            systemConfigVariant: true
-          }
-        },
-        positionType: true,
-      },
-    });
-  }
-
-  async remove(id: string): Promise<DesignPositionEntity> {
-    return this.prisma.designPosition.delete({
-      where: { id },
       include: {
         design: {
           include: {

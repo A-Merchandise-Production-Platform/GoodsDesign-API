@@ -18,7 +18,8 @@ export async function seedSystemConfigVariants(prisma: PrismaClient) {
             color: variant.color,
             model: variant.model,
             isActive: variant.isActive,
-            isDeleted: variant.isDeleted
+            isDeleted: variant.isDeleted,
+            price: variant.price
           },
           create: {
             id: variant.id,
@@ -27,7 +28,8 @@ export async function seedSystemConfigVariants(prisma: PrismaClient) {
             color: variant.color,
             model: variant.model,
             isActive: variant.isActive,
-            isDeleted: variant.isDeleted
+            isDeleted: variant.isDeleted,
+            price: variant.price
           }
         });
       }

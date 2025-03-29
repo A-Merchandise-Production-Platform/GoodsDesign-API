@@ -80,12 +80,6 @@ input CreateCategoryDto {
   name: String!
 }
 
-input CreateDesignPositionDto {
-  designId: String!
-  designJSON: JSON!
-  productPositionTypeId: String!
-}
-
 input CreateNotificationDto {
   content: String
   isRead: Boolean! = false
@@ -95,8 +89,7 @@ input CreateNotificationDto {
 }
 
 input CreateOrderDetailDto {
-  designId: String!
-  quantity: Int!
+  cartItemId: String!
 }
 
 input CreateOrderDto {
@@ -193,7 +186,6 @@ type DesignPositionEntity {
   design: ProductDesignEntity
   designId: String!
   designJSON: JSON!
-  id: ID!
   positionType: ProductPositionTypeEntity
   productPositionTypeId: String!
 }
@@ -268,7 +260,6 @@ type Mutation {
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
-  createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
   createNotification(input: CreateNotificationDto!): NotificationEntity!
   createOrder(createOrderInput: CreateOrderDto!): CustomerOrderEntity!
   createPayment(gateway: String!, paymentId: String!): String!
@@ -290,7 +281,6 @@ type Mutation {
   markNotificationAsRead(id: ID!): NotificationEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
-  removeDesignPosition(id: ID!): DesignPositionEntity!
   removeNotification(id: ID!): NotificationEntity!
   removeProductDesign(id: ID!): ProductDesignEntity!
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
@@ -385,8 +375,7 @@ type Query {
   availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
-  designPosition(id: ID!): DesignPositionEntity!
-  designPositions(designId: String): [DesignPositionEntity!]!
+  designPosition(designId: ID!, productPositionTypeId: ID!): DesignPositionEntity!
   distinctVariantAttributes(productId: String!): VariantAttributes!
   district(districtId: Int!): District!
   districts(provinceId: Int!): [District!]!
@@ -510,8 +499,9 @@ input UpdateCategoryDto {
 }
 
 input UpdateDesignPositionDto {
+  designId: String!
   designJSON: JSON
-  id: ID!
+  productPositionTypeId: String!
 }
 
 """Update factory information input"""

@@ -25,7 +25,6 @@ interface ImageDesign {
 type DesignJSON = TextDesign | ImageDesign;
 
 interface DesignPosition {
-  id: string;
   designId: string;
   productPositionTypeId: string;
   designJSON: DesignJSON;
@@ -38,7 +37,6 @@ interface DesignPositionsData {
 export const designPositionsData: DesignPositionsData = {
   designPositions: [
     {
-      id: "dp001",
       designId: "design001",
       productPositionTypeId: "front001",
       designJSON: {
@@ -55,7 +53,6 @@ export const designPositionsData: DesignPositionsData = {
       },
     },
     {
-      id: "dp002",
       designId: "design001",
       productPositionTypeId: "back001",
       designJSON: {
@@ -71,7 +68,6 @@ export const designPositionsData: DesignPositionsData = {
       },
     },
     {
-      id: "dp003",
       designId: "design002",
       productPositionTypeId: "front001",
       designJSON: {
