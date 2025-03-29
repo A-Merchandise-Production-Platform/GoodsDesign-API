@@ -105,10 +105,10 @@ input CreateOrderDto {
 }
 
 input CreateProductDesignDto {
-  blankVariantId: String!
   isFinalized: Boolean! = false
   isPublic: Boolean! = false
   isTemplate: Boolean! = false
+  systemConfigVariantId: String!
   userId: String
 }
 
@@ -277,7 +277,7 @@ type Mutation {
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
   createSystemConfigDiscount(createDiscountInput: CreateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
-  createSystemConfigVariant(createSystemConfigVariantInput: CreateSystemConfigVariantInput!): SystemConfigVariant!
+  createSystemConfigVariant(createSystemConfigVariantInput: CreateSystemConfigVariantInput!): SystemConfigVariantEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!
   deleteAddress(id: String!): AddressEntity!
   deleteCartItem(id: String!): CartItemEntity!
@@ -296,7 +296,7 @@ type Mutation {
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
   removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
   removeSystemConfigDiscount(id: String!): SystemConfigDiscountEntity!
-  removeSystemConfigVariant(id: String!): SystemConfigVariant!
+  removeSystemConfigVariant(id: String!): SystemConfigVariantEntity!
   restoreCategory(id: String!): CategoryEntity!
   restoreProduct(id: String!): ProductEntity!
   sendEmail(to: String!): Boolean!
@@ -313,7 +313,7 @@ type Mutation {
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigDiscount(id: String!, updateDiscountInput: UpdateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
-  updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariant!
+  updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   uploadFile(file: Upload!): FileUploadResponse!
 }
@@ -331,13 +331,13 @@ type NotificationEntity {
 }
 
 type ProductDesignEntity {
-  blankVariantId: String!
   createdAt: DateTime!
   designPositions: [DesignPositionEntity!]
   id: ID!
   isFinalized: Boolean!
   isPublic: Boolean!
   isTemplate: Boolean!
+  systemConfigVariantId: String!
   user: UserEntity
   userId: String!
 }
@@ -361,7 +361,7 @@ type ProductEntity {
   positionTypes: [ProductPositionTypeEntity!]
   updatedAt: DateTime
   updatedBy: String
-  variants: [SystemConfigVariant!]
+  variants: [SystemConfigVariantEntity!]
 }
 
 type ProductPositionTypeEntity {
@@ -408,9 +408,9 @@ type Query {
   systemConfigBanks: [SystemConfigBankEntity!]!
   systemConfigDiscount(id: String!): SystemConfigDiscountEntity!
   systemConfigDiscounts: [SystemConfigDiscountEntity!]!
-  systemConfigVariant(id: String!): SystemConfigVariant!
-  systemConfigVariants: [SystemConfigVariant!]!
-  systemConfigVariantsByProduct(productId: String!): [SystemConfigVariant!]!
+  systemConfigVariant(id: String!): SystemConfigVariantEntity!
+  systemConfigVariants: [SystemConfigVariantEntity!]!
+  systemConfigVariantsByProduct(productId: String!): [SystemConfigVariantEntity!]!
   user(id: String!): UserEntity!
   userCartItems: [CartItemEntity!]!
   userOrder(id: String!): CustomerOrderEntity!
@@ -477,7 +477,7 @@ type SystemConfigDiscountEntity {
   updatedAt: DateTime!
 }
 
-type SystemConfigVariant {
+type SystemConfigVariantEntity {
   color: String
   id: ID!
   isActive: Boolean!
@@ -548,10 +548,10 @@ input UpdateNotificationDto {
 }
 
 input UpdateProductDesignDto {
-  blankVariantId: String
   isFinalized: Boolean = false
   isPublic: Boolean = false
   isTemplate: Boolean = false
+  systemConfigVariantId: String
   userId: String
 }
 
