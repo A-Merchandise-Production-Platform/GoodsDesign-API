@@ -1,4 +1,4 @@
-import { Field, InputType, Float } from "@nestjs/graphql"
+import { Field, InputType, Float, Int } from "@nestjs/graphql"
 import { IsNotEmpty, IsString, IsNumber, Min, Max } from "class-validator"
 
 @InputType()
@@ -8,7 +8,7 @@ export class CreateSystemConfigDiscountDto {
     @IsString()
     name: string
 
-    @Field()
+    @Field(() => Int)
     @IsNotEmpty()
     @IsNumber()
     @Min(1)
