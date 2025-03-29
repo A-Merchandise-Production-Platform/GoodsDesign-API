@@ -10,7 +10,6 @@ import { AddressesModule } from "./addresses/addresses.module"
 import { AppController } from "./app.controller"
 import { AppService } from "./app.service"
 import { AuthModule } from "./auth"
-import { BlankVariancesModule } from "./blank-variances/blank-variances.module"
 import { CartItemsModule } from "./cart-items/cart-items.module"
 import { CategoriesModule } from "./categories"
 import { CustomerOrdersModule } from "./customer-orders/customer-orders.module"
@@ -55,7 +54,6 @@ import { CronModule } from "./cron/cron.module"
         CategoriesModule,
         ProductsModule,
         RedisModule,
-        BlankVariancesModule,
         NotificationsModule,
         SocketModule,
         SystemConfigBankModule,

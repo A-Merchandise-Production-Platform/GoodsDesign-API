@@ -1,4 +1,3 @@
-export * from "./blank-variances.data"
 export * from "./categories.data"
 export * from "./customer-orders.data"
 export * from "./design-positions.data"

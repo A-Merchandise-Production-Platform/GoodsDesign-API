@@ -1,7 +1,7 @@
 interface ProductDesign {
   id: string;
   userEmail: string;
-  blankVariantId: string;
+  systemConfigVariantId: string;
   isFinalized: boolean;
   isPublic: boolean;
   isTemplate: boolean;
@@ -16,7 +16,7 @@ export const productDesignsData: ProductDesignsData = {
     {
       id: "design001",
       userEmail: "customer@gmail.com",
-      blankVariantId: "bv001",
+      systemConfigVariantId: "var001",
       isFinalized: true,
       isPublic: true,
       isTemplate: true,
@@ -24,7 +24,7 @@ export const productDesignsData: ProductDesignsData = {
     {
       id: "design002",
       userEmail: "customer@gmail.com",
-      blankVariantId: "bv002",
+      systemConfigVariantId: "var002",
       isFinalized: true,
       isPublic: false,
       isTemplate: false,
@@ -32,7 +32,7 @@ export const productDesignsData: ProductDesignsData = {
     {
       id: "design003",
       userEmail: "manager@gmail.com",
-      blankVariantId: "bv001",
+      systemConfigVariantId: "var003",
       isFinalized: false,
       isPublic: false,
       isTemplate: false,

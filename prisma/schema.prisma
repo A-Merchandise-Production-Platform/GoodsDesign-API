@@ -97,7 +97,6 @@ model Product {
   categoryId  String
 
   category       Category              @relation(fields: [categoryId], references: [id])
-  blankVariances BlankVariance[]
   positionTypes  ProductPositionType[]
   discounts      SystemConfigDiscount[]
   variants       SystemConfigVariant[]
@@ -138,24 +137,13 @@ model SystemConfigVariant {
   size      String?
   color     String?
   model     String?
+  price     Int?
   isActive  Boolean @default(true)
   isDeleted Boolean @default(false)
   product   Product  @relation(fields: [productId], references: [id])
-  blankVariances BlankVariance[]
-}
 
-model BlankVariance {
-  id              String @id @default(uuid())
-  productId       String
-  systemVariantId String
-  blankPrice      Int
-
-  product        Product            @relation(fields: [productId], references: [id])
-  systemVariant  SystemConfigVariant @relation(fields: [systemVariantId], references: [id])
-  designs        ProductDesign[]
-  factories      FactoryProduct[]
-
-  @@map("BlankVariances")
+  factoryProducts FactoryProduct[]
+  productDesigns ProductDesign[]
 }
 
 model ProductPositionType {
@@ -173,14 +161,14 @@ model ProductPositionType {
 model ProductDesign {
   id                String   @id @default(uuid())
   userId            String
-  blankVariantId    String
+  systemConfigVariantId    String
   isFinalized       Boolean  @default(false)
   createdAt         DateTime @default(now())
   isPublic          Boolean  @default(false)
   isTemplate        Boolean  @default(false)
 
   user                User                  @relation(fields: [userId], references: [id])
-  blankVariant        BlankVariance         @relation(fields: [blankVariantId], references: [id])
+  systemConfigVariant SystemConfigVariant   @relation(fields: [systemConfigVariantId], references: [id])
   favorites           FavoriteDesign[]
   designPositions     DesignPosition[]
   orderDetails        CustomerOrderDetail[]
@@ -382,12 +370,12 @@ model StaffTask {
 model FactoryProduct {
   id                      String @id @default(uuid())
   factoryId               String
-  blankVarianceId         String
+  systemConfigVariantId         String
   productionCapacity      Int
   estimatedProductionTime Int
 
-  factory       Factory       @relation(fields: [factoryId], references: [factoryOwnerId])
-  blankVariance BlankVariance @relation(fields: [blankVarianceId], references: [id])
+  factory             Factory             @relation(fields: [factoryId], references: [factoryOwnerId])
+  systemConfigVariant SystemConfigVariant @relation(fields: [systemConfigVariantId], references: [id])
 }
 
 enum FactoryStatus {

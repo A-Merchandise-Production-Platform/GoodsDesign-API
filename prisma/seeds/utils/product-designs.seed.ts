@@ -19,7 +19,7 @@ export async function seedProductDesigns(prisma: PrismaClient) {
         where: { id: design.id },
         update: {
           userId: user.id,
-          blankVariantId: design.blankVariantId,
+          systemConfigVariantId: design.systemConfigVariantId,
           isFinalized: design.isFinalized,
           isPublic: design.isPublic,
           isTemplate: design.isTemplate
@@ -27,7 +27,7 @@ export async function seedProductDesigns(prisma: PrismaClient) {
         create: {
           id: design.id,
           userId: user.id,
-          blankVariantId: design.blankVariantId,
+          systemConfigVariantId: design.systemConfigVariantId,
           isFinalized: design.isFinalized,
           isPublic: design.isPublic,
           isTemplate: design.isTemplate

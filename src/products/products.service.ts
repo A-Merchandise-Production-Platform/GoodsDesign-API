@@ -4,7 +4,6 @@ import { CreateProductDto, UpdateProductDto } from "./dto"
 import { ProductEntity } from "./entities/products.entity"
 import { CategoriesService } from "src/categories"
 import { SystemConfigDiscountEntity } from "src/system-config-discount/entities/system-config-discount.entity"
-import { BlankVariancesEntity } from "src/blank-variances"
 
 @Injectable()
 export class ProductsService {
@@ -62,7 +61,7 @@ export class ProductsService {
                     discounts: product.discounts.map(
                         (discount) => new SystemConfigDiscountEntity(discount)
                     ),
-                    blankVariances: product.blankVariances.map((blankVariance) => new BlankVariancesEntity(blankVariance))
+                    
                 })
         )
     }
@@ -91,7 +90,7 @@ export class ProductsService {
         return new ProductEntity({
             ...product,
             discounts: product.discounts.map((discount) => new SystemConfigDiscountEntity(discount)),
-            blankVariances: product.blankVariances.map((blankVariance) => new BlankVariancesEntity(blankVariance))
+            // variants: product.va
         })
     }
 
