@@ -33,14 +33,14 @@ export const usersData: UsersData = {
       phoneNumber: "0909090909",
       gender: true,
       dateOfBirth: "1990-01-01",
-      imageUrl: "https://example.com/admin.jpg",
+      imageUrl: "https://avatar.iran.liara.run/public/boy",
       isActive: true,
       role: Roles.ADMIN,
       address: {
-        provinceID: 1,
-        districtID: 1,
-        wardCode: "001",
-        street: "123 Admin Street"
+        provinceID: 202,
+        districtID: 1533,
+        wardCode: "22003",
+        street: "89/2 Ấp 2"
       }
     },
     {
@@ -50,14 +50,14 @@ export const usersData: UsersData = {
       phoneNumber: "0909090909",
       gender: false,
       dateOfBirth: "1992-06-15",
-      imageUrl: "https://example.com/manager.jpg",
+      imageUrl: "https://avatar.iran.liara.run/public/boy",
       isActive: true,
       role: Roles.MANAGER,
       address: {
-        provinceID: 2,
-        districtID: 2,
-        wardCode: "002",
-        street: "456 Manager Road"
+        provinceID: 202,
+        districtID: 1533,
+        wardCode: "22003",
+        street: "89/2 Ấp 2"
       }
     },
     {
@@ -67,14 +67,14 @@ export const usersData: UsersData = {
       phoneNumber: "0909090909",
       gender: true,
       dateOfBirth: "1990-01-01",
-      imageUrl: "https://example.com/customer.jpg",
+      imageUrl: "https://avatar.iran.liara.run/public/boy",
       isActive: true,
       role: Roles.CUSTOMER,
       address: {
-        provinceID: 3,
-        districtID: 3,
-        wardCode: "003",
-        street: "789 Customer Avenue"
+        provinceID: 202,
+        districtID: 1533,
+        wardCode: "22003",
+        street: "89/2 Ấp 2"
       }
     },
     {
@@ -84,14 +84,14 @@ export const usersData: UsersData = {
       phoneNumber: "0909090909",
       gender: true,
       dateOfBirth: "1990-01-01",
-      imageUrl: "https://example.com/staff.jpg",
+      imageUrl: "https://avatar.iran.liara.run/public/girl",
       isActive: true,
       role: Roles.STAFF,
       address: {
-        provinceID: 4,
-        districtID: 4,
-        wardCode: "004",
-        street: "101 Staff Lane"
+        provinceID: 202,
+        districtID: 1533,
+        wardCode: "22003",
+        street: "89/2 Ấp 2"
       }
     },
     {
@@ -101,14 +101,14 @@ export const usersData: UsersData = {
       phoneNumber: "0909090909",
       gender: true,
       dateOfBirth: "1990-01-01",
-      imageUrl: "https://example.com/factory.jpg",
+      imageUrl: "https://avatar.iran.liara.run/public/girl",
       isActive: true,
       role: Roles.FACTORYOWNER,
       address: {
-        provinceID: 5,
-        districtID: 5,
-        wardCode: "005",
-        street: "101 Factory Lane"
+        provinceID: 202,
+        districtID: 1533,
+        wardCode: "22003",
+        street: "89/2 Ấp 2"
       }
     }
   ]

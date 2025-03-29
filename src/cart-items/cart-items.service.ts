@@ -54,7 +54,11 @@ export class CartItemsService {
                 userId
             },
             include: {
-                design: true
+                design: {
+                    include: {
+                        systemConfigVariant: true
+                    }
+                }
             }
         })
 
@@ -104,7 +108,11 @@ export class CartItemsService {
                 userId
             },
             include: {
-                design: true
+                design: {
+                    include: {
+                        systemConfigVariant: true
+                    }
+                }
             }
         })
 
@@ -137,7 +145,11 @@ export class CartItemsService {
             where: { id },
             data: updateCartItemDto,
             include: {
-                design: true
+                design: {
+                    include: {
+                        systemConfigVariant: true
+                    }
+                }
             }
         })
 
@@ -161,7 +173,11 @@ export class CartItemsService {
         const removedCartItem = await this.prisma.cartItem.delete({
             where: { id },
             include: {
-                design: true
+                design: {
+                    include: {
+                        systemConfigVariant: true
+                    }
+                }
             }
         })
 

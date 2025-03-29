@@ -14,9 +14,6 @@ export class ProductDesignEntity {
     @Field()
     systemConfigVariantId: string
 
-    @Field(() => SystemConfigVariantEntity)
-    systemConfigVariant: SystemConfigVariantEntity
-
     @Field()
     isFinalized: boolean
 
@@ -34,6 +31,9 @@ export class ProductDesignEntity {
 
     @Field(() => [DesignPositionEntity], { nullable: true })
     designPositions?: DesignPositionEntity[]
+
+    @Field(() => SystemConfigVariantEntity)
+    systemConfigVariant: SystemConfigVariantEntity
 
     constructor(partial: Partial<ProductDesignEntity>) {
         Object.assign(this, partial)

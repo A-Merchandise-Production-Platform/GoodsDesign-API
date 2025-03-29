@@ -337,6 +337,7 @@ type ProductDesignEntity {
   isFinalized: Boolean!
   isPublic: Boolean!
   isTemplate: Boolean!
+  systemConfigVariant: SystemConfigVariantEntity!
   systemConfigVariantId: String!
   user: UserEntity
   userId: String!
