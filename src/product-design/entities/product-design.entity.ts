@@ -1,37 +1,41 @@
+import { SystemConfigVariantEntity } from './../../system-config-variant/entities/system-config-variant.entity';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { DesignPositionEntity } from '../../design-position/entities/design-position.entity';
 import { UserEntity } from 'src/users/entities/users.entity';
 
 @ObjectType()
 export class ProductDesignEntity {
-  @Field(() => ID)
-  id: string;
+    @Field(() => ID)
+    id: string
 
-  @Field()
-  userId: string;
+    @Field()
+    userId: string
 
-  @Field()
-  systemConfigVariantId: string;
+    @Field()
+    systemConfigVariantId: string
 
-  @Field()
-  isFinalized: boolean;
+    @Field(() => SystemConfigVariantEntity)
+    systemConfigVariant: SystemConfigVariantEntity
 
-  @Field()
-  createdAt: Date;
+    @Field()
+    isFinalized: boolean
 
-  @Field()
-  isPublic: boolean;
+    @Field()
+    createdAt: Date
 
-  @Field()
-  isTemplate: boolean;
+    @Field()
+    isPublic: boolean
 
-  @Field(() => UserEntity, { nullable: true })
-  user?: UserEntity;
+    @Field()
+    isTemplate: boolean
 
-  @Field(() => [DesignPositionEntity], { nullable: true })
-  designPositions?: DesignPositionEntity[];
+    @Field(() => UserEntity, { nullable: true })
+    user?: UserEntity
 
-  constructor(partial: Partial<ProductDesignEntity>) {
-    Object.assign(this, partial);
-}
+    @Field(() => [DesignPositionEntity], { nullable: true })
+    designPositions?: DesignPositionEntity[]
+
+    constructor(partial: Partial<ProductDesignEntity>) {
+        Object.assign(this, partial)
+    }
 } 
