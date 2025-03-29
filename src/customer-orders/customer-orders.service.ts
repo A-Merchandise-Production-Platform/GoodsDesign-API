@@ -32,7 +32,7 @@ export class CustomerOrdersService {
                     const design = await tx.productDesign.findUnique({
                         where: { id: detail.designId },
                         include: {
-                            blankVariant: true,
+                            systemConfigVariant: true,
                             designPositions: {
                                 include: {
                                     positionType: true
@@ -45,8 +45,8 @@ export class CustomerOrdersService {
                         throw new BadRequestException(`Design with ID ${detail.designId} not found`)
                     }
 
-                    // Calculate item price: blank price + sum of all position prices
-                    const blankPrice = design.blankVariant.blankPrice
+                    // Calculate item price: variant price + sum of all position prices
+                    const blankPrice = design.systemConfigVariant.price
                     const positionPrices = design.designPositions.reduce(
                         (sum, position) => sum + position.positionType.basePrice,
                         0
@@ -56,7 +56,7 @@ export class CustomerOrdersService {
 
                     // Get applicable discount from configuration based on product and quantity
                     const discount = await this.discountService.getApplicableDiscount(
-                        design.blankVariant.productId,
+                        design.systemConfigVariant.productId,
                         detail.quantity
                     )
                     const itemPrice = baseItemPrice * (1 - discount)

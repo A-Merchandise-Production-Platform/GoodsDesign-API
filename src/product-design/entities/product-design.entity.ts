@@ -11,7 +11,7 @@ export class ProductDesignEntity {
   userId: string;
 
   @Field()
-  blankVariantId: string;
+  systemConfigVariantId: string;
 
   @Field()
   isFinalized: boolean;
@@ -30,4 +30,8 @@ export class ProductDesignEntity {
 
   @Field(() => [DesignPositionEntity], { nullable: true })
   designPositions?: DesignPositionEntity[];
+
+  constructor(partial: Partial<ProductDesignEntity>) {
+    Object.assign(this, partial);
+}
 } 

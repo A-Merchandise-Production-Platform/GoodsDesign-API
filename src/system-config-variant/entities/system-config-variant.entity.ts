@@ -2,7 +2,7 @@ import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { ProductEntity } from 'src/products/entities/products.entity';
 
 @ObjectType()
-export class SystemConfigVariant {
+export class SystemConfigVariantEntity {
   @Field(() => ID)
   id: string;
 
@@ -30,4 +30,7 @@ export class SystemConfigVariant {
   @Field(() => ProductEntity)
   product?: ProductEntity;
 
+  constructor(partial: Partial<SystemConfigVariantEntity>) {
+    Object.assign(this, partial)
+  }
 } 

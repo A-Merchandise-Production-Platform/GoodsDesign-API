@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
+import { CategoriesService } from "src/categories"
+import { SystemConfigDiscountEntity } from "src/system-config-discount/entities/system-config-discount.entity"
+import { SystemConfigVariantEntity } from "src/system-config-variant/entities/system-config-variant.entity"
 import { PrismaService } from "../prisma/prisma.service"
 import { CreateProductDto, UpdateProductDto } from "./dto"
 import { ProductEntity } from "./entities/products.entity"
-import { CategoriesService } from "src/categories"
-import { SystemConfigDiscountEntity } from "src/system-config-discount/entities/system-config-discount.entity"
 
 @Injectable()
 export class ProductsService {
@@ -45,11 +46,7 @@ export class ProductsService {
             orderBy: { createdAt: "desc" },
             include: {
                 category: true,
-                blankVariances: {
-                    include: {
-                        systemVariant: true
-                    }
-                },
+                variants: true,
                 positionTypes: true,
                 discounts: true,
             }
@@ -74,11 +71,7 @@ export class ProductsService {
             },
             include: {
                 category: true,
-                blankVariances: {
-                    include: {
-                        systemVariant: true
-                    }
-                },
+                variants: true,
                 discounts: true
             }
         })
@@ -90,7 +83,7 @@ export class ProductsService {
         return new ProductEntity({
             ...product,
             discounts: product.discounts.map((discount) => new SystemConfigDiscountEntity(discount)),
-            // variants: product.va
+            variants: product.variants.map((variant) => new SystemConfigVariantEntity(variant))
         })
     }
 

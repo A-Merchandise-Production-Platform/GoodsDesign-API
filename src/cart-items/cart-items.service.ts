@@ -67,7 +67,7 @@ export class CartItemsService {
             include: {
                 design: {
                     include: {
-                        blankVariant: {
+                        systemConfigVariant: {
                             include: {
                                 product: {
                                     include: {
@@ -79,7 +79,6 @@ export class CartItemsService {
                                         category: true,
                                     }
                                 },
-                                systemVariant: true
                             }
                         },
                         designPositions: {
