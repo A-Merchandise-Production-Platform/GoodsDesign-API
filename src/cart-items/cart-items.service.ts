@@ -93,7 +93,9 @@ export class CartItemsService {
             }
         })
 
-        return userCartItems.map((item) => new CartItemEntity(item))
+        return userCartItems.map((item) => new CartItemEntity(item)).sort(
+            (a, b) => a.id.localeCompare(b.id)
+        )
     }
 
     async getCartItemById(id: string, userId: string): Promise<CartItemEntity> {
