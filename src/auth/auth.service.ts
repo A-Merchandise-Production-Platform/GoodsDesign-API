@@ -29,13 +29,13 @@ export class AuthService {
         })
 
         if (!user) {
-            throw new UnauthorizedException("Invalid credentials")
+            throw new UnauthorizedException("Invalid credentials - Email did not exist")
         }
 
         const isPasswordValid = await compare(password, user.password)
 
         if (!isPasswordValid) {
-            throw new UnauthorizedException("Invalid credentials")
+            throw new UnauthorizedException("Invalid credentials - Wrong password")
         }
 
         return new UserEntity({

@@ -3,7 +3,7 @@ import { ProductDesignService } from './product-design.service';
 import { ProductDesignEntity } from './entities/product-design.entity';
 import { CreateProductDesignDto } from './dto/create-product-design.dto';
 import { UpdateProductDesignDto } from './dto/update-product-design.dto';
-import { UseGuards } from '@nestjs/common';
+import { NotFoundException, UseGuards } from '@nestjs/common';
 import { GraphqlJwtAuthGuard } from '../auth/guards/graphql-jwt-auth.guard';
 import { CurrentUser } from 'src/auth';
 import { UserEntity } from 'src/users/entities/users.entity';
