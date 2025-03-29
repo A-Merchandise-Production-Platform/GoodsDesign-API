@@ -17,7 +17,7 @@ export class SystemConfigVariantService {
         },
         include: {
           product: true,
-          blankVariances: true,
+          productDesigns: true,
         },
       });
     } catch (error) {
@@ -33,7 +33,7 @@ export class SystemConfigVariantService {
         },
         include: {
           product: true,
-          blankVariances: true,
+          productDesigns: true,
         },
       });
     } catch (error) {
@@ -47,7 +47,7 @@ export class SystemConfigVariantService {
         where: { id },
         include: {
           product: true,
-          blankVariances: true,
+          productDesigns: true,
         },
       });
 
@@ -69,7 +69,7 @@ export class SystemConfigVariantService {
       },
       include: {
         product: true,
-        blankVariances: true,
+        productDesigns: true,
       },
     });
   }

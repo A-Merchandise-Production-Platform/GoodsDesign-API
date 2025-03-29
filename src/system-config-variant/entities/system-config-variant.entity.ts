@@ -1,9 +1,8 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { BlankVariancesEntity } from 'src/blank-variances';
 import { ProductEntity } from 'src/products/entities/products.entity';
 
 @ObjectType()
-export class SystemConfigVariant {
+export class SystemConfigVariantEntity {
   @Field(() => ID)
   id: string;
 
@@ -19,6 +18,9 @@ export class SystemConfigVariant {
   @Field({ nullable: true })
   model?: string;
 
+  @Field({ nullable: true })
+  price?: number
+
   @Field()
   isActive: boolean;
 
@@ -28,6 +30,7 @@ export class SystemConfigVariant {
   @Field(() => ProductEntity)
   product?: ProductEntity;
 
-  @Field(() => [BlankVariancesEntity])
-  blankVariances?: BlankVariancesEntity[];
+  constructor(partial: Partial<SystemConfigVariantEntity>) {
+    Object.assign(this, partial)
+  }
 } 

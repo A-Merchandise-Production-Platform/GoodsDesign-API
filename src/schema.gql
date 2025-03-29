@@ -21,16 +21,6 @@ type AuthResponseDto {
   user: UserEntity!
 }
 
-"""Blank Variances"""
-type BlankVariancesEntity {
-  blankPrice: Int!
-  id: ID!
-  product: ProductEntity!
-  productId: String!
-  systemVariant: SystemConfigVariant!
-  systemVariantId: String!
-}
-
 input CalculateShippingFeeDto {
   fromDistrictId: Int!
   fromWardCode: String!
@@ -78,13 +68,6 @@ input CreateAddressInput {
   wardCode: String!
 }
 
-"""Create Blank Variance"""
-input CreateBlankVarianceDto {
-  blankPrice: Float!
-  productId: String!
-  systemVariantId: String!
-}
-
 input CreateCartItemDto {
   designId: String!
   quantity: Int!
@@ -122,10 +105,10 @@ input CreateOrderDto {
 }
 
 input CreateProductDesignDto {
-  blankVariantId: String!
   isFinalized: Boolean! = false
   isPublic: Boolean! = false
   isTemplate: Boolean! = false
+  systemConfigVariantId: String!
   userId: String
 }
 
@@ -283,7 +266,6 @@ type Mutation {
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   clearCart: Boolean!
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
-  createBlankVariance(createBlankVarianceInput: CreateBlankVarianceDto!): BlankVariancesEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
   createDesignPosition(input: CreateDesignPositionDto!): DesignPositionEntity!
@@ -295,10 +277,9 @@ type Mutation {
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
   createSystemConfigDiscount(createDiscountInput: CreateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
-  createSystemConfigVariant(createSystemConfigVariantInput: CreateSystemConfigVariantInput!): SystemConfigVariant!
+  createSystemConfigVariant(createSystemConfigVariantInput: CreateSystemConfigVariantInput!): SystemConfigVariantEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!
   deleteAddress(id: String!): AddressEntity!
-  deleteBlankVariance(id: String!): BlankVariancesEntity!
   deleteCartItem(id: String!): CartItemEntity!
   deleteCategory(id: String!): CategoryEntity!
   deleteProduct(id: String!): ProductEntity!
@@ -315,14 +296,13 @@ type Mutation {
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
   removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
   removeSystemConfigDiscount(id: String!): SystemConfigDiscountEntity!
-  removeSystemConfigVariant(id: String!): SystemConfigVariant!
+  removeSystemConfigVariant(id: String!): SystemConfigVariantEntity!
   restoreCategory(id: String!): CategoryEntity!
   restoreProduct(id: String!): ProductEntity!
   sendEmail(to: String!): Boolean!
   toggleActiveCategory(id: String!): CategoryEntity!
   toggleActiveProduct(id: String!): ProductEntity!
   updateAddress(id: String!, updateAddressInput: UpdateAddressInput!): AddressEntity!
-  updateBlankVariance(id: String!, updateBlankVarianceInput: UpdateBlankVarianceDto!): BlankVariancesEntity!
   updateCartItem(id: String!, updateCartItemInput: UpdateCartItemDto!): CartItemEntity!
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
@@ -333,7 +313,7 @@ type Mutation {
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigDiscount(id: String!, updateDiscountInput: UpdateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
-  updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariant!
+  updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   uploadFile(file: Upload!): FileUploadResponse!
 }
@@ -351,21 +331,20 @@ type NotificationEntity {
 }
 
 type ProductDesignEntity {
-  blankVariant: BlankVariancesEntity
-  blankVariantId: String!
   createdAt: DateTime!
   designPositions: [DesignPositionEntity!]
   id: ID!
   isFinalized: Boolean!
   isPublic: Boolean!
   isTemplate: Boolean!
+  systemConfigVariant: SystemConfigVariantEntity!
+  systemConfigVariantId: String!
   user: UserEntity
   userId: String!
 }
 
 """Product"""
 type ProductEntity {
-  blankVariances: [BlankVariancesEntity!]
   category: CategoryEntity
   categoryId: String!
   createdAt: DateTime!
@@ -383,6 +362,7 @@ type ProductEntity {
   positionTypes: [ProductPositionTypeEntity!]
   updatedAt: DateTime
   updatedBy: String
+  variants: [SystemConfigVariantEntity!]
 }
 
 type ProductPositionTypeEntity {
@@ -403,8 +383,6 @@ type Query {
   address(id: String!): AddressEntity!
   addresses: [AddressEntity!]!
   availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
-  blankVariance(id: String!): BlankVariancesEntity
-  blankVariances: [BlankVariancesEntity!]!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
   designPosition(id: ID!): DesignPositionEntity!
@@ -432,9 +410,9 @@ type Query {
   systemConfigBanks: [SystemConfigBankEntity!]!
   systemConfigDiscount(id: String!): SystemConfigDiscountEntity!
   systemConfigDiscounts: [SystemConfigDiscountEntity!]!
-  systemConfigVariant(id: String!): SystemConfigVariant!
-  systemConfigVariants: [SystemConfigVariant!]!
-  systemConfigVariantsByProduct(productId: String!): [SystemConfigVariant!]!
+  systemConfigVariant(id: String!): SystemConfigVariantEntity!
+  systemConfigVariants: [SystemConfigVariantEntity!]!
+  systemConfigVariantsByProduct(productId: String!): [SystemConfigVariantEntity!]!
   user(id: String!): UserEntity!
   userCartItems: [CartItemEntity!]!
   userOrder(id: String!): CustomerOrderEntity!
@@ -501,13 +479,13 @@ type SystemConfigDiscountEntity {
   updatedAt: DateTime!
 }
 
-type SystemConfigVariant {
-  blankVariances: [BlankVariancesEntity!]!
+type SystemConfigVariantEntity {
   color: String
   id: ID!
   isActive: Boolean!
   isDeleted: Boolean!
   model: String
+  price: Float
   product: ProductEntity!
   productId: String!
   size: String
@@ -519,13 +497,6 @@ input UpdateAddressInput {
   provinceID: Float
   street: String
   wardCode: String
-}
-
-"""Update Blank Variance"""
-input UpdateBlankVarianceDto {
-  blankPrice: Float
-  productId: String
-  systemVariantId: String
 }
 
 input UpdateCartItemDto {
@@ -579,10 +550,10 @@ input UpdateNotificationDto {
 }
 
 input UpdateProductDesignDto {
-  blankVariantId: String
   isFinalized: Boolean = false
   isPublic: Boolean = false
   isTemplate: Boolean = false
+  systemConfigVariantId: String
   userId: String
 }
 

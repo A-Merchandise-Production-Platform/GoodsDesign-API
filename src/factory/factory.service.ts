@@ -97,11 +97,7 @@ export class FactoryService {
             },
             include: {
                 address: true,
-                products: {
-                    include: {
-                        blankVariance: true
-                    }
-                },
+                products: true,
                 orders: true
             }
         })
@@ -111,7 +107,7 @@ export class FactoryService {
             products: updatedFactory.products.map(
                 (product) =>
                     new ProductEntity({
-                        ...product.blankVariance,
+                        ...product,
                         id: product.id
                     })
             )
@@ -123,11 +119,7 @@ export class FactoryService {
             where: { factoryOwnerId: userId },
             include: {
                 address: true,
-                products: {
-                    include: {
-                        blankVariance: true
-                    }
-                },
+                products: true,
                 orders: true,
                 owner: true
             }
@@ -140,7 +132,7 @@ export class FactoryService {
             products: factory.products.map(
                 (product) =>
                     new ProductEntity({
-                        ...product.blankVariance,
+                        ...product,
                         id: product.id
                     })
             ),

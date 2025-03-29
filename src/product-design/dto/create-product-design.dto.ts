@@ -9,7 +9,7 @@ export class CreateProductDesignDto {
 
   @Field(() => String)
   @IsString()
-  blankVariantId: string;
+  systemConfigVariantId: string;
 
   @Field(() => Boolean, { defaultValue: false })
   @IsOptional()

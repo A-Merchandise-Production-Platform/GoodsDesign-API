@@ -12,7 +12,11 @@ export class DesignPositionService {
     return this.prisma.designPosition.create({
       data: createDesignPositionDto,
       include: {
-        design: true,
+        design: {
+          include: {
+            systemConfigVariant: true
+          }
+        },
         positionType: true,
       },
     });
@@ -22,7 +26,11 @@ export class DesignPositionService {
     return this.prisma.designPosition.findMany({
       where: designId ? { designId } : undefined,
       include: {
-        design: true,
+        design: {
+          include: {
+            systemConfigVariant: true
+          }
+        },
         positionType: true,
       },
     });
@@ -32,7 +40,11 @@ export class DesignPositionService {
     return this.prisma.designPosition.findUnique({
       where: { id },
       include: {
-        design: true,
+        design: {
+          include: {
+            systemConfigVariant: true
+          }
+        },
         positionType: true,
       },
     });
@@ -43,7 +55,11 @@ export class DesignPositionService {
       where: { id },
       data: updateDesignPositionDto,
       include: {
-        design: true,
+        design: {
+          include: {
+            systemConfigVariant: true
+          }
+        },
         positionType: true,
       },
     });
@@ -53,7 +69,11 @@ export class DesignPositionService {
     return this.prisma.designPosition.delete({
       where: { id },
       include: {
-        design: true,
+        design: {
+          include: {
+            systemConfigVariant: true
+          }
+        },
         positionType: true,
       },
     });

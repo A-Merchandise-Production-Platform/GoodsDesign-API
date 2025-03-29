@@ -8,7 +8,7 @@ export const factoryOrdersData = [
     status: FactoryOrderStatus.ACCEPTED,
     estimatedCompletionDate: new Date('2024-04-01'),
     totalItems: 100,
-    totalProductionCost: 5000,
+    totalProductionCost: 5000000,
   },
   {
     id: 'factoryorder002',
@@ -16,6 +16,6 @@ export const factoryOrdersData = [
     status: FactoryOrderStatus.IN_PRODUCTION,
     estimatedCompletionDate: new Date('2024-04-15'),
     totalItems: 50,
-    totalProductionCost: 2500,
+    totalProductionCost: 2500000,
   },
 ]; 

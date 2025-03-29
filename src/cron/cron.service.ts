@@ -241,7 +241,7 @@ async checkAndReassignExpiredOrders(): Promise<void> {
   
         // Cập nhật công suất khả dụng cho từng loại sản phẩm
         for (const factoryProduct of factory.products) {
-          const inProductionQuantity = productionByBlankVariance[factoryProduct.blankVarianceId] || 0;
+          const inProductionQuantity = productionByBlankVariance[factoryProduct.systemConfigVariantId] || 0;
           const availableCapacity = Math.max(0, factoryProduct.productionCapacity - inProductionQuantity);
           
           // Cập nhật công suất khả dụng (nếu bạn có trường này)

@@ -6,7 +6,6 @@ import {
     seedProducts,
     seedTasks,
     seedProductPositionTypes,
-    seedBlankVariances,
     seedProductDesigns,
     seedCustomerOrders,
     seedDesignPositions,
@@ -60,7 +59,6 @@ async function main() {
         await seedProducts(prisma)
         await seedProductPositionTypes(prisma)
         await seedSystemConfigVariants(prisma)
-        await seedBlankVariances(prisma)
         await seedDiscounts(prisma)
 
         // Seed factories and their products

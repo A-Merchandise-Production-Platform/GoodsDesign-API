@@ -9,10 +9,10 @@ export class ProductDesignService {
   constructor(private prisma: PrismaService) {}
 
   async create(createProductDesignDto: CreateProductDesignDto): Promise<ProductDesignEntity> {
-    const { userId, blankVariantId, ...designData } = createProductDesignDto;
+    const { userId, systemConfigVariantId, ...designData } = createProductDesignDto;
 
-    if (!blankVariantId) {
-      throw new Error('blankVariantId is required');
+    if (!systemConfigVariantId) {
+      throw new Error('systemConfigVariantId is required');
     }
     
     return this.prisma.productDesign.create({
@@ -21,16 +21,15 @@ export class ProductDesignService {
         user: {
           connect: { id: userId }
         },
-        blankVariant: {
-          connect: { id: blankVariantId }
+        systemConfigVariant: {
+          connect: { id: systemConfigVariantId }
         }
       },
       include: {
         user: true,
-        blankVariant: {
+        systemConfigVariant: {
           include: {
             product: true,
-            systemVariant: true,
           },
         },
         designPositions: {
@@ -47,10 +46,9 @@ export class ProductDesignService {
       where: userId ? { userId } : undefined,
       include: {
         user: true,
-        blankVariant: {
+        systemConfigVariant: {
           include: {
             product: true,
-            systemVariant: true,
           },
         },
         designPositions: {
@@ -67,10 +65,9 @@ export class ProductDesignService {
       where: { id },
       include: {
         user: true,
-        blankVariant: {
+        systemConfigVariant: {
           include: {
             product: true,
-            systemVariant: true,
           },
         },
         designPositions: {
@@ -88,10 +85,9 @@ export class ProductDesignService {
       data: updateProductDesignDto,
       include: {
         user: true,
-        blankVariant: {
+        systemConfigVariant: {
           include: {
             product: true,
-            systemVariant: true,
           },
         },
         designPositions: {
@@ -108,10 +104,9 @@ export class ProductDesignService {
       where: { id },
       include: {
         user: true,
-        blankVariant: {
+        systemConfigVariant: {
           include: {
             product: true,
-            systemVariant: true,
           },
         },
         designPositions: {

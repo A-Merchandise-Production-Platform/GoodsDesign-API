@@ -11,7 +11,7 @@ export const factoryOrderDetailsData = [
     orderDetailId: 'detail001',
     quantity: 2,
     status: OrderStatus.PENDING,
-    productionCost: 100,
+    productionCost: 100000,
   },
   {
     id: 'factoryorderdetail002',
@@ -20,6 +20,6 @@ export const factoryOrderDetailsData = [
     orderDetailId: 'detail002',
     quantity: 3,
     status: OrderStatus.IN_PRODUCTION,
-    productionCost: 150,
+    productionCost: 150000,
   },
 ]; 
