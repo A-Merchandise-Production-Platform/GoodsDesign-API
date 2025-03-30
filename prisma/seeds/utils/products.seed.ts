@@ -12,6 +12,7 @@ export const seedProducts = async (prisma: PrismaClient) => {
         description: product.description,
         imageUrl: product.imageUrl,
         model3DUrl: product.model3DUrl,
+        weight: product.weight,
         isActive: product.isActive,
         categoryId: product.categoryId
       },
@@ -21,6 +22,7 @@ export const seedProducts = async (prisma: PrismaClient) => {
         description: product.description,
         imageUrl: product.imageUrl,
         model3DUrl: product.model3DUrl,
+        weight: product.weight,
         isActive: product.isActive,
         categoryId: product.categoryId,
         createdBy: 'system'

@@ -30,7 +30,7 @@ export const usersData: UsersData = {
       id: "admin-id",
       email: "admin@gmail.com",
       name: "Admin",
-      phoneNumber: "0909090909",
+      phoneNumber: "0902331633",
       gender: true,
       dateOfBirth: "1990-01-01",
       imageUrl: "https://avatar.iran.liara.run/public/boy",
@@ -47,7 +47,7 @@ export const usersData: UsersData = {
       id: "manager-id",
       email: "manager@gmail.com",
       name: "Manager",
-      phoneNumber: "0909090909",
+      phoneNumber: "0902331633",
       gender: false,
       dateOfBirth: "1992-06-15",
       imageUrl: "https://avatar.iran.liara.run/public/boy",
@@ -64,7 +64,7 @@ export const usersData: UsersData = {
       id: "customer-id",
       email: "customer@gmail.com",
       name: "Customer",
-      phoneNumber: "0909090909",
+      phoneNumber: "0902331633",
       gender: true,
       dateOfBirth: "1990-01-01",
       imageUrl: "https://avatar.iran.liara.run/public/boy",
@@ -81,7 +81,7 @@ export const usersData: UsersData = {
       id: "staff-id",
       email: "staff@gmail.com",
       name: "Staff",
-      phoneNumber: "0909090909",
+      phoneNumber: "0902331633",
       gender: true,
       dateOfBirth: "1990-01-01",
       imageUrl: "https://avatar.iran.liara.run/public/girl",
@@ -98,7 +98,7 @@ export const usersData: UsersData = {
       id: "factory-id",
       email: "factory@gmail.com",
       name: "Factory",
-      phoneNumber: "0909090909",
+      phoneNumber: "0902331633",
       gender: true,
       dateOfBirth: "1990-01-01",
       imageUrl: "https://avatar.iran.liara.run/public/girl",
@@ -109,6 +109,23 @@ export const usersData: UsersData = {
         districtID: 1533,
         wardCode: "22003",
         street: "89/2 Ấp 2"
+      }
+    },
+    {
+      id: "factory-id-2",
+      email: "factory1@gmail.com",
+      name: "Factory",
+      phoneNumber: "0902331633",
+      gender: true,
+      dateOfBirth: "1990-01-01",
+      imageUrl: "https://avatar.iran.liara.run/public/boy",
+      isActive: true,
+      role: Roles.FACTORYOWNER,
+      address: {
+        provinceID: 202,
+        districtID: 1533,
+        wardCode: "22003",
+        street: "400"
       }
     }
   ]

@@ -94,7 +94,6 @@ input CreateOrderDetailDto {
 
 input CreateOrderDto {
   orderDetails: [CreateOrderDetailDto!]!
-  shippingPrice: Int!
 }
 
 input CreateProductDesignDto {
@@ -112,6 +111,7 @@ input CreateProductDto {
   imageUrl: String
   model3DUrl: String
   name: String!
+  weight: Float
 }
 
 input CreateProductPositionTypeDto {
@@ -185,7 +185,7 @@ scalar DateTime
 type DesignPositionEntity {
   design: ProductDesignEntity
   designId: String!
-  designJSON: JSON!
+  designJSON: JSON
   positionType: ProductPositionTypeEntity
   productPositionTypeId: String!
 }
@@ -353,6 +353,7 @@ type ProductEntity {
   updatedAt: DateTime
   updatedBy: String
   variants: [SystemConfigVariantEntity!]
+  weight: Float
 }
 
 type ProductPositionTypeEntity {
@@ -554,6 +555,7 @@ input UpdateProductDto {
   imageUrl: String
   model3DUrl: String
   name: String
+  weight: Float
 }
 
 input UpdateProductPositionTypeDto {

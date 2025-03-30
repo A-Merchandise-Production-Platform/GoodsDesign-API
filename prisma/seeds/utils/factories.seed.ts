@@ -19,9 +19,9 @@ export async function seedFactories(prisma: PrismaClient) {
         // Create address first
         const address = await prisma.address.create({
             data: {
-                provinceID: 1, // Example default values
-                districtID: 1,
-                wardCode: "00001",
+                provinceID: 202,
+                districtID: 1533,
+                wardCode: "22003",
                 street: factory.address,
                 userId: user.id
             }
