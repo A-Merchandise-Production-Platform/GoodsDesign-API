@@ -19,10 +19,10 @@ export class CustomerOrdersResolver {
 
     @Query(() => CustomerOrderEntity, { name: "userOrder" })
     async getUserOrder(
-        @Args("id") id: string,
+        @Args("userOrderId") userOrderId: string,
         @CurrentUser() user: UserEntity
     ): Promise<CustomerOrderEntity> {
-        return this.customersOrdersService.findOne(id, user.id)
+        return this.customersOrdersService.findOne(userOrderId, user.id)
     }
 
     @Mutation(() => CustomerOrderEntity, { name: "createOrder" })

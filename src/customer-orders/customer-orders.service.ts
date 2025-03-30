@@ -174,9 +174,9 @@ export class CustomerOrdersService {
         const order = await this.prisma.customerOrder.findFirst({
             where: {
                 id,
-                customerId: userId
             },
             include: {
+                customer: true,
                 orderDetails: true,
                 payments: {
                     include: {

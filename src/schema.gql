@@ -167,11 +167,13 @@ type CustomerOrderDetailEntity {
 }
 
 type CustomerOrderEntity {
+  customer: UserEntity
   customerId: String!
   depositPaid: Int!
   id: ID!
   orderDate: DateTime!
   orderDetails: [CustomerOrderDetailEntity!]
+  payments: [PaymentEntity!]
   shippingPrice: Int!
   status: String!
   totalPrice: Int!
@@ -320,6 +322,32 @@ type NotificationEntity {
   userId: String!
 }
 
+type PaymentEntity {
+  amount: Int!
+  createdAt: DateTime!
+  customerId: String!
+  id: ID!
+  order: CustomerOrderEntity
+  orderId: String!
+  paymentLog: String!
+  status: String!
+  transactions: [PaymentTransactionEntity!]
+  type: String!
+}
+
+type PaymentTransactionEntity {
+  amount: Int!
+  createdAt: DateTime!
+  customerId: String!
+  id: ID!
+  paymentGatewayTransactionId: String!
+  paymentId: String!
+  paymentMethod: String!
+  status: String!
+  transactionLog: String!
+  type: String!
+}
+
 type ProductDesignEntity {
   createdAt: DateTime!
   designPositions: [DesignPositionEntity!]
@@ -405,7 +433,7 @@ type Query {
   systemConfigVariantsByProduct(productId: String!): [SystemConfigVariantEntity!]!
   user(id: String!): UserEntity!
   userCartItems: [CartItemEntity!]!
-  userOrder(id: String!): CustomerOrderEntity!
+  userOrder(userOrderId: String!): CustomerOrderEntity!
   userOrders: [CustomerOrderEntity!]!
   users: [UserEntity!]!
   ward(wardCode: String!): Ward!
