@@ -1,5 +1,5 @@
 import { Field, InputType } from "@nestjs/graphql"
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator"
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator"
 
 @InputType({ description: "Create Product" })
 export class CreateProductDto {
@@ -22,6 +22,11 @@ export class CreateProductDto {
     @IsOptional()
     @IsString()
     model3DUrl?: string
+
+    @Field(() => Number, { nullable: true })
+    @IsOptional()
+    @IsNumber()
+    weight?: number
 
     @Field(() => String)
     @IsNotEmpty()

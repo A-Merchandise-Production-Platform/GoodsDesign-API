@@ -4,6 +4,7 @@ interface Product {
   description: string;
   imageUrl: string;
   model3DUrl: string;
+  weight: number
   isActive: boolean;
   categoryId: string;
 }
@@ -20,6 +21,7 @@ export const productsData: ProductsData = {
       description: "High-quality cotton t-shirt perfect for custom designs",
       imageUrl: "https://png.pngtree.com/png-vector/20191122/ourmid/pngtree-white-tshirt-mockup-realistic-style-png-image_2004255.jpg",
       model3DUrl: "https://example.com/models/classic-tshirt.glb",
+      weight: 155,
       isActive: true,
       categoryId: "cat001",
     },
@@ -29,6 +31,7 @@ export const productsData: ProductsData = {
       description: "Warm and comfortable zip-up hoodie for custom designs",
       imageUrl: "https://img.freepik.com/free-psd/psd-white-hoodie-mockup_1409-3755.jpg",
       model3DUrl: "https://example.com/models/premium-hoodie.glb",
+      weight: 200,
       isActive: true,
       categoryId: "cat002",
     },

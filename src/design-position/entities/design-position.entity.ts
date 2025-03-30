@@ -12,8 +12,8 @@ export class DesignPositionEntity {
   @Field()
   productPositionTypeId: string;
 
-  @Field(() => GraphQLJSON)
-  designJSON: JsonValue;
+  @Field(() => GraphQLJSON, { nullable: true })
+  designJSON?: JsonValue;
 
   @Field(() => ProductDesignEntity, { nullable: true })
   design?: ProductDesignEntity;

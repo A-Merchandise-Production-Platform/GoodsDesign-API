@@ -21,6 +21,9 @@ export class ProductEntity {
     @Field(() => String, { nullable: true })
     model3DUrl?: string
 
+    @Field(() => Number, { nullable: true })
+    weight?: number
+
     @Field(() => Boolean)
     isActive: boolean
 

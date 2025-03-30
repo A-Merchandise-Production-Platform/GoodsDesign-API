@@ -86,6 +86,7 @@ model Product {
   description String?
   imageUrl    String?
   model3DUrl  String?
+  weight      Int?
   isActive    Boolean   @default(true)
   isDeleted   Boolean   @default(false)
   createdAt   DateTime  @default(now())
