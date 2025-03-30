@@ -201,6 +201,7 @@ model FavoriteDesign {
 
 enum OrderStatus {
   PENDING
+  PAYMENT_RECEIVED
   ASSIGNED_TO_FACTORY
   ACCEPTED
   IN_PRODUCTION

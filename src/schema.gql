@@ -96,6 +96,17 @@ input CreateOrderDto {
   orderDetails: [CreateOrderDetailDto!]!
 }
 
+input CreatePaymentTransactionInput {
+  amount: Int!
+  customerId: String!
+  paymentGatewayTransactionId: String!
+  paymentId: String!
+  paymentMethod: PaymentMethod!
+  status: TransactionStatus!
+  transactionLog: String!
+  type: TransactionType!
+}
+
 input CreateProductDesignDto {
   isFinalized: Boolean! = false
   isPublic: Boolean! = false
@@ -156,6 +167,7 @@ input CreateUserDto {
 }
 
 type CustomerOrderDetailEntity {
+  design: ProductDesignEntity
   designId: String!
   id: ID!
   orderId: String!
@@ -218,7 +230,7 @@ type FactoryEntity {
   operationalHours: String
   owner: UserEntity!
   printingMethods: [String!]!
-  products: [ProductEntity!]!
+  products: [FactoryProductEntity!]!
   qualityCertifications: String
   reviewedAt: DateTime
   reviewedBy: String
@@ -227,6 +239,14 @@ type FactoryEntity {
   taxIdentificationNumber: String
   totalEmployees: Int
   website: String
+}
+
+type FactoryProductEntity {
+  estimatedProductionTime: Int!
+  factoryId: String!
+  id: String!
+  productionCapacity: Int!
+  systemConfigVariantId: String!
 }
 
 enum FactoryStatus {
@@ -265,6 +285,7 @@ type Mutation {
   createNotification(input: CreateNotificationDto!): NotificationEntity!
   createOrder(createOrderInput: CreateOrderDto!): CustomerOrderEntity!
   createPayment(gateway: String!, paymentId: String!): String!
+  createPaymentTransaction(input: CreatePaymentTransactionInput!): PaymentTransaction!
   createProduct(input: CreateProductDto!): ProductEntity!
   createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
@@ -284,6 +305,7 @@ type Mutation {
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
   removeNotification(id: ID!): NotificationEntity!
+  removePaymentTransaction(id: ID!): PaymentTransaction!
   removeProductDesign(id: ID!): ProductDesignEntity!
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
   removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
@@ -300,6 +322,7 @@ type Mutation {
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateNotification(input: UpdateNotificationDto!): NotificationEntity!
+  updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransaction!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
@@ -335,6 +358,25 @@ type PaymentEntity {
   type: String!
 }
 
+"""Method of payment"""
+enum PaymentMethod {
+  PAYOS
+  VNPAY
+}
+
+type PaymentTransaction {
+  amount: Float!
+  createdAt: DateTime!
+  customer: UserEntity
+  customerId: ID!
+  id: ID!
+  paymentGatewayTransactionId: String!
+  paymentMethod: PaymentMethod!
+  status: TransactionStatus!
+  transactionLog: String!
+  type: TransactionType!
+}
+
 type PaymentTransactionEntity {
   amount: Int!
   createdAt: DateTime!
@@ -355,7 +397,7 @@ type ProductDesignEntity {
   isFinalized: Boolean!
   isPublic: Boolean!
   isTemplate: Boolean!
-  systemConfigVariant: SystemConfigVariantEntity!
+  systemConfigVariant: SystemConfigVariantEntity
   systemConfigVariantId: String!
   user: UserEntity
   userId: String!
@@ -416,6 +458,10 @@ type Query {
   getMyFactory: FactoryEntity!
   notification(id: ID!): NotificationEntity!
   notifications: [NotificationEntity!]!
+  paymentTransaction(id: ID!): PaymentTransaction
+  paymentTransactions: [PaymentTransaction!]!
+  paymentTransactionsByCustomer(customerId: ID!): [PaymentTransaction!]!
+  paymentTransactionsByPayment(paymentId: ID!): [PaymentTransaction!]!
   product(id: String!): ProductEntity!
   productDesign(id: ID!): ProductDesignEntity!
   productDesigns: [ProductDesignEntity!]!
@@ -509,6 +555,19 @@ type SystemConfigVariantEntity {
   size: String
 }
 
+"""Status of transaction"""
+enum TransactionStatus {
+  COMPLETED
+  FAILED
+  PENDING
+}
+
+"""Type of transaction"""
+enum TransactionType {
+  PAYMENT
+  REFUND
+}
+
 input UpdateAddressInput {
   districtID: Float
   factoryId: String
@@ -566,6 +625,17 @@ input UpdateNotificationDto {
   title: String
   url: String
   userId: String
+}
+
+input UpdatePaymentTransactionInput {
+  amount: Int
+  customerId: String
+  paymentGatewayTransactionId: String
+  paymentId: String
+  paymentMethod: PaymentMethod
+  status: TransactionStatus
+  transactionLog: String
+  type: TransactionType
 }
 
 input UpdateProductDesignDto {
