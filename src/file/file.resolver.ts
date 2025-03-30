@@ -11,7 +11,7 @@ export class FileResolver {
 
   @Mutation(() => FileUploadResponse)
   async uploadFile(
-    @Args({ name: 'file', type: () => GraphQLUpload }) file: FileUpload
+    @Args({ name: 'file', type: () => GraphQLUpload, nullable: true }) file?: FileUpload
   ) {
     console.log("FILE", file, file.createReadStream().readableLength);
     const url = await this.fileService.uploadFile({

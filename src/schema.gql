@@ -307,7 +307,7 @@ type Mutation {
   updateSystemConfigDiscount(id: String!, updateDiscountInput: UpdateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
   updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
-  uploadFile(file: Upload!): FileUploadResponse!
+  uploadFile(file: Upload): FileUploadResponse!
 }
 
 type NotificationEntity {
