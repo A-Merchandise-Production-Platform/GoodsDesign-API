@@ -6,5 +6,5 @@ import { FileUpload, GraphQLUpload } from 'graphql-upload-ts';
 export class UploadDto {
     @IsOptional()
     @Field(() => GraphQLUpload, { nullable: true })
-        image: FileUpload;
+        image?: FileUpload;
 }
