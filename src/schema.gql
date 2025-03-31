@@ -36,7 +36,7 @@ input CalculateShippingFeeDto {
 
 type CartItemEntity {
   createdAt: DateTime!
-  design: ProductDesignEntity!
+  design: ProductDesignEntity
   id: ID!
   quantity: Int!
   userId: String!
