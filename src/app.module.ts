@@ -31,7 +31,7 @@ import { SocketModule } from "./socket/socket.module"
 import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
-import { StaffTaskModule } from "./staff-tasks/staff-tasks.module"
+import { StaffTasksModule } from "./staff-tasks/staff-tasks.module"
 
 @Module({
     imports: [
@@ -76,7 +76,7 @@ import { StaffTaskModule } from "./staff-tasks/staff-tasks.module"
         SystemConfigVariantModule,
         CronModule,
         FactoryOrderModule,
-        StaffTaskModule
+        StaffTasksModule
         // TestModule,
     ],
     controllers: [AppController],

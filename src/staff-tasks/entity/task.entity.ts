@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { CheckQualityEntity } from './check-quality.entity';
+import { CheckQuality } from './check-quality.entity';
 
 @ObjectType()
 export class TaskEntity {
@@ -24,6 +24,6 @@ export class TaskEntity {
   @Field(() => String)
   qualityCheckStatus: string;
 
-  @Field(() => [CheckQualityEntity])
-  checkQualities: CheckQualityEntity[];
+  @Field(() => [CheckQuality])
+  checkQualities: CheckQuality[];
 } 

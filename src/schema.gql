@@ -59,15 +59,17 @@ type CategoryEntity {
   updatedBy: String
 }
 
-type CheckQualityEntity {
+type CheckQuality {
   checkedAt: DateTime!
+  checkedBy: String
+  factoryOrderDetailId: ID
   failedQuantity: Int!
   id: ID!
   note: String
   orderDetailId: ID!
   passedQuantity: Int!
   reworkRequired: Boolean!
-  status: String!
+  status: QualityCheckStatus!
   taskId: ID!
   totalChecked: Int!
 }
@@ -321,6 +323,7 @@ type Mutation {
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
+  createCheckQuality(factoryOrderDetailId: ID, failedQuantity: Float!, note: String, orderDetailId: ID!, passedQuantity: Float!, reworkRequired: Boolean!, status: QualityCheckStatus!, taskId: ID!, totalChecked: Float!): CheckQuality!
   createNotification(input: CreateNotificationDto!): NotificationEntity!
   createOrder(createOrderInput: CreateOrderDto!): CustomerOrderEntity!
   createPayment(gateway: String!, paymentId: String!): String!
@@ -359,6 +362,7 @@ type Mutation {
   updateAddress(id: String!, updateAddressInput: UpdateAddressInput!): AddressEntity!
   updateCartItem(id: String!, updateCartItemInput: UpdateCartItemDto!): CartItemEntity!
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
+  updateCheckQualityStatus(id: ID!, status: QualityCheckStatus!): CheckQuality!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateFactoryOrderStatus(id: ID!, status: String!): FactoryOrder!
@@ -482,12 +486,22 @@ type Province {
   provinceName: String!
 }
 
+enum QualityCheckStatus {
+  APPROVED
+  PARTIAL_APPROVED
+  PENDING
+  REJECTED
+}
+
 type Query {
   address(id: String!): AddressEntity!
   addresses: [AddressEntity!]!
   availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
+  checkQualities: [CheckQuality!]!
+  checkQualitiesByTask(taskId: ID!): [CheckQuality!]!
+  checkQuality(id: ID!): CheckQuality!
   designPosition(designId: ID!, productPositionTypeId: ID!): DesignPositionEntity!
   distinctVariantAttributes(productId: String!): VariantAttributes!
   district(districtId: Int!): District!
@@ -618,7 +632,7 @@ type SystemConfigVariantEntity {
 }
 
 type TaskEntity {
-  checkQualities: [CheckQualityEntity!]!
+  checkQualities: [CheckQuality!]!
   description: String!
   expiredTime: DateTime!
   id: ID!

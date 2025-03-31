@@ -1,8 +1,12 @@
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
-import { CustomerOrderDetailEntity } from 'src/customer-orders/entities';
+import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { QualityCheckStatus } from '@prisma/client';
+
+registerEnumType(QualityCheckStatus, {
+  name: "QualityCheckStatus"
+})
 
 @ObjectType()
-export class CheckQualityEntity {
+export class CheckQuality {
   @Field(() => ID)
   id: string;
 
@@ -11,6 +15,9 @@ export class CheckQualityEntity {
 
   @Field(() => ID)
   orderDetailId: string;
+
+  @Field(() => ID, { nullable: true })
+  factoryOrderDetailId?: string;
 
   @Field(() => Int)
   totalChecked: number;
@@ -21,8 +28,8 @@ export class CheckQualityEntity {
   @Field(() => Int)
   failedQuantity: number;
 
-  @Field(() => String)
-  status: string;
+  @Field(() => QualityCheckStatus)
+  status: QualityCheckStatus;
 
   @Field(() => Boolean)
   reworkRequired: boolean;
@@ -32,4 +39,7 @@ export class CheckQualityEntity {
 
   @Field(() => Date)
   checkedAt: Date;
+
+  @Field(() => String, { nullable: true })
+  checkedBy?: string;
 } 
