@@ -80,14 +80,6 @@ input CreateCategoryDto {
   name: String!
 }
 
-input CreateNotificationDto {
-  content: String
-  isRead: Boolean! = false
-  title: String
-  url: String
-  userId: String!
-}
-
 input CreateOrderDetailDto {
   cartItemId: String!
 }
@@ -282,7 +274,6 @@ type Mutation {
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
-  createNotification(input: CreateNotificationDto!): NotificationEntity!
   createOrder(createOrderInput: CreateOrderDto!): CustomerOrderEntity!
   createPayment(gateway: String!, paymentId: String!): String!
   createPaymentTransaction(input: CreatePaymentTransactionInput!): PaymentTransaction!
@@ -300,11 +291,8 @@ type Mutation {
   deleteUser(id: String!): UserEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
-  markAllNotificationsAsRead: [NotificationEntity!]!
-  markNotificationAsRead(id: ID!): NotificationEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
-  removeNotification(id: ID!): NotificationEntity!
   removePaymentTransaction(id: ID!): PaymentTransaction!
   removeProductDesign(id: ID!): ProductDesignEntity!
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
@@ -321,7 +309,6 @@ type Mutation {
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
-  updateNotification(input: UpdateNotificationDto!): NotificationEntity!
   updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransaction!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
@@ -331,18 +318,6 @@ type Mutation {
   updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   uploadFile(file: Upload): FileUploadResponse!
-}
-
-type NotificationEntity {
-  content: String
-  createdAt: DateTime!
-  id: ID!
-  isRead: Boolean!
-  title: String
-  updatedAt: DateTime
-  url: String
-  user: UserEntity
-  userId: String!
 }
 
 type PaymentEntity {
@@ -456,8 +431,6 @@ type Query {
   getCartItemCount: Float!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
-  notification(id: ID!): NotificationEntity!
-  notifications: [NotificationEntity!]!
   paymentTransaction(id: ID!): PaymentTransaction
   paymentTransactions: [PaymentTransaction!]!
   paymentTransactionsByCustomer(customerId: ID!): [PaymentTransaction!]!
@@ -616,15 +589,6 @@ input UpdateFactoryInfoDto {
   taxIdentificationNumber: String
   totalEmployees: Int
   website: String
-}
-
-input UpdateNotificationDto {
-  content: String
-  id: ID!
-  isRead: Boolean = false
-  title: String
-  url: String
-  userId: String
 }
 
 input UpdatePaymentTransactionInput {

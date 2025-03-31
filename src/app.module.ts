@@ -25,8 +25,6 @@ import { ProductPositionTypeModule } from "./product-position-type/product-posit
 import { ProductsModule } from "./products"
 import { RedisModule } from "./redis"
 import { ShippingModule } from "./shipping/shipping.module"
-import { NotificationsModule } from "./socket/notifications/notifications.module"
-import { SocketModule } from "./socket/socket.module"
 import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
@@ -54,8 +52,6 @@ import { CronModule } from "./cron/cron.module"
         CategoriesModule,
         ProductsModule,
         RedisModule,
-        NotificationsModule,
-        SocketModule,
         SystemConfigBankModule,
         ProductPositionTypeModule,
         ProductDesignModule,
