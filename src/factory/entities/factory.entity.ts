@@ -2,6 +2,7 @@ import { Field, Int, ObjectType, registerEnumType } from "@nestjs/graphql"
 import { FactoryStatus } from "@prisma/client"
 import { ProductEntity } from "src/products/entities/products.entity"
 import { UserEntity } from "src/users/entities/users.entity"
+import { FactoryProductEntity } from "./factory-product.entity"
 
 registerEnumType(FactoryStatus, {
     name: "FactoryStatus"
@@ -90,8 +91,8 @@ export class FactoryEntity {
     @Field(() => UserEntity)
     owner: UserEntity
 
-    @Field(() => [ProductEntity])
-    products: ProductEntity[]
+    @Field(() => [FactoryProductEntity])
+    products: FactoryProductEntity[]
 
     // @Field(() => [FactoryOrderEntity])
     // orders: FactoryOrderEntity[]

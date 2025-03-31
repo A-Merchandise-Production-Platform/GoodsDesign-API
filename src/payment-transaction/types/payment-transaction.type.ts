@@ -1,6 +1,22 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { PaymentMethod, TransactionStatus, TransactionType } from '@prisma/client';
 import { UserEntity } from 'src/users';
+
+registerEnumType(TransactionType, {
+  name: 'TransactionType',
+  description: 'Type of transaction',
+})
+
+registerEnumType(PaymentMethod, {
+  name: 'PaymentMethod',
+  description: 'Method of payment',
+})
+
+registerEnumType(TransactionStatus, {
+  name: 'TransactionStatus',
+  description: 'Status of transaction',
+})
+
 
 @ObjectType()
 export class PaymentTransaction {

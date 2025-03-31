@@ -70,7 +70,6 @@ import { CronModule } from "./cron/cron.module"
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: "/admin"
         }),
-        ScheduleModule.forRoot(),
         AddressesModule,
         PaymentGatewayModule,
         SystemConfigVariantModule,
