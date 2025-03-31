@@ -14,12 +14,60 @@ export class StaffTaskService {
           include: {
             checkQualities: {
               include: {
-                orderDetail: true
+                orderDetail: {
+                  include: {
+                    order: true,
+                    design: true
+                  }
+                },
+                factoryOrderDetail: {
+                  include: {
+                    factoryOrder: true,
+                    design: {
+                      include: {
+                        user: true,
+                        systemConfigVariant: true
+                      }
+                    },
+                    orderDetail: true
+                  }
+                }
               }
             },
-          },
-        },
-      },
+            staffTasks: {
+              include: {
+                user: true,
+                task: {
+                  include: {
+                    checkQualities: {
+                      include: {
+                        orderDetail: {
+                          include: {
+                            order: true,
+                            design: true
+                          }
+                        },
+                        factoryOrderDetail: {
+                          include: {
+                            factoryOrder: true,
+                            design: {
+                              include: {
+                                user: true,
+                                systemConfigVariant: true
+                              }
+                            },
+                            orderDetail: true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
   }
 
@@ -32,12 +80,60 @@ export class StaffTaskService {
           include: {
             checkQualities: {
               include: {
-                orderDetail: true
+                orderDetail: {
+                  include: {
+                    order: true,
+                    design: true
+                  }
+                },
+                factoryOrderDetail: {
+                  include: {
+                    factoryOrder: true,
+                    design: {
+                      include: {
+                        user: true,
+                        systemConfigVariant: true
+                      }
+                    },
+                    orderDetail: true
+                  }
+                }
               }
             },
-          },
-        },
-      },
+            staffTasks: {
+              include: {
+                user: true,
+                task: {
+                  include: {
+                    checkQualities: {
+                      include: {
+                        orderDetail: {
+                          include: {
+                            order: true,
+                            design: true
+                          }
+                        },
+                        factoryOrderDetail: {
+                          include: {
+                            factoryOrder: true,
+                            design: {
+                              include: {
+                                user: true,
+                                systemConfigVariant: true
+                              }
+                            },
+                            orderDetail: true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
   }
 
@@ -50,12 +146,60 @@ export class StaffTaskService {
           include: {
             checkQualities: {
               include: {
-                orderDetail: true
+                orderDetail: {
+                  include: {
+                    order: true,
+                    design: true
+                  }
+                },
+                factoryOrderDetail: {
+                  include: {
+                    factoryOrder: true,
+                    design: {
+                      include: {
+                        user: true,
+                        systemConfigVariant: true
+                      }
+                    },
+                    orderDetail: true
+                  }
+                }
               }
             },
-          },
-        },
-      },
+            staffTasks: {
+              include: {
+                user: true,
+                task: {
+                  include: {
+                    checkQualities: {
+                      include: {
+                        orderDetail: {
+                          include: {
+                            order: true,
+                            design: true
+                          }
+                        },
+                        factoryOrderDetail: {
+                          include: {
+                            factoryOrder: true,
+                            design: {
+                              include: {
+                                user: true,
+                                systemConfigVariant: true
+                              }
+                            },
+                            orderDetail: true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
   }
 
@@ -68,12 +212,60 @@ export class StaffTaskService {
           include: {
             checkQualities: {
               include: {
-                orderDetail: true
+                orderDetail: {
+                  include: {
+                    order: true,
+                    design: true
+                  }
+                },
+                factoryOrderDetail: {
+                  include: {
+                    factoryOrder: true,
+                    design: {
+                      include: {
+                        user: true,
+                        systemConfigVariant: true
+                      }
+                    },
+                    orderDetail: true
+                  }
+                }
               }
             },
-          },
-        },
-      },
+            staffTasks: {
+              include: {
+                user: true,
+                task: {
+                  include: {
+                    checkQualities: {
+                      include: {
+                        orderDetail: {
+                          include: {
+                            order: true,
+                            design: true
+                          }
+                        },
+                        factoryOrderDetail: {
+                          include: {
+                            factoryOrder: true,
+                            design: {
+                              include: {
+                                user: true,
+                                systemConfigVariant: true
+                              }
+                            },
+                            orderDetail: true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
   }
 
@@ -87,12 +279,60 @@ export class StaffTaskService {
           include: {
             checkQualities: {
               include: {
-                orderDetail: true
+                orderDetail: {
+                  include: {
+                    order: true,
+                    design: true
+                  }
+                },
+                factoryOrderDetail: {
+                  include: {
+                    factoryOrder: true,
+                    design: {
+                      include: {
+                        user: true,
+                        systemConfigVariant: true
+                      }
+                    },
+                    orderDetail: true
+                  }
+                }
               }
             },
-          },
-        },
-      },
+            staffTasks: {
+              include: {
+                user: true,
+                task: {
+                  include: {
+                    checkQualities: {
+                      include: {
+                        orderDetail: {
+                          include: {
+                            order: true,
+                            design: true
+                          }
+                        },
+                        factoryOrderDetail: {
+                          include: {
+                            factoryOrder: true,
+                            design: {
+                              include: {
+                                user: true,
+                                systemConfigVariant: true
+                              }
+                            },
+                            orderDetail: true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
   }
 
@@ -109,12 +349,60 @@ export class StaffTaskService {
           include: {
             checkQualities: {
               include: {
-                orderDetail: true
+                orderDetail: {
+                  include: {
+                    order: true,
+                    design: true
+                  }
+                },
+                factoryOrderDetail: {
+                  include: {
+                    factoryOrder: true,
+                    design: {
+                      include: {
+                        user: true,
+                        systemConfigVariant: true
+                      }
+                    },
+                    orderDetail: true
+                  }
+                }
               }
             },
-          },
-        },
-      },
+            staffTasks: {
+              include: {
+                user: true,
+                task: {
+                  include: {
+                    checkQualities: {
+                      include: {
+                        orderDetail: {
+                          include: {
+                            order: true,
+                            design: true
+                          }
+                        },
+                        factoryOrderDetail: {
+                          include: {
+                            factoryOrder: true,
+                            design: {
+                              include: {
+                                user: true,
+                                systemConfigVariant: true
+                              }
+                            },
+                            orderDetail: true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
   }
 } 

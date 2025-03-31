@@ -62,10 +62,12 @@ type CategoryEntity {
 type CheckQuality {
   checkedAt: DateTime!
   checkedBy: String
+  factoryOrderDetail: FactoryOrderDetailEntity
   factoryOrderDetailId: ID
   failedQuantity: Int!
   id: ID!
   note: String
+  orderDetail: CustomerOrderDetailEntity!
   orderDetailId: ID!
   passedQuantity: Int!
   reworkRequired: Boolean!
@@ -270,6 +272,27 @@ type FactoryOrder {
   updatedAt: DateTime!
 }
 
+type FactoryOrderDetailEntity {
+  completedQty: Int!
+  createdAt: DateTime!
+  design: ProductDesign!
+  designId: ID!
+  factoryOrder: FactoryOrder!
+  factoryOrderId: ID!
+  id: ID!
+  orderDetail: CustomerOrderDetailEntity!
+  orderDetailId: ID!
+  price: Int!
+  productionCost: Int!
+  qualityCheckedAt: DateTime
+  qualityCheckedBy: String
+  qualityStatus: QualityCheckStatus
+  quantity: Int!
+  rejectedQty: Int!
+  status: OrderStatus!
+  updatedAt: DateTime
+}
+
 enum FactoryOrderStatus {
   ACCEPTED
   CANCELLED
@@ -391,6 +414,17 @@ type NotificationEntity {
   userId: String!
 }
 
+enum OrderStatus {
+  ACCEPTED
+  ASSIGNED_TO_FACTORY
+  CANCELED
+  COMPLETED
+  DELIVERED
+  IN_PRODUCTION
+  PAYMENT_RECEIVED
+  PENDING
+}
+
 type PaymentEntity {
   amount: Int!
   createdAt: DateTime!
@@ -434,6 +468,18 @@ type PaymentTransactionEntity {
   status: String!
   transactionLog: String!
   type: String!
+}
+
+type ProductDesign {
+  createdAt: DateTime!
+  id: ID!
+  isFinalized: Boolean!
+  isPublic: Boolean!
+  isTemplate: Boolean!
+  systemConfigVariant: SystemConfigVariantEntity!
+  systemConfigVariantId: ID!
+  user: UserEntity!
+  userId: ID!
 }
 
 type ProductDesignEntity {
@@ -632,13 +678,17 @@ type SystemConfigVariantEntity {
 }
 
 type TaskEntity {
+  assignedBy: String
   checkQualities: [CheckQuality!]!
   description: String!
   expiredTime: DateTime!
+  factoryOrderId: ID
   id: ID!
-  qualityCheckStatus: String!
+  qualityCheckStatus: QualityCheckStatus!
+  staffTasks: [StaffTask!]
   startDate: DateTime!
   status: String!
+  taskType: String
   taskname: String!
 }
 

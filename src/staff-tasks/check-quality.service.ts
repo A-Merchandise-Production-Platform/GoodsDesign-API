@@ -11,9 +11,30 @@ export class CheckQualityService {
     return this.prisma.checkQuality.findMany({
       include: {
         task: true,
-        orderDetail: true,
-        factoryOrderDetail: true,
-      },
+        orderDetail: {
+          include: {
+            order: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            }
+          }
+        },
+        factoryOrderDetail: {
+          include: {
+            factoryOrder: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            },
+            orderDetail: true
+          }
+        }
+      }
     });
   }
 
@@ -22,9 +43,30 @@ export class CheckQualityService {
       where: { id },
       include: {
         task: true,
-        orderDetail: true,
-        factoryOrderDetail: true,
-      },
+        orderDetail: {
+          include: {
+            order: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            }
+          }
+        },
+        factoryOrderDetail: {
+          include: {
+            factoryOrder: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            },
+            orderDetail: true
+          }
+        }
+      }
     });
   }
 
@@ -33,9 +75,30 @@ export class CheckQualityService {
       where: { taskId },
       include: {
         task: true,
-        orderDetail: true,
-        factoryOrderDetail: true,
-      },
+        orderDetail: {
+          include: {
+            order: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            }
+          }
+        },
+        factoryOrderDetail: {
+          include: {
+            factoryOrder: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            },
+            orderDetail: true
+          }
+        }
+      }
     });
   }
 
@@ -58,9 +121,30 @@ export class CheckQualityService {
       },
       include: {
         task: true,
-        orderDetail: true,
-        factoryOrderDetail: true,
-      },
+        orderDetail: {
+          include: {
+            order: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            }
+          }
+        },
+        factoryOrderDetail: {
+          include: {
+            factoryOrder: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            },
+            orderDetail: true
+          }
+        }
+      }
     });
   }
 
@@ -70,21 +154,74 @@ export class CheckQualityService {
       data: { status },
       include: {
         task: true,
-        orderDetail: true,
-        factoryOrderDetail: true,
-      },
+        orderDetail: {
+          include: {
+            order: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            }
+          }
+        },
+        factoryOrderDetail: {
+          include: {
+            factoryOrder: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            },
+            orderDetail: true
+          }
+        }
+      }
     });
   }
 
-  async update(id: string, data: Partial<CheckQuality>): Promise<CheckQuality> {
+  async update(id: string, data: {
+    totalChecked?: number;
+    passedQuantity?: number;
+    failedQuantity?: number;
+    status?: QualityCheckStatus;
+    reworkRequired?: boolean;
+    note?: string;
+    checkedBy?: string;
+  }): Promise<CheckQuality> {
     return this.prisma.checkQuality.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        checkedAt: new Date()
+      },
       include: {
         task: true,
-        orderDetail: true,
-        factoryOrderDetail: true,
-      },
+        orderDetail: {
+          include: {
+            order: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            }
+          }
+        },
+        factoryOrderDetail: {
+          include: {
+            factoryOrder: true,
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true
+              }
+            },
+            orderDetail: true
+          }
+        }
+      }
     });
   }
 } 
