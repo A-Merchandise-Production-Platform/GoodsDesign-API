@@ -241,6 +241,31 @@ type FactoryEntity {
   website: String
 }
 
+type FactoryOrder {
+  acceptanceDeadline: DateTime
+  completedAt: DateTime
+  createdAt: DateTime!
+  customerOrder: CustomerOrderEntity
+  customerOrderId: String!
+  estimatedCompletionDate: DateTime
+  factoryId: String!
+  id: ID!
+  isDelayed: Boolean!
+  status: FactoryOrderStatus!
+  updatedAt: DateTime!
+}
+
+enum FactoryOrderStatus {
+  ACCEPTED
+  CANCELLED
+  COMPLETED
+  EXPIRED
+  IN_PRODUCTION
+  PENDING_ACCEPTANCE
+  REJECTED
+  SHIPPED
+}
+
 type FactoryProductEntity {
   estimatedProductionTime: Int!
   factoryId: String!
@@ -301,6 +326,7 @@ type Mutation {
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
   markAllNotificationsAsRead: [NotificationEntity!]!
+  markFactoryOrderAsDelayed(id: ID!): FactoryOrder!
   markNotificationAsRead(id: ID!): NotificationEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
@@ -321,6 +347,7 @@ type Mutation {
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
+  updateFactoryOrderStatus(id: ID!, status: String!): FactoryOrder!
   updateNotification(input: UpdateNotificationDto!): NotificationEntity!
   updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransaction!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
@@ -450,6 +477,10 @@ type Query {
   distinctVariantAttributes(productId: String!): VariantAttributes!
   district(districtId: Int!): District!
   districts(provinceId: Int!): [District!]!
+  factoryOrder(id: ID!): FactoryOrder!
+  factoryOrders: [FactoryOrder!]!
+  factoryOrdersByCustomerOrder(customerOrderId: ID!): [FactoryOrder!]!
+  factoryOrdersByFactory: [FactoryOrder!]!
   getAllDiscountByProductId(productId: String!): [SystemConfigDiscountEntity!]!
   getApplicableDiscount(productId: String!, quantity: Float!): Float!
   getCartItem(id: String!): CartItemEntity!

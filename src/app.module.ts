@@ -2,7 +2,6 @@ import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo"
 import { Module } from "@nestjs/common"
 import { GraphQLModule } from "@nestjs/graphql"
-import { ScheduleModule } from "@nestjs/schedule"
 import { ServeStaticModule } from "@nestjs/serve-static"
 import GraphQLJSON from "graphql-type-json"
 import { join } from "path"
@@ -12,9 +11,11 @@ import { AppService } from "./app.service"
 import { AuthModule } from "./auth"
 import { CartItemsModule } from "./cart-items/cart-items.module"
 import { CategoriesModule } from "./categories"
+import { CronModule } from "./cron/cron.module"
 import { CustomerOrdersModule } from "./customer-orders/customer-orders.module"
 import { DesignPositionModule } from "./design-position/design-position.module"
 import { EnvModule } from "./dynamic-modules"
+import { FactoryOrderModule } from "./factory-orders/factory-orders.module"
 import { FactoryModule } from "./factory/factory.module"
 import { FileModule } from "./file/file.module"
 import { MailModule } from "./mail/mail.module"
@@ -30,7 +31,6 @@ import { SocketModule } from "./socket/socket.module"
 import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
-import { CronModule } from "./cron/cron.module"
 
 @Module({
     imports: [
@@ -73,7 +73,8 @@ import { CronModule } from "./cron/cron.module"
         AddressesModule,
         PaymentGatewayModule,
         SystemConfigVariantModule,
-        CronModule
+        CronModule,
+        FactoryOrderModule
         // TestModule,
     ],
     controllers: [AppController],
