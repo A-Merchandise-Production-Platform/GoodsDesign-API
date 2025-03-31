@@ -67,10 +67,10 @@ export class DefaultGateway implements OnGatewayConnection, OnGatewayDisconnect,
         }
     }
 
-    //cron job - send message to all clients
-    @Cron(CronExpression.EVERY_SECOND)
-    handleCron() {
-        this.logger.debug("Cron job executed")
-        this.server.emit("message", "Hello from the server")
-    }
+    // //cron job - send message to all clients
+    // @Cron(CronExpression.EVERY_SECOND)
+    // handleCron() {
+    //     this.logger.debug("Cron job executed")
+    //     this.server.emit("message", "Hello from the server")
+    // }
 }
