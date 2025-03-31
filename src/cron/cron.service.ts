@@ -59,25 +59,25 @@ export class CronService {
   //   await this.generateFactoryPerformanceReport();
   // }
 
-  @Cron('0 */5 * * * *') // Mỗi 5 phút
-  async createQualityTasks() {
-    // await this.createQualityCheckTasksForCompletedOrders();
-  }
+  // @Cron('0 */5 * * * *') // Mỗi 5 phút
+  // async createQualityTasks() {
+  //   // await this.createQualityCheckTasksForCompletedOrders();
+  // }
 
-  @Cron('0 */10 * * * *') // Mỗi 10 phút
-  async assignTasks() {
-    // await this.assignPendingTasksToStaff();
-  }
+  // @Cron('0 */10 * * * *') // Mỗi 10 phút
+  // async assignTasks() {
+  //   // await this.assignPendingTasksToStaff();
+  // }
 
-  @Cron('0 */30 * * * *') // Mỗi 30 phút
-  async checkExpiredTasks() {
-    // await this.checkAndUpdateExpiredTasks();
-  }
+  // @Cron('0 */30 * * * *') // Mỗi 30 phút
+  // async checkExpiredTasks() {
+  //   // await this.checkAndUpdateExpiredTasks();
+  // }
 
-  @Cron('0 0 */2 * * *') // Mỗi 2 giờ
-  async processDeliveries() {
-    // await this.processCompletedOrdersForDelivery();
-  }
+  // @Cron('0 0 */2 * * *') // Mỗi 2 giờ
+  // async processDeliveries() {
+  //   // await this.processCompletedOrdersForDelivery();
+  // }
 
   
 
