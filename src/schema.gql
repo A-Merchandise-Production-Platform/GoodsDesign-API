@@ -59,6 +59,19 @@ type CategoryEntity {
   updatedBy: String
 }
 
+type CheckQualityEntity {
+  checkedAt: DateTime!
+  failedQuantity: Int!
+  id: ID!
+  note: String
+  orderDetailId: ID!
+  passedQuantity: Int!
+  reworkRequired: Boolean!
+  status: String!
+  taskId: ID!
+  totalChecked: Int!
+}
+
 """Create Address Input"""
 input CreateAddressInput {
   districtID: Float!
@@ -304,6 +317,7 @@ input LoginDto {
 type Mutation {
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   clearCart: Boolean!
+  completeStaffTask(id: ID!): StaffTask!
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
@@ -353,6 +367,7 @@ type Mutation {
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
+  updateStaffTaskStatus(id: ID!, status: String!): StaffTask!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigDiscount(id: String!, updateDiscountInput: UpdateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
   updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
@@ -487,6 +502,7 @@ type Query {
   getCartItemCount: Float!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
+  myStaffTasks: [StaffTask!]!
   notification(id: ID!): NotificationEntity!
   notifications: [NotificationEntity!]!
   paymentTransaction(id: ID!): PaymentTransaction
@@ -501,6 +517,9 @@ type Query {
   products: [ProductEntity!]!
   province(provinceId: Int!): Province!
   provinces: [Province!]!
+  staffTask(id: ID!): StaffTask!
+  staffTasks: [StaffTask!]!
+  staffTasksByTask(taskId: ID!): [StaffTask!]!
   systemConfigBank(id: ID!): SystemConfigBankEntity!
   systemConfigBanks: [SystemConfigBankEntity!]!
   systemConfigDiscount(id: String!): SystemConfigDiscountEntity!
@@ -551,6 +570,18 @@ type ShippingService {
   shortName: String!
 }
 
+type StaffTask {
+  assignedDate: DateTime!
+  completedDate: DateTime
+  id: ID!
+  note: String
+  status: String!
+  task: TaskEntity!
+  taskId: ID!
+  user: UserEntity!
+  userId: ID!
+}
+
 type SystemConfigBankEntity {
   bin: String!
   code: String!
@@ -584,6 +615,17 @@ type SystemConfigVariantEntity {
   product: ProductEntity!
   productId: String!
   size: String
+}
+
+type TaskEntity {
+  checkQualities: [CheckQualityEntity!]!
+  description: String!
+  expiredTime: DateTime!
+  id: ID!
+  qualityCheckStatus: String!
+  startDate: DateTime!
+  status: String!
+  taskname: String!
 }
 
 """Status of transaction"""

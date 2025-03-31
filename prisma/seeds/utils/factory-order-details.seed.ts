@@ -4,7 +4,7 @@ import { factoryOrderDetailsData } from '../data/factory-order-details.data';
 export async function seedFactoryOrderDetails(prisma: PrismaClient) {
   console.log('Seeding factory order details...');
   
-  for (const factoryOrderDetail of factoryOrderDetailsData) {
+  for (const factoryOrderDetail of factoryOrderDetailsData.factoryOrderDetails) {
     await prisma.factoryOrderDetail.create({
       data: {
         id: factoryOrderDetail.id,
@@ -13,10 +13,13 @@ export async function seedFactoryOrderDetails(prisma: PrismaClient) {
         orderDetailId: factoryOrderDetail.orderDetailId,
         quantity: factoryOrderDetail.quantity,
         status: factoryOrderDetail.status,
-        price: 100, // Default price, should be copied from CustomerOrderDetail
+        price: factoryOrderDetail.price,
         productionCost: factoryOrderDetail.productionCost,
-        completedQty: 0,
-        rejectedQty: 0
+        completedQty: factoryOrderDetail.completedQty,
+        rejectedQty: factoryOrderDetail.rejectedQty,
+        qualityStatus: factoryOrderDetail.qualityStatus,
+        qualityCheckedAt: factoryOrderDetail.qualityCheckedAt,
+        qualityCheckedBy: factoryOrderDetail.qualityCheckedBy
       },
     });
   }
