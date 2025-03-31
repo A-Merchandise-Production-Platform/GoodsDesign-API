@@ -46,6 +46,6 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            cd /home/uydev/devops-vps/goodsdesign
+            cd /root/devops-vps/goodsdesign
             docker compose pull
             docker compose up -d
