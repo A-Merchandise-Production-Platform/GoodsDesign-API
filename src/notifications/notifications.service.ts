@@ -84,7 +84,6 @@ export class NotificationsService {
         title: string
         content: string
         userId: string
-        type?: string
         url?: string
         data?: any
     }) {
@@ -120,7 +119,6 @@ export class NotificationsService {
         title: string
         content: string
         userIds: string[]
-        type?: string
         url?: string
         data?: any
     }) {
