@@ -1,8 +1,6 @@
-import { Field, ID, InputType, PartialType } from '@nestjs/graphql';
+import { PartialType } from '@nestjs/mapped-types';
 import { CreateNotificationDto } from './create-notification.dto';
 
-@InputType()
 export class UpdateNotificationDto extends PartialType(CreateNotificationDto) {
-  @Field(() => ID)
-  id: string;
-} 
+  id: number;
+}

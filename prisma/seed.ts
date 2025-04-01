@@ -19,7 +19,8 @@ import {
     seedFactoryOrderDetails,
     seedCartItems,
     seedDiscounts,
-    seedSystemConfigVariants
+    seedSystemConfigVariants,
+    seedNotifications
 } from "./seeds"
 
 const prisma = new PrismaClient()
@@ -81,6 +82,9 @@ async function main() {
         await seedTasks(prisma)
         await seedStaffTasks(prisma)
         await seedCheckQualities(prisma)
+
+        // Seed notifications
+        await seedNotifications(prisma)
 
         console.log("Seeding completed successfully!")
     } catch (error) {

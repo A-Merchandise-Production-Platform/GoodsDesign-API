@@ -97,14 +97,6 @@ input CreateCategoryDto {
   name: String!
 }
 
-input CreateNotificationDto {
-  content: String
-  isRead: Boolean! = false
-  title: String
-  url: String
-  userId: String!
-}
-
 input CreateOrderDetailDto {
   cartItemId: String!
 }
@@ -372,7 +364,8 @@ type Mutation {
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
   createCheckQuality(factoryOrderDetailId: ID, failedQuantity: Float!, note: String, orderDetailId: ID!, passedQuantity: Float!, reworkRequired: Boolean!, status: QualityCheckStatus!, taskId: ID!, totalChecked: Float!): CheckQuality!
-  createNotification(input: CreateNotificationDto!): NotificationEntity!
+  createNotification(content: String!, title: String!, url: String, userId: String!): NotificationEntity!
+  createNotificationForManyUsers(content: String!, title: String!, url: String, userIds: [String!]!): [NotificationEntity!]!
   createOrder(createOrderInput: CreateOrderDto!): CustomerOrderEntity!
   createPayment(gateway: String!, paymentId: String!): String!
   createPaymentTransaction(input: CreatePaymentTransactionInput!): PaymentTransaction!
@@ -390,12 +383,10 @@ type Mutation {
   deleteUser(id: String!): UserEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
-  markAllNotificationsAsRead: [NotificationEntity!]!
   markFactoryOrderAsDelayed(id: ID!): FactoryOrder!
-  markNotificationAsRead(id: ID!): NotificationEntity!
+  markNotificationAsRead(id: String!): NotificationEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
-  removeNotification(id: ID!): NotificationEntity!
   removePaymentTransaction(id: ID!): PaymentTransaction!
   removeProductDesign(id: ID!): ProductDesignEntity!
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
@@ -414,7 +405,6 @@ type Mutation {
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateFactoryOrderStatus(id: ID!, status: String!): FactoryOrder!
-  updateNotification(input: UpdateNotificationDto!): NotificationEntity!
   updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransaction!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
@@ -436,7 +426,6 @@ type NotificationEntity {
   updatedAt: DateTime
   url: String
   user: UserEntity
-  userId: String!
 }
 
 enum OrderStatus {
@@ -610,9 +599,11 @@ type Query {
   getCartItemCount: Float!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
+  myNotifications: [NotificationEntity!]!
   myStaffTasks: [StaffTask!]!
-  notification(id: ID!): NotificationEntity!
+  notification(id: String!): NotificationEntity!
   notifications: [NotificationEntity!]!
+  notificationsByUserId(isRead: Boolean): [NotificationEntity!]!
   paymentTransaction(id: ID!): PaymentTransaction
   paymentTransactions: [PaymentTransaction!]!
   paymentTransactionsByCustomer(customerId: ID!): [PaymentTransaction!]!
@@ -801,15 +792,6 @@ input UpdateFactoryInfoDto {
   taxIdentificationNumber: String
   totalEmployees: Int
   website: String
-}
-
-input UpdateNotificationDto {
-  content: String
-  id: ID!
-  isRead: Boolean = false
-  title: String
-  url: String
-  userId: String
 }
 
 input UpdatePaymentTransactionInput {

@@ -26,12 +26,11 @@ import { ProductPositionTypeModule } from "./product-position-type/product-posit
 import { ProductsModule } from "./products"
 import { RedisModule } from "./redis"
 import { ShippingModule } from "./shipping/shipping.module"
-import { NotificationsModule } from "./socket/notifications/notifications.module"
-import { SocketModule } from "./socket/socket.module"
 import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
 import { StaffTasksModule } from "./staff-tasks/staff-tasks.module"
+import { NotificationsModule } from "./notifications/notifications.module"
 
 @Module({
     imports: [
@@ -55,8 +54,6 @@ import { StaffTasksModule } from "./staff-tasks/staff-tasks.module"
         CategoriesModule,
         ProductsModule,
         RedisModule,
-        NotificationsModule,
-        SocketModule,
         SystemConfigBankModule,
         ProductPositionTypeModule,
         ProductDesignModule,
@@ -75,6 +72,7 @@ import { StaffTasksModule } from "./staff-tasks/staff-tasks.module"
         PaymentGatewayModule,
         SystemConfigVariantModule,
         CronModule,
+        NotificationsModule,
         FactoryOrderModule,
         StaffTasksModule
         // TestModule,
