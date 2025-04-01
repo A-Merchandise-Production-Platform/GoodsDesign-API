@@ -17,7 +17,12 @@ export class CheckQualityService {
               user: true,
               task: {
                 include: {
-                  staffTasks: true
+                  checkQualities: true,
+                  staffTasks: {
+                    include: {
+                      user: true
+                    }
+                  }
                 }
               }
             }
@@ -71,7 +76,11 @@ export class CheckQualityService {
                       task: {
                         include: {
                           checkQualities: true,
-                          staffTasks: true
+                          staffTasks: {
+                            include: {
+                              user: true
+                            }
+                          }
                         }
                       }
                     }
