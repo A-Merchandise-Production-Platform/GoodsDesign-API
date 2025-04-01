@@ -46,8 +46,8 @@ export class CheckQuality {
   @Field(() => String, { nullable: true })
   checkedBy?: string;
 
-  @Field(() => CustomerOrderDetailEntity)
-  orderDetail: CustomerOrderDetailEntity;
+  @Field(() => CustomerOrderDetailEntity, { nullable: true })
+  orderDetail?: CustomerOrderDetailEntity;
 
   @Field(() => FactoryOrderDetailEntity, { nullable: true })
   factoryOrderDetail?: FactoryOrderDetailEntity;

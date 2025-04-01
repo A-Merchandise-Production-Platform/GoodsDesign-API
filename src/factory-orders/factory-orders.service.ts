@@ -8,28 +8,95 @@ export class FactoryOrderService {
 
   constructor(private prisma: PrismaService) {}
 
+  private getIncludeObject() {
+    return {
+      customerOrder: {
+        include: {
+          orderDetails: {
+            include: {
+              design: {
+                include: {
+                  designPositions: true,
+                  user: true,
+                  systemConfigVariant: true
+                }
+              }
+            }
+          }
+        }
+      },
+      orderDetails: {
+        include: {
+          design: {
+            include: {
+              user: true,
+              systemConfigVariant: true
+            }
+          },
+          orderDetail: true,
+          checkQualities: {
+            include: {
+              orderDetail: {
+                include: {
+                  order: true,
+                  design: {
+                    include: {
+                      user: true,
+                      systemConfigVariant: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      progressReports: true,
+      qualityIssues: true,
+      tasks: {
+        include: {
+          checkQualities: {
+            include: {
+              orderDetail: {
+                include: {
+                  order: true,
+                  design: {
+                    include: {
+                      user: true,
+                      systemConfigVariant: true
+                    }
+                  }
+                }
+              },
+              factoryOrderDetail: {
+                include: {
+                  factoryOrder: true,
+                  design: {
+                    include: {
+                      user: true,
+                      systemConfigVariant: true
+                    }
+                  },
+                  orderDetail: true
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+  }
+
   async findAll() {
-    return this.prisma.factoryOrder.findMany();
+    return this.prisma.factoryOrder.findMany({
+      include: this.getIncludeObject()
+    });
   }
 
   async findOne(id: string) {
     return this.prisma.factoryOrder.findUnique({
       where: { id },
-      include: {
-        customerOrder: {
-            include: {
-                orderDetails: {
-                    include: {
-                        design: {
-                            include: {
-                                designPositions: true
-                            }
-                        }
-                    }
-                }
-            }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 
@@ -39,44 +106,36 @@ export class FactoryOrderService {
     }
     return this.prisma.factoryOrder.findMany({
       where: { factoryId },
-      include: {
-        customerOrder: {
-            include: {
-                orderDetails: {
-                    include: {
-                        design: {
-                            include: {
-                                designPositions: true
-                            }
-                        }
-                    }
-                }
-            }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 
   async findByCustomerOrder(customerOrderId: string) {
     return this.prisma.factoryOrder.findMany({
-      where: { customerOrderId }
+      where: { customerOrderId },
+      include: this.getIncludeObject()
     });
   }
 
   async updateStatus(id: string, status: FactoryOrderStatus) {
-    console.log(id, status)
     return this.prisma.factoryOrder.update({
       where: { id },
       data: { 
         status,
-      }
+        lastUpdated: new Date()
+      },
+      include: this.getIncludeObject()
     });
   }
 
   async markAsDelayed(id: string) {
     return this.prisma.factoryOrder.update({
       where: { id },
-      data: { isDelayed: true }
+      data: { 
+        isDelayed: true,
+        lastUpdated: new Date()
+      },
+      include: this.getIncludeObject()
     });
   }
 }

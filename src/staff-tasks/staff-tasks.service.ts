@@ -6,58 +6,132 @@ import { StaffTask } from './entity/staff-task.entity';
 export class StaffTaskService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(): Promise<StaffTask[]> {
-    return this.prisma.staffTask.findMany({
-      include: {
-        user: true,
-        task: {
-          include: {
-            checkQualities: {
-              include: {
-                orderDetail: {
-                  include: {
-                    order: true,
-                    design: true
-                  }
-                },
-                factoryOrderDetail: {
-                  include: {
-                    factoryOrder: true,
-                    design: {
-                      include: {
-                        user: true,
-                        systemConfigVariant: true
-                      }
-                    },
-                    orderDetail: true
+  private getIncludeObject() {
+    return {
+      user: true,
+      task: {
+        include: {
+          checkQualities: {
+            include: {
+              orderDetail: {
+                include: {
+                  order: true,
+                  design: {
+                    include: {
+                      user: true,
+                      systemConfigVariant: true
+                    }
                   }
                 }
+              },
+              factoryOrderDetail: {
+                include: {
+                  factoryOrder: {
+                    include: {
+                      customerOrder: true,
+                      orderDetails: {
+                        include: {
+                          design: {
+                            include: {
+                              user: true,
+                              systemConfigVariant: true
+                            }
+                          },
+                          orderDetail: true,
+                          checkQualities: true
+                        }
+                      },
+                      progressReports: {
+                        include: {
+                          factoryOrder: true
+                        }
+                      },
+                      qualityIssues: {
+                        include: {
+                          factoryOrder: true
+                        }
+                      },
+                      tasks: {
+                        include: {
+                          checkQualities: true,
+                          staffTasks: true
+                        }
+                      }
+                    }
+                  },
+                  design: {
+                    include: {
+                      user: true,
+                      systemConfigVariant: true
+                    }
+                  },
+                  orderDetail: true,
+                  checkQualities: true
+                }
               }
-            },
-            staffTasks: {
-              include: {
-                user: true,
-                task: {
-                  include: {
-                    checkQualities: {
-                      include: {
-                        orderDetail: {
-                          include: {
-                            order: true,
-                            design: true
+            }
+          },
+          staffTasks: {
+            include: {
+              user: true,
+              task: {
+                include: {
+                  checkQualities: {
+                    include: {
+                      orderDetail: {
+                        include: {
+                          order: true,
+                          design: {
+                            include: {
+                              user: true,
+                              systemConfigVariant: true
+                            }
                           }
-                        },
-                        factoryOrderDetail: {
-                          include: {
-                            factoryOrder: true,
-                            design: {
-                              include: {
-                                user: true,
-                                systemConfigVariant: true
+                        }
+                      },
+                      factoryOrderDetail: {
+                        include: {
+                          factoryOrder: {
+                            include: {
+                              customerOrder: true,
+                              orderDetails: {
+                                include: {
+                                  design: {
+                                    include: {
+                                      user: true,
+                                      systemConfigVariant: true
+                                    }
+                                  },
+                                  orderDetail: true,
+                                  checkQualities: true
+                                }
+                              },
+                              progressReports: {
+                                include: {
+                                  factoryOrder: true
+                                }
+                              },
+                              qualityIssues: {
+                                include: {
+                                  factoryOrder: true
+                                }
+                              },
+                              tasks: {
+                                include: {
+                                  checkQualities: true,
+                                  staffTasks: true
+                                }
                               }
-                            },
-                            orderDetail: true
-                          }
+                            }
+                          },
+                          design: {
+                            include: {
+                              user: true,
+                              systemConfigVariant: true
+                            }
+                          },
+                          orderDetail: true,
+                          checkQualities: true
                         }
                       }
                     }
@@ -68,204 +142,33 @@ export class StaffTaskService {
           }
         }
       }
+    };
+  }
+
+  async findAll(): Promise<StaffTask[]> {
+    return this.prisma.staffTask.findMany({
+      include: this.getIncludeObject()
     });
   }
 
   async findOne(id: string): Promise<StaffTask> {
     return this.prisma.staffTask.findUnique({
       where: { id },
-      include: {
-        user: true,
-        task: {
-          include: {
-            checkQualities: {
-              include: {
-                orderDetail: {
-                  include: {
-                    order: true,
-                    design: true
-                  }
-                },
-                factoryOrderDetail: {
-                  include: {
-                    factoryOrder: true,
-                    design: {
-                      include: {
-                        user: true,
-                        systemConfigVariant: true
-                      }
-                    },
-                    orderDetail: true
-                  }
-                }
-              }
-            },
-            staffTasks: {
-              include: {
-                user: true,
-                task: {
-                  include: {
-                    checkQualities: {
-                      include: {
-                        orderDetail: {
-                          include: {
-                            order: true,
-                            design: true
-                          }
-                        },
-                        factoryOrderDetail: {
-                          include: {
-                            factoryOrder: true,
-                            design: {
-                              include: {
-                                user: true,
-                                systemConfigVariant: true
-                              }
-                            },
-                            orderDetail: true
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 
   async findByUserId(userId: string): Promise<StaffTask[]> {
     return this.prisma.staffTask.findMany({
       where: { userId },
-      include: {
-        user: true,
-        task: {
-          include: {
-            checkQualities: {
-              include: {
-                orderDetail: {
-                  include: {
-                    order: true,
-                    design: true
-                  }
-                },
-                factoryOrderDetail: {
-                  include: {
-                    factoryOrder: true,
-                    design: {
-                      include: {
-                        user: true,
-                        systemConfigVariant: true
-                      }
-                    },
-                    orderDetail: true
-                  }
-                }
-              }
-            },
-            staffTasks: {
-              include: {
-                user: true,
-                task: {
-                  include: {
-                    checkQualities: {
-                      include: {
-                        orderDetail: {
-                          include: {
-                            order: true,
-                            design: true
-                          }
-                        },
-                        factoryOrderDetail: {
-                          include: {
-                            factoryOrder: true,
-                            design: {
-                              include: {
-                                user: true,
-                                systemConfigVariant: true
-                              }
-                            },
-                            orderDetail: true
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 
   async findByTaskId(taskId: string): Promise<StaffTask[]> {
     return this.prisma.staffTask.findMany({
       where: { taskId },
-      include: {
-        user: true,
-        task: {
-          include: {
-            checkQualities: {
-              include: {
-                orderDetail: {
-                  include: {
-                    order: true,
-                    design: true
-                  }
-                },
-                factoryOrderDetail: {
-                  include: {
-                    factoryOrder: true,
-                    design: {
-                      include: {
-                        user: true,
-                        systemConfigVariant: true
-                      }
-                    },
-                    orderDetail: true
-                  }
-                }
-              }
-            },
-            staffTasks: {
-              include: {
-                user: true,
-                task: {
-                  include: {
-                    checkQualities: {
-                      include: {
-                        orderDetail: {
-                          include: {
-                            order: true,
-                            design: true
-                          }
-                        },
-                        factoryOrderDetail: {
-                          include: {
-                            factoryOrder: true,
-                            design: {
-                              include: {
-                                user: true,
-                                systemConfigVariant: true
-                              }
-                            },
-                            orderDetail: true
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 
@@ -273,66 +176,7 @@ export class StaffTaskService {
     return this.prisma.staffTask.update({
       where: { id },
       data: { status },
-      include: {
-        user: true,
-        task: {
-          include: {
-            checkQualities: {
-              include: {
-                orderDetail: {
-                  include: {
-                    order: true,
-                    design: true
-                  }
-                },
-                factoryOrderDetail: {
-                  include: {
-                    factoryOrder: true,
-                    design: {
-                      include: {
-                        user: true,
-                        systemConfigVariant: true
-                      }
-                    },
-                    orderDetail: true
-                  }
-                }
-              }
-            },
-            staffTasks: {
-              include: {
-                user: true,
-                task: {
-                  include: {
-                    checkQualities: {
-                      include: {
-                        orderDetail: {
-                          include: {
-                            order: true,
-                            design: true
-                          }
-                        },
-                        factoryOrderDetail: {
-                          include: {
-                            factoryOrder: true,
-                            design: {
-                              include: {
-                                user: true,
-                                systemConfigVariant: true
-                              }
-                            },
-                            orderDetail: true
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 
@@ -343,66 +187,7 @@ export class StaffTaskService {
         status: 'COMPLETED',
         completedDate: new Date(),
       },
-      include: {
-        user: true,
-        task: {
-          include: {
-            checkQualities: {
-              include: {
-                orderDetail: {
-                  include: {
-                    order: true,
-                    design: true
-                  }
-                },
-                factoryOrderDetail: {
-                  include: {
-                    factoryOrder: true,
-                    design: {
-                      include: {
-                        user: true,
-                        systemConfigVariant: true
-                      }
-                    },
-                    orderDetail: true
-                  }
-                }
-              }
-            },
-            staffTasks: {
-              include: {
-                user: true,
-                task: {
-                  include: {
-                    checkQualities: {
-                      include: {
-                        orderDetail: {
-                          include: {
-                            order: true,
-                            design: true
-                          }
-                        },
-                        factoryOrderDetail: {
-                          include: {
-                            factoryOrder: true,
-                            design: {
-                              include: {
-                                user: true,
-                                systemConfigVariant: true
-                              }
-                            },
-                            orderDetail: true
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 } 

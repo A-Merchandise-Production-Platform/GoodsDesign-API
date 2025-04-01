@@ -61,12 +61,15 @@ export class FactoryOrderDetailEntity {
   @Field(() => String, { nullable: true })
   qualityCheckedBy?: string;
 
-  @Field(() => FactoryOrder)
-  factoryOrder: FactoryOrder;
+  @Field(() => FactoryOrder, { nullable: true })
+  factoryOrder?: FactoryOrder;
 
   @Field(() => ProductDesign)
   design: ProductDesign;
 
   @Field(() => CustomerOrderDetailEntity)
   orderDetail: CustomerOrderDetailEntity;
+
+  @Field(() => [CheckQuality], { nullable: true })
+  checkQualities?: CheckQuality[];
 } 

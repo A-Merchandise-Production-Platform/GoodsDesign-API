@@ -67,7 +67,7 @@ type CheckQuality {
   failedQuantity: Int!
   id: ID!
   note: String
-  orderDetail: CustomerOrderDetailEntity!
+  orderDetail: CustomerOrderDetailEntity
   orderDetailId: ID!
   passedQuantity: Int!
   reworkRequired: Boolean!
@@ -259,25 +259,39 @@ type FactoryEntity {
 }
 
 type FactoryOrder {
-  acceptanceDeadline: DateTime
+  acceptanceDeadline: DateTime!
+  acceptedAt: DateTime
+  assignedAt: DateTime!
   completedAt: DateTime
   createdAt: DateTime!
+  currentProgress: Int
   customerOrder: CustomerOrderEntity
   customerOrderId: String!
+  delayReason: String
   estimatedCompletionDate: DateTime
   factoryId: String!
   id: ID!
   isDelayed: Boolean!
+  lastUpdated: DateTime
+  orderDetails: [FactoryOrderDetailEntity!]
+  progressReports: [FactoryProgressReport!]
+  qualityIssues: [QualityIssue!]
+  rejectionReason: String
+  shippedAt: DateTime
   status: FactoryOrderStatus!
-  updatedAt: DateTime!
+  tasks: [TaskEntity!]
+  totalItems: Int!
+  totalProductionCost: Int!
+  updatedAt: DateTime
 }
 
 type FactoryOrderDetailEntity {
+  checkQualities: [CheckQuality!]
   completedQty: Int!
   createdAt: DateTime!
   design: ProductDesign!
   designId: ID!
-  factoryOrder: FactoryOrder!
+  factoryOrder: FactoryOrder
   factoryOrderId: ID!
   id: ID!
   orderDetail: CustomerOrderDetailEntity!
@@ -310,6 +324,17 @@ type FactoryProductEntity {
   id: String!
   productionCapacity: Int!
   systemConfigVariantId: String!
+}
+
+type FactoryProgressReport {
+  completedQty: Int!
+  estimatedCompletion: DateTime!
+  factoryOrder: FactoryOrder
+  factoryOrderId: ID!
+  id: ID!
+  notes: String!
+  photoUrls: [String!]!
+  reportDate: DateTime!
 }
 
 enum FactoryStatus {
@@ -537,6 +562,29 @@ enum QualityCheckStatus {
   PARTIAL_APPROVED
   PENDING
   REJECTED
+}
+
+type QualityIssue {
+  assignedTo: String
+  description: String!
+  factoryOrder: FactoryOrder
+  factoryOrderId: String!
+  id: ID!
+  issueType: String!
+  photoUrls: [String!]!
+  reportedAt: DateTime!
+  reportedBy: String
+  resolution: String
+  resolvedAt: DateTime
+  resolvedBy: String
+  status: QualityIssueStatus!
+}
+
+enum QualityIssueStatus {
+  INVESTIGATING
+  REJECTED
+  REPORTED
+  RESOLVED
 }
 
 type Query {

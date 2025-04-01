@@ -7,98 +7,109 @@ import { QualityCheckStatus } from '@prisma/client';
 export class CheckQualityService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(): Promise<CheckQuality[]> {
-    return this.prisma.checkQuality.findMany({
-      include: {
-        task: true,
-        orderDetail: {
-          include: {
-            order: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
+  private getIncludeObject() {
+    return {
+      task: {
+        include: {
+          checkQualities: true,
+          staffTasks: {
+            include: {
+              user: true,
+              task: {
+                include: {
+                  staffTasks: true
+                }
               }
             }
           }
-        },
-        factoryOrderDetail: {
-          include: {
-            factoryOrder: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
-              }
-            },
-            orderDetail: true
+        }
+      },
+      orderDetail: {
+        include: {
+          order: true,
+          design: {
+            include: {
+              user: true,
+              systemConfigVariant: true
+            }
           }
         }
+      },
+      factoryOrderDetail: {
+        include: {
+          factoryOrder: {
+            include: {
+              customerOrder: true,
+              orderDetails: {
+                include: {
+                  design: {
+                    include: {
+                      user: true,
+                      systemConfigVariant: true
+                    }
+                  },
+                  orderDetail: true,
+                  checkQualities: true
+                }
+              },
+              progressReports: {
+                include: {
+                  factoryOrder: true
+                }
+              },
+              qualityIssues: {
+                include: {
+                  factoryOrder: true
+                }
+              },
+              tasks: {
+                include: {
+                  checkQualities: true,
+                  staffTasks: {
+                    include: {
+                      user: true,
+                      task: {
+                        include: {
+                          checkQualities: true,
+                          staffTasks: true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          design: {
+            include: {
+              user: true,
+              systemConfigVariant: true
+            }
+          },
+          orderDetail: true,
+          checkQualities: true
+        }
       }
+    };
+  }
+
+  async findAll(): Promise<CheckQuality[]> {
+    return this.prisma.checkQuality.findMany({
+      include: this.getIncludeObject()
     });
   }
 
   async findOne(id: string): Promise<CheckQuality> {
     return this.prisma.checkQuality.findUnique({
       where: { id },
-      include: {
-        task: true,
-        orderDetail: {
-          include: {
-            order: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
-              }
-            }
-          }
-        },
-        factoryOrderDetail: {
-          include: {
-            factoryOrder: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
-              }
-            },
-            orderDetail: true
-          }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 
   async findByTaskId(taskId: string): Promise<CheckQuality[]> {
     return this.prisma.checkQuality.findMany({
       where: { taskId },
-      include: {
-        task: true,
-        orderDetail: {
-          include: {
-            order: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
-              }
-            }
-          }
-        },
-        factoryOrderDetail: {
-          include: {
-            factoryOrder: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
-              }
-            },
-            orderDetail: true
-          }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 
@@ -119,32 +130,7 @@ export class CheckQualityService {
         ...data,
         checkedAt: new Date(),
       },
-      include: {
-        task: true,
-        orderDetail: {
-          include: {
-            order: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
-              }
-            }
-          }
-        },
-        factoryOrderDetail: {
-          include: {
-            factoryOrder: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
-              }
-            },
-            orderDetail: true
-          }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 
@@ -152,32 +138,7 @@ export class CheckQualityService {
     return this.prisma.checkQuality.update({
       where: { id },
       data: { status },
-      include: {
-        task: true,
-        orderDetail: {
-          include: {
-            order: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
-              }
-            }
-          }
-        },
-        factoryOrderDetail: {
-          include: {
-            factoryOrder: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
-              }
-            },
-            orderDetail: true
-          }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 
@@ -196,32 +157,7 @@ export class CheckQualityService {
         ...data,
         checkedAt: new Date()
       },
-      include: {
-        task: true,
-        orderDetail: {
-          include: {
-            order: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
-              }
-            }
-          }
-        },
-        factoryOrderDetail: {
-          include: {
-            factoryOrder: true,
-            design: {
-              include: {
-                user: true,
-                systemConfigVariant: true
-              }
-            },
-            orderDetail: true
-          }
-        }
-      }
+      include: this.getIncludeObject()
     });
   }
 } 

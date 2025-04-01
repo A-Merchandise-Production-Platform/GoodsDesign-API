@@ -1,12 +1,14 @@
-import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { FactoryOrderStatus } from '@prisma/client';
-import { IsOptional } from 'class-validator';
 import { CustomerOrderEntity } from 'src/customer-orders/entities';
+import { TaskEntity } from 'src/staff-tasks/entity/task.entity';
+import { FactoryOrderDetailEntity } from './factory-order-detail.entity';
+import { FactoryProgressReport } from './factory-progress-report.entity';
+import { QualityIssue } from './quality-issue.entity';
 
 registerEnumType(FactoryOrderStatus, {
     name: "FactoryOrderStatus"
 })
-
 
 @ObjectType()
 export class FactoryOrder {
@@ -22,8 +24,17 @@ export class FactoryOrder {
   @Field(() => FactoryOrderStatus)
   status: FactoryOrderStatus;
 
+  @Field(() => Date)
+  assignedAt: Date;
+
+  @Field(() => Date)
+  acceptanceDeadline: Date;
+
   @Field(() => Date, { nullable: true })
-  acceptanceDeadline?: Date;
+  acceptedAt?: Date;
+
+  @Field(() => String, { nullable: true })
+  rejectionReason?: string;
 
   @Field(() => Date, { nullable: true })
   estimatedCompletionDate?: Date;
@@ -31,16 +42,45 @@ export class FactoryOrder {
   @Field(() => Date, { nullable: true })
   completedAt?: Date;
 
-  @Field(() => Boolean, { defaultValue: false })
-  isDelayed: boolean;
+  @Field(() => Date, { nullable: true })
+  shippedAt?: Date;
+
+  @Field(() => Int)
+  totalItems: number;
 
   @Field(() => Date)
   createdAt: Date;
 
-  @Field(() => Date)
-  updatedAt: Date;
+  @Field(() => Date, { nullable: true })
+  updatedAt?: Date;
 
-  @Field(() => CustomerOrderEntity, {nullable:true})
-  @IsOptional()
-  customerOrder?: CustomerOrderEntity
+  @Field(() => Int)
+  totalProductionCost: number;
+
+  @Field(() => Date, { nullable: true })
+  lastUpdated?: Date;
+
+  @Field(() => Int, { nullable: true })
+  currentProgress?: number;
+
+  @Field(() => String, { nullable: true })
+  delayReason?: string;
+
+  @Field(() => Boolean)
+  isDelayed: boolean;
+
+  @Field(() => CustomerOrderEntity, { nullable: true })
+  customerOrder?: CustomerOrderEntity;
+
+  @Field(() => [FactoryOrderDetailEntity], { nullable: true })
+  orderDetails?: FactoryOrderDetailEntity[];
+
+  @Field(() => [FactoryProgressReport], { nullable: true })
+  progressReports?: FactoryProgressReport[];
+
+  @Field(() => [QualityIssue], { nullable: true })
+  qualityIssues?: QualityIssue[];
+
+  @Field(() => [TaskEntity], { nullable: true })
+  tasks?: TaskEntity[];
 }
