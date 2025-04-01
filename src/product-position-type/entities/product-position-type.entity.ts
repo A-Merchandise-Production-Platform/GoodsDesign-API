@@ -20,4 +20,8 @@ export class ProductPositionTypeEntity {
 
   @Field(() => [ProductPositionTypeEntity], { nullable: true })
   positionTypes?: ProductPositionTypeEntity[];
+
+  constructor(partial: Partial<ProductPositionTypeEntity>) {
+    Object.assign(this, partial)
+}
 } 

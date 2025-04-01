@@ -35,7 +35,7 @@ export class ProductDesignService {
       }
     })
     
-    return this.prisma.productDesign.create({
+    const data = await this.prisma.productDesign.create({
       data: {
         ...designData,
         user: {
@@ -64,10 +64,11 @@ export class ProductDesignService {
         },
       },
     });
+    return new ProductDesignEntity(data);
   }
 
   async findAll(userId?: string): Promise<ProductDesignEntity[]> {
-    return this.prisma.productDesign.findMany({
+    const data = await this.prisma.productDesign.findMany({
       where: userId ? { userId } : undefined,
       include: {
         user: true,
@@ -83,10 +84,11 @@ export class ProductDesignService {
         },
       },
     });
+    return data.map(item => new ProductDesignEntity(item));
   }
 
   async findOne(id: string): Promise<ProductDesignEntity> {
-    return this.prisma.productDesign.findUnique({
+    const data = await this.prisma.productDesign.findUnique({
       where: { id },
       include: {
         user: true,
@@ -102,10 +104,11 @@ export class ProductDesignService {
         },
       },
     });
+    return new ProductDesignEntity(data);
   }
 
   async update(id: string, updateProductDesignDto: UpdateProductDesignDto): Promise<ProductDesignEntity> {
-    return this.prisma.productDesign.update({
+    const data = await this.prisma.productDesign.update({
       where: { id },
       data: updateProductDesignDto,
       include: {
@@ -122,10 +125,11 @@ export class ProductDesignService {
         },
       },
     });
+    return new ProductDesignEntity(data);
   }
 
   async remove(id: string): Promise<ProductDesignEntity> {
-    return this.prisma.productDesign.delete({
+    const data = await this.prisma.productDesign.delete({
       where: { id },
       include: {
         user: true,
@@ -141,5 +145,6 @@ export class ProductDesignService {
         },
       },
     });
+    return new ProductDesignEntity(data);
   }
 } 

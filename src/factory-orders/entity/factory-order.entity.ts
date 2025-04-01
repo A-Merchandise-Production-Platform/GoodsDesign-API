@@ -83,4 +83,8 @@ export class FactoryOrder {
 
   @Field(() => [TaskEntity], { nullable: true })
   tasks?: TaskEntity[];
+
+  constructor(partial: Partial<FactoryOrder>) {
+    Object.assign(this, partial)
+}
 }

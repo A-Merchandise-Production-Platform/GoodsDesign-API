@@ -103,23 +103,26 @@ export class CheckQualityService {
   }
 
   async findAll(): Promise<CheckQuality[]> {
-    return this.prisma.checkQuality.findMany({
+    const data = await this.prisma.checkQuality.findMany({
       include: this.getIncludeObject()
     });
+    return data.map(item => new CheckQuality(item));
   }
 
   async findOne(id: string): Promise<CheckQuality> {
-    return this.prisma.checkQuality.findUnique({
+    const data = await this.prisma.checkQuality.findUnique({
       where: { id },
       include: this.getIncludeObject()
     });
+    return new CheckQuality(data);
   }
 
   async findByTaskId(taskId: string): Promise<CheckQuality[]> {
-    return this.prisma.checkQuality.findMany({
+    const data = await this.prisma.checkQuality.findMany({
       where: { taskId },
       include: this.getIncludeObject()
     });
+    return data.map(item => new CheckQuality(item));
   }
 
   async create(data: {
@@ -134,21 +137,23 @@ export class CheckQualityService {
     note?: string;
     checkedBy?: string;
   }): Promise<CheckQuality> {
-    return this.prisma.checkQuality.create({
+    const result = await this.prisma.checkQuality.create({
       data: {
         ...data,
         checkedAt: new Date(),
       },
       include: this.getIncludeObject()
     });
+    return new CheckQuality(result);
   }
 
   async updateStatus(id: string, status: QualityCheckStatus): Promise<CheckQuality> {
-    return this.prisma.checkQuality.update({
+    const data = await this.prisma.checkQuality.update({
       where: { id },
       data: { status },
       include: this.getIncludeObject()
     });
+    return new CheckQuality(data);
   }
 
   async update(id: string, data: {
@@ -160,7 +165,7 @@ export class CheckQualityService {
     note?: string;
     checkedBy?: string;
   }): Promise<CheckQuality> {
-    return this.prisma.checkQuality.update({
+    const result = await this.prisma.checkQuality.update({
       where: { id },
       data: {
         ...data,
@@ -168,5 +173,6 @@ export class CheckQualityService {
       },
       include: this.getIncludeObject()
     });
+    return new CheckQuality(result);
   }
 } 

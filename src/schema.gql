@@ -684,7 +684,7 @@ type StaffTask {
   id: ID!
   note: String
   status: String!
-  task: TaskEntity!
+  task: TaskEntity
   taskId: ID!
   user: UserEntity!
   userId: ID!

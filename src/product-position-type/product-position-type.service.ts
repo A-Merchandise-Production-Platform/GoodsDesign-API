@@ -9,17 +9,18 @@ export class ProductPositionTypeService {
   constructor(private prisma: PrismaService) {}
 
   async create(createProductPositionTypeDto: CreateProductPositionTypeDto): Promise<ProductPositionTypeEntity> {
-    return this.prisma.productPositionType.create({
+    const data = await this.prisma.productPositionType.create({
       data: createProductPositionTypeDto,
       include: {
         product: true,
         designPositions: true,
       },
     });
+    return new ProductPositionTypeEntity(data);
   }
 
   async findAll(productId: string): Promise<ProductPositionTypeEntity[]> {
-    return this.prisma.productPositionType.findMany({
+    const data = await this.prisma.productPositionType.findMany({
       where: {
         productId,
       },
@@ -28,20 +29,22 @@ export class ProductPositionTypeService {
         designPositions: true,
       },
     });
+    return data.map(item => new ProductPositionTypeEntity(item));
   }
 
   async findOne(id: string): Promise<ProductPositionTypeEntity> {
-    return this.prisma.productPositionType.findUnique({
+    const data = await this.prisma.productPositionType.findUnique({
       where: { id },
       include: {
         product: true,
         designPositions: true,
       },
     });
+    return new ProductPositionTypeEntity(data);
   }
 
   async update(id: string, updateProductPositionTypeDto: UpdateProductPositionTypeDto): Promise<ProductPositionTypeEntity> {
-    return this.prisma.productPositionType.update({
+    const data = await this.prisma.productPositionType.update({
       where: { id },
       data: updateProductPositionTypeDto,
       include: {
@@ -49,15 +52,17 @@ export class ProductPositionTypeService {
         designPositions: true,
       },
     });
+    return new ProductPositionTypeEntity(data);
   }
 
   async remove(id: string): Promise<ProductPositionTypeEntity> {
-    return this.prisma.productPositionType.delete({
+    const data = await this.prisma.productPositionType.delete({
       where: { id },
       include: {
         product: true,
         designPositions: true,
       },
     });
+    return new ProductPositionTypeEntity(data);
   }
 } 

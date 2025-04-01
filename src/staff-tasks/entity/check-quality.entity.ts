@@ -51,4 +51,8 @@ export class CheckQuality {
 
   @Field(() => FactoryOrderDetailEntity, { nullable: true })
   factoryOrderDetail?: FactoryOrderDetailEntity;
+
+  constructor(partial: Partial<CheckQuality>) {
+    Object.assign(this, partial)
+}
 } 
