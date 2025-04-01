@@ -1,21 +1,50 @@
 import { FactoryOrderStatus } from '@prisma/client';
 import { factoriesData } from './factories.data';
 
-export const factoryOrdersData = [
-  {
-    id: 'factoryorder001',
-    factoryId: factoriesData[0].factoryOwnerId,
-    status: FactoryOrderStatus.ACCEPTED,
-    estimatedCompletionDate: new Date('2024-04-01'),
-    totalItems: 100,
-    totalProductionCost: 5000000,
-  },
-  {
-    id: 'factoryorder002',
-    factoryId: factoriesData[0].factoryOwnerId,
-    status: FactoryOrderStatus.IN_PRODUCTION,
-    estimatedCompletionDate: new Date('2024-04-15'),
-    totalItems: 50,
-    totalProductionCost: 2500000,
-  },
-]; 
+export const factoryOrdersData = {
+  factoryOrders: [
+    {
+      id: 'factoryorder001',
+      factoryId: 'factory-id',
+      customerOrderId: 'order001',
+      status: FactoryOrderStatus.IN_PRODUCTION,
+      assignedAt: new Date(),
+      acceptanceDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      acceptedAt: new Date(),
+      estimatedCompletionDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      totalItems: 100,
+      totalProductionCost: 1000000,
+      currentProgress: 30,
+      isDelayed: false,
+    },
+    {
+      id: 'factoryorder002',
+      factoryId: 'factory-id',
+      customerOrderId: 'order002',
+      status: FactoryOrderStatus.IN_PRODUCTION,
+      assignedAt: new Date(),
+      acceptanceDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      acceptedAt: new Date(),
+      estimatedCompletionDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+      totalItems: 50,
+      totalProductionCost: 750000,
+      currentProgress: 45,
+      isDelayed: false,
+    },
+    {
+      id: 'factoryorder003',
+      factoryId: 'factory-id',
+      customerOrderId: 'order003',
+      status: FactoryOrderStatus.IN_PRODUCTION,
+      assignedAt: new Date(),
+      acceptanceDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      acceptedAt: new Date(),
+      estimatedCompletionDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
+      totalItems: 75,
+      totalProductionCost: 875000,
+      currentProgress: 20,
+      isDelayed: true,
+      delayReason: 'Material shortage',
+    },
+  ],
+}; 

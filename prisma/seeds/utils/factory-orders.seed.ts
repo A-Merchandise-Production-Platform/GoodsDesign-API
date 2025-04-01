@@ -4,7 +4,7 @@ import { factoryOrdersData } from '../data/factory-orders.data';
 export async function seedFactoryOrders(prisma: PrismaClient) {
   console.log('Seeding factory orders...');
   
-  for (const factoryOrder of factoryOrdersData) {
+  for (const factoryOrder of factoryOrdersData.factoryOrders) {
     await prisma.factoryOrder.create({
       data: {
         id: factoryOrder.id,

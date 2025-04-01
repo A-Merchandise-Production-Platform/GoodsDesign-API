@@ -59,6 +59,23 @@ type CategoryEntity {
   updatedBy: String
 }
 
+type CheckQuality {
+  checkedAt: DateTime!
+  checkedBy: String
+  factoryOrderDetail: FactoryOrderDetailEntity
+  factoryOrderDetailId: ID
+  failedQuantity: Int!
+  id: ID!
+  note: String
+  orderDetail: CustomerOrderDetailEntity
+  orderDetailId: ID!
+  passedQuantity: Int!
+  reworkRequired: Boolean!
+  status: QualityCheckStatus!
+  taskId: ID!
+  totalChecked: Int!
+}
+
 """Create Address Input"""
 input CreateAddressInput {
   districtID: Float!
@@ -242,17 +259,52 @@ type FactoryEntity {
 }
 
 type FactoryOrder {
-  acceptanceDeadline: DateTime
+  acceptanceDeadline: DateTime!
+  acceptedAt: DateTime
+  assignedAt: DateTime!
   completedAt: DateTime
   createdAt: DateTime!
+  currentProgress: Int
   customerOrder: CustomerOrderEntity
   customerOrderId: String!
+  delayReason: String
   estimatedCompletionDate: DateTime
   factoryId: String!
   id: ID!
   isDelayed: Boolean!
+  lastUpdated: DateTime
+  orderDetails: [FactoryOrderDetailEntity!]
+  progressReports: [FactoryProgressReport!]
+  qualityIssues: [QualityIssue!]
+  rejectionReason: String
+  shippedAt: DateTime
   status: FactoryOrderStatus!
-  updatedAt: DateTime!
+  tasks: [TaskEntity!]
+  totalItems: Int!
+  totalProductionCost: Int!
+  updatedAt: DateTime
+}
+
+type FactoryOrderDetailEntity {
+  checkQualities: [CheckQuality!]
+  completedQty: Int!
+  createdAt: DateTime!
+  design: ProductDesign!
+  designId: ID!
+  factoryOrder: FactoryOrder
+  factoryOrderId: ID!
+  id: ID!
+  orderDetail: CustomerOrderDetailEntity!
+  orderDetailId: ID!
+  price: Int!
+  productionCost: Int!
+  qualityCheckedAt: DateTime
+  qualityCheckedBy: String
+  qualityStatus: QualityCheckStatus
+  quantity: Int!
+  rejectedQty: Int!
+  status: OrderStatus!
+  updatedAt: DateTime
 }
 
 enum FactoryOrderStatus {
@@ -272,6 +324,17 @@ type FactoryProductEntity {
   id: String!
   productionCapacity: Int!
   systemConfigVariantId: String!
+}
+
+type FactoryProgressReport {
+  completedQty: Int!
+  estimatedCompletion: DateTime!
+  factoryOrder: FactoryOrder
+  factoryOrderId: ID!
+  id: ID!
+  notes: String!
+  photoUrls: [String!]!
+  reportDate: DateTime!
 }
 
 enum FactoryStatus {
@@ -304,9 +367,11 @@ input LoginDto {
 type Mutation {
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   clearCart: Boolean!
+  completeStaffTask(id: ID!): StaffTask!
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
+  createCheckQuality(factoryOrderDetailId: ID, failedQuantity: Float!, note: String, orderDetailId: ID!, passedQuantity: Float!, reworkRequired: Boolean!, status: QualityCheckStatus!, taskId: ID!, totalChecked: Float!): CheckQuality!
   createNotification(input: CreateNotificationDto!): NotificationEntity!
   createOrder(createOrderInput: CreateOrderDto!): CustomerOrderEntity!
   createPayment(gateway: String!, paymentId: String!): String!
@@ -345,6 +410,7 @@ type Mutation {
   updateAddress(id: String!, updateAddressInput: UpdateAddressInput!): AddressEntity!
   updateCartItem(id: String!, updateCartItemInput: UpdateCartItemDto!): CartItemEntity!
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
+  updateCheckQualityStatus(id: ID!, status: QualityCheckStatus!): CheckQuality!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateFactoryOrderStatus(id: ID!, status: String!): FactoryOrder!
@@ -353,6 +419,7 @@ type Mutation {
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
+  updateStaffTaskStatus(id: ID!, status: String!): StaffTask!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigDiscount(id: String!, updateDiscountInput: UpdateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
   updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
@@ -370,6 +437,17 @@ type NotificationEntity {
   url: String
   user: UserEntity
   userId: String!
+}
+
+enum OrderStatus {
+  ACCEPTED
+  ASSIGNED_TO_FACTORY
+  CANCELED
+  COMPLETED
+  DELIVERED
+  IN_PRODUCTION
+  PAYMENT_RECEIVED
+  PENDING
 }
 
 type PaymentEntity {
@@ -415,6 +493,18 @@ type PaymentTransactionEntity {
   status: String!
   transactionLog: String!
   type: String!
+}
+
+type ProductDesign {
+  createdAt: DateTime!
+  id: ID!
+  isFinalized: Boolean!
+  isPublic: Boolean!
+  isTemplate: Boolean!
+  systemConfigVariant: SystemConfigVariantEntity!
+  systemConfigVariantId: ID!
+  user: UserEntity!
+  userId: ID!
 }
 
 type ProductDesignEntity {
@@ -467,12 +557,45 @@ type Province {
   provinceName: String!
 }
 
+enum QualityCheckStatus {
+  APPROVED
+  PARTIAL_APPROVED
+  PENDING
+  REJECTED
+}
+
+type QualityIssue {
+  assignedTo: String
+  description: String!
+  factoryOrder: FactoryOrder
+  factoryOrderId: String!
+  id: ID!
+  issueType: String!
+  photoUrls: [String!]!
+  reportedAt: DateTime!
+  reportedBy: String
+  resolution: String
+  resolvedAt: DateTime
+  resolvedBy: String
+  status: QualityIssueStatus!
+}
+
+enum QualityIssueStatus {
+  INVESTIGATING
+  REJECTED
+  REPORTED
+  RESOLVED
+}
+
 type Query {
   address(id: String!): AddressEntity!
   addresses: [AddressEntity!]!
   availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
+  checkQualities: [CheckQuality!]!
+  checkQualitiesByTask(taskId: ID!): [CheckQuality!]!
+  checkQuality(id: ID!): CheckQuality!
   designPosition(designId: ID!, productPositionTypeId: ID!): DesignPositionEntity!
   distinctVariantAttributes(productId: String!): VariantAttributes!
   district(districtId: Int!): District!
@@ -487,6 +610,7 @@ type Query {
   getCartItemCount: Float!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
+  myStaffTasks: [StaffTask!]!
   notification(id: ID!): NotificationEntity!
   notifications: [NotificationEntity!]!
   paymentTransaction(id: ID!): PaymentTransaction
@@ -501,6 +625,9 @@ type Query {
   products: [ProductEntity!]!
   province(provinceId: Int!): Province!
   provinces: [Province!]!
+  staffTask(id: ID!): StaffTask!
+  staffTasks: [StaffTask!]!
+  staffTasksByTask(taskId: ID!): [StaffTask!]!
   systemConfigBank(id: ID!): SystemConfigBankEntity!
   systemConfigBanks: [SystemConfigBankEntity!]!
   systemConfigDiscount(id: String!): SystemConfigDiscountEntity!
@@ -551,6 +678,18 @@ type ShippingService {
   shortName: String!
 }
 
+type StaffTask {
+  assignedDate: DateTime!
+  completedDate: DateTime
+  id: ID!
+  note: String
+  status: String!
+  task: TaskEntity!
+  taskId: ID!
+  user: UserEntity!
+  userId: ID!
+}
+
 type SystemConfigBankEntity {
   bin: String!
   code: String!
@@ -584,6 +723,21 @@ type SystemConfigVariantEntity {
   product: ProductEntity!
   productId: String!
   size: String
+}
+
+type TaskEntity {
+  assignedBy: String
+  checkQualities: [CheckQuality!]!
+  description: String!
+  expiredTime: DateTime!
+  factoryOrderId: ID
+  id: ID!
+  qualityCheckStatus: QualityCheckStatus!
+  staffTasks: [StaffTask!]
+  startDate: DateTime!
+  status: String!
+  taskType: String
+  taskname: String!
 }
 
 """Status of transaction"""
