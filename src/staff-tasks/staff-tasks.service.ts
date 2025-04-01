@@ -54,7 +54,21 @@ export class StaffTaskService {
                       tasks: {
                         include: {
                           checkQualities: true,
-                          staffTasks: true
+                          staffTasks: {
+                            include: {
+                              user: true,
+                              task: {
+                                include: {
+                                  checkQualities: true,
+                                  staffTasks: {
+                                    include: {
+                                      user: true
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
                         }
                       }
                     }
@@ -76,64 +90,10 @@ export class StaffTaskService {
               user: true,
               task: {
                 include: {
-                  checkQualities: {
+                  checkQualities: true,
+                  staffTasks: {
                     include: {
-                      orderDetail: {
-                        include: {
-                          order: true,
-                          design: {
-                            include: {
-                              user: true,
-                              systemConfigVariant: true
-                            }
-                          }
-                        }
-                      },
-                      factoryOrderDetail: {
-                        include: {
-                          factoryOrder: {
-                            include: {
-                              customerOrder: true,
-                              orderDetails: {
-                                include: {
-                                  design: {
-                                    include: {
-                                      user: true,
-                                      systemConfigVariant: true
-                                    }
-                                  },
-                                  orderDetail: true,
-                                  checkQualities: true
-                                }
-                              },
-                              progressReports: {
-                                include: {
-                                  factoryOrder: true
-                                }
-                              },
-                              qualityIssues: {
-                                include: {
-                                  factoryOrder: true
-                                }
-                              },
-                              tasks: {
-                                include: {
-                                  checkQualities: true,
-                                  staffTasks: true
-                                }
-                              }
-                            }
-                          },
-                          design: {
-                            include: {
-                              user: true,
-                              systemConfigVariant: true
-                            }
-                          },
-                          orderDetail: true,
-                          checkQualities: true
-                        }
-                      }
+                      user: true
                     }
                   }
                 }
