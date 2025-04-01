@@ -335,26 +335,33 @@ model Task {
   status             String
   startDate          DateTime
   expiredTime        DateTime
-  qualityCheckStatus String
+  qualityCheckStatus QualityCheckStatus // Thay đổi từ String sang enum
+  taskType           String?            // Loại nhiệm vụ
+  factoryOrderId     String?            // Liên kết với FactoryOrder
+  assignedBy         String?            // Người giao nhiệm vụ
 
   checkQualities CheckQuality[]
   staffTasks     StaffTask[]
+  factoryOrder      FactoryOrder?      @relation(fields: [factoryOrderId], references: [id])
 }
 
 model CheckQuality {
-  id             String   @id @default(uuid())
-  taskId         String
-  orderDetailId  String
-  totalChecked   Int
-  passedQuantity Int
-  failedQuantity Int
-  status         String
-  reworkRequired Boolean
-  note           String?
-  checkedAt      DateTime
+  id                 String             @id @default(uuid())
+  taskId             String
+  orderDetailId      String
+  factoryOrderDetailId String?          // Thêm liên kết với FactoryOrderDetail
+  totalChecked       Int
+  passedQuantity     Int
+  failedQuantity     Int
+  status             QualityCheckStatus // Thay đổi từ String sang enum
+  reworkRequired     Boolean
+  note               String?
+  checkedAt          DateTime
+  checkedBy          String?            // Thêm người kiểm tra
 
-  task        Task                @relation(fields: [taskId], references: [id])
-  orderDetail CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
+  task               Task                @relation(fields: [taskId], references: [id])
+  orderDetail        CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
+  factoryOrderDetail FactoryOrderDetail? @relation(fields: [factoryOrderDetailId], references: [id])
 }
 
 model StaffTask {
@@ -474,6 +481,7 @@ model FactoryOrder {
   orderDetails       FactoryOrderDetail[]
   progressReports    FactoryProgressReport[]
   qualityIssues      QualityIssue[]
+  tasks            Task[]
 }
 
 
@@ -491,9 +499,15 @@ model FactoryOrderDetail {
   updatedAt      DateTime?   @updatedAt
   productionCost Int
 
+  qualityStatus    QualityCheckStatus? // Thêm trạng thái kiểm tra chất lượng
+  qualityCheckedAt DateTime?           // Thời điểm kiểm tra chất lượng
+  qualityCheckedBy String?             // Người kiểm tra chất lượng
+
   factoryOrder FactoryOrder        @relation(fields: [factoryOrderId], references: [id])
   design       ProductDesign       @relation(fields: [designId], references: [id])
   orderDetail  CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
+
+  checkQualities   CheckQuality[] 
 }
 
 model FactoryProgressReport {
