@@ -274,6 +274,8 @@ type Mutation {
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
+  createNotification(content: String!, title: String!, url: String, userId: String!): NotificationEntity!
+  createNotificationForManyUsers(content: String!, title: String!, url: String, userIds: [String!]!): [NotificationEntity!]!
   createOrder(createOrderInput: CreateOrderDto!): CustomerOrderEntity!
   createPayment(gateway: String!, paymentId: String!): String!
   createPaymentTransaction(input: CreatePaymentTransactionInput!): PaymentTransaction!
@@ -291,6 +293,7 @@ type Mutation {
   deleteUser(id: String!): UserEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
+  markNotificationAsRead(id: String!): NotificationEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
   removePaymentTransaction(id: ID!): PaymentTransaction!
@@ -318,6 +321,17 @@ type Mutation {
   updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   uploadFile(file: Upload): FileUploadResponse!
+}
+
+type NotificationEntity {
+  content: String
+  createdAt: DateTime!
+  id: ID!
+  isRead: Boolean!
+  title: String
+  updatedAt: DateTime
+  url: String
+  user: UserEntity
 }
 
 type PaymentEntity {
@@ -431,6 +445,10 @@ type Query {
   getCartItemCount: Float!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
+  myNotifications: [NotificationEntity!]!
+  notification(id: String!): NotificationEntity!
+  notifications: [NotificationEntity!]!
+  notificationsByUserId(isRead: Boolean): [NotificationEntity!]!
   paymentTransaction(id: ID!): PaymentTransaction
   paymentTransactions: [PaymentTransaction!]!
   paymentTransactionsByCustomer(customerId: ID!): [PaymentTransaction!]!

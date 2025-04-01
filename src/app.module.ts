@@ -29,6 +29,7 @@ import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
 import { CronModule } from "./cron/cron.module"
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
     imports: [
@@ -69,7 +70,8 @@ import { CronModule } from "./cron/cron.module"
         AddressesModule,
         PaymentGatewayModule,
         SystemConfigVariantModule,
-        CronModule
+        CronModule,
+        NotificationsModule
         // TestModule,
     ],
     controllers: [AppController],
