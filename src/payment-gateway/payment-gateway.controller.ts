@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Query } from '@nestjs/common';
 import { PaymentGatewayService, VNPayQueryParams } from './payment-gateway.service';
 import { WebhookType } from '@payos/node/lib/type';
 
 @Controller('payment-gateway')
 export class PaymentGatewayController {
+  private logger = new Logger(PaymentGatewayController.name)
   constructor(private readonly paymentGatewayService: PaymentGatewayService) {}
 
   @Get('ipn-vnpay')
@@ -13,6 +14,7 @@ export class PaymentGatewayController {
 
   @Post('ipn-payos')
   async handlePayOSIPN(@Body() webhook: WebhookType) {
+    this.logger.verbose(webhook)
     return this.paymentGatewayService.verifyPayOSPayment(webhook);
   }
 }
