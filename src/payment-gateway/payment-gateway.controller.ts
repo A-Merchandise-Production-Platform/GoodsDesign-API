@@ -16,9 +16,6 @@ export class PaymentGatewayController {
   @HttpCode(HttpStatus.OK)
   async handlePayOSIPN(@Body() webhook: WebhookType) {
     this.logger.verbose(webhook)
-    return {
-      message: "Success"
-    }
     return this.paymentGatewayService.verifyPayOSPayment(webhook);
   }
 
