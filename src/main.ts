@@ -12,9 +12,13 @@ async function bootstrap() {
     app.enableCors({
         origin: [
             "http://localhost:3000",
-            "https://goodsdesign.uydev.id.vn"
+            "https://goodsdesign.uydev.id.vn",
+            "https://api.goodsdesign.uydev.id.vn"
         ],
-        credentials: true
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+        credentials: true,
+        exposedHeaders: ['Content-Range', 'X-Content-Range'],
     })
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, }))
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
