@@ -216,9 +216,6 @@ export class PaymentGatewayService implements OnModuleInit {
     }
 
     public async verifyPayOSPayment(webhook: WebhookType) {
-        return {
-            message: "Success"
-        }
         //check signature
         const webhookData: WebhookDataType = this.payOS.verifyPaymentWebhookData(webhook)
 

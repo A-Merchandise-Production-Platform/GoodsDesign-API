@@ -15,6 +15,17 @@ export class PaymentGatewayController {
   @Post('ipn-payos')
   async handlePayOSIPN(@Body() webhook: WebhookType) {
     this.logger.verbose(webhook)
+    return {
+      message: "Success"
+    }
     return this.paymentGatewayService.verifyPayOSPayment(webhook);
+  }
+
+  @Get('ipn-payos')
+  async handleGetPayOSIPN(@Body() webhook: WebhookType) {
+    this.logger.verbose(webhook)
+    return {
+        message: "Success"
+    }
   }
 }
