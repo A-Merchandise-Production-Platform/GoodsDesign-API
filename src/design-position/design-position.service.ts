@@ -8,7 +8,7 @@ export class DesignPositionService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(designId?: string): Promise<DesignPositionEntity[]> {
-    return this.prisma.designPosition.findMany({
+    const data = await this.prisma.designPosition.findMany({
       where: designId ? { designId } : undefined,
       include: {
         design: {
@@ -19,10 +19,11 @@ export class DesignPositionService {
         positionType: true,
       },
     });
+    return data.map(item => new DesignPositionEntity(item));
   }
 
   async findOne(designId, productPositionTypeId): Promise<DesignPositionEntity> {
-    return this.prisma.designPosition.findUnique({
+    const data = await this.prisma.designPosition.findUnique({
       where: { 
         designPositionId: {
           designId,
@@ -38,10 +39,11 @@ export class DesignPositionService {
         positionType: true,
       },
     });
+    return new DesignPositionEntity(data);
   }
 
   async update(designId, productPositionTypeId, updateDesignPositionDto: UpdateDesignPositionDto): Promise<DesignPositionEntity> {
-    return this.prisma.designPosition.update({
+    const data = await this.prisma.designPosition.update({
       where: {
         designPositionId: {
           designId,
@@ -58,5 +60,6 @@ export class DesignPositionService {
         positionType: true,
       },
     });
+    return new DesignPositionEntity(data);
   }
 } 

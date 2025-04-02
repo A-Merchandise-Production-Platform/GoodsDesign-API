@@ -97,12 +97,21 @@ input CreateCategoryDto {
   name: String!
 }
 
-input CreateNotificationDto {
-  content: String
-  isRead: Boolean! = false
-  title: String
-  url: String
-  userId: String!
+input CreateFactoryProgressReportDto {
+  """The quantity of items completed in this progress report"""
+  completedQty: Float!
+
+  """The date when this progress report was created"""
+  estimatedCompletion: DateTime!
+
+  """The ID of the factory order this report belongs to"""
+  factoryOrderId: String!
+
+  """Additional notes about the progress"""
+  notes: String
+
+  """Array of URLs to photos documenting the progress"""
+  photoUrls: [String!]!
 }
 
 input CreateOrderDetailDto {
@@ -303,7 +312,7 @@ type FactoryOrderDetailEntity {
   qualityStatus: QualityCheckStatus
   quantity: Int!
   rejectedQty: Int!
-  status: OrderStatus!
+  status: OrderDetailStatus!
   updatedAt: DateTime
 }
 
@@ -311,6 +320,7 @@ enum FactoryOrderStatus {
   ACCEPTED
   CANCELLED
   COMPLETED
+  DONE_PRODUCTION
   EXPIRED
   IN_PRODUCTION
   PENDING_ACCEPTANCE
@@ -332,7 +342,7 @@ type FactoryProgressReport {
   factoryOrder: FactoryOrder
   factoryOrderId: ID!
   id: ID!
-  notes: String!
+  notes: String
   photoUrls: [String!]!
   reportDate: DateTime!
 }
@@ -364,6 +374,14 @@ input LoginDto {
   password: String!
 }
 
+input MarkAsDelayedDto {
+  """The reason for the delay in production"""
+  delayReason: String!
+
+  """The new estimated completion date for the delayed order"""
+  estimatedCompletionDate: DateTime!
+}
+
 type Mutation {
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   clearCart: Boolean!
@@ -372,7 +390,9 @@ type Mutation {
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
   createCheckQuality(factoryOrderDetailId: ID, failedQuantity: Float!, note: String, orderDetailId: ID!, passedQuantity: Float!, reworkRequired: Boolean!, status: QualityCheckStatus!, taskId: ID!, totalChecked: Float!): CheckQuality!
-  createNotification(input: CreateNotificationDto!): NotificationEntity!
+  createFactoryProgressReport(input: CreateFactoryProgressReportDto!): FactoryProgressReport!
+  createNotification(content: String!, title: String!, url: String, userId: String!): NotificationEntity!
+  createNotificationForManyUsers(content: String!, title: String!, url: String, userIds: [String!]!): [NotificationEntity!]!
   createOrder(createOrderInput: CreateOrderDto!): CustomerOrderEntity!
   createPayment(gateway: String!, paymentId: String!): String!
   createPaymentTransaction(input: CreatePaymentTransactionInput!): PaymentTransaction!
@@ -390,12 +410,11 @@ type Mutation {
   deleteUser(id: String!): UserEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
-  markAllNotificationsAsRead: [NotificationEntity!]!
-  markFactoryOrderAsDelayed(id: ID!): FactoryOrder!
-  markNotificationAsRead(id: ID!): NotificationEntity!
+  markFactoryOrderAsDelayed(id: ID!, input: MarkAsDelayedDto!): FactoryOrder!
+  markNotificationAsRead(id: String!): NotificationEntity!
+  markOnDoneProduction(id: ID!): FactoryOrder!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
-  removeNotification(id: ID!): NotificationEntity!
   removePaymentTransaction(id: ID!): PaymentTransaction!
   removeProductDesign(id: ID!): ProductDesignEntity!
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
@@ -414,7 +433,6 @@ type Mutation {
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateFactoryOrderStatus(id: ID!, status: String!): FactoryOrder!
-  updateNotification(input: UpdateNotificationDto!): NotificationEntity!
   updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransaction!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
@@ -436,18 +454,20 @@ type NotificationEntity {
   updatedAt: DateTime
   url: String
   user: UserEntity
-  userId: String!
 }
 
-enum OrderStatus {
-  ACCEPTED
-  ASSIGNED_TO_FACTORY
-  CANCELED
+enum OrderDetailStatus {
   COMPLETED
-  DELIVERED
   IN_PRODUCTION
-  PAYMENT_RECEIVED
   PENDING
+  QUALITY_CHECK_FAILED
+  QUALITY_CHECK_PASSED
+  QUALITY_CHECK_PENDING
+  REJECTED
+  REWORK_COMPLETED
+  REWORK_IN_PROGRESS
+  REWORK_REQUIRED
+  SHIPPED
 }
 
 type PaymentEntity {
@@ -604,15 +624,19 @@ type Query {
   factoryOrders: [FactoryOrder!]!
   factoryOrdersByCustomerOrder(customerOrderId: ID!): [FactoryOrder!]!
   factoryOrdersByFactory: [FactoryOrder!]!
+  factoryProgressReport(id: ID!): FactoryProgressReport!
+  factoryProgressReports(factoryOrderId: ID!): [FactoryProgressReport!]!
   getAllDiscountByProductId(productId: String!): [SystemConfigDiscountEntity!]!
   getApplicableDiscount(productId: String!, quantity: Float!): Float!
   getCartItem(id: String!): CartItemEntity!
   getCartItemCount: Float!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
+  myNotifications: [NotificationEntity!]!
   myStaffTasks: [StaffTask!]!
-  notification(id: ID!): NotificationEntity!
+  notification(id: String!): NotificationEntity!
   notifications: [NotificationEntity!]!
+  notificationsByUserId(isRead: Boolean): [NotificationEntity!]!
   paymentTransaction(id: ID!): PaymentTransaction
   paymentTransactions: [PaymentTransaction!]!
   paymentTransactionsByCustomer(customerId: ID!): [PaymentTransaction!]!
@@ -685,7 +709,7 @@ type StaffTask {
   id: ID!
   note: String
   status: String!
-  task: TaskEntity!
+  task: TaskEntity
   taskId: ID!
   user: UserEntity!
   userId: ID!
@@ -802,15 +826,6 @@ input UpdateFactoryInfoDto {
   taxIdentificationNumber: String
   totalEmployees: Int
   website: String
-}
-
-input UpdateNotificationDto {
-  content: String
-  id: ID!
-  isRead: Boolean = false
-  title: String
-  url: String
-  userId: String
 }
 
 input UpdatePaymentTransactionInput {
