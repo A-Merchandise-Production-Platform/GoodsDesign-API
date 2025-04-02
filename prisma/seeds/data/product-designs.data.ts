@@ -5,6 +5,7 @@ interface ProductDesign {
   isFinalized: boolean;
   isPublic: boolean;
   isTemplate: boolean;
+  thumbnailUrl?: string;
 }
 
 interface ProductDesignsData {
@@ -20,6 +21,7 @@ export const productDesignsData: ProductDesignsData = {
       isFinalized: true,
       isPublic: true,
       isTemplate: true,
+      thumbnailUrl: "https://example.com/thumbnails/design001.jpg"
     },
     {
       id: "design002",
@@ -28,6 +30,7 @@ export const productDesignsData: ProductDesignsData = {
       isFinalized: true,
       isPublic: false,
       isTemplate: false,
+      thumbnailUrl: "https://example.com/thumbnails/design002.jpg"
     },
     {
       id: "design003",
@@ -36,6 +39,7 @@ export const productDesignsData: ProductDesignsData = {
       isFinalized: false,
       isPublic: false,
       isTemplate: false,
+      thumbnailUrl: "https://example.com/thumbnails/design003.jpg"
     },
   ],
 };

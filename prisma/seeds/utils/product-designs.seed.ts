@@ -22,7 +22,8 @@ export async function seedProductDesigns(prisma: PrismaClient) {
           systemConfigVariantId: design.systemConfigVariantId,
           isFinalized: design.isFinalized,
           isPublic: design.isPublic,
-          isTemplate: design.isTemplate
+          isTemplate: design.isTemplate,
+          thumbnailUrl: design.thumbnailUrl
         },
         create: {
           id: design.id,
@@ -30,7 +31,8 @@ export async function seedProductDesigns(prisma: PrismaClient) {
           systemConfigVariantId: design.systemConfigVariantId,
           isFinalized: design.isFinalized,
           isPublic: design.isPublic,
-          isTemplate: design.isTemplate
+          isTemplate: design.isTemplate,
+          thumbnailUrl: design.thumbnailUrl
         },
       });
     }
