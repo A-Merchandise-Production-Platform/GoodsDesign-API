@@ -167,6 +167,7 @@ model ProductDesign {
   createdAt         DateTime @default(now())
   isPublic          Boolean  @default(false)
   isTemplate        Boolean  @default(false)
+  thumbnailUrl      String?
 
   user                User                  @relation(fields: [userId], references: [id])
   systemConfigVariant SystemConfigVariant   @relation(fields: [systemConfigVariantId], references: [id])
