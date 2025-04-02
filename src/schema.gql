@@ -138,6 +138,7 @@ input CreateProductDesignDto {
   isPublic: Boolean! = false
   isTemplate: Boolean! = false
   systemConfigVariantId: String!
+  thumbnailUrl: String
   userId: String
 }
 
@@ -539,6 +540,7 @@ type ProductDesignEntity {
   isTemplate: Boolean!
   systemConfigVariant: SystemConfigVariantEntity
   systemConfigVariantId: String!
+  thumbnailUrl: String
   user: UserEntity
   userId: String!
 }
@@ -858,6 +860,7 @@ input UpdateProductDesignDto {
   isPublic: Boolean = false
   isTemplate: Boolean = false
   systemConfigVariantId: String
+  thumbnailUrl: String
   userId: String
 }
 

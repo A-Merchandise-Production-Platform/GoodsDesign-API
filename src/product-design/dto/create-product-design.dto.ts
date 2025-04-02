@@ -22,4 +22,9 @@ export class CreateProductDesignDto {
   @Field(() => Boolean, { defaultValue: false })
   @IsOptional()
   isTemplate?: boolean;
-} 
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  thumbnailUrl?: string;
+}
