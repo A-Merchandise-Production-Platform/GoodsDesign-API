@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { OrderDetailStatus } from '@prisma/client';
 import { registerEnumType } from '@nestjs/graphql';
 
@@ -11,7 +11,6 @@ registerEnumType(OrderDetailStatus, {
 @InputType()
 export class UpdateOrderDetailStatusDto {
   @Field(() => String, { description: 'The ID of the factory order detail to update' })
-  @IsUUID()
   @IsNotEmpty()
   orderDetailId: string;
 
@@ -22,5 +21,6 @@ export class UpdateOrderDetailStatusDto {
 
   @Field(() => String, { nullable: true, description: 'Optional note about the status change' })
   @IsString()
+  @IsOptional()
   note?: string;
 } 

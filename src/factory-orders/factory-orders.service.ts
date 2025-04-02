@@ -33,7 +33,7 @@ export class FactoryOrderService {
           design: {
             include: {
               user: true,
-              systemConfigVariant: true
+              systemConfigVariant: true,
             }
           },
           orderDetail: true,
@@ -100,7 +100,86 @@ export class FactoryOrderService {
   async findOne(id: string): Promise<FactoryOrder> {
     const data = await this.prisma.factoryOrder.findUnique({
       where: { id },
-      include: this.getIncludeObject()
+      include: {
+        customerOrder: {
+          include: {
+            orderDetails: {
+              include: {
+                design: {
+                  include: {
+                    designPositions: {
+                      include: {
+                        positionType: true
+                      }
+                    },
+                    user: true,
+                    systemConfigVariant: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        orderDetails: {
+          include: {
+            design: {
+              include: {
+                user: true,
+                systemConfigVariant: true,
+              }
+            },
+            orderDetail: true,
+            checkQualities: {
+              include: {
+                orderDetail: {
+                  include: {
+                    order: true,
+                    design: {
+                      include: {
+                        user: true,
+                        systemConfigVariant: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        progressReports: true,
+        qualityIssues: true,
+        tasks: {
+          include: {
+            checkQualities: {
+              include: {
+                orderDetail: {
+                  include: {
+                    order: true,
+                    design: {
+                      include: {
+                        user: true,
+                        systemConfigVariant: true
+                      }
+                    }
+                  }
+                },
+                factoryOrderDetail: {
+                  include: {
+                    factoryOrder: true,
+                    design: {
+                      include: {
+                        user: true,
+                        systemConfigVariant: true
+                      }
+                    },
+                    orderDetail: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
     return new FactoryOrder(data);
   }

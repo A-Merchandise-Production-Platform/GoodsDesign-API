@@ -433,6 +433,7 @@ type Mutation {
   updateCheckQualityStatus(id: ID!, status: QualityCheckStatus!): CheckQuality!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
+  updateFactoryOrderDetailStatus(input: UpdateOrderDetailStatusDto!): FactoryOrder!
   updateFactoryOrderStatus(id: ID!, status: String!): FactoryOrder!
   updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransaction!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
@@ -457,6 +458,7 @@ type NotificationEntity {
   user: UserEntity
 }
 
+"""Status of a factory order detail item"""
 enum OrderDetailStatus {
   COMPLETED
   IN_PRODUCTION
@@ -827,6 +829,17 @@ input UpdateFactoryInfoDto {
   taxIdentificationNumber: String
   totalEmployees: Int
   website: String
+}
+
+input UpdateOrderDetailStatusDto {
+  """Optional note about the status change"""
+  note: String
+
+  """The ID of the factory order detail to update"""
+  orderDetailId: String!
+
+  """The new status to set for the order detail"""
+  status: OrderDetailStatus!
 }
 
 input UpdatePaymentTransactionInput {
