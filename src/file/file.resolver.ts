@@ -21,6 +21,18 @@ export class FileResolver {
     return { url };
   }
 
+  @Mutation(() => Boolean)
+  async deleteFile(
+    @Args({ name: 'fileUrl', type: () => String }) fileUrl: string
+  ): Promise<boolean> {
+    try {
+      await this.fileService.deleteFile(fileUrl);
+      return true;
+    } catch (error) {
+      throw new Error(`Failed to delete file: ${error.message}`);
+    }
+  }
+
   private async streamToBuffer(stream: Readable): Promise<Buffer> {
     const chunks = [];
     
