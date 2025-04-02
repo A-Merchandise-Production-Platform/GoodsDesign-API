@@ -25,10 +25,15 @@ export class ProductDesignResolver {
   }
 
   @Query(() => [ProductDesignEntity])
-  async productDesigns(
+  async productDesignsByUser(
     @CurrentUser() { id }: UserEntity
   ) {
     return this.productDesignService.findAll(id);
+  }
+
+  @Query(() => [ProductDesignEntity])
+  async productDesigns() {
+    return this.productDesignService.findAll();
   }
 
   @Query(() => ProductDesignEntity)

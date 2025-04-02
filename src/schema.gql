@@ -36,7 +36,7 @@ input CalculateShippingFeeDto {
 
 type CartItemEntity {
   createdAt: DateTime!
-  design: ProductDesignEntity!
+  design: ProductDesignEntity
   id: ID!
   quantity: Int!
   userId: String!
@@ -644,6 +644,7 @@ type Query {
   product(id: String!): ProductEntity!
   productDesign(id: ID!): ProductDesignEntity!
   productDesigns: [ProductDesignEntity!]!
+  productDesignsByUser: [ProductDesignEntity!]!
   productPositionType(id: ID!): ProductPositionTypeEntity!
   productPositionTypes(productId: String!): [ProductPositionTypeEntity!]!
   products: [ProductEntity!]!
