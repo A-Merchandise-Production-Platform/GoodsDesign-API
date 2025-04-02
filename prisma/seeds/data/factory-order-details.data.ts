@@ -1,4 +1,4 @@
-import { OrderStatus, QualityCheckStatus } from '@prisma/client';
+import { OrderDetailStatus, QualityCheckStatus } from '@prisma/client';
 
 export const factoryOrderDetailsData = {
   factoryOrderDetails: [
@@ -7,45 +7,45 @@ export const factoryOrderDetailsData = {
       designId: 'design001',
       factoryOrderId: 'factoryorder001',
       orderDetailId: 'detail001',
-      quantity: 100,
-      price: 150000,
-      status: OrderStatus.IN_PRODUCTION,
-      completedQty: 0,
+      quantity: 2,
+      price: 140000,
+      status: OrderDetailStatus.COMPLETED,
+      completedQty: 2,
       rejectedQty: 0,
       productionCost: 100000,
-      qualityStatus: QualityCheckStatus.PENDING,
-      qualityCheckedAt: null,
-      qualityCheckedBy: null
+      qualityStatus: QualityCheckStatus.APPROVED,
+      qualityCheckedAt: new Date('2023-03-14T15:30:00.000Z'),
+      qualityCheckedBy: 'staff001'
     },
     {
       id: 'factoryorderdetail002',
       designId: 'design002',
       factoryOrderId: 'factoryorder002',
       orderDetailId: 'detail002',
-      quantity: 50,
-      price: 200000,
-      status: OrderStatus.IN_PRODUCTION,
-      completedQty: 0,
-      rejectedQty: 0,
+      quantity: 3,
+      price: 285000,
+      status: OrderDetailStatus.IN_PRODUCTION,
+      completedQty: 1,
+      rejectedQty: 1,
       productionCost: 150000,
-      qualityStatus: QualityCheckStatus.PARTIAL_APPROVED,
-      qualityCheckedAt: new Date(),
+      qualityStatus: QualityCheckStatus.REJECTED,
+      qualityCheckedAt: new Date('2023-03-10T14:20:00.000Z'),
       qualityCheckedBy: 'staff001'
     },
     {
       id: 'factoryorderdetail003',
       designId: 'design003',
       factoryOrderId: 'factoryorder003',
-      orderDetailId: 'detail001',
-      quantity: 75,
-      price: 175000,
-      status: OrderStatus.IN_PRODUCTION,
+      orderDetailId: 'detail003',
+      quantity: 1,
+      price: 190000,
+      status: OrderDetailStatus.PENDING,
       completedQty: 0,
       rejectedQty: 0,
-      productionCost: 125000,
-      qualityStatus: QualityCheckStatus.REJECTED,
-      qualityCheckedAt: new Date(),
-      qualityCheckedBy: 'staff002'
+      productionCost: 50000,
+      qualityStatus: QualityCheckStatus.PENDING,
+      qualityCheckedAt: null,
+      qualityCheckedBy: null
     },
   ],
 }; 

@@ -205,7 +205,9 @@ enum OrderStatus {
   ASSIGNED_TO_FACTORY
   ACCEPTED
   IN_PRODUCTION
-  COMPLETED
+  DONE_PRODUCTION
+  WAITING_PAYMENT
+  WAITING_FILL_INFORMATION
   DELIVERED
   CANCELED
 }
@@ -251,7 +253,7 @@ model CustomerOrderDetail {
   designId           String
   price              Int
   quantity           Int
-  status             OrderStatus
+  status             OrderDetailStatus
   qualityCheckStatus QualityCheckStatus
   reworkStatus       ReworkStatus
 
@@ -448,6 +450,7 @@ enum FactoryOrderStatus {
   EXPIRED             // Factory không phản hồi trong thời gian quy định
   REJECTED            // Factory từ chối
   IN_PRODUCTION       // Đang sản xuất
+  DONE_PRODUCTION       // Đang sản xuất
   COMPLETED           // Đã hoàn thành sản xuất
   SHIPPED             // Đã gửi hàng về kho chính
   CANCELLED           // Đã hủy
@@ -484,30 +487,43 @@ model FactoryOrder {
   tasks            Task[]
 }
 
+enum OrderDetailStatus {
+  PENDING
+  IN_PRODUCTION
+  COMPLETED
+  REJECTED
+  QUALITY_CHECK_PENDING
+  QUALITY_CHECK_PASSED
+  QUALITY_CHECK_FAILED
+  REWORK_REQUIRED
+  REWORK_IN_PROGRESS
+  REWORK_COMPLETED
+  SHIPPED
+}
 
 model FactoryOrderDetail {
-  id             String      @id @default(uuid())
+  id             String            @id @default(uuid())
   designId       String
   factoryOrderId String
   orderDetailId  String
   quantity       Int
-  price          Int         // Thêm field giá (sao chép từ CustomerOrderDetail)
-  status         OrderStatus // Thay đổi kiểu từ String sang OrderStatus
-  completedQty   Int         @default(0) // Thêm field số lượng đã hoàn thành
-  rejectedQty    Int         @default(0) // Thêm field số lượng bị từ chối
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime?   @updatedAt
+  price          Int
+  status         OrderDetailStatus @default(PENDING)
+  completedQty   Int               @default(0)
+  rejectedQty    Int               @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime?         @updatedAt
   productionCost Int
 
-  qualityStatus    QualityCheckStatus? // Thêm trạng thái kiểm tra chất lượng
-  qualityCheckedAt DateTime?           // Thời điểm kiểm tra chất lượng
-  qualityCheckedBy String?             // Người kiểm tra chất lượng
+  qualityStatus    QualityCheckStatus?
+  qualityCheckedAt DateTime?
+  qualityCheckedBy String?
 
   factoryOrder FactoryOrder        @relation(fields: [factoryOrderId], references: [id])
   design       ProductDesign       @relation(fields: [designId], references: [id])
   orderDetail  CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
 
-  checkQualities   CheckQuality[] 
+  checkQualities CheckQuality[]
 }
 
 model FactoryProgressReport {

@@ -19,7 +19,11 @@ export class StaffTaskService {
                   design: {
                     include: {
                       user: true,
-                      systemConfigVariant: true
+                      systemConfigVariant: {
+                        include: {
+                          product: true
+                        }
+                      }
                     }
                   }
                 }
@@ -34,7 +38,11 @@ export class StaffTaskService {
                           design: {
                             include: {
                               user: true,
-                              systemConfigVariant: true
+                              systemConfigVariant: {
+                                include: {
+                                  product: true
+                                }
+                              }
                             }
                           },
                           orderDetail: true,
@@ -76,7 +84,11 @@ export class StaffTaskService {
                   design: {
                     include: {
                       user: true,
-                      systemConfigVariant: true
+                      systemConfigVariant: {
+                        include: {
+                          product: true
+                        }
+                      }
                     }
                   },
                   orderDetail: true,

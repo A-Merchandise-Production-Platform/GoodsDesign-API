@@ -137,7 +137,8 @@ export class PaymentTransactionService {
             await this.prisma.paymentTransaction.update({
               where: { id: transaction.id },
               data: {
-                transactionLog: `${transaction.transactionLog}\nStatus check performed on ${new Date().toISOString()} - still pending`
+                status: TransactionStatus.FAILED,
+                transactionLog: `${transaction.transactionLog}\nStatus check performed on ${new Date().toISOString()} - still pending(15mins) so changed it failed`
               }
             });
           }
