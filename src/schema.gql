@@ -36,7 +36,7 @@ input CalculateShippingFeeDto {
 
 type CartItemEntity {
   createdAt: DateTime!
-  design: ProductDesignEntity!
+  design: ProductDesignEntity
   id: ID!
   quantity: Int!
   userId: String!
@@ -97,6 +97,23 @@ input CreateCategoryDto {
   name: String!
 }
 
+input CreateFactoryProgressReportDto {
+  """The quantity of items completed in this progress report"""
+  completedQty: Float!
+
+  """The date when this progress report was created"""
+  estimatedCompletion: DateTime!
+
+  """The ID of the factory order this report belongs to"""
+  factoryOrderId: String!
+
+  """Additional notes about the progress"""
+  notes: String
+
+  """Array of URLs to photos documenting the progress"""
+  photoUrls: [String!]!
+}
+
 input CreateOrderDetailDto {
   cartItemId: String!
 }
@@ -121,6 +138,7 @@ input CreateProductDesignDto {
   isPublic: Boolean! = false
   isTemplate: Boolean! = false
   systemConfigVariantId: String!
+  thumbnailUrl: String
   userId: String
 }
 
@@ -296,7 +314,7 @@ type FactoryOrderDetailEntity {
   qualityStatus: QualityCheckStatus
   quantity: Int!
   rejectedQty: Int!
-  status: OrderStatus!
+  status: OrderDetailStatus!
   updatedAt: DateTime
 }
 
@@ -304,6 +322,7 @@ enum FactoryOrderStatus {
   ACCEPTED
   CANCELLED
   COMPLETED
+  DONE_PRODUCTION
   EXPIRED
   IN_PRODUCTION
   PENDING_ACCEPTANCE
@@ -325,7 +344,7 @@ type FactoryProgressReport {
   factoryOrder: FactoryOrder
   factoryOrderId: ID!
   id: ID!
-  notes: String!
+  notes: String
   photoUrls: [String!]!
   reportDate: DateTime!
 }
@@ -357,6 +376,14 @@ input LoginDto {
   password: String!
 }
 
+input MarkAsDelayedDto {
+  """The reason for the delay in production"""
+  delayReason: String!
+
+  """The new estimated completion date for the delayed order"""
+  estimatedCompletionDate: DateTime!
+}
+
 type Mutation {
   assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
@@ -366,6 +393,7 @@ type Mutation {
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
   createCheckQuality(factoryOrderDetailId: ID, failedQuantity: Float!, note: String, orderDetailId: ID!, passedQuantity: Float!, reworkRequired: Boolean!, status: QualityCheckStatus!, taskId: ID!, totalChecked: Float!): CheckQuality!
+  createFactoryProgressReport(input: CreateFactoryProgressReportDto!): FactoryProgressReport!
   createNotification(content: String!, title: String!, url: String, userId: String!): NotificationEntity!
   createNotificationForManyUsers(content: String!, title: String!, url: String, userIds: [String!]!): [NotificationEntity!]!
   createOrder(createOrderInput: CreateOrderDto!): CustomerOrderEntity!
@@ -381,12 +409,14 @@ type Mutation {
   deleteAddress(id: String!): AddressEntity!
   deleteCartItem(id: String!): CartItemEntity!
   deleteCategory(id: String!): CategoryEntity!
+  deleteFile(fileUrl: String!): Boolean!
   deleteProduct(id: String!): ProductEntity!
   deleteUser(id: String!): UserEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
-  markFactoryOrderAsDelayed(id: ID!): FactoryOrder!
+  markFactoryOrderAsDelayed(id: ID!, input: MarkAsDelayedDto!): FactoryOrder!
   markNotificationAsRead(id: String!): NotificationEntity!
+  markOnDoneProduction(id: ID!): FactoryOrder!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
   removePaymentTransaction(id: ID!): PaymentTransaction!
@@ -406,6 +436,7 @@ type Mutation {
   updateCheckQualityStatus(id: ID!, status: QualityCheckStatus!): CheckQuality!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
+  updateFactoryOrderDetailStatus(input: UpdateOrderDetailStatusDto!): FactoryOrder!
   updateFactoryOrderStatus(id: ID!, status: String!): FactoryOrder!
   updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransaction!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
@@ -430,15 +461,19 @@ type NotificationEntity {
   user: UserEntity
 }
 
-enum OrderStatus {
-  ACCEPTED
-  ASSIGNED_TO_FACTORY
-  CANCELED
+"""Status of a factory order detail item"""
+enum OrderDetailStatus {
   COMPLETED
-  DELIVERED
   IN_PRODUCTION
-  PAYMENT_RECEIVED
   PENDING
+  QUALITY_CHECK_FAILED
+  QUALITY_CHECK_PASSED
+  QUALITY_CHECK_PENDING
+  REJECTED
+  REWORK_COMPLETED
+  REWORK_IN_PROGRESS
+  REWORK_REQUIRED
+  SHIPPED
 }
 
 type PaymentEntity {
@@ -507,6 +542,7 @@ type ProductDesignEntity {
   isTemplate: Boolean!
   systemConfigVariant: SystemConfigVariantEntity
   systemConfigVariantId: String!
+  thumbnailUrl: String
   user: UserEntity
   userId: String!
 }
@@ -595,6 +631,8 @@ type Query {
   factoryOrders: [FactoryOrder!]!
   factoryOrdersByCustomerOrder(customerOrderId: ID!): [FactoryOrder!]!
   factoryOrdersByFactory: [FactoryOrder!]!
+  factoryProgressReport(id: ID!): FactoryProgressReport!
+  factoryProgressReports(factoryOrderId: ID!): [FactoryProgressReport!]!
   getAllDiscountByProductId(productId: String!): [SystemConfigDiscountEntity!]!
   getApplicableDiscount(productId: String!, quantity: Float!): Float!
   getCartItem(id: String!): CartItemEntity!
@@ -613,6 +651,7 @@ type Query {
   product(id: String!): ProductEntity!
   productDesign(id: ID!): ProductDesignEntity!
   productDesigns: [ProductDesignEntity!]!
+  productDesignsByUser: [ProductDesignEntity!]!
   productPositionType(id: ID!): ProductPositionTypeEntity!
   productPositionTypes(productId: String!): [ProductPositionTypeEntity!]!
   products: [ProductEntity!]!
@@ -678,7 +717,7 @@ type StaffTask {
   id: ID!
   note: String
   status: String!
-  task: TaskEntity!
+  task: TaskEntity
   taskId: ID!
   user: UserEntity!
   userId: ID!
@@ -797,6 +836,17 @@ input UpdateFactoryInfoDto {
   website: String
 }
 
+input UpdateOrderDetailStatusDto {
+  """Optional note about the status change"""
+  note: String
+
+  """The ID of the factory order detail to update"""
+  orderDetailId: String!
+
+  """The new status to set for the order detail"""
+  status: OrderDetailStatus!
+}
+
 input UpdatePaymentTransactionInput {
   amount: Int
   customerId: String
@@ -813,6 +863,7 @@ input UpdateProductDesignDto {
   isPublic: Boolean = false
   isTemplate: Boolean = false
   systemConfigVariantId: String
+  thumbnailUrl: String
   userId: String
 }
 

@@ -28,10 +28,10 @@ export class StaffTask {
     @Field(() => UserEntity)
     user: UserEntity
 
-    @Field(() => TaskEntity)
-    task: TaskEntity
+    @Field(() => TaskEntity, { nullable: true })
+    task?: TaskEntity
 
-    constructor(partial: Partial<StaffTask>) {
-        Object.assign(this, partial)
+    constructor(data: Partial<StaffTask>) {
+        Object.assign(this, data)
     }
 }

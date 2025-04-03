@@ -15,7 +15,6 @@ import { CronModule } from "./cron/cron.module"
 import { CustomerOrdersModule } from "./customer-orders/customer-orders.module"
 import { DesignPositionModule } from "./design-position/design-position.module"
 import { EnvModule } from "./dynamic-modules"
-import { FactoryOrderModule } from "./factory-orders/factory-orders.module"
 import { FactoryModule } from "./factory/factory.module"
 import { FileModule } from "./file/file.module"
 import { MailModule } from "./mail/mail.module"
@@ -31,6 +30,7 @@ import { SystemConfigVariantModule } from "./system-config-variant/system-config
 import { UsersModule } from "./users"
 import { StaffTasksModule } from "./staff-tasks/staff-tasks.module"
 import { NotificationsModule } from "./notifications/notifications.module"
+import { FactoryOrdersModule } from "./factory-orders/factory-orders.module"
 
 @Module({
     imports: [
@@ -73,7 +73,7 @@ import { NotificationsModule } from "./notifications/notifications.module"
         SystemConfigVariantModule,
         CronModule,
         NotificationsModule,
-        FactoryOrderModule,
+        FactoryOrdersModule,
         StaffTasksModule
         // TestModule,
     ],

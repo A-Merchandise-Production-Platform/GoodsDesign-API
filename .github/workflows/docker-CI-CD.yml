@@ -44,7 +44,7 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
       - name: Apply all pending migrations to the database
-        run: npx prisma migrate deploy && npx prisma generate && npx prisma db seed
+        run:  npx prisma migrate reset -f
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
   deploy:

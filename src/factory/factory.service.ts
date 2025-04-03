@@ -508,7 +508,7 @@ export class FactoryService {
                         status: OrderStatus.ASSIGNED_TO_FACTORY,
                         history: {
                             create: {
-                                status: OrderStatus.ASSIGNED_TO_FACTORY.toString(),
+                                status: OrderStatus.ASSIGNED_TO_FACTORY,
                                 timestamp: new Date(),
                                 note: `Order assigned to factory: ${selectedFactory.name}`
                             }

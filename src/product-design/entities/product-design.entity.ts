@@ -26,6 +26,9 @@ export class ProductDesignEntity {
     @Field()
     isTemplate: boolean
 
+    @Field(() => String, { nullable: true })
+    thumbnailUrl?: string
+
     @Field(() => UserEntity, { nullable: true })
     user?: UserEntity
 

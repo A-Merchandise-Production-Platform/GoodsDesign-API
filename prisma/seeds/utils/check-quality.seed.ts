@@ -5,8 +5,26 @@ export async function seedCheckQualities(prisma: PrismaClient) {
   console.log('Seeding check qualities...');
   
   for (const checkQuality of checkQualityData.checkQualities) {
+    const { taskId, orderDetailId, factoryOrderDetailId, ...checkQualityData } = checkQuality;
     await prisma.checkQuality.create({
-      data: checkQuality,
+      data: {
+        ...checkQualityData,
+        task: {
+          connect: {
+            id: taskId
+          }
+        },
+        orderDetail: {
+          connect: {
+            id: orderDetailId
+          }
+        },
+        factoryOrderDetail: factoryOrderDetailId ? {
+          connect: {
+            id: factoryOrderDetailId
+          }
+        } : undefined
+      },
     });
   }
 

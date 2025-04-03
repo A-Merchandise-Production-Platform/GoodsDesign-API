@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { FactoryService } from 'src/factory/factory.service';
 import { PaymentTransactionService } from 'src/payment-transaction/payment-transaction.service';
 import { PrismaService } from 'src/prisma';
+import { OrderStatus, PaymentStatus, TransactionStatus } from '@prisma/client';
 
 @Injectable()
 export class CronService {
@@ -31,6 +32,70 @@ export class CronService {
     await this.factoryService.checkPaymentReceivedOrderForAssignIntoFactory()
   }
 
+  @Cron(CronExpression.EVERY_5_SECONDS, {
+    name: "checkOrderPaymentPending"
+  })
+  async checkOrderPaymentPending() {
+    this.logger.verbose("checkOrderPaymentPending")
+    await this.checkPaymentPending();
+  }
+
+  async checkPaymentPending() {
+    try {
+      // Find all orders with WAITING_PAYMENT status
+      const pendingOrders = await this.prisma.customerOrder.findMany({
+        where: {
+          status: OrderStatus.PENDING,
+          payments: {
+            every: {
+              status: PaymentStatus.COMPLETED
+            }
+          }
+        },
+        include: {
+          payments: {
+            include: {
+              transactions: true
+            }
+          }
+        }
+      });
+
+      for (const order of pendingOrders) {
+        // Check each payment for the order
+        for (const payment of order.payments) {
+          // Check if any transaction is completed
+          const allPaymentsCompleted = await this.prisma.payment.findMany({
+            where: { orderId: order.id },
+            select: { status: true }
+          }).then(payments => 
+            payments.every(p => p.status === PaymentStatus.COMPLETED)
+          );
+
+          if (allPaymentsCompleted) {
+            // Update order status to PAYMENT_RECEIVED
+            await this.prisma.customerOrder.update({
+              where: { id: order.id },
+              data: {
+                status: OrderStatus.PAYMENT_RECEIVED,
+                history: {
+                  create: {
+                    status: OrderStatus.PAYMENT_RECEIVED,
+                    timestamp: new Date(),
+                    note: 'Payment received successfully'
+                  }
+                }
+              }
+            });
+
+            this.logger.log(`Order ${order.id} payment completed and status updated`);
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error('Error checking payment pending status:', error);
+    }
+  }
 
   // @Cron(CronExpression.EVERY_MINUTE) // Mỗi 1 phút
   // async checkExpiredOrders() {

@@ -19,7 +19,11 @@ export class StaffTaskService {
                                     design: {
                                         include: {
                                             user: true,
-                                            systemConfigVariant: true
+                                            systemConfigVariant: {
+                                                include: {
+                                                    product: true
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -34,7 +38,11 @@ export class StaffTaskService {
                                                     design: {
                                                         include: {
                                                             user: true,
-                                                            systemConfigVariant: true
+                                                            systemConfigVariant: {
+                                                                include: {
+                                                                    product: true
+                                                                }
+                                                            }
                                                         }
                                                     },
                                                     orderDetail: true,
@@ -76,7 +84,11 @@ export class StaffTaskService {
                                     design: {
                                         include: {
                                             user: true,
-                                            systemConfigVariant: true
+                                            systemConfigVariant: {
+                                                include: {
+                                                    product: true
+                                                }
+                                            }
                                         }
                                     },
                                     orderDetail: true,
@@ -106,42 +118,47 @@ export class StaffTaskService {
     }
 
     async findAll(): Promise<StaffTask[]> {
-        return this.prisma.staffTask.findMany({
+        const data = await this.prisma.staffTask.findMany({
             include: this.getIncludeObject()
         })
+        return data.map((item) => new StaffTask(item))
     }
 
     async findOne(id: string): Promise<StaffTask> {
-        return this.prisma.staffTask.findUnique({
+        const data = await this.prisma.staffTask.findUnique({
             where: { id },
             include: this.getIncludeObject()
         })
+        return new StaffTask(data)
     }
 
     async findByUserId(userId: string): Promise<StaffTask[]> {
-        return this.prisma.staffTask.findMany({
+        const data = await this.prisma.staffTask.findMany({
             where: { userId },
             include: this.getIncludeObject()
         })
+        return data.map((item) => new StaffTask(item))
     }
 
     async findByTaskId(taskId: string): Promise<StaffTask[]> {
-        return this.prisma.staffTask.findMany({
+        const data = await this.prisma.staffTask.findMany({
             where: { taskId },
             include: this.getIncludeObject()
         })
+        return data.map((item) => new StaffTask(item))
     }
 
     async updateStatus(id: string, status: string): Promise<StaffTask> {
-        return this.prisma.staffTask.update({
+        const data = await this.prisma.staffTask.update({
             where: { id },
             data: { status },
             include: this.getIncludeObject()
         })
+        return new StaffTask(data)
     }
 
     async completeTask(id: string): Promise<StaffTask> {
-        return this.prisma.staffTask.update({
+        const data = await this.prisma.staffTask.update({
             where: { id },
             data: {
                 status: "COMPLETED",
@@ -149,5 +166,6 @@ export class StaffTaskService {
             },
             include: this.getIncludeObject()
         })
+        return new StaffTask(data)
     }
 }

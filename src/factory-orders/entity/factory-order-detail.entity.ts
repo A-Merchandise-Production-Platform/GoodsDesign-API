@@ -1,13 +1,13 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { OrderStatus, QualityCheckStatus } from '@prisma/client';
+import { OrderDetailStatus, QualityCheckStatus } from '@prisma/client';
 import { FactoryOrder } from './factory-order.entity';
 import { CheckQuality } from '../../staff-tasks/entity/check-quality.entity';
 import { ProductDesignModule } from 'src/product-design/product-design.module';
 import { CustomerOrderDetailEntity } from 'src/customer-orders/entities';
 import { ProductDesign } from 'src/products/entity/product-design.entity';
 
-registerEnumType(OrderStatus, {
-  name: "OrderStatus"
+registerEnumType(OrderDetailStatus, {
+  name: "OrderDetailStatus"
 })
 
 registerEnumType(QualityCheckStatus, {
@@ -34,8 +34,8 @@ export class FactoryOrderDetailEntity {
   @Field(() => Int)
   price: number;
 
-  @Field(() => OrderStatus)
-  status: OrderStatus;
+  @Field(() => OrderDetailStatus)
+  status: OrderDetailStatus;
 
   @Field(() => Int)
   completedQty: number;

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { envConfig } from 'src/dynamic-modules';
 import { Readable } from 'stream';
+import { extractPublicId } from 'cloudinary-build-url'
 
 interface UploadedFile {
   buffer: Buffer;
@@ -40,6 +41,17 @@ export class FileService {
       });
     } catch (error) {
       throw new Error(`Failed to upload file: ${error.message}`);
+    }
+  }
+
+  async deleteFile(fileUrl: string): Promise<void> {
+    try {
+      // Extract public_id from the URL
+      const publicId = extractPublicId(fileUrl)
+      
+      await cloudinary.uploader.destroy(publicId);
+    } catch (error) {
+      throw new Error(`Failed to delete file: ${error.message}`);
     }
   }
 } 

@@ -5,6 +5,8 @@ import { FactoryOrderService } from './factory-orders.service';
 import { CurrentUser, GraphqlJwtAuthGuard } from 'src/auth';
 import { UseGuards } from '@nestjs/common';
 import { UserEntity } from 'src/users';
+import { MarkAsDelayedDto } from './dto/mark-as-delayed.dto';
+import { UpdateOrderDetailStatusDto } from './dto/update-order-detail-status.dto';
 
 @Resolver(() => FactoryOrder)
 @UseGuards(GraphqlJwtAuthGuard)
@@ -46,8 +48,23 @@ export class FactoryOrderResolver {
 
   @Mutation(() => FactoryOrder)
   async markFactoryOrderAsDelayed(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('input') input: MarkAsDelayedDto
+  ) {
+    return this.factoryOrderService.markAsDelayed(id, input);
+  }
+
+  @Mutation(() => FactoryOrder)
+  async markOnDoneProduction(
     @Args('id', { type: () => ID }) id: string
   ) {
-    return this.factoryOrderService.markAsDelayed(id);
+    return this.factoryOrderService.markOnDoneProduction(id);
+  }
+
+  @Mutation(() => FactoryOrder)
+  async updateFactoryOrderDetailStatus(
+    @Args('input') input: UpdateOrderDetailStatusDto
+  ) {
+    return this.factoryOrderService.updateOrderDetailStatus(input);
   }
 }
