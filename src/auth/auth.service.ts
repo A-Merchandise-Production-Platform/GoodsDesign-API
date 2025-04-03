@@ -24,7 +24,7 @@ export class AuthService {
         const user = await this.prisma.user.findFirst({
             where: { email, isDeleted: false, isActive: true },
             include: {
-                factory: true
+                ownedFactory: true
             }
         })
 
@@ -40,7 +40,7 @@ export class AuthService {
 
         return new UserEntity({
             ...user,
-            factory: user.factory ? new FactoryEntity(user.factory) : null
+            ownedFactory: user.ownedFactory ? new FactoryEntity(user.ownedFactory) : null
         })
     }
 
@@ -113,7 +113,7 @@ export class AuthService {
             return new AuthResponseDto(
                 new UserEntity({
                     ...user,
-                    factory: new FactoryEntity({
+                    ownedFactory: new FactoryEntity({
                         ...factory
                     })
                 }),
@@ -129,7 +129,7 @@ export class AuthService {
         const user = await this.prisma.user.findFirst({
             where: { id: currentUser.id, isDeleted: false },
             include: {
-                factory: true
+                ownedFactory: true
             }
         })
 
@@ -153,7 +153,7 @@ export class AuthService {
         return new AuthResponseDto(
             new UserEntity({
                 ...user,
-                factory: user.factory ? new FactoryEntity(user.factory) : null
+                ownedFactory: user.ownedFactory ? new FactoryEntity(user.ownedFactory) : null
             }),
             accessToken,
             refreshToken

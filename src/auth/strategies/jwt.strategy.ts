@@ -20,13 +20,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
         const user = await this.prisma.user.findUnique({
             where: { id: payload.sub, isDeleted: false, isActive: true },
             include: {
-                factory: true
+                ownedFactory: true
             }
         })
 
         return new UserEntity({
             ...user,
-            factory: user?.factory ? new FactoryEntity(user.factory) : null
+            ownedFactory: user?.ownedFactory ? new FactoryEntity(user.ownedFactory) : null
         })
     }
 }

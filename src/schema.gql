@@ -244,6 +244,7 @@ type FactoryEntity {
   reviewedAt: DateTime
   reviewedBy: String
   specializations: [String!]!
+  staff: UserEntity
   statusNote: String
   taxIdentificationNumber: String
   totalEmployees: Int
@@ -357,6 +358,7 @@ input LoginDto {
 }
 
 type Mutation {
+  assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   clearCart: Boolean!
   completeStaffTask(id: ID!): StaffTask!
@@ -619,6 +621,7 @@ type Query {
   staffTask(id: ID!): StaffTask!
   staffTasks: [StaffTask!]!
   staffTasksByTask(taskId: ID!): [StaffTask!]!
+  staffs: [UserEntity!]!
   systemConfigBank(id: ID!): SystemConfigBankEntity!
   systemConfigBanks: [SystemConfigBankEntity!]!
   systemConfigDiscount(id: String!): SystemConfigDiscountEntity!
@@ -879,13 +882,13 @@ type UserEntity {
   deletedAt: DateTime
   deletedBy: String
   email: String
-  factory: FactoryEntity
   gender: Boolean!
   id: ID!
   imageUrl: String
   isActive: Boolean!
   isDeleted: Boolean!
   name: String
+  ownedFactory: FactoryEntity
   phoneNumber: String
   role: Roles!
   updatedAt: DateTime

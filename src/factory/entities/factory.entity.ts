@@ -94,6 +94,9 @@ export class FactoryEntity {
     @Field(() => [FactoryProductEntity])
     products: FactoryProductEntity[]
 
+    @Field(() => UserEntity, { nullable: true })
+    staff: UserEntity
+
     // @Field(() => [FactoryOrderEntity])
     // orders: FactoryOrderEntity[]
 
