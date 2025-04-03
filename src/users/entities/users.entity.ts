@@ -60,6 +60,9 @@ export class UserEntity {
     @Field(() => FactoryEntity, { nullable: true })
     ownedFactory?: FactoryEntity
 
+    @Field(() => FactoryEntity, { nullable: true })
+    staffedFactory?: FactoryEntity
+
     constructor(partial: Partial<UserEntity>) {
         Object.assign(this, partial)
     }

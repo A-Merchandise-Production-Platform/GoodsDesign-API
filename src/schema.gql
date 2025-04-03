@@ -238,7 +238,7 @@ type District {
 }
 
 type FactoryEntity {
-  addressId: String
+  address: AddressEntity
   businessLicenseUrl: String
   contactPersonName: String
   contactPersonPhone: String
@@ -813,7 +813,7 @@ input UpdateDesignPositionDto {
 
 """Update factory information input"""
 input UpdateFactoryInfoDto {
-  addressId: String
+  addressInput: CreateAddressInput
   businessLicenseUrl: String
   contactPersonName: String
   contactPersonPhone: String
@@ -828,9 +828,6 @@ input UpdateFactoryInfoDto {
   printingMethods: [String!]
   qualityCertifications: String
   specializations: [String!]
-
-  """Set to true to submit factory information for approval"""
-  submit: Boolean
   taxIdentificationNumber: String
   totalEmployees: Int
   website: String
@@ -942,6 +939,7 @@ type UserEntity {
   ownedFactory: FactoryEntity
   phoneNumber: String
   role: Roles!
+  staffedFactory: FactoryEntity
   updatedAt: DateTime
   updatedBy: String
 }

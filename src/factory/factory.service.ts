@@ -13,12 +13,19 @@ import { UpdateFactoryInfoDto } from "./dto/update-factory-info.dto"
 import { UserEntity } from "src/users/entities/users.entity"
 import { CustomerOrderEntity } from "src/customer-orders/entities"
 import { FactoryProductEntity } from "./entities/factory-product.entity"
+import { NotificationsService } from "src/notifications/notifications.service"
+import { AddressesService } from "src/addresses/addresses.service"
+import { AddressEntity } from "src/addresses/entities/address.entity"
 
 @Injectable()
 export class FactoryService {
     private logger = new Logger(FactoryService.name)
 
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        private notificationsService: NotificationsService,
+        private addressesService: AddressesService
+    ) {}
 
     public async checkPaymentReceivedOrderForAssignIntoFactory(): Promise<void> {
         try {
@@ -95,7 +102,22 @@ export class FactoryService {
         }
 
         // Set isSubmitted to true if submit flag is provided
-        const isSubmitted = dto.submit === true
+        const isSubmitted = true
+
+        let address: AddressEntity
+
+        if (existingFactory.addressId) {
+            address = await this.addressesService.updateAddress(
+                existingFactory.addressId,
+                dto.addressInput,
+                new UserEntity({ ...user, ownedFactory: null })
+            )
+        } else {
+            address = await this.addressesService.createAddress(
+                dto.addressInput,
+                new UserEntity({ ...user, ownedFactory: null })
+            )
+        }
 
         // Update or create factory information
         const updatedFactory = await this.prisma.factory.upsert({
@@ -107,7 +129,7 @@ export class FactoryService {
                 description: dto.description,
                 businessLicenseUrl: dto.businessLicenseUrl,
                 taxIdentificationNumber: dto.taxIdentificationNumber,
-                addressId: dto.addressId,
+                addressId: address.id,
                 website: dto.website,
                 establishedDate: dto.establishedDate,
                 totalEmployees: dto.totalEmployees,
@@ -129,7 +151,7 @@ export class FactoryService {
                 description: dto.description,
                 businessLicenseUrl: dto.businessLicenseUrl,
                 taxIdentificationNumber: dto.taxIdentificationNumber,
-                addressId: dto.addressId,
+                addressId: address.id,
                 website: dto.website,
                 establishedDate: dto.establishedDate || new Date(),
                 totalEmployees: dto.totalEmployees || 0,
@@ -156,13 +178,21 @@ export class FactoryService {
 
         return new FactoryEntity({
             ...updatedFactory,
-            products: updatedFactory.products.map(
-                (product) =>
-                    new FactoryProductEntity({
-                        ...product,
-                        id: product.id
-                    })
-            ),
+            address: updatedFactory?.address
+                ? new AddressEntity({
+                      ...updatedFactory.address,
+                      id: updatedFactory.address.id
+                  })
+                : null,
+            products: updatedFactory.products
+                ? updatedFactory.products.map(
+                      (product) =>
+                          new FactoryProductEntity({
+                              ...product,
+                              id: product.id
+                          })
+                  )
+                : [],
             owner: new UserEntity({
                 ...updatedFactory.owner,
                 id: updatedFactory.owner.id
@@ -177,6 +207,10 @@ export class FactoryService {
     }
 
     async getMyFactory(userId: string) {
+        if (!userId) {
+            throw new BadRequestException("User ID is required")
+        }
+
         const factory = await this.prisma.factory.findUnique({
             where: { factoryOwnerId: userId },
             include: {
@@ -192,18 +226,26 @@ export class FactoryService {
 
         return new FactoryEntity({
             ...factory,
-            products: factory.products.map(
-                (product) =>
-                    new FactoryProductEntity({
-                        ...product,
-                        id: product.id
-                    })
-            ),
+            address: factory?.address
+                ? new AddressEntity({
+                      ...factory.address,
+                      id: factory?.address?.id
+                  })
+                : null,
+            products: factory?.products
+                ? factory.products.map(
+                      (product) =>
+                          new FactoryProductEntity({
+                              ...product,
+                              id: product.id
+                          })
+                  )
+                : [],
             owner: new UserEntity({
                 ...factory.owner,
                 id: factory.owner.id
             }),
-            staff: factory.staff
+            staff: factory?.staff
                 ? new UserEntity({
                       ...factory.staff,
                       id: factory.staff.id
@@ -219,7 +261,7 @@ export class FactoryService {
 
         const factory = await this.prisma.factory.findUnique({
             where: { factoryOwnerId: factoryId },
-            include: { owner: true }
+            include: { owner: true, staff: true }
         })
 
         if (!factory) {
@@ -252,10 +294,7 @@ export class FactoryService {
                 ...factory.owner,
                 id: factory.owner.id
             }),
-            staff: new UserEntity({
-                ...staff,
-                id: staff.id
-            })
+            staff: new UserEntity(factory.staff)
         })
     }
 

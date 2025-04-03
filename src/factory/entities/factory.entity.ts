@@ -3,6 +3,7 @@ import { FactoryStatus } from "@prisma/client"
 import { ProductEntity } from "src/products/entities/products.entity"
 import { UserEntity } from "src/users/entities/users.entity"
 import { FactoryProductEntity } from "./factory-product.entity"
+import { AddressEntity } from "src/addresses/entities/address.entity"
 
 registerEnumType(FactoryStatus, {
     name: "FactoryStatus"
@@ -22,8 +23,8 @@ export class FactoryEntity {
     @Field(() => String, { nullable: true })
     taxIdentificationNumber: string
 
-    @Field(() => String, { nullable: true })
-    addressId: string
+    @Field(() => AddressEntity, { nullable: true })
+    address?: AddressEntity
 
     @Field(() => String, { nullable: true })
     website: string

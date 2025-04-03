@@ -3,6 +3,8 @@ import { JwtService } from "@nestjs/jwt"
 import { FactoryStatus, Roles } from "@prisma/client"
 import { compare, hash } from "bcrypt"
 import { AuthResponseDto } from "src/auth/dto"
+import { FactoryEntity } from "src/factory/entities/factory.entity"
+import { NotificationsService } from "src/notifications/notifications.service"
 import { TokenType, envConfig } from "../dynamic-modules"
 import { PrismaService } from "../prisma/prisma.service"
 import { RedisService } from "../redis/redis.service"
@@ -10,14 +12,14 @@ import { UserEntity } from "../users/entities/users.entity"
 import { LoginDto } from "./dto/login.dto"
 import { RefreshTokenDto } from "./dto/refresh-token.dto"
 import { RegisterDto } from "./dto/register.dto"
-import { FactoryEntity } from "src/factory/entities/factory.entity"
 
 @Injectable()
 export class AuthService {
     constructor(
         private prisma: PrismaService,
         private jwtService: JwtService,
-        private redisService: RedisService
+        private redisService: RedisService,
+        private notificationsService: NotificationsService
     ) {}
 
     async validateUser(email: string, password: string): Promise<UserEntity> {
@@ -89,6 +91,12 @@ export class AuthService {
 
         await this.redisService.setRefreshToken(user.id, refreshToken)
 
+        this.notificationsService.create({
+            title: "Welcome to the app",
+            content: `Welcome ${user.name} to the app`,
+            userId: user.id
+        })
+
         if (registerDto.isFactoryOwner) {
             const factory = await this.prisma.factory.create({
                 data: {
@@ -108,6 +116,12 @@ export class AuthService {
                     minimumOrderQuantity: 0,
                     contractUrl: ""
                 }
+            })
+
+            this.notificationsService.create({
+                title: "Factory created",
+                content: `Factory ${factory.name} created successfully, update your factory profile for approval by admin`,
+                userId: user.id
             })
 
             return new AuthResponseDto(
