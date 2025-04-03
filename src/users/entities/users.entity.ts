@@ -58,7 +58,7 @@ export class UserEntity {
     deletedBy?: string
 
     @Field(() => FactoryEntity, { nullable: true })
-    factory?: FactoryEntity
+    ownedFactory?: FactoryEntity
 
     constructor(partial: Partial<UserEntity>) {
         Object.assign(this, partial)

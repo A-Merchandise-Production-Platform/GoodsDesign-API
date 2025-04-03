@@ -24,4 +24,13 @@ export class FactoryResolver {
     async getMyFactory(@CurrentUser() user: UserEntity) {
         return this.factoryService.getMyFactory(user.id)
     }
+
+    @Mutation(() => FactoryEntity)
+    async assignStaffToFactory(
+        @CurrentUser() user: UserEntity,
+        @Args("factoryId") factoryId: string,
+        @Args("staffId") staffId: string
+    ) {
+        return this.factoryService.assignStaffToFactory(factoryId, staffId, user)
+    }
 }

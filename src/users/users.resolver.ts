@@ -17,6 +17,11 @@ export class UsersResolver {
         return this.usersService.findAll(user)
     }
 
+    @Query(() => [UserEntity], { name: "staffs" })
+    async getStaffs(@CurrentUser() user: UserEntity) {
+        return this.usersService.findAllStaff(user)
+    }
+
     @Query(() => UserEntity, { name: "user" })
     async getUser(@CurrentUser() user: UserEntity, @Args("id") id: string) {
         return this.usersService.findOne(id, user)

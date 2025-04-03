@@ -52,7 +52,8 @@ export const factoriesData = [
             revenueSharingPercentage: 5,
             paymentTerms: "Net 30 days",
             qualityStandards: "Less than 0.5% defect rate allowed"
-        }
+        },
+        staffId: "staff-id"
     },
     {
         factoryOwnerId: "factory-id-2",
