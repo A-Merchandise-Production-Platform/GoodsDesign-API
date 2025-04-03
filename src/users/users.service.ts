@@ -62,6 +62,27 @@ export class UsersService {
         return users.map((user) => this.toUserEntity(user))
     }
 
+    async findAllStaff(user: UserEntity) {
+        if (!user || user.role !== "MANAGER") {
+            throw new ForbiddenException("You are not authorized to access this resource")
+        }
+
+        const users = await this.prisma.user.findMany({
+            where: {
+                role: {
+                    in: ["STAFF", "ADMIN"]
+                },
+                isActive: true,
+                isDeleted: false
+            },
+            orderBy: {
+                createdAt: "desc"
+            }
+        })
+
+        return users.map((user) => this.toUserEntity(user))
+    }
+
     async findOne(id: string, currentUser: UserEntity): Promise<UserEntity> {
         const user = await this.prisma.user.findFirst({
             where: { id, isDeleted: false }

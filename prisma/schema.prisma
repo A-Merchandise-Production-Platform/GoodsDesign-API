@@ -41,9 +41,10 @@ model User {
   payments     Payment[]
   transactions PaymentTransaction[]
   staffTasks   StaffTask[]
-  factory      Factory?
   notification Notification[]
-  cartItems CartItem[]
+  cartItems    CartItem[]
+  ownedFactory Factory? @relation("FactoryOwner")
+  staffedFactory Factory? @relation("FactoryStaff")
 }
 
 model Address {
@@ -399,7 +400,7 @@ enum FactoryStatus {
 }
 
 model Factory {
-  factoryOwnerId          String  @id
+  factoryOwnerId          String  @id @unique
   name                    String // Factory business name
   description             String? // Description of the factory
   businessLicenseUrl      String? // Business license document URL
@@ -439,8 +440,12 @@ model Factory {
   // Keep the contract as JSON since it might be complex and vary over time
   contractUrl String?
 
-  owner    User             @relation(fields: [factoryOwnerId], references: [id])
+  //staff id
+  staffId String? @unique
+
+  owner    User             @relation("FactoryOwner", fields: [factoryOwnerId], references: [id])
   products FactoryProduct[]
+  staff    User?             @relation("FactoryStaff", fields: [staffId], references: [id])
   orders   FactoryOrder[]
   address  Address?         @relation(fields: [addressId], references: [id])
 }
