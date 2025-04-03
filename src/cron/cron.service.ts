@@ -3,7 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { FactoryService } from 'src/factory/factory.service';
 import { PaymentTransactionService } from 'src/payment-transaction/payment-transaction.service';
 import { PrismaService } from 'src/prisma';
-import { OrderStatus, PaymentStatus, TransactionStatus } from '@prisma/client';
+import { FactoryOrderStatus, OrderStatus, PaymentStatus, TransactionStatus } from '@prisma/client';
 
 @Injectable()
 export class CronService {
@@ -38,6 +38,14 @@ export class CronService {
   async checkOrderPaymentPending() {
     this.logger.verbose("checkOrderPaymentPending")
     await this.checkPaymentPending();
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE, {
+    name: "handleRejectedFactoryOrders"
+  })
+  async handleRejectedFactoryOrders() {
+    this.logger.verbose("handleRejectedFactoryOrders");
+    await this.processRejectedFactoryOrders();
   }
 
   async checkPaymentPending() {
@@ -94,6 +102,67 @@ export class CronService {
       }
     } catch (error) {
       this.logger.error('Error checking payment pending status:', error);
+    }
+  }
+
+  async processRejectedFactoryOrders() {
+    try {
+      // Find all factory orders that have been rejected
+      const rejectedOrders = await this.prisma.factoryOrder.findMany({
+        where: {
+          status: FactoryOrderStatus.REJECTED,
+          rejectedHistory: {
+            none: {
+              reassignedTo: { not: null }
+            }
+          }
+        },
+        include: {
+          rejectedHistory: true,
+          orderDetails: {
+            include: {
+              design: {
+                include: {
+                  systemConfigVariant: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      this.logger.verbose(`Found ${rejectedOrders.length} rejected factory orders to process`);
+
+      for (const order of rejectedOrders) {
+        try {
+          // Use the factory service to reassign the order
+          const newFactoryOrder = await this.factoryService.reassignRejectedFactoryOrder(order.id);
+          
+          if (!newFactoryOrder) {
+            this.logger.warn(`Failed to reassign factory order ${order.id}`);
+            
+            // Notify admins about the failed reassignment
+            const admins = await this.prisma.user.findMany({
+              where: { role: 'ADMIN' }
+            });
+            
+            for (const admin of admins) {
+              await this.prisma.notification.create({
+                data: {
+                  userId: admin.id,
+                  title: "Failed Factory Order Reassignment",
+                  content: `Order #${order.customerOrderId} could not be reassigned to a new factory. Manual intervention required.`,
+                  url: `/admin/orders/${order.customerOrderId}`
+                }
+              });
+            }
+          }
+        } catch (error) {
+          this.logger.error(`Failed to process rejected factory order ${order.id}:`, error);
+        }
+      }
+    } catch (error) {
+      this.logger.error('Error in processRejectedFactoryOrders:', error);
     }
   }
 
@@ -468,7 +537,6 @@ export class CronService {
 //     //     } catch (error) {
 //     //       this.logger.error(`Failed to create quality check task for factory order ${order.id}:`, error);
 //     //     }
-//     //   }
 //     } catch (error) {
 //       this.logger.error('Error in createQualityCheckTasksForCompletedOrders cron job:', error);
 //     }

@@ -204,15 +204,68 @@ export class FactoryOrderService {
   }
 
   async updateStatus(id: string, status: FactoryOrderStatus): Promise<FactoryOrder> {
-    const data = await this.prisma.factoryOrder.update({
+    const factoryOrder = await this.prisma.factoryOrder.findUnique({
       where: { id },
-      data: { 
-        status,
-        lastUpdated: new Date()
-      },
+      include: {
+        factory: true,
+        customerOrder: true
+      }
+    });
+
+    if (!factoryOrder) {
+      throw new NotFoundException(`Factory order with ID ${id} not found`);
+    }
+
+    // If the order is being rejected, create rejection history
+    if (status === FactoryOrderStatus.REJECTED) {
+      await this.prisma.rejectedFactoryOrder.create({
+        data: {
+          factoryOrderId: id,
+          factoryId: factoryOrder.factoryId,
+          reason: 'Rejected by factory',
+          rejectedAt: new Date()
+        }
+      });
+
+      // Create notification for the factory owner
+      await this.prisma.notification.create({
+        data: {
+          userId: factoryOrder.factory.factoryOwnerId,
+          title: "Order Rejected",
+          content: `You have rejected order #${factoryOrder.customerOrderId}`,
+          url: `/factory/orders/${id}`
+        }
+      });
+
+      // Create notification for managers
+      const managers = await this.prisma.user.findMany({
+        where: { role: 'MANAGER' }
+      });
+
+      for (const manager of managers) {
+        await this.prisma.notification.create({
+          data: {
+            userId: manager.id,
+            title: "Factory Order Rejected",
+            content: `Factory ${factoryOrder.factory.name} has rejected order #${factoryOrder.customerOrderId}`,
+            url: `/manager/orders/${factoryOrder.customerOrderId}`
+          }
+        });
+      }
+    }else{
+      await this.prisma.customerOrder.update({
+        where: { id: factoryOrder.customerOrderId },
+        data: { status: OrderStatus.IN_PRODUCTION }
+      });
+    }
+
+    const updatedOrder = await this.prisma.factoryOrder.update({
+      where: { id },
+      data: { status },
       include: this.getIncludeObject()
     });
-    return new FactoryOrder(data);
+
+    return new FactoryOrder(updatedOrder);
   }
 
   async markAsDelayed(id: string, dto: MarkAsDelayedDto): Promise<FactoryOrder> {
@@ -355,6 +408,10 @@ export class FactoryOrderService {
           where: { id: orderDetail.factoryOrderId },
           data: { status: FactoryOrderStatus.DONE_PRODUCTION },
         });
+        await this.prisma.customerOrder.update({
+          where: { id: orderDetail.factoryOrder.customerOrderId },
+          data: { status: OrderStatus.DONE_PRODUCTION }
+        })
       }
 
       return updatedOrderDetail;

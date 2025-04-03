@@ -448,6 +448,7 @@ model Factory {
   staff    User?             @relation("FactoryStaff", fields: [staffId], references: [id])
   orders   FactoryOrder[]
   address  Address?         @relation(fields: [addressId], references: [id])
+  rejectedOrders RejectedFactoryOrder[]
 }
 
 enum FactoryOrderStatus {
@@ -491,6 +492,22 @@ model FactoryOrder {
   progressReports    FactoryProgressReport[]
   qualityIssues      QualityIssue[]
   tasks            Task[]
+  rejectedHistory   RejectedFactoryOrder[]
+}
+
+model RejectedFactoryOrder {
+  id              String    @id @default(uuid())
+  factoryOrderId  String
+  factoryId       String    // The factory that rejected the order
+  reason          String    // Reason for rejection
+  rejectedAt      DateTime  @default(now())
+  reassignedTo    String?   // ID of the factory it was reassigned to
+  reassignedAt    DateTime?
+
+  factoryOrder    FactoryOrder @relation(fields: [factoryOrderId], references: [id])
+  factory         Factory      @relation(fields: [factoryId], references: [factoryOwnerId])
+
+  @@map("RejectedFactoryOrders")
 }
 
 enum OrderDetailStatus {
