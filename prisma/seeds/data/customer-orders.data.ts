@@ -92,6 +92,15 @@ export const customerOrdersData: CustomerOrdersData = {
           status: OrderDetailStatus.PENDING,
           qualityCheckStatus: QualityCheckStatus.PENDING,
           reworkStatus: ReworkStatus.NOT_REQUIRED
+        },
+        {
+          id: "detail004",
+          designId: "design002",
+          price: 190000,
+          quantity: 2,
+          status: OrderDetailStatus.PENDING,
+          qualityCheckStatus: QualityCheckStatus.PENDING,
+          reworkStatus: ReworkStatus.NOT_REQUIRED
         }
       ]
     }

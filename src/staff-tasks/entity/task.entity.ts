@@ -18,9 +18,6 @@ export class TaskEntity {
     @Field(() => String)
     taskname: string
 
-    @Field(() => String)
-    status: string
-
     @Field(() => Date)
     startDate: Date
 

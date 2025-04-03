@@ -47,5 +47,20 @@ export const factoryOrderDetailsData = {
       qualityCheckedAt: null,
       qualityCheckedBy: null
     },
+    {
+      id: 'factoryorderdetail004',
+      designId: 'design002',
+      factoryOrderId: 'factoryorder003',
+      orderDetailId: 'detail004',
+      quantity: 2,
+      price: 190000,
+      status: OrderDetailStatus.PENDING,
+      completedQty: 0,
+      rejectedQty: 0,
+      productionCost: 50000,
+      qualityStatus: QualityCheckStatus.PENDING,
+      qualityCheckedAt: null,
+      qualityCheckedBy: null
+    },
   ],
 }; 

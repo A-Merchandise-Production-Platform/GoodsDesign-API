@@ -5,6 +5,7 @@ import { UseGuards } from '@nestjs/common';
 import { GraphqlJwtAuthGuard } from '../auth';
 import { CurrentUser } from '../auth';
 import { UserEntity } from '../users';
+import { StaffTaskStatus } from '@prisma/client';
 
 @Resolver(() => StaffTask)
 @UseGuards(GraphqlJwtAuthGuard)
@@ -34,7 +35,7 @@ export class StaffTaskResolver {
   @Mutation(() => StaffTask)
   async updateStaffTaskStatus(
     @Args('id', { type: () => ID }) id: string,
-    @Args('status', { type: () => String }) status: string,
+    @Args('status', { type: () => String }) status: StaffTaskStatus,
   ) {
     return this.staffTaskService.updateStatus(id, status);
   }

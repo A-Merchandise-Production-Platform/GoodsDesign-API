@@ -513,8 +513,6 @@ export class FactoryService {
                 rejectedFactoryIds
             )
 
-            console.log("rankedFactories", rankedFactories, uniqueVariantIds, rejectedFactoryIds)
-
             if (rankedFactories.length === 0) {
                 this.logger.warn(`No suitable factories found for order ${factoryOrderId}`)
                 return null

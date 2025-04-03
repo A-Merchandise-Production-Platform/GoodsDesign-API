@@ -332,21 +332,49 @@ model OrderHistory {
   order CustomerOrder @relation(fields: [orderId], references: [id])
 }
 
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+enum StaffTaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
 model Task {
   id                 String   @id @default(uuid())
   description        String
   taskname           String
-  status             String
   startDate          DateTime
   expiredTime        DateTime
-  qualityCheckStatus QualityCheckStatus // Thay đổi từ String sang enum
+  qualityCheckStatus QualityCheckStatus
   taskType           String?            // Loại nhiệm vụ
   factoryOrderId     String?            // Liên kết với FactoryOrder
   assignedBy         String?            // Người giao nhiệm vụ
 
-  checkQualities CheckQuality[]
-  staffTasks     StaffTask[]
-  factoryOrder      FactoryOrder?      @relation(fields: [factoryOrderId], references: [id])
+  checkQualities   CheckQuality[]
+  staffTasks       StaffTask[]
+  factoryOrder     FactoryOrder?      @relation(fields: [factoryOrderId], references: [id])
+}
+
+model StaffTask {
+  id            String    @id @default(uuid())
+  userId        String
+  taskId        String
+  assignedDate  DateTime
+  note          String?
+  status        StaffTaskStatus
+  completedDate DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id])
 }
 
 model CheckQuality {
@@ -366,19 +394,6 @@ model CheckQuality {
   task               Task                @relation(fields: [taskId], references: [id])
   orderDetail        CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
   factoryOrderDetail FactoryOrderDetail? @relation(fields: [factoryOrderDetailId], references: [id])
-}
-
-model StaffTask {
-  id            String    @id @default(uuid())
-  userId        String
-  taskId        String
-  assignedDate  DateTime
-  note          String?
-  status        String
-  completedDate DateTime?
-
-  user User @relation(fields: [userId], references: [id])
-  task Task @relation(fields: [taskId], references: [id])
 }
 
 model FactoryProduct {
@@ -457,10 +472,12 @@ enum FactoryOrderStatus {
   EXPIRED             // Factory không phản hồi trong thời gian quy định
   REJECTED            // Factory từ chối
   IN_PRODUCTION       // Đang sản xuất
-  DONE_PRODUCTION       // Đang sản xuất
+  DONE_PRODUCTION     // Đang sản xuất
+  WAITING_FOR_CHECKING_QUALITY
   COMPLETED           // Đã hoàn thành sản xuất
   SHIPPED             // Đã gửi hàng về kho chính
   CANCELLED           // Đã hủy
+  WAITING_FOR_MANAGER_ASSIGN_STAFF // Đang chờ manager gán nhân viên
 }
 
 model FactoryOrder {
@@ -491,8 +508,8 @@ model FactoryOrder {
   orderDetails       FactoryOrderDetail[]
   progressReports    FactoryProgressReport[]
   qualityIssues      QualityIssue[]
-  tasks            Task[]
   rejectedHistory   RejectedFactoryOrder[]
+  tasks             Task[]
 }
 
 model RejectedFactoryOrder {
