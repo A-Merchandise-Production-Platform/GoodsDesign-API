@@ -125,6 +125,16 @@ export class PaymentGatewayService implements OnModuleInit {
             date.getMinutes().toString().padStart(2, "0") +
             date.getSeconds().toString().padStart(2, "0")
 
+        //15mins
+        const expiredDate = new Date(date.getTime() + 15 * 60 * 1000)
+        const expiredDateStr =
+            expiredDate.getFullYear().toString() +
+            (expiredDate.getMonth() + 1).toString().padStart(2, "0") +
+            expiredDate.getDate().toString().padStart(2, "0") +
+            expiredDate.getHours().toString().padStart(2, "0") +
+            expiredDate.getMinutes().toString().padStart(2, "0") +
+            expiredDate.getSeconds().toString().padStart(2, "0")
+
         //Find payment by paymentId
         const payment = await this.prisma.payment.findFirst({
             where: { id: paymentData.paymentId }
@@ -151,7 +161,7 @@ export class PaymentGatewayService implements OnModuleInit {
 
         const orderId = paymentTransaction.id
         const amount = payment.amount
-        const bankCode = "VNBANK"
+        const bankCode = "NCB"
 
         const orderInfo = `PaymentForPaymentId_${orderId}`
         const orderType = "other"
@@ -173,8 +183,10 @@ export class PaymentGatewayService implements OnModuleInit {
             vnp_Amount: (amount * 100).toString(),
             vnp_ReturnUrl: returnUrl,
             vnp_IpAddr: ipAddr,
-            vnp_CreateDate: createDate
+            vnp_CreateDate: createDate,
+            vnp_ExpireDate: expiredDateStr
         }
+        console.log(vnpParams)
 
         // Sort parameters alphabetically
         const sortedParams = Object.keys(vnpParams)

@@ -30,7 +30,7 @@ export class ProductDesignService {
 
         const designPositionsData = positionType.map((p) => {
             return {
-                designJSON: null,
+                designJSON: [],
                 productPositionTypeId: p.id
             }
         })
