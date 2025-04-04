@@ -23,7 +23,7 @@ export const variantsData: VariantsData = {
             model: null,
             isActive: true,
             isDeleted: false,
-            price: 100000
+            price: 20000
         },
         {
             id: "var002",
