@@ -1,10 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { FactoryOrderStatus, OrderDetailStatus, QualityCheckStatus, ReworkStatus, StaffTaskStatus } from '@prisma/client';
 import { PrismaService } from '../prisma';
-import { CheckQuality } from './entity/check-quality.entity';
-import { QualityCheckStatus, ReworkStatus, OrderDetailStatus, FactoryOrderStatus } from '@prisma/client';
 import { CreateCheckQualityDto } from './dto/create-check-quality.dto';
-import { UpdateCheckQualityDto } from './dto/update-check-quality.dto';
 import { DoneCheckQualityDto } from './dto/done-check-quality.dto';
+import { CheckQuality } from './entity/check-quality.entity';
 
 @Injectable()
 export class CheckQualityService {
@@ -160,6 +159,11 @@ export class CheckQualityService {
             design: true,
             orderDetail: true
           }
+        },
+        task: {
+          include: {
+            staffTasks: true
+          }
         }
       }
     });
@@ -201,14 +205,36 @@ export class CheckQualityService {
       include: this.getIncludeObject(),
     });
 
+    // Update task and staff task status
+    if (currentCheckQuality.task) {
+      // Update task status
+      await this.prisma.task.update({
+        where: { id: currentCheckQuality.taskId },
+        data: {
+          qualityCheckStatus: status,
+        }
+      });
+
+      // Update staff task status
+      const staffTask = currentCheckQuality.task.staffTasks[0];
+      if (staffTask) {
+        await this.prisma.staffTask.update({
+          where: { id: staffTask.id },
+          data: {
+            status: StaffTaskStatus.COMPLETED,
+            completedDate: new Date()
+          }
+        });
+      }
+    }
+
     // If rework is required, handle factory order details and change status
     if (data.reworkRequired) {
       // Update the customer order detail status
-      await this.prisma.customerOrderDetail.update({
-        where: { id: currentCheckQuality.orderDetailId },
+      await this.prisma.factoryOrder.update({
+        where: { id: currentCheckQuality.factoryOrderDetail.factoryOrderId },
         data: {
-          reworkStatus: ReworkStatus.IN_PROGRESS,
-          status: OrderDetailStatus.REWORK_REQUIRED
+          status: OrderDetailStatus.REWORK_REQUIRED,
         },
       });
 
@@ -238,7 +264,37 @@ export class CheckQualityService {
               status: OrderDetailStatus.PENDING,
               completedQty: 0,
               rejectedQty: 0,
-              productionCost: factoryOrderDetail.productionCost
+              productionCost: factoryOrderDetail.productionCost,
+              qualityStatus: QualityCheckStatus.PENDING,
+              isRework: true
+            }
+          });
+
+          //change factory order details others into isRework = false
+          await this.prisma.factoryOrderDetail.updateMany({
+            where: {
+              factoryOrderId: factoryOrder.id,
+              id: {
+                not: currentCheckQuality.factoryOrderDetailId
+              }
+            },
+            data: {
+              isRework: false
+            }
+          });
+
+          await this.prisma.factoryOrderDetail.update({
+            where: { id: factoryOrderDetail.id },
+            data: {
+              status: OrderDetailStatus.QUALITY_CHECK_FAILED
+            }
+          });
+          
+        }else{
+          await this.prisma.factoryOrderDetail.update({
+            where: { id: factoryOrderDetail.id },
+            data: {
+              status: OrderDetailStatus.QUALITY_CHECK_PASSED
             }
           });
         }
@@ -247,13 +303,24 @@ export class CheckQualityService {
         await this.prisma.factoryOrder.update({
           where: { id: factoryOrder.id },
           data: {
-            status: FactoryOrderStatus.IN_PRODUCTION,
+            status: FactoryOrderStatus.REWORK_REQUIRED,
             isDelayed: true,
             delayReason: 'Rework required due to quality issues',
             currentProgress: 0 // Reset progress since new items need to be produced
           }
         });
       }
+    }else{
+      const factoryOrderDetail = currentCheckQuality.factoryOrderDetail;
+      const factoryOrder = factoryOrderDetail.factoryOrder;
+      await this.prisma.factoryOrder.update({
+        where: { id: factoryOrder.id },
+        data: {
+          status: FactoryOrderStatus.DONE_CHECK_QUALITY,
+          isDelayed: false,
+          delayReason: 'Rework is not required due to quality issues',
+        }
+      });
     }
 
     return new CheckQuality(result);

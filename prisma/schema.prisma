@@ -332,14 +332,6 @@ model OrderHistory {
   order CustomerOrder @relation(fields: [orderId], references: [id])
 }
 
-enum TaskStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  EXPIRED
-  CANCELLED
-}
-
 enum StaffTaskStatus {
   PENDING
   IN_PROGRESS
@@ -474,6 +466,9 @@ enum FactoryOrderStatus {
   IN_PRODUCTION       // Đang sản xuất
   DONE_PRODUCTION     // Đang sản xuất
   WAITING_FOR_CHECKING_QUALITY
+  DONE_CHECK_QUALITY
+  REWORK_REQUIRED
+  REWORK_COMPLETED
   COMPLETED           // Đã hoàn thành sản xuất
   SHIPPED             // Đã gửi hàng về kho chính
   CANCELLED           // Đã hủy
@@ -554,6 +549,7 @@ model FactoryOrderDetail {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime?         @updatedAt
   productionCost Int
+  isRework       Boolean @default(false)
 
   qualityStatus    QualityCheckStatus?
   qualityCheckedAt DateTime?

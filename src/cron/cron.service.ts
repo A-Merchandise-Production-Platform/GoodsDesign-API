@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { FactoryOrderStatus, OrderStatus, PaymentStatus, QualityCheckStatus, StaffTaskStatus, TaskStatus } from '@prisma/client';
+import { FactoryOrderStatus, OrderStatus, PaymentStatus, QualityCheckStatus, StaffTaskStatus, OrderDetailStatus } from '@prisma/client';
 import { FactoryService } from 'src/factory/factory.service';
 import { PaymentTransactionService } from 'src/payment-transaction/payment-transaction.service';
 import { PrismaService } from 'src/prisma';
@@ -54,6 +54,14 @@ export class CronService {
   async checkDoneProductionOrders() {
     this.logger.verbose("[checkDoneProductionOrders]");
     await this.processDoneProductionOrders();
+  }
+
+  @Cron(CronExpression.EVERY_5_SECONDS, {
+    name: "checkReworkCompletedOrders"
+  })
+  async checkReworkCompletedOrders() {
+    this.logger.verbose("[checkReworkCompletedOrders]");
+    await this.processReworkCompletedOrders();
   }
 
   async checkPaymentPending() {
@@ -295,6 +303,115 @@ export class CronService {
       }
     } catch (error) {
       this.logger.error('Error in processDoneProductionOrders:', error);
+    }
+  }
+
+  async processReworkCompletedOrders() {
+    try {
+      // Find all factory orders with REWORK_COMPLETED status
+      const reworkCompletedOrders = await this.prisma.factoryOrder.findMany({
+        where: {
+          status: FactoryOrderStatus.REWORK_COMPLETED,
+        },
+        include: {
+          factory: {
+            include: {
+              staff: true
+            }
+          },
+          orderDetails: {
+            where: {
+              isRework: true
+            },
+            include: {
+              design: true,
+              orderDetail: true
+            }
+          }
+        }
+      });
+
+      this.logger.verbose(`Found ${reworkCompletedOrders.length} factory orders in REWORK_COMPLETED status`);
+
+      for (const order of reworkCompletedOrders) {
+        try {
+          // Check if factory has assigned staff
+          if (order.factory.staff) {
+            // Create quality check task for each reworked order detail
+            for (const orderDetail of order.orderDetails) {
+              // Skip if there's no valid orderDetailId
+              if (!orderDetail.orderDetailId) {
+                this.logger.warn(`Skipping factory order detail ${orderDetail.id} - no valid orderDetailId`);
+                continue;
+              }
+
+              // Create a new task for quality check
+              const task = await this.prisma.task.create({
+                data: {
+                  description: `Quality check for reworked design ${orderDetail.design.id}`,
+                  taskname: "Quality Check (Rework)",
+                  startDate: new Date(),
+                  expiredTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+                  qualityCheckStatus: QualityCheckStatus.PENDING,
+                  taskType: "QUALITY_CHECK_REWORK",
+                  factoryOrderId: order.id,
+                  assignedBy: order.factory.staffId,
+                }
+              });
+
+              // Assign task to factory staff
+              await this.prisma.staffTask.create({
+                data: {
+                  userId: order.factory.staffId,
+                  taskId: task.id,
+                  assignedDate: new Date(),
+                  status: StaffTaskStatus.PENDING
+                }
+              });
+                
+              // Create quality check record
+              await this.prisma.checkQuality.create({
+                data: {
+                  taskId: task.id,
+                  orderDetailId: orderDetail.orderDetailId,
+                  factoryOrderDetailId: orderDetail.id,
+                  totalChecked: orderDetail.quantity,
+                  passedQuantity: 0,
+                  failedQuantity: 0,
+                  status: QualityCheckStatus.PENDING,
+                  reworkRequired: false,
+                  checkedAt: new Date(),
+                  checkedBy: order.factory.staffId
+                }
+              });
+
+              // Update factory order detail status
+              await this.prisma.factoryOrderDetail.update({
+                where: { id: orderDetail.id },
+                data: {
+                  status: OrderDetailStatus.QUALITY_CHECK_PENDING
+                }
+              });
+            }
+
+            // Update factory order status
+            await this.prisma.factoryOrder.update({
+              where: { id: order.id },
+              data: {
+                status: FactoryOrderStatus.WAITING_FOR_CHECKING_QUALITY
+              }
+            });
+
+            this.logger.log(`Created quality check tasks for rework completed order ${order.id}`);
+          } else {
+            this.logger.warn(`Factory ${order.factoryId} has no assigned staff for quality check`);
+          }
+        } catch (error) {
+          this.logger.error(`Failed to process rework completed order ${order.id}:`, error);
+        }
+      }
+    } catch (error) {
+      this.logger.error('Error in processReworkCompletedOrders:', error);
     }
   }
 
