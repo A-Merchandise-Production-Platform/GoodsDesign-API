@@ -143,7 +143,8 @@ export class CronService {
                 }
               }
             }
-          }
+          },
+          customerOrder: true
         }
       });
 
@@ -156,19 +157,27 @@ export class CronService {
           
           if (!newFactoryOrder) {
             this.logger.warn(`Failed to reassign factory order ${order.id}`);
-            
-            // Notify admins about the failed reassignment
-            const admins = await this.prisma.user.findMany({
-              where: { role: 'ADMIN' }
+
+            // Update factory order status
+            await this.prisma.factoryOrder.update({
+              where: { id: order.id },
+              data: {
+                status: FactoryOrderStatus.WAITING_FOR_MANAGER_ASSIGN_FACTORY
+              }
             });
             
-            for (const admin of admins) {
+            // Notify admins about the failed reassignment
+            const managers = await this.prisma.user.findMany({
+              where: { role: 'MANAGER' }
+            });
+            
+            for (const manager of managers) {
               await this.prisma.notification.create({
                 data: {
-                  userId: admin.id,
-                  title: "Failed Factory Order Reassignment",
-                  content: `Order #${order.customerOrderId} could not be reassigned to a new factory. Manual intervention required.`,
-                  url: `/admin/orders/${order.customerOrderId}`
+                  userId: manager.id,
+                  title: "Manual Factory Assignment Required",
+                  content: `Order #${order.customerOrderId} could not be automatically reassigned to any factory. Manual assignment required.`,
+                  url: `/manager/orders/${order.customerOrderId}`
                 }
               });
             }

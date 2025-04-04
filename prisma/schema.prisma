@@ -463,6 +463,7 @@ enum FactoryOrderStatus {
   ACCEPTED            // Factory đã chấp nhận  
   EXPIRED             // Factory không phản hồi trong thời gian quy định
   REJECTED            // Factory từ chối
+  WAITING_FOR_MANAGER_ASSIGN_FACTORY
   IN_PRODUCTION       // Đang sản xuất
   DONE_PRODUCTION     // Đang sản xuất
   WAITING_FOR_CHECKING_QUALITY

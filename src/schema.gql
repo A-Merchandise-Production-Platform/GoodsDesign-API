@@ -306,6 +306,7 @@ type FactoryOrder {
   orderDetails: [FactoryOrderDetailEntity!]
   progressReports: [FactoryProgressReport!]
   qualityIssues: [QualityIssue!]
+  rejectedHistory: [RejectedFactoryOrder!]
   rejectionReason: String
   shippedAt: DateTime
   status: FactoryOrderStatus!
@@ -351,6 +352,7 @@ enum FactoryOrderStatus {
   REWORK_REQUIRED
   SHIPPED
   WAITING_FOR_CHECKING_QUALITY
+  WAITING_FOR_MANAGER_ASSIGN_FACTORY
   WAITING_FOR_MANAGER_ASSIGN_STAFF
 }
 
@@ -409,7 +411,9 @@ input MarkAsDelayedDto {
 }
 
 type Mutation {
+  assignFactoryToOrder(factoryId: ID!, factoryOrderId: ID!): FactoryOrder!
   assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
+  assignStaffToOrder(factoryOrderId: ID!, staffId: ID!): FactoryOrder!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   clearCart: Boolean!
   completeStaffTask(id: ID!): StaffTask!
@@ -716,6 +720,18 @@ input RegisterDto {
   isFactoryOwner: Boolean! = false
   name: String!
   password: String!
+}
+
+type RejectedFactoryOrder {
+  factory: FactoryEntity
+  factoryId: String!
+  factoryOrder: FactoryOrder
+  factoryOrderId: String!
+  id: ID!
+  reason: String!
+  reassignedAt: DateTime
+  reassignedTo: String
+  rejectedAt: DateTime!
 }
 
 """User roles"""

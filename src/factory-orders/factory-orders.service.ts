@@ -86,7 +86,8 @@ export class FactoryOrderService {
             }
           }
         }
-      }
+      },
+      rejectedHistory: true
     };
   }
 
@@ -178,7 +179,8 @@ export class FactoryOrderService {
               }
             }
           }
-        }
+        },
+        rejectedHistory: true
       }
     });
     return new FactoryOrder(data);
@@ -452,6 +454,129 @@ export class FactoryOrderService {
       return updatedOrderDetail;
     } catch (error) {
       this.logger.error(`Error updating order detail status: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  async assignFactoryToOrder(factoryOrderId: string, factoryId: string): Promise<FactoryOrder> {
+    try {
+      const factoryOrder = await this.prisma.factoryOrder.findUnique({
+        where: { id: factoryOrderId },
+        include: { customerOrder: true }
+      });
+
+      if (!factoryOrder) {
+        throw new NotFoundException(`Factory order with ID ${factoryOrderId} not found`);
+      }
+
+      // Verify the factory exists
+      const factory = await this.prisma.factory.findUnique({
+        where: { factoryOwnerId: factoryId }
+      });
+
+      if (!factory) {
+        throw new NotFoundException(`Factory with ID ${factoryId} not found`);
+      }
+
+      // Update the factory order with the new factory and change status
+      const updatedOrder = await this.prisma.factoryOrder.update({
+        where: { id: factoryOrderId },
+        data: {
+          factoryId: factoryId,
+          status: FactoryOrderStatus.WAITING_FOR_MANAGER_ASSIGN_STAFF,
+          updatedAt: new Date()
+        },
+        include: this.getIncludeObject()
+      });
+
+      // Create notification for the factory owner
+      await this.prisma.notification.create({
+        data: {
+          userId: factoryId,
+          title: "New Order Assigned",
+          content: `You have been assigned a new order #${factoryOrder.customerOrderId}`,
+          url: `/factory/orders/${factoryOrderId}`
+        }
+      });
+
+      return new FactoryOrder(updatedOrder);
+    } catch (error) {
+      this.logger.error(`Error assigning factory to order: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async assignStaffToOrder(factoryOrderId: string, staffId: string): Promise<FactoryOrder> {
+    try {
+      const factoryOrder = await this.prisma.factoryOrder.findUnique({
+        where: { id: factoryOrderId },
+        include: { 
+          customerOrder: true,
+          factory: true
+        }
+      });
+
+      if (!factoryOrder) {
+        throw new NotFoundException(`Factory order with ID ${factoryOrderId} not found`);
+      }
+
+      // Verify the staff exists and belongs to the factory
+      const staff = await this.prisma.user.findFirst({
+        where: { 
+          id: staffId,
+          staffedFactory: {
+            factoryOwnerId: factoryOrder.factoryId
+          }
+        }
+      });
+
+      if (!staff) {
+        throw new NotFoundException(`Staff with ID ${staffId} not found or not associated with the factory`);
+      }
+
+      // Create a task for the staff
+      const task = await this.prisma.task.create({
+        data: {
+          taskname: `Production task for order #${factoryOrder.customerOrderId}`,
+          description: `Handle production for order #${factoryOrder.customerOrderId}`,
+          startDate: new Date(),
+          expiredTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          qualityCheckStatus: 'PENDING',
+          factoryOrderId: factoryOrderId,
+          assignedBy: factoryOrder.factoryId,
+          staffTasks: {
+            create: {
+              userId: staffId,
+              assignedDate: new Date(),
+              status: 'PENDING'
+            }
+          }
+        }
+      });
+
+      // Update the factory order status
+      const updatedOrder = await this.prisma.factoryOrder.update({
+        where: { id: factoryOrderId },
+        data: {
+          status: FactoryOrderStatus.IN_PRODUCTION,
+          updatedAt: new Date()
+        },
+        include: this.getIncludeObject()
+      });
+
+      // Create notification for the staff
+      await this.prisma.notification.create({
+        data: {
+          userId: staffId,
+          title: "New Task Assigned",
+          content: `You have been assigned to handle order #${factoryOrder.customerOrderId}`,
+          url: `/staff/tasks/${task.id}`
+        }
+      });
+
+      return new FactoryOrder(updatedOrder);
+    } catch (error) {
+      this.logger.error(`Error assigning staff to order: ${error.message}`);
       throw error;
     }
   }

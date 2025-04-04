@@ -95,7 +95,7 @@ export class PaymentGatewayService implements OnModuleInit {
         const createPaymentLinkRequest: CheckoutRequestType = {
             amount: payment.amount,
             orderCode: parseInt(orderCode),
-            description: `Payment_${payment.id}`,
+            description: `Payment for ${orderCode}`,
             cancelUrl: envConfig().payment.payos.cancelUrl,
             returnUrl: envConfig().payment.payos.returnUrl
         }
