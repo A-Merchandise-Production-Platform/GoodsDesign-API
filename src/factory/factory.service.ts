@@ -5,7 +5,7 @@ import {
     Logger,
     NotFoundException
 } from "@nestjs/common"
-import { Factory, FactoryOrderStatus, OrderStatus, Roles } from "@prisma/client"
+import { Factory, FactoryOrderStatus, OrderDetailStatus, OrderStatus, QualityCheckStatus, Roles } from "@prisma/client"
 import { CustomerOrderEntity } from "src/customer-orders/entities"
 import { FactoryEntity } from "src/factory/entities/factory.entity"
 import { NotificationsService } from "src/notifications/notifications.service"
@@ -574,7 +574,9 @@ export class FactoryService {
                             orderDetailId: detail.orderDetailId,
                             quantity: detail.quantity,
                             price: detail.price,
-                            productionCost: detail.productionCost
+                            productionCost: detail.productionCost,
+                            qualityStatus: QualityCheckStatus.PENDING,
+                            status:OrderDetailStatus.PENDING
                         }))
                     }
                 }

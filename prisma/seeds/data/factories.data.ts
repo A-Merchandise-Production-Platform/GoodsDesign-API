@@ -86,7 +86,7 @@ export const factoriesData = [
         minimumOrderQuantity: 20,
 
         // Status tracking
-        factoryStatus: "PENDING_APPROVAL",
+        factoryStatus: "APPROVED",
         statusNote: "Pending final documentation review",
         contractAccepted: false,
         contractAcceptedAt: null,
@@ -97,6 +97,6 @@ export const factoriesData = [
         contractUrl: null,
 
         // Contract
-        contract: null
+        contract: null,
     }
 ]

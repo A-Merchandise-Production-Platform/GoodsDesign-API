@@ -341,11 +341,14 @@ enum FactoryOrderStatus {
   ACCEPTED
   CANCELLED
   COMPLETED
+  DONE_CHECK_QUALITY
   DONE_PRODUCTION
   EXPIRED
   IN_PRODUCTION
   PENDING_ACCEPTANCE
   REJECTED
+  REWORK_COMPLETED
+  REWORK_REQUIRED
   SHIPPED
   WAITING_FOR_CHECKING_QUALITY
   WAITING_FOR_MANAGER_ASSIGN_STAFF
@@ -434,6 +437,7 @@ type Mutation {
   deleteProduct(id: String!): ProductEntity!
   deleteUser(id: String!): UserEntity!
   doneCheckQuality(id: ID!, input: DoneCheckQualityDto!): CheckQuality!
+  duplicateProductDesign(id: ID!): ProductDesignEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
   markFactoryOrderAsDelayed(id: ID!, input: MarkAsDelayedDto!): FactoryOrder!

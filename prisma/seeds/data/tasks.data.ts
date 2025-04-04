@@ -1,4 +1,4 @@
-import { QualityCheckStatus, TaskStatus } from '@prisma/client';
+import { QualityCheckStatus } from '@prisma/client';
 
 interface Task {
   id: string;

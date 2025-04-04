@@ -154,4 +154,55 @@ export class ProductDesignService {
         })
         return new ProductDesignEntity(data)
     }
+
+    async duplicate(id: string, userId: string): Promise<ProductDesignEntity> {
+        // Get the original design with all its relations
+        const originalDesign = await this.prisma.productDesign.findUnique({
+            where: { id },
+            include: {
+                designPositions: {
+                    include: {
+                        positionType: true
+                    }
+                }
+            }
+        });
+
+        if (!originalDesign) {
+            throw new Error('Design not found');
+        }
+
+        // Create the new design with the same data but new ID
+        const newDesign = await this.prisma.productDesign.create({
+            data: {
+                userId,
+                systemConfigVariantId: originalDesign.systemConfigVariantId,
+                isFinalized: false, // Reset finalized status
+                isPublic: false, // Reset public status
+                isTemplate: false, // Reset template status
+                thumbnailUrl: originalDesign.thumbnailUrl,
+                designPositions: {
+                    create: originalDesign.designPositions.map(position => ({
+                        productPositionTypeId: position.productPositionTypeId,
+                        designJSON: position.designJSON
+                    }))
+                }
+            },
+            include: {
+                user: true,
+                systemConfigVariant: {
+                    include: {
+                        product: true
+                    }
+                },
+                designPositions: {
+                    include: {
+                        positionType: true
+                    }
+                }
+            }
+        });
+
+        return new ProductDesignEntity(newDesign);
+    }
 }

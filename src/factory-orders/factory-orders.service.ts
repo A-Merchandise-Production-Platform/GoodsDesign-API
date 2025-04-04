@@ -400,18 +400,53 @@ export class FactoryOrderService {
         where: { factoryOrderId: orderDetail.factoryOrderId },
       });
 
-      const allCompleted = allDetails.every(detail => detail.status === OrderDetailStatus.COMPLETED);
+      const allCompleted = allDetails.every(detail => detail.status === OrderDetailStatus.COMPLETED || detail.status === OrderDetailStatus.REWORK_REQUIRED);
 
       if (allCompleted) {
-        // Update the factory order status to DONE_PRODUCTION
-        await this.prisma.factoryOrder.update({
-          where: { id: orderDetail.factoryOrderId },
-          data: { status: FactoryOrderStatus.DONE_PRODUCTION },
-        });
-        await this.prisma.customerOrder.update({
-          where: { id: orderDetail.factoryOrder.customerOrderId },
-          data: { status: OrderStatus.DONE_PRODUCTION }
+        const factoryOrder = await this.prisma.factoryOrder.findFirst({
+          where: {
+            id: orderDetail.factoryOrderId
+          }
         })
+
+        if(factoryOrder.status == FactoryOrderStatus.REWORK_REQUIRED){
+           // Update the factory order status to REWORK_COMPLETED
+          await this.prisma.factoryOrder.update({
+            where: { id: orderDetail.factoryOrderId },
+            data: { status: FactoryOrderStatus.REWORK_COMPLETED },
+          });
+
+          await this.prisma.factoryOrderDetail.updateMany({
+            where: { 
+              factoryOrderId: orderDetail.factoryOrderId,
+              status: OrderDetailStatus.REWORK_REQUIRED 
+            },
+            data: { status: OrderDetailStatus.COMPLETED }
+          });
+
+        }
+
+        if(factoryOrder.status == "IN_PRODUCTION"){
+          // Update the factory order status to DONE_PRODUCTION
+            await this.prisma.factoryOrder.update({
+              where: { id: orderDetail.factoryOrderId },
+              data: { status: FactoryOrderStatus.DONE_PRODUCTION },
+            });
+            await this.prisma.customerOrder.update({
+              where: { id: orderDetail.factoryOrder.customerOrderId },
+              data: { status: OrderStatus.DONE_PRODUCTION }
+          })
+        }else if(factoryOrder.status == "REWORK_REQUIRED"){
+          // Update the factory order status to DONE_PRODUCTION
+          await this.prisma.factoryOrder.update({
+            where: { id: orderDetail.factoryOrderId },
+            data: { status: FactoryOrderStatus.REWORK_COMPLETED },
+          });
+          await this.prisma.customerOrder.update({
+            where: { id: orderDetail.factoryOrder.customerOrderId },
+            data: { status: OrderStatus.DONE_PRODUCTION }
+        })
+        }
       }
 
       return updatedOrderDetail;
