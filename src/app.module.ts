@@ -31,6 +31,7 @@ import { UsersModule } from "./users"
 import { StaffTasksModule } from "./staff-tasks/staff-tasks.module"
 import { NotificationsModule } from "./notifications/notifications.module"
 import { FactoryOrdersModule } from "./factory-orders/factory-orders.module"
+import { FactoryProductsModule } from './factory-products/factory-products.module';
 
 @Module({
     imports: [
@@ -74,7 +75,8 @@ import { FactoryOrdersModule } from "./factory-orders/factory-orders.module"
         CronModule,
         NotificationsModule,
         FactoryOrdersModule,
-        StaffTasksModule
+        StaffTasksModule,
+        FactoryProductsModule
         // TestModule,
     ],
     controllers: [AppController],

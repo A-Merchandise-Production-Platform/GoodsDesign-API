@@ -34,17 +34,17 @@ model User {
   deletedAt   DateTime?
   role        Roles
 
-  addresses    Address[]
-  designs      ProductDesign[]
-  favorites    FavoriteDesign[]
-  orders       CustomerOrder[]
-  payments     Payment[]
-  transactions PaymentTransaction[]
-  staffTasks   StaffTask[]
-  notification Notification[]
-  cartItems    CartItem[]
-  ownedFactory Factory? @relation("FactoryOwner")
-  staffedFactory Factory? @relation("FactoryStaff")
+  addresses      Address[]
+  designs        ProductDesign[]
+  favorites      FavoriteDesign[]
+  orders         CustomerOrder[]
+  payments       Payment[]
+  transactions   PaymentTransaction[]
+  staffTasks     StaffTask[]
+  notification   Notification[]
+  cartItems      CartItem[]
+  ownedFactory   Factory?             @relation("FactoryOwner")
+  staffedFactory Factory?             @relation("FactoryStaff")
 }
 
 model Address {
@@ -98,10 +98,10 @@ model Product {
   deletedBy   String?
   categoryId  String
 
-  category       Category              @relation(fields: [categoryId], references: [id])
-  positionTypes  ProductPositionType[]
-  discounts      SystemConfigDiscount[]
-  variants       SystemConfigVariant[]
+  category      Category               @relation(fields: [categoryId], references: [id])
+  positionTypes ProductPositionType[]
+  discounts     SystemConfigDiscount[]
+  variants      SystemConfigVariant[]
 
   @@map("Products")
 }
@@ -116,7 +116,6 @@ model SystemConfigBank {
   isActive  Boolean @default(true)
   isDeleted Boolean @default(false)
 }
-
 
 model SystemConfigDiscount {
   id              String   @id @default(uuid())
@@ -142,10 +141,10 @@ model SystemConfigVariant {
   price     Int?
   isActive  Boolean @default(true)
   isDeleted Boolean @default(false)
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
   factoryProducts FactoryProduct[]
-  productDesigns ProductDesign[]
+  productDesigns  ProductDesign[]
 }
 
 model ProductPositionType {
@@ -161,14 +160,14 @@ model ProductPositionType {
 }
 
 model ProductDesign {
-  id                String   @id @default(uuid())
-  userId            String
-  systemConfigVariantId    String
-  isFinalized       Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  isPublic          Boolean  @default(false)
-  isTemplate        Boolean  @default(false)
-  thumbnailUrl      String?
+  id                    String   @id @default(uuid())
+  userId                String
+  systemConfigVariantId String
+  isFinalized           Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  isPublic              Boolean  @default(false)
+  isTemplate            Boolean  @default(false)
+  thumbnailUrl          String?
 
   user                User                  @relation(fields: [userId], references: [id])
   systemConfigVariant SystemConfigVariant   @relation(fields: [systemConfigVariantId], references: [id])
@@ -237,10 +236,10 @@ model CustomerOrder {
   orderDate     DateTime
 
   // Đánh giá chất lượng sản xuất
-  rating            Int?               // Đánh giá từ 1-5 sao
-  ratingComment     String?            // Nhận xét về chất lượng sản xuất
-  ratedAt           DateTime?          // Thời điểm đánh giá
-  ratedBy           String?            // Người đánh giá
+  rating        Int? // Đánh giá từ 1-5 sao
+  ratingComment String? // Nhận xét về chất lượng sản xuất
+  ratedAt       DateTime? // Thời điểm đánh giá
+  ratedBy       String? // Người đánh giá
 
   customer     User                  @relation(fields: [customerId], references: [id])
   orderDetails CustomerOrderDetail[]
@@ -318,8 +317,8 @@ model PaymentTransaction {
   transactionLog              String
   createdAt                   DateTime
 
-  payment  Payment       @relation(fields: [paymentId], references: [id])
-  customer User          @relation(fields: [customerId], references: [id])
+  payment  Payment @relation(fields: [paymentId], references: [id])
+  customer User    @relation(fields: [customerId], references: [id])
 }
 
 model OrderHistory {
@@ -333,35 +332,35 @@ model OrderHistory {
 }
 
 model Task {
-  id                 String   @id @default(uuid())
+  id                 String             @id @default(uuid())
   description        String
   taskname           String
   status             String
   startDate          DateTime
   expiredTime        DateTime
   qualityCheckStatus QualityCheckStatus // Thay đổi từ String sang enum
-  taskType           String?            // Loại nhiệm vụ
-  factoryOrderId     String?            // Liên kết với FactoryOrder
-  assignedBy         String?            // Người giao nhiệm vụ
+  taskType           String? // Loại nhiệm vụ
+  factoryOrderId     String? // Liên kết với FactoryOrder
+  assignedBy         String? // Người giao nhiệm vụ
 
   checkQualities CheckQuality[]
   staffTasks     StaffTask[]
-  factoryOrder      FactoryOrder?      @relation(fields: [factoryOrderId], references: [id])
+  factoryOrder   FactoryOrder?  @relation(fields: [factoryOrderId], references: [id])
 }
 
 model CheckQuality {
-  id                 String             @id @default(uuid())
-  taskId             String
-  orderDetailId      String
-  factoryOrderDetailId String?          // Thêm liên kết với FactoryOrderDetail
-  totalChecked       Int
-  passedQuantity     Int
-  failedQuantity     Int
-  status             QualityCheckStatus // Thay đổi từ String sang enum
-  reworkRequired     Boolean
-  note               String?
-  checkedAt          DateTime
-  checkedBy          String?            // Thêm người kiểm tra
+  id                   String             @id @default(uuid())
+  taskId               String
+  orderDetailId        String
+  factoryOrderDetailId String? // Thêm liên kết với FactoryOrderDetail
+  totalChecked         Int
+  passedQuantity       Int
+  failedQuantity       Int
+  status               QualityCheckStatus // Thay đổi từ String sang enum
+  reworkRequired       Boolean
+  note                 String?
+  checkedAt            DateTime
+  checkedBy            String? // Thêm người kiểm tra
 
   task               Task                @relation(fields: [taskId], references: [id])
   orderDetail        CustomerOrderDetail @relation(fields: [orderDetailId], references: [id])
@@ -382,14 +381,15 @@ model StaffTask {
 }
 
 model FactoryProduct {
-  id                      String @id @default(uuid())
-  factoryId               String
-  systemConfigVariantId         String
+  factoryId               String 
+  systemConfigVariantId   String
   productionCapacity      Int
   estimatedProductionTime Int
 
   factory             Factory             @relation(fields: [factoryId], references: [factoryOwnerId])
   systemConfigVariant SystemConfigVariant @relation(fields: [systemConfigVariantId], references: [id])
+
+  @@id([factoryId, systemConfigVariantId])
 }
 
 enum FactoryStatus {
@@ -430,7 +430,7 @@ model Factory {
 
   // Status tracking
   factoryStatus      FactoryStatus @default(PENDING_APPROVAL)
-  isSubmitted        Boolean       @default(false)  // Track if factory info has been submitted for approval
+  isSubmitted        Boolean       @default(false) // Track if factory info has been submitted for approval
   statusNote         String? // Note about status (especially for rejections)
   contractAccepted   Boolean       @default(false)
   contractAcceptedAt DateTime?
@@ -443,69 +443,69 @@ model Factory {
   //staff id
   staffId String? @unique
 
-  owner    User             @relation("FactoryOwner", fields: [factoryOwnerId], references: [id])
-  products FactoryProduct[]
-  staff    User?             @relation("FactoryStaff", fields: [staffId], references: [id])
-  orders   FactoryOrder[]
-  address  Address?         @relation(fields: [addressId], references: [id])
+  owner          User                   @relation("FactoryOwner", fields: [factoryOwnerId], references: [id])
+  products       FactoryProduct[]
+  staff          User?                  @relation("FactoryStaff", fields: [staffId], references: [id])
+  orders         FactoryOrder[]
+  address        Address?               @relation(fields: [addressId], references: [id])
   rejectedOrders RejectedFactoryOrder[]
 }
 
 enum FactoryOrderStatus {
-  PENDING_ACCEPTANCE  // Đợi factory chấp nhận
-  ACCEPTED            // Factory đã chấp nhận  
-  EXPIRED             // Factory không phản hồi trong thời gian quy định
-  REJECTED            // Factory từ chối
-  IN_PRODUCTION       // Đang sản xuất
-  DONE_PRODUCTION       // Đang sản xuất
-  COMPLETED           // Đã hoàn thành sản xuất
-  SHIPPED             // Đã gửi hàng về kho chính
-  CANCELLED           // Đã hủy
+  PENDING_ACCEPTANCE // Đợi factory chấp nhận
+  ACCEPTED // Factory đã chấp nhận  
+  EXPIRED // Factory không phản hồi trong thời gian quy định
+  REJECTED // Factory từ chối
+  IN_PRODUCTION // Đang sản xuất
+  DONE_PRODUCTION // Đang sản xuất
+  COMPLETED // Đã hoàn thành sản xuất
+  SHIPPED // Đã gửi hàng về kho chính
+  CANCELLED // Đã hủy
 }
 
 model FactoryOrder {
-  id                  String             @id @default(uuid())
-  factoryId           String
-  customerOrderId     String             
-  status              FactoryOrderStatus 
-  assignedAt          DateTime           
-  acceptanceDeadline  DateTime           
-  acceptedAt          DateTime?
-  rejectionReason     String?
+  id                      String             @id @default(uuid())
+  factoryId               String
+  customerOrderId         String
+  status                  FactoryOrderStatus
+  assignedAt              DateTime
+  acceptanceDeadline      DateTime
+  acceptedAt              DateTime?
+  rejectionReason         String?
   estimatedCompletionDate DateTime?
-  completedAt         DateTime?
-  shippedAt           DateTime?
-  totalItems          Int
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime?          @updatedAt
-  totalProductionCost Int
+  completedAt             DateTime?
+  shippedAt               DateTime?
+  totalItems              Int
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime?          @updatedAt
+  totalProductionCost     Int
 
   // Tiến độ sản xuất
-  lastUpdated       DateTime?          @updatedAt
-  currentProgress   Int?               // Tiến độ hiện tại (phần trăm)
-  delayReason       String?            // Lý do trễ hạn nếu có
-  isDelayed         Boolean            @default(false) // Đánh dấu đơn hàng bị trễ
+  lastUpdated     DateTime? @updatedAt
+  currentProgress Int? // Tiến độ hiện tại (phần trăm)
+  delayReason     String? // Lý do trễ hạn nếu có
+  isDelayed       Boolean   @default(false) // Đánh dấu đơn hàng bị trễ
 
-  factory            Factory               @relation(fields: [factoryId], references: [factoryOwnerId])
-  customerOrder      CustomerOrder         @relation(fields: [customerOrderId], references: [id])
-  orderDetails       FactoryOrderDetail[]
-  progressReports    FactoryProgressReport[]
-  qualityIssues      QualityIssue[]
-  tasks            Task[]
-  rejectedHistory   RejectedFactoryOrder[]
+  factory         Factory                 @relation(fields: [factoryId], references: [factoryOwnerId])
+  customerOrder   CustomerOrder           @relation(fields: [customerOrderId], references: [id])
+  orderDetails    FactoryOrderDetail[]
+  progressReports FactoryProgressReport[]
+  qualityIssues   QualityIssue[]
+  tasks           Task[]
+  rejectedHistory RejectedFactoryOrder[]
 }
 
 model RejectedFactoryOrder {
-  id              String    @id @default(uuid())
-  factoryOrderId  String
-  factoryId       String    // The factory that rejected the order
-  reason          String    // Reason for rejection
-  rejectedAt      DateTime  @default(now())
-  reassignedTo    String?   // ID of the factory it was reassigned to
-  reassignedAt    DateTime?
+  id             String    @id @default(uuid())
+  factoryOrderId String
+  factoryId      String // The factory that rejected the order
+  reason         String // Reason for rejection
+  rejectedAt     DateTime  @default(now())
+  reassignedTo   String? // ID of the factory it was reassigned to
+  reassignedAt   DateTime?
 
-  factoryOrder    FactoryOrder @relation(fields: [factoryOrderId], references: [id])
-  factory         Factory      @relation(fields: [factoryId], references: [factoryOwnerId])
+  factoryOrder FactoryOrder @relation(fields: [factoryOrderId], references: [id])
+  factory      Factory      @relation(fields: [factoryId], references: [factoryOwnerId])
 
   @@map("RejectedFactoryOrders")
 }
@@ -550,15 +550,15 @@ model FactoryOrderDetail {
 }
 
 model FactoryProgressReport {
-  id                 String    @id @default(uuid())
-  factoryOrderId     String
-  reportDate         DateTime  @default(now())
-  completedQty       Int
+  id                  String   @id @default(uuid())
+  factoryOrderId      String
+  reportDate          DateTime @default(now())
+  completedQty        Int
   estimatedCompletion DateTime
-  notes              String?
-  photoUrls          String[]
-  
-  factoryOrder       FactoryOrder @relation(fields: [factoryOrderId], references: [id])
+  notes               String?
+  photoUrls           String[]
+
+  factoryOrder FactoryOrder @relation(fields: [factoryOrderId], references: [id])
 }
 
 enum QualityIssueStatus {
@@ -569,20 +569,20 @@ enum QualityIssueStatus {
 }
 
 model QualityIssue {
-  id                String             @id @default(uuid())
-  factoryOrderId    String
-  reportedAt        DateTime           @default(now())
-  reportedBy        String?            // Người báo cáo vấn đề
-  assignedTo        String?            // Người được giao xử lý
-  issueType         String
-  description       String
-  photoUrls         String[]
-  status            QualityIssueStatus
-  resolution        String?
-  resolvedAt        DateTime?
-  resolvedBy        String?            // Người đã giải quyết vấn đề
-  
-  factoryOrder      FactoryOrder       @relation(fields: [factoryOrderId], references: [id])
+  id             String             @id @default(uuid())
+  factoryOrderId String
+  reportedAt     DateTime           @default(now())
+  reportedBy     String? // Người báo cáo vấn đề
+  assignedTo     String? // Người được giao xử lý
+  issueType      String
+  description    String
+  photoUrls      String[]
+  status         QualityIssueStatus
+  resolution     String?
+  resolvedAt     DateTime?
+  resolvedBy     String? // Người đã giải quyết vấn đề
+
+  factoryOrder FactoryOrder @relation(fields: [factoryOrderId], references: [id])
 }
 
 model Notification {
