@@ -6,6 +6,9 @@ import { UseGuards } from '@nestjs/common';
 import { GraphqlJwtAuthGuard } from '../auth';
 import { CurrentUser } from '../auth';
 import { UserEntity } from '../users';
+import { CreateCheckQualityDto } from './dto/create-check-quality.dto';
+import { UpdateCheckQualityDto } from './dto/update-check-quality.dto';
+import { DoneCheckQualityDto } from './dto/done-check-quality.dto';
 
 @Resolver(() => CheckQuality)
 @UseGuards(GraphqlJwtAuthGuard)
@@ -30,26 +33,22 @@ export class CheckQualityResolver {
   @Mutation(() => CheckQuality)
   async createCheckQuality(
     @CurrentUser() user: UserEntity,
-    @Args('taskId', { type: () => ID }) taskId: string,
-    @Args('orderDetailId', { type: () => ID }) orderDetailId: string,
-    @Args('totalChecked', { type: () => Number }) totalChecked: number,
-    @Args('passedQuantity', { type: () => Number }) passedQuantity: number,
-    @Args('failedQuantity', { type: () => Number }) failedQuantity: number,
-    @Args('status', { type: () => QualityCheckStatus }) status: QualityCheckStatus,
-    @Args('reworkRequired', { type: () => Boolean }) reworkRequired: boolean,
-    @Args('factoryOrderDetailId', { type: () => ID, nullable: true }) factoryOrderDetailId?: string,
-    @Args('note', { type: () => String, nullable: true }) note?: string,
+    @Args('input') input: CreateCheckQualityDto,
   ) {
     return this.checkQualityService.create({
-      taskId,
-      orderDetailId,
-      factoryOrderDetailId,
-      totalChecked,
-      passedQuantity,
-      failedQuantity,
-      status,
-      reworkRequired,
-      note,
+      ...input,
+      checkedBy: user.id,
+    });
+  }
+
+  @Mutation(() => CheckQuality)
+  async doneCheckQuality(
+    @CurrentUser() user: UserEntity,
+    @Args('id', { type: () => ID }) id: string,
+    @Args('input') input: DoneCheckQualityDto,
+  ) {
+    return this.checkQualityService.doneTaskCheckQuality(id, {
+      ...input,
       checkedBy: user.id,
     });
   }

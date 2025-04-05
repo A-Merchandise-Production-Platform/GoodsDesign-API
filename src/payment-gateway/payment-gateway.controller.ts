@@ -8,6 +8,7 @@ export class PaymentGatewayController {
   constructor(private readonly paymentGatewayService: PaymentGatewayService) {}
 
   @Get('ipn-vnpay')
+  @HttpCode(HttpStatus.OK)
   async handleVNPayIPN(@Query() query: VNPayQueryParams) {
     return this.paymentGatewayService.verifyVNPayPayment(query);
   }

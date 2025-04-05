@@ -97,6 +97,18 @@ input CreateCategoryDto {
   name: String!
 }
 
+input CreateCheckQualityDto {
+  factoryOrderDetailId: ID
+  failedQuantity: Int!
+  note: String
+  orderDetailId: ID!
+  passedQuantity: Int!
+  reworkRequired: Boolean!
+  status: QualityCheckStatus!
+  taskId: ID!
+  totalChecked: Int!
+}
+
 input CreateFactoryProductInput {
   estimatedProductionTime: Int!
   factoryId: String!
@@ -244,6 +256,13 @@ type District {
   provinceId: Int!
 }
 
+input DoneCheckQualityDto {
+  failedQuantity: Int!
+  note: String
+  passedQuantity: Int!
+  reworkRequired: Boolean!
+}
+
 type FactoryEntity {
   address: AddressEntity
   businessLicenseUrl: String
@@ -294,6 +313,7 @@ type FactoryOrder {
   orderDetails: [FactoryOrderDetailEntity!]
   progressReports: [FactoryProgressReport!]
   qualityIssues: [QualityIssue!]
+  rejectedHistory: [RejectedFactoryOrder!]
   rejectionReason: String
   shippedAt: DateTime
   status: FactoryOrderStatus!
@@ -393,14 +413,16 @@ input MarkAsDelayedDto {
 }
 
 type Mutation {
+  assignFactoryToOrder(factoryId: ID!, factoryOrderId: ID!): FactoryOrder!
   assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
+  assignStaffToOrder(factoryOrderId: ID!, staffId: ID!): FactoryOrder!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   clearCart: Boolean!
   completeStaffTask(id: ID!): StaffTask!
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
-  createCheckQuality(factoryOrderDetailId: ID, failedQuantity: Float!, note: String, orderDetailId: ID!, passedQuantity: Float!, reworkRequired: Boolean!, status: QualityCheckStatus!, taskId: ID!, totalChecked: Float!): CheckQuality!
+  createCheckQuality(input: CreateCheckQualityDto!): CheckQuality!
   createFactoryProduct(data: CreateFactoryProductInput!): FactoryProductEntity!
   createFactoryProgressReport(input: CreateFactoryProgressReportDto!): FactoryProgressReport!
   createNotification(content: String!, title: String!, url: String, userId: String!): NotificationEntity!
@@ -422,6 +444,8 @@ type Mutation {
   deleteFile(fileUrl: String!): Boolean!
   deleteProduct(id: String!): ProductEntity!
   deleteUser(id: String!): UserEntity!
+  doneCheckQuality(id: ID!, input: DoneCheckQualityDto!): CheckQuality!
+  duplicateProductDesign(id: ID!): ProductDesignEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
   markFactoryOrderAsDelayed(id: ID!, input: MarkAsDelayedDto!): FactoryOrder!
@@ -705,6 +729,18 @@ input RegisterDto {
   password: String!
 }
 
+type RejectedFactoryOrder {
+  factory: FactoryEntity
+  factoryId: String!
+  factoryOrder: FactoryOrder
+  factoryOrderId: String!
+  id: ID!
+  reason: String!
+  reassignedAt: DateTime
+  reassignedTo: String
+  rejectedAt: DateTime!
+}
+
 """User roles"""
 enum Roles {
   ADMIN
@@ -781,7 +817,6 @@ type TaskEntity {
   qualityCheckStatus: QualityCheckStatus!
   staffTasks: [StaffTask!]
   startDate: DateTime!
-  status: String!
   taskType: String
   taskname: String!
 }

@@ -5,6 +5,7 @@ import { TaskEntity } from 'src/staff-tasks/entity/task.entity';
 import { FactoryOrderDetailEntity } from './factory-order-detail.entity';
 import { FactoryProgressReport } from './factory-progress-report.entity';
 import { QualityIssue } from './quality-issue.entity';
+import { RejectedFactoryOrder } from './rejected-factory-order.entity';
 
 registerEnumType(FactoryOrderStatus, {
     name: "FactoryOrderStatus"
@@ -83,6 +84,9 @@ export class FactoryOrder {
 
   @Field(() => [TaskEntity], { nullable: true })
   tasks?: TaskEntity[];
+
+  @Field(() => [RejectedFactoryOrder], { nullable: true })
+  rejectedHistory?: RejectedFactoryOrder[];
 
   constructor(partial: Partial<FactoryOrder>) {
     Object.assign(this, partial)

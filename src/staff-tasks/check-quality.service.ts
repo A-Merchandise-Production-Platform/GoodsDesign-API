@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { FactoryOrderStatus, OrderDetailStatus, QualityCheckStatus, ReworkStatus, StaffTaskStatus } from '@prisma/client';
 import { PrismaService } from '../prisma';
+import { CreateCheckQualityDto } from './dto/create-check-quality.dto';
+import { DoneCheckQualityDto } from './dto/done-check-quality.dto';
 import { CheckQuality } from './entity/check-quality.entity';
-import { QualityCheckStatus } from '@prisma/client';
 
 @Injectable()
 export class CheckQualityService {
@@ -125,18 +127,7 @@ export class CheckQualityService {
     return data.map(item => new CheckQuality(item));
   }
 
-  async create(data: {
-    taskId: string;
-    orderDetailId: string;
-    factoryOrderDetailId?: string;
-    totalChecked: number;
-    passedQuantity: number;
-    failedQuantity: number;
-    status: QualityCheckStatus;
-    reworkRequired: boolean;
-    note?: string;
-    checkedBy?: string;
-  }): Promise<CheckQuality> {
+  async create(data: CreateCheckQualityDto & { checkedBy?: string }): Promise<CheckQuality> {
     const result = await this.prisma.checkQuality.create({
       data: {
         ...data,
@@ -156,23 +147,182 @@ export class CheckQualityService {
     return new CheckQuality(data);
   }
 
-  async update(id: string, data: {
-    totalChecked?: number;
-    passedQuantity?: number;
-    failedQuantity?: number;
-    status?: QualityCheckStatus;
-    reworkRequired?: boolean;
-    note?: string;
-    checkedBy?: string;
-  }): Promise<CheckQuality> {
+  async doneTaskCheckQuality(id: string, data: DoneCheckQualityDto & { checkedBy?: string }): Promise<CheckQuality> {
+    // Get the current check quality record to calculate total checked
+    const currentCheckQuality = await this.prisma.checkQuality.findUnique({
+      where: { id },
+      include: {
+        orderDetail: true,
+        factoryOrderDetail: {
+          include: {
+            factoryOrder: true,
+            design: true,
+            orderDetail: true
+          }
+        },
+        task: {
+          include: {
+            staffTasks: true
+          }
+        }
+      }
+    });
+
+    if (!currentCheckQuality) {
+      throw new Error('Check quality record not found');
+    }
+
+    // Validate that passed + failed equals total checked
+    const calculatedTotal = data.passedQuantity + data.failedQuantity;
+    if (calculatedTotal !== currentCheckQuality.totalChecked) {
+      throw new BadRequestException(
+        `Total checked (${currentCheckQuality.totalChecked}) must equal the sum of passed (${data.passedQuantity}) and failed (${data.failedQuantity}) quantities (${calculatedTotal})`
+      );
+    }
+
+    // Determine status based on failed and passed quantities
+    let status: QualityCheckStatus;
+    
+    if (data.failedQuantity === 0) {
+      // All items passed
+      status = QualityCheckStatus.APPROVED;
+    } else if (data.passedQuantity === 0) {
+      // All items failed
+      status = QualityCheckStatus.REJECTED;
+    } else {
+      // Some items passed, some failed
+      status = QualityCheckStatus.PARTIAL_APPROVED;
+    }
+
+    // Update the check quality record
     const result = await this.prisma.checkQuality.update({
       where: { id },
       data: {
         ...data,
-        checkedAt: new Date()
+        status,
+        checkedAt: new Date(),
       },
-      include: this.getIncludeObject()
+      include: this.getIncludeObject(),
     });
+
+    // Update task and staff task status
+    if (currentCheckQuality.task) {
+      // Update task status
+      await this.prisma.task.update({
+        where: { id: currentCheckQuality.taskId },
+        data: {
+          qualityCheckStatus: status,
+        }
+      });
+
+      // Update staff task status
+      const staffTask = currentCheckQuality.task.staffTasks[0];
+      if (staffTask) {
+        await this.prisma.staffTask.update({
+          where: { id: staffTask.id },
+          data: {
+            status: StaffTaskStatus.COMPLETED,
+            completedDate: new Date()
+          }
+        });
+      }
+    }
+
+    // If rework is required, handle factory order details and change status
+    if (data.reworkRequired) {
+      // Update the customer order detail status
+      await this.prisma.factoryOrder.update({
+        where: { id: currentCheckQuality.factoryOrderDetail.factoryOrderId },
+        data: {
+          status: OrderDetailStatus.REWORK_REQUIRED,
+        },
+      });
+
+      // If there's a factory order detail, update its status and create new order details
+      if (currentCheckQuality.factoryOrderDetailId && currentCheckQuality.factoryOrderDetail) {
+        const factoryOrderDetail = currentCheckQuality.factoryOrderDetail;
+        const factoryOrder = factoryOrderDetail.factoryOrder;
+        
+        // Update the factory order detail status
+        await this.prisma.factoryOrderDetail.update({
+          where: { id: currentCheckQuality.factoryOrderDetailId },
+          data: {
+            status: OrderDetailStatus.REWORK_REQUIRED,
+            rejectedQty: data.failedQuantity
+          },
+        });
+
+        // Create a new factory order detail for the rework items
+        if (data.failedQuantity > 0) {
+          await this.prisma.factoryOrderDetail.create({
+            data: {
+              designId: factoryOrderDetail.designId,
+              factoryOrderId: factoryOrder.id,
+              orderDetailId: currentCheckQuality.orderDetailId,
+              quantity: data.failedQuantity,
+              price: factoryOrderDetail.price,
+              status: OrderDetailStatus.PENDING,
+              completedQty: 0,
+              rejectedQty: 0,
+              productionCost: factoryOrderDetail.productionCost,
+              qualityStatus: QualityCheckStatus.PENDING,
+              isRework: true
+            }
+          });
+
+          //change factory order details others into isRework = false
+          await this.prisma.factoryOrderDetail.updateMany({
+            where: {
+              factoryOrderId: factoryOrder.id,
+              id: {
+                not: currentCheckQuality.factoryOrderDetailId
+              }
+            },
+            data: {
+              isRework: false
+            }
+          });
+
+          await this.prisma.factoryOrderDetail.update({
+            where: { id: factoryOrderDetail.id },
+            data: {
+              status: OrderDetailStatus.QUALITY_CHECK_FAILED
+            }
+          });
+          
+        }else{
+          await this.prisma.factoryOrderDetail.update({
+            where: { id: factoryOrderDetail.id },
+            data: {
+              status: OrderDetailStatus.QUALITY_CHECK_PASSED
+            }
+          });
+        }
+
+        // Update the factory order status
+        await this.prisma.factoryOrder.update({
+          where: { id: factoryOrder.id },
+          data: {
+            status: FactoryOrderStatus.REWORK_REQUIRED,
+            isDelayed: true,
+            delayReason: 'Rework required due to quality issues',
+            currentProgress: 0 // Reset progress since new items need to be produced
+          }
+        });
+      }
+    }else{
+      const factoryOrderDetail = currentCheckQuality.factoryOrderDetail;
+      const factoryOrder = factoryOrderDetail.factoryOrder;
+      await this.prisma.factoryOrder.update({
+        where: { id: factoryOrder.id },
+        data: {
+          status: FactoryOrderStatus.DONE_CHECK_QUALITY,
+          isDelayed: false,
+          delayReason: 'Rework is not required due to quality issues',
+        }
+      });
+    }
+
     return new CheckQuality(result);
   }
 } 

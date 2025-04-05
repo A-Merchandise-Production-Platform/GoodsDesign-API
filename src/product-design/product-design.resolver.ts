@@ -57,4 +57,12 @@ export class ProductDesignResolver {
   ) {
     return this.productDesignService.remove(id);
   }
+
+  @Mutation(() => ProductDesignEntity)
+  async duplicateProductDesign(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentUser() { id: userId }: UserEntity
+  ) {
+    return this.productDesignService.duplicate(id, userId);
+  }
 } 

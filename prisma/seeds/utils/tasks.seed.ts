@@ -13,7 +13,6 @@ export const seedTasks = async (prisma: PrismaClient) => {
         id: task.id,
         description: task.description,
         taskname: task.taskname,
-        status: task.status,
         startDate: new Date(task.startDate),
         expiredTime: new Date(task.expiredTime),
         qualityCheckStatus: task.qualityCheckStatus

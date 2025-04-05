@@ -66,7 +66,13 @@ export class CustomerOrdersService {
                 // Calculate item price: variant price + sum of all position prices
                 const blankPrice = design.systemConfigVariant.price;
                 const positionPrices = design.designPositions.reduce(
-                    (sum, position) => sum + position.positionType.basePrice,
+                    (sum, position) => {
+                        // Only add price if designJSON is not empty
+                        if (position.designJSON && Object.keys(position.designJSON).length > 0) {
+                            return sum + position.positionType.basePrice;
+                        }
+                        return sum;
+                    },
                     0
                 );
     

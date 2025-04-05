@@ -67,4 +67,20 @@ export class FactoryOrderResolver {
   ) {
     return this.factoryOrderService.updateOrderDetailStatus(input);
   }
+
+  @Mutation(() => FactoryOrder)
+  async assignFactoryToOrder(
+    @Args('factoryOrderId', { type: () => ID }) factoryOrderId: string,
+    @Args('factoryId', { type: () => ID }) factoryId: string
+  ) {
+    return this.factoryOrderService.assignFactoryToOrder(factoryOrderId, factoryId);
+  }
+
+  @Mutation(() => FactoryOrder)
+  async assignStaffToOrder(
+    @Args('factoryOrderId', { type: () => ID }) factoryOrderId: string,
+    @Args('staffId', { type: () => ID }) staffId: string
+  ) {
+    return this.factoryOrderService.assignStaffToOrder(factoryOrderId, staffId);
+  }
 }

@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "FactoryOrderStatus" ADD VALUE 'WAITING_FOR_CHECKING_QUALITY';

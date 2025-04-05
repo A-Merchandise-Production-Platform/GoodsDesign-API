@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import { PrismaService } from "../prisma"
 import { StaffTask } from "./entity/staff-task.entity"
+import { StaffTaskStatus } from "@prisma/client"
 
 @Injectable()
 export class StaffTaskService {
@@ -148,7 +149,7 @@ export class StaffTaskService {
         return data.map((item) => new StaffTask(item))
     }
 
-    async updateStatus(id: string, status: string): Promise<StaffTask> {
+    async updateStatus(id: string, status: StaffTaskStatus): Promise<StaffTask> {
         const data = await this.prisma.staffTask.update({
             where: { id },
             data: { status },

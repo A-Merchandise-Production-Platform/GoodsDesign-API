@@ -5,7 +5,15 @@ import {
     Logger,
     NotFoundException
 } from "@nestjs/common"
-import { Factory, FactoryOrderStatus, FactoryStatus, OrderStatus, Roles } from "@prisma/client"
+import {
+    Factory,
+    FactoryOrderStatus,
+    FactoryStatus,
+    OrderDetailStatus,
+    OrderStatus,
+    QualityCheckStatus,
+    Roles
+} from "@prisma/client"
 import { CustomerOrderEntity } from "src/customer-orders/entities"
 import { FactoryEntity } from "src/factory/entities/factory.entity"
 import { NotificationsService } from "src/notifications/notifications.service"
@@ -636,8 +644,6 @@ export class FactoryService {
                 rejectedFactoryIds
             )
 
-            console.log("rankedFactories", rankedFactories, uniqueVariantIds, rejectedFactoryIds)
-
             if (rankedFactories.length === 0) {
                 this.logger.warn(`No suitable factories found for order ${factoryOrderId}`)
                 return null
@@ -702,7 +708,9 @@ export class FactoryService {
                             orderDetailId: detail.orderDetailId,
                             quantity: detail.quantity,
                             price: detail.price,
-                            productionCost: detail.productionCost
+                            productionCost: detail.productionCost,
+                            qualityStatus: QualityCheckStatus.PENDING,
+                            status: OrderDetailStatus.PENDING
                         }))
                     }
                 }
