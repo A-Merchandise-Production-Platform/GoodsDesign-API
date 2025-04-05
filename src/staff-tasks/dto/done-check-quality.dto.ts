@@ -13,10 +13,6 @@ export class DoneCheckQualityDto {
   @Min(0)
   failedQuantity: number;
 
-  @Field(() => Boolean)
-  @IsBoolean()
-  reworkRequired: boolean;
-
   @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()

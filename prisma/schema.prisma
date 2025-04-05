@@ -215,15 +215,8 @@ enum OrderStatus {
 
 enum QualityCheckStatus {
   PENDING
-  PARTIAL_APPROVED
   APPROVED
   REJECTED
-}
-
-enum ReworkStatus {
-  NOT_REQUIRED
-  IN_PROGRESS
-  COMPLETED
 }
 
 model CustomerOrder {
@@ -255,8 +248,6 @@ model CustomerOrderDetail {
   price              Int
   quantity           Int
   status             OrderDetailStatus
-  qualityCheckStatus QualityCheckStatus
-  reworkStatus       ReworkStatus
 
   order               CustomerOrder        @relation(fields: [orderId], references: [id])
   design              ProductDesign        @relation(fields: [designId], references: [id])
@@ -528,9 +519,6 @@ enum OrderDetailStatus {
   IN_PRODUCTION
   COMPLETED
   REJECTED
-  QUALITY_CHECK_PENDING
-  QUALITY_CHECK_PASSED
-  QUALITY_CHECK_FAILED
   REWORK_REQUIRED
   REWORK_IN_PROGRESS
   REWORK_COMPLETED

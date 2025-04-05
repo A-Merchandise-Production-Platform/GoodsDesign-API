@@ -398,7 +398,7 @@ export class CronService {
               await this.prisma.factoryOrderDetail.update({
                 where: { id: orderDetail.id },
                 data: {
-                  status: OrderDetailStatus.QUALITY_CHECK_PENDING
+                  status: OrderDetailStatus.PENDING
                 }
               });
             }

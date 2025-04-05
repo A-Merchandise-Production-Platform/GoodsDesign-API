@@ -1,4 +1,4 @@
-import { PrismaClient, OrderStatus, QualityCheckStatus, ReworkStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { customerOrdersData } from '../data/customer-orders.data';
 
 export async function seedCustomerOrders(prisma: PrismaClient) {
@@ -55,8 +55,6 @@ export async function seedCustomerOrders(prisma: PrismaClient) {
             price: detailData.price,
             quantity: detailData.quantity,
             status: detailData.status,
-            qualityCheckStatus: detailData.qualityCheckStatus,
-            reworkStatus: detailData.reworkStatus
           },
           create: {
             id: detailData.id,
@@ -65,8 +63,6 @@ export async function seedCustomerOrders(prisma: PrismaClient) {
             price: detailData.price,
             quantity: detailData.quantity,
             status: detailData.status,
-            qualityCheckStatus: detailData.qualityCheckStatus,
-            reworkStatus: detailData.reworkStatus
           }
         });
       }

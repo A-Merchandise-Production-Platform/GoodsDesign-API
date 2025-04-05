@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { FactoryOrderStatus, OrderDetailStatus, QualityCheckStatus, ReworkStatus, StaffTaskStatus } from '@prisma/client';
+import { FactoryOrderStatus, OrderDetailStatus, QualityCheckStatus, StaffTaskStatus } from '@prisma/client';
 import { PrismaService } from '../prisma';
 import { CreateCheckQualityDto } from './dto/create-check-quality.dto';
 import { DoneCheckQualityDto } from './dto/done-check-quality.dto';
@@ -186,13 +186,10 @@ export class CheckQualityService {
     if (data.failedQuantity === 0) {
       // All items passed
       status = QualityCheckStatus.APPROVED;
-    } else if (data.passedQuantity === 0) {
+    } else if (data.failedQuantity !== 0) {
       // All items failed
       status = QualityCheckStatus.REJECTED;
-    } else {
-      // Some items passed, some failed
-      status = QualityCheckStatus.PARTIAL_APPROVED;
-    }
+    } 
 
     // Update the check quality record
     const result = await this.prisma.checkQuality.update({
@@ -229,7 +226,7 @@ export class CheckQualityService {
     }
 
     // If rework is required, handle factory order details and change status
-    if (data.reworkRequired) {
+    if (data.failedQuantity > 0) {
       // Update the customer order detail status
       await this.prisma.factoryOrder.update({
         where: { id: currentCheckQuality.factoryOrderDetail.factoryOrderId },
@@ -286,17 +283,12 @@ export class CheckQualityService {
           await this.prisma.factoryOrderDetail.update({
             where: { id: factoryOrderDetail.id },
             data: {
-              status: OrderDetailStatus.QUALITY_CHECK_FAILED
+              qualityStatus: QualityCheckStatus.REJECTED
             }
           });
           
         }else{
-          await this.prisma.factoryOrderDetail.update({
-            where: { id: factoryOrderDetail.id },
-            data: {
-              status: OrderDetailStatus.QUALITY_CHECK_PASSED
-            }
-          });
+          
         }
 
         // Update the factory order status
@@ -312,13 +304,11 @@ export class CheckQualityService {
       }
     }else{
       const factoryOrderDetail = currentCheckQuality.factoryOrderDetail;
-      const factoryOrder = factoryOrderDetail.factoryOrder;
-      await this.prisma.factoryOrder.update({
-        where: { id: factoryOrder.id },
+        const factoryOrder = factoryOrderDetail.factoryOrder;
+      await this.prisma.factoryOrderDetail.update({
+        where: { id: factoryOrderDetail.id },
         data: {
-          status: FactoryOrderStatus.DONE_CHECK_QUALITY,
-          isDelayed: false,
-          delayReason: 'Rework is not required due to quality issues',
+          qualityStatus: QualityCheckStatus.APPROVED
         }
       });
     }

@@ -1,4 +1,4 @@
-import { OrderDetailStatus, OrderStatus, QualityCheckStatus, ReworkStatus } from '@prisma/client'
+import { OrderDetailStatus, OrderStatus, QualityCheckStatus } from '@prisma/client'
 
 interface OrderDetail {
   id: string
@@ -6,8 +6,6 @@ interface OrderDetail {
   price: number
   quantity: number
   status: OrderDetailStatus
-  qualityCheckStatus: QualityCheckStatus
-  reworkStatus: ReworkStatus
 }
 
 interface CustomerOrder {
@@ -50,8 +48,6 @@ export const customerOrdersData: CustomerOrdersData = {
           price: 140000,
           quantity: 2,
           status: OrderDetailStatus.COMPLETED,
-          qualityCheckStatus: QualityCheckStatus.APPROVED,
-          reworkStatus: ReworkStatus.NOT_REQUIRED
         }
       ]
     },
@@ -70,8 +66,6 @@ export const customerOrdersData: CustomerOrdersData = {
           price: 285000,
           quantity: 3,
           status: OrderDetailStatus.IN_PRODUCTION,
-          qualityCheckStatus: QualityCheckStatus.PARTIAL_APPROVED,
-          reworkStatus: ReworkStatus.IN_PROGRESS
         }
       ]
     },
@@ -90,8 +84,6 @@ export const customerOrdersData: CustomerOrdersData = {
           price: 190000,
           quantity: 1,
           status: OrderDetailStatus.PENDING,
-          qualityCheckStatus: QualityCheckStatus.PENDING,
-          reworkStatus: ReworkStatus.NOT_REQUIRED
         },
         {
           id: "detail004",
@@ -99,8 +91,6 @@ export const customerOrdersData: CustomerOrdersData = {
           price: 190000,
           quantity: 2,
           status: OrderDetailStatus.PENDING,
-          qualityCheckStatus: QualityCheckStatus.PENDING,
-          reworkStatus: ReworkStatus.NOT_REQUIRED
         }
       ]
     }
