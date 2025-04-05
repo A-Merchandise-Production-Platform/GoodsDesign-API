@@ -184,7 +184,6 @@ export class PaymentGatewayService implements OnModuleInit {
             vnp_ReturnUrl: returnUrl,
             vnp_IpAddr: ipAddr,
             vnp_CreateDate: createDate,
-            vnp_ExpireDate: expiredDateStr
         }
         console.log(vnpParams)
 
