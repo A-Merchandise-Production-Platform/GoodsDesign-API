@@ -389,7 +389,7 @@ model FactoryProduct {
   factory             Factory             @relation(fields: [factoryId], references: [factoryOwnerId])
   systemConfigVariant SystemConfigVariant @relation(fields: [systemConfigVariantId], references: [id])
 
-  @@id([factoryId, systemConfigVariantId])
+  @@id(name: "factoryProductId", [factoryId, systemConfigVariantId])
 }
 
 enum FactoryStatus {

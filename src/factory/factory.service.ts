@@ -5,16 +5,18 @@ import {
     Logger,
     NotFoundException
 } from "@nestjs/common"
-import { Factory, FactoryOrderStatus, OrderStatus, Roles } from "@prisma/client"
+import { Factory, FactoryOrderStatus, FactoryStatus, OrderStatus, Roles } from "@prisma/client"
 import { CustomerOrderEntity } from "src/customer-orders/entities"
 import { FactoryEntity } from "src/factory/entities/factory.entity"
 import { NotificationsService } from "src/notifications/notifications.service"
 import { UserEntity } from "src/users/entities/users.entity"
 import { PrismaService } from "../prisma/prisma.service"
 import { UpdateFactoryInfoDto } from "./dto/update-factory-info.dto"
-import { FactoryProductEntity } from "./entities/factory-product.entity"
 import { AddressesService } from "src/addresses/addresses.service"
 import { AddressEntity } from "src/addresses/entities/address.entity"
+import { FactoryProductEntity } from "src/factory-products/entities/factory-product.entity"
+import { FactoryProductsService } from "src/factory-products/factory-products.service"
+import { UpdateFactoryStatusDto } from "src/factory/dto/update-factory-status"
 
 @Injectable()
 export class FactoryService {
@@ -23,7 +25,8 @@ export class FactoryService {
     constructor(
         private prisma: PrismaService,
         private notificationsService: NotificationsService,
-        private addressesService: AddressesService
+        private addressesService: AddressesService,
+        private factoryProductsService: FactoryProductsService
     ) {}
 
     public async checkPaymentReceivedOrderForAssignIntoFactory(): Promise<void> {
@@ -93,6 +96,13 @@ export class FactoryService {
         // Check if the factory already exists for this user
         const existingFactory = user.ownedFactory
 
+        // Check if the factory is in a state that allows updates
+        if (existingFactory && existingFactory.factoryStatus === "SUSPENDED") {
+            throw new BadRequestException(
+                "Factory information cannot be updated while in PENDING_APPROVAL or SUSPENDED status"
+            )
+        }
+
         // Check if the factory is already submitted for approval
         if (existingFactory && existingFactory.isSubmitted) {
             throw new BadRequestException(
@@ -142,7 +152,8 @@ export class FactoryService {
                 operationalHours: dto.operationalHours,
                 leadTime: dto.leadTime,
                 minimumOrderQuantity: dto.minimumOrderQuantity,
-                isSubmitted: isSubmitted
+                isSubmitted: isSubmitted,
+                factoryStatus: "PENDING_APPROVAL"
             },
             create: {
                 factoryOwnerId: userId,
@@ -164,7 +175,8 @@ export class FactoryService {
                 operationalHours: dto.operationalHours || "9AM-5PM",
                 leadTime: dto.leadTime,
                 minimumOrderQuantity: dto.minimumOrderQuantity || 0,
-                isSubmitted: isSubmitted
+                isSubmitted: isSubmitted,
+                factoryStatus: "PENDING_APPROVAL"
             },
             include: {
                 address: true,
@@ -173,6 +185,47 @@ export class FactoryService {
                 staff: true,
                 owner: true
             }
+        })
+
+        // Handle system config variants if provided
+        if (dto.systemConfigVariantIds && dto.systemConfigVariantIds.length > 0) {
+            // Get existing factory products
+            const existingProducts = await this.prisma.factoryProduct.findMany({
+                where: {
+                    factoryId: userId
+                }
+            })
+
+            // Create new factory products for new variants
+            for (const variantId of dto.systemConfigVariantIds) {
+                if (!existingProducts.some((p) => p.systemConfigVariantId === variantId)) {
+                    await this.factoryProductsService.create({
+                        factoryId: userId,
+                        systemConfigVariantId: variantId,
+                        productionCapacity: updatedFactory.maxPrintingCapacity,
+                        estimatedProductionTime: updatedFactory.leadTime || 1
+                    })
+                }
+            }
+
+            // Remove factory products for variants that are no longer selected
+            const variantsToRemove = existingProducts.filter(
+                (p) => !dto.systemConfigVariantIds.includes(p.systemConfigVariantId)
+            )
+
+            for (const product of variantsToRemove) {
+                await this.factoryProductsService.delete(
+                    product.factoryId,
+                    product.systemConfigVariantId
+                )
+            }
+        }
+
+        await this.notificationsService.create({
+            title: "Factory Information Updated",
+            content:
+                "Your factory information has been updated and is pending approval, please wait for approval",
+            userId: userId
         })
 
         return new FactoryEntity({
@@ -188,7 +241,8 @@ export class FactoryService {
                       (product) =>
                           new FactoryProductEntity({
                               ...product,
-                              id: product.id
+                              factoryId: updatedFactory.factoryOwnerId,
+                              systemConfigVariantId: product.systemConfigVariantId
                           })
                   )
                 : [],
@@ -236,7 +290,8 @@ export class FactoryService {
                       (product) =>
                           new FactoryProductEntity({
                               ...product,
-                              id: product.id
+                              factoryId: factory.factoryOwnerId,
+                              systemConfigVariantId: product.systemConfigVariantId
                           })
                   )
                 : [],
@@ -251,6 +306,36 @@ export class FactoryService {
                   })
                 : null
         })
+    }
+
+    private getMessageForFactoryStatusChange(status: FactoryStatus) {
+        switch (status) {
+            case FactoryStatus.APPROVED:
+                return "Your factory has been approved and is now active"
+            case FactoryStatus.SUSPENDED:
+                return "Your factory has been suspended and is no longer active"
+            case FactoryStatus.REJECTED:
+                return "Your factory has been rejected by system"
+        }
+    }
+
+    async changeFactoryStatus(dto: UpdateFactoryStatusDto, user: UserEntity) {
+        if (!user || (user.role !== Roles.ADMIN && user.role !== Roles.MANAGER)) {
+            throw new ForbiddenException("You are not allowed to change factory status")
+        }
+
+        const factory = await this.prisma.factory.update({
+            where: { factoryOwnerId: dto.factoryOwnerId },
+            data: { factoryStatus: dto.status }
+        })
+
+        await this.notificationsService.create({
+            title: "Factory Status Changed",
+            content: this.getMessageForFactoryStatusChange(dto.status),
+            userId: dto.factoryOwnerId
+        })
+
+        return new FactoryEntity(factory)
     }
 
     async assignStaffToFactory(factoryId: string, staffId: string, user: UserEntity) {

@@ -17,11 +17,11 @@ export class FactoryProductEntity {
     @Field(() => Int)
     estimatedProductionTime: number
 
-    @Field(() => FactoryEntity)
-    factory: FactoryEntity
+    @Field(() => FactoryEntity, { nullable: true })
+    factory?: FactoryEntity
 
-    @Field(() => SystemConfigVariantEntity)
-    systemConfigVariant: SystemConfigVariantEntity
+    @Field(() => SystemConfigVariantEntity, { nullable: true })
+    systemConfigVariant?: SystemConfigVariantEntity
 
     constructor(partial: Partial<FactoryProductEntity>) {
         Object.assign(this, partial)

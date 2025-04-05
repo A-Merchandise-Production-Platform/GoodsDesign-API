@@ -4,6 +4,11 @@ import { CreateAddressInput } from "src/addresses/dto/create-address.input"
 
 @InputType({ description: "Update factory information input" })
 export class UpdateFactoryInfoDto {
+    @Field(() => [String], { nullable: true })
+    @IsArray()
+    @IsOptional()
+    systemConfigVariantIds?: string[]
+
     @Field(() => String, { nullable: true })
     @IsString()
     @IsOptional()

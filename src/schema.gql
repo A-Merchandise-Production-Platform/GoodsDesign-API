@@ -97,6 +97,13 @@ input CreateCategoryDto {
   name: String!
 }
 
+input CreateFactoryProductInput {
+  estimatedProductionTime: Int!
+  factoryId: String!
+  productionCapacity: Int!
+  systemConfigVariantId: String!
+}
+
 input CreateFactoryProgressReportDto {
   """The quantity of items completed in this progress report"""
   completedQty: Float!
@@ -257,7 +264,7 @@ type FactoryEntity {
   operationalHours: String
   owner: UserEntity!
   printingMethods: [String!]!
-  products: [FactoryProductEntity!]!
+  products: [FactoryProductEntity!]
   qualityCertifications: String
   reviewedAt: DateTime
   reviewedBy: String
@@ -332,9 +339,10 @@ enum FactoryOrderStatus {
 
 type FactoryProductEntity {
   estimatedProductionTime: Int!
+  factory: FactoryEntity
   factoryId: String!
-  id: String!
   productionCapacity: Int!
+  systemConfigVariant: SystemConfigVariantEntity
   systemConfigVariantId: String!
 }
 
@@ -393,6 +401,7 @@ type Mutation {
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
   createCheckQuality(factoryOrderDetailId: ID, failedQuantity: Float!, note: String, orderDetailId: ID!, passedQuantity: Float!, reworkRequired: Boolean!, status: QualityCheckStatus!, taskId: ID!, totalChecked: Float!): CheckQuality!
+  createFactoryProduct(data: CreateFactoryProductInput!): FactoryProductEntity!
   createFactoryProgressReport(input: CreateFactoryProgressReportDto!): FactoryProgressReport!
   createNotification(content: String!, title: String!, url: String, userId: String!): NotificationEntity!
   createNotificationForManyUsers(content: String!, title: String!, url: String, userIds: [String!]!): [NotificationEntity!]!
@@ -409,6 +418,7 @@ type Mutation {
   deleteAddress(id: String!): AddressEntity!
   deleteCartItem(id: String!): CartItemEntity!
   deleteCategory(id: String!): CategoryEntity!
+  deleteFactoryProduct(factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
   deleteFile(fileUrl: String!): Boolean!
   deleteProduct(id: String!): ProductEntity!
   deleteUser(id: String!): UserEntity!
@@ -438,6 +448,7 @@ type Mutation {
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateFactoryOrderDetailStatus(input: UpdateOrderDetailStatusDto!): FactoryOrder!
   updateFactoryOrderStatus(id: ID!, status: String!): FactoryOrder!
+  updateFactoryProduct(data: UpdateFactoryProductInput!, factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
   updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransaction!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
@@ -631,6 +642,8 @@ type Query {
   factoryOrders: [FactoryOrder!]!
   factoryOrdersByCustomerOrder(customerOrderId: ID!): [FactoryOrder!]!
   factoryOrdersByFactory: [FactoryOrder!]!
+  factoryProduct(factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
+  factoryProducts: [FactoryProductEntity!]!
   factoryProgressReport(id: ID!): FactoryProgressReport!
   factoryProgressReports(factoryOrderId: ID!): [FactoryProgressReport!]!
   getAllDiscountByProductId(productId: String!): [SystemConfigDiscountEntity!]!
@@ -828,9 +841,17 @@ input UpdateFactoryInfoDto {
   printingMethods: [String!]
   qualityCertifications: String
   specializations: [String!]
+  systemConfigVariantIds: [String!]
   taxIdentificationNumber: String
   totalEmployees: Int
   website: String
+}
+
+input UpdateFactoryProductInput {
+  estimatedProductionTime: Int
+  factoryId: String
+  productionCapacity: Int
+  systemConfigVariantId: String
 }
 
 input UpdateOrderDetailStatusDto {

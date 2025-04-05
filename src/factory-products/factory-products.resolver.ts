@@ -11,31 +11,38 @@ import { FactoryProductsService } from "./factory-products.service"
 export class FactoryProductsResolver {
     constructor(private readonly factoryProductsService: FactoryProductsService) {}
 
-    @Query(() => [FactoryProductEntity])
+    @Query(() => [FactoryProductEntity], { name: "factoryProducts" })
     async factoryProducts() {
         return this.factoryProductsService.findAll()
     }
 
-    @Query(() => FactoryProductEntity)
-    async factoryProduct(@Args("id") id: string) {
-        return this.factoryProductsService.findOne(id)
+    @Query(() => FactoryProductEntity, { name: "factoryProduct" })
+    async factoryProduct(
+        @Args("factoryId") factoryId: string,
+        @Args("systemConfigVariantId") systemConfigVariantId: string
+    ) {
+        return this.factoryProductsService.findOne(factoryId, systemConfigVariantId)
     }
 
-    @Mutation(() => FactoryProductEntity)
+    @Mutation(() => FactoryProductEntity, { name: "createFactoryProduct" })
     async createFactoryProduct(@Args("data") data: CreateFactoryProductInput) {
         return this.factoryProductsService.create(data)
     }
 
-    @Mutation(() => FactoryProductEntity)
+    @Mutation(() => FactoryProductEntity, { name: "updateFactoryProduct" })
     async updateFactoryProduct(
-        @Args("id") id: string,
+        @Args("factoryId") factoryId: string,
+        @Args("systemConfigVariantId") systemConfigVariantId: string,
         @Args("data") data: UpdateFactoryProductInput
     ) {
-        return this.factoryProductsService.update(id, data)
+        return this.factoryProductsService.update(factoryId, systemConfigVariantId, data)
     }
 
-    @Mutation(() => FactoryProductEntity)
-    async deleteFactoryProduct(@Args("id") id: string) {
-        return this.factoryProductsService.delete(id)
+    @Mutation(() => FactoryProductEntity, { name: "deleteFactoryProduct" })
+    async deleteFactoryProduct(
+        @Args("factoryId") factoryId: string,
+        @Args("systemConfigVariantId") systemConfigVariantId: string
+    ) {
+        return this.factoryProductsService.delete(factoryId, systemConfigVariantId)
     }
 }
