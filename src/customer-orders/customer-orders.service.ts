@@ -99,7 +99,6 @@ export class CustomerOrdersService {
                     quantity: cartItem.quantity,
                     price: itemPrice,
                     status: OrderStatus.PENDING,
-                    qualityCheckStatus: QualityCheckStatus.PENDING,
                 };
             });
     

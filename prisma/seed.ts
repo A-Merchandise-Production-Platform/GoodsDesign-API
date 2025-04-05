@@ -59,7 +59,24 @@ async function main() {
         await seedCategories(prisma)
         await seedProducts(prisma)
         await seedProductPositionTypes(prisma)
-        await seedSystemConfigVariants(prisma)
+        
+        // Seed system config variants with retry logic
+        let retryCount = 0;
+        const maxRetries = 3;
+        while (retryCount < maxRetries) {
+            try {
+                await seedSystemConfigVariants(prisma);
+                break;
+            } catch (error) {
+                retryCount++;
+                if (retryCount === maxRetries) {
+                    throw error;
+                }
+                console.log(`Retrying system config variants seeding (attempt ${retryCount + 1}/${maxRetries})...`);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+            }
+        }
+        
         await seedDiscounts(prisma)
 
         // Seed factories and their products
@@ -70,7 +87,7 @@ async function main() {
         await seedProductDesigns(prisma)
         await seedDesignPositions(prisma)
         await seedFavoriteDesigns(prisma)
-        await seedCartItems(prisma) // Add cart items after designs are seeded
+        await seedCartItems(prisma)
 
         // Seed orders and payments
         await seedCustomerOrders(prisma)
@@ -90,6 +107,8 @@ async function main() {
     } catch (error) {
         console.error("Error during seeding:", error)
         throw error
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
@@ -97,7 +116,4 @@ main()
     .catch((e) => {
         console.error(e)
         process.exit(1)
-    })
-    .finally(async () => {
-        await prisma.$disconnect()
     })

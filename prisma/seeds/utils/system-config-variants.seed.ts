@@ -6,9 +6,11 @@ export async function seedSystemConfigVariants(prisma: PrismaClient) {
     console.log('Seeding system config variants...');
 
     // Create all variants in a transaction to ensure consistency
-    await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
+      const createdVariants = [];
+      
       for (const variant of variantsData.variants) {
-        await tx.systemConfigVariant.upsert({
+        const createdVariant = await tx.systemConfigVariant.upsert({
           where: {
             id: variant.id,
           },
@@ -32,13 +34,20 @@ export async function seedSystemConfigVariants(prisma: PrismaClient) {
             price: variant.price
           }
         });
+        createdVariants.push(createdVariant);
       }
+      
+      return createdVariants;
+    }, {
+      timeout: 10000, // 10 second timeout
+      maxWait: 5000, // 5 second max wait
     });
 
     // Verify the variants were created
     const count = await prisma.systemConfigVariant.count();
     console.log(`✅ Created ${count} system config variants`);
 
+    return result;
   } catch (error) {
     console.error('Error seeding system config variants:', error);
     throw error;
