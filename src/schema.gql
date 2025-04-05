@@ -14,6 +14,17 @@ type AddressEntity {
   wardCode: String!
 }
 
+type AdminDashboardResponse {
+  activeFactories: Int!
+  factoryPerformance: [FactoryPerformance!]!
+  pendingOrders: Int!
+  recentOrders: [OrderWithFactory!]!
+  totalCustomers: Int!
+  totalFactories: Int!
+  totalOrders: Int!
+  totalRevenue: Int!
+}
+
 """Authentication response"""
 type AuthResponseDto {
   accessToken: String!
@@ -205,6 +216,12 @@ input CreateUserDto {
   role: String
 }
 
+type CustomerInfo {
+  email: String!
+  id: String!
+  name: String!
+}
+
 type CustomerOrderDetailEntity {
   design: ProductDesignEntity
   designId: String!
@@ -226,6 +243,13 @@ type CustomerOrderEntity {
   orderDetails: [CustomerOrderDetailEntity!]
   payments: [PaymentEntity!]
   shippingPrice: Int!
+  status: String!
+  totalPrice: Int!
+}
+
+type CustomerOrderInfo {
+  customer: CustomerInfo!
+  id: String!
   status: String!
   totalPrice: Int!
 }
@@ -254,6 +278,16 @@ input DoneCheckQualityDto {
   note: String
   passedQuantity: Int!
   reworkRequired: Boolean!
+}
+
+type FactoryDashboardResponse {
+  inProductionOrders: Int!
+  pendingOrders: Int!
+  productionProgress: [FactoryOrderWithProgress!]!
+  qualityIssues: [QualityIssueWithFactory!]!
+  recentOrders: [FactoryOrderWithCustomer!]!
+  totalOrders: Int!
+  totalRevenue: Int!
 }
 
 type FactoryEntity {
@@ -286,6 +320,12 @@ type FactoryEntity {
   taxIdentificationNumber: String
   totalEmployees: Int
   website: String
+}
+
+type FactoryInfo {
+  factoryStatus: String!
+  id: String!
+  name: String!
 }
 
 type FactoryOrder {
@@ -338,6 +378,12 @@ type FactoryOrderDetailEntity {
   updatedAt: DateTime
 }
 
+type FactoryOrderInfo {
+  factory: FactoryInfo!
+  id: String!
+  status: String!
+}
+
 enum FactoryOrderStatus {
   ACCEPTED
   CANCELLED
@@ -356,6 +402,34 @@ enum FactoryOrderStatus {
   WAITING_FOR_MANAGER_ASSIGN_STAFF
 }
 
+type FactoryOrderWithCustomer {
+  createdAt: DateTime!
+  customerOrder: CustomerOrderInfo!
+  id: String!
+  status: String!
+  totalProductionCost: Int!
+}
+
+type FactoryOrderWithProgress {
+  createdAt: DateTime!
+  customerOrder: CustomerOrderInfo!
+  id: String!
+  progressReports: [FactoryProgressReportType!]!
+  status: String!
+  totalProductionCost: Int!
+}
+
+type FactoryOrdersByStatus {
+  count: Int!
+  status: String!
+}
+
+type FactoryPerformance {
+  factoryId: String!
+  orderCount: Int!
+  totalRevenue: Int!
+}
+
 type FactoryProductEntity {
   estimatedProductionTime: Int!
   factoryId: String!
@@ -371,6 +445,16 @@ type FactoryProgressReport {
   factoryOrderId: ID!
   id: ID!
   notes: String
+  photoUrls: [String!]!
+  reportDate: DateTime!
+}
+
+type FactoryProgressReportType {
+  completedQty: Int!
+  estimatedCompletion: DateTime!
+  factoryOrderId: String!
+  id: String!
+  notes: String!
   photoUrls: [String!]!
   reportDate: DateTime!
 }
@@ -400,6 +484,15 @@ scalar JSON
 input LoginDto {
   email: String!
   password: String!
+}
+
+type ManagerDashboardResponse {
+  factoryOrdersByStatus: [FactoryOrdersByStatus!]!
+  pendingFactoryOrders: Int!
+  qualityIssues: [QualityIssueWithFactory!]!
+  recentFactoryOrders: [FactoryOrderWithCustomer!]!
+  totalOrders: Int!
+  totalRevenue: Int!
 }
 
 input MarkAsDelayedDto {
@@ -504,6 +597,14 @@ enum OrderDetailStatus {
   REWORK_IN_PROGRESS
   REWORK_REQUIRED
   SHIPPED
+}
+
+type OrderWithFactory {
+  factory: FactoryInfo
+  id: String!
+  orderDate: DateTime!
+  status: String!
+  totalPrice: Int!
 }
 
 type PaymentEntity {
@@ -644,9 +745,19 @@ enum QualityIssueStatus {
   RESOLVED
 }
 
+type QualityIssueWithFactory {
+  description: String!
+  factoryOrder: FactoryOrderInfo!
+  id: String!
+  issueType: String!
+  reportedAt: DateTime!
+  status: String!
+}
+
 type Query {
   address(id: String!): AddressEntity!
   addresses: [AddressEntity!]!
+  adminDashboard: AdminDashboardResponse!
   availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
@@ -657,6 +768,7 @@ type Query {
   distinctVariantAttributes(productId: String!): VariantAttributes!
   district(districtId: Int!): District!
   districts(provinceId: Int!): [District!]!
+  factoryDashboard: FactoryDashboardResponse!
   factoryOrder(id: ID!): FactoryOrder!
   factoryOrders: [FactoryOrder!]!
   factoryOrdersByCustomerOrder(customerOrderId: ID!): [FactoryOrder!]!
@@ -669,6 +781,7 @@ type Query {
   getCartItemCount: Float!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
+  managerDashboard: ManagerDashboardResponse!
   myNotifications: [NotificationEntity!]!
   myStaffTasks: [StaffTask!]!
   notification(id: String!): NotificationEntity!
