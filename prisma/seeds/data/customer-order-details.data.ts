@@ -1,6 +1,4 @@
-import { OrderDetailStatus, QualityCheckStatus, ReworkStatus } from '@prisma/client';
-import { customerOrdersData } from './customer-orders.data';
-import { productDesignsData } from './product-designs.data';
+import { OrderDetailStatus, QualityCheckStatus } from '@prisma/client';
 
 export const customerOrderDetailsData = [
   {
@@ -11,7 +9,6 @@ export const customerOrderDetailsData = [
     quantity: 2,
     status: OrderDetailStatus.COMPLETED,
     qualityCheckStatus: QualityCheckStatus.APPROVED,
-    reworkStatus: ReworkStatus.NOT_REQUIRED,
   },
   {
     id: 'detail002',
@@ -20,8 +17,6 @@ export const customerOrderDetailsData = [
     price: 285000,
     quantity: 3,
     status: OrderDetailStatus.IN_PRODUCTION,
-    qualityCheckStatus: QualityCheckStatus.PARTIAL_APPROVED,
-    reworkStatus: ReworkStatus.IN_PROGRESS,
   },
   {
     id: 'detail003',
@@ -31,6 +26,5 @@ export const customerOrderDetailsData = [
     quantity: 1,
     status: OrderDetailStatus.PENDING,
     qualityCheckStatus: QualityCheckStatus.PENDING,
-    reworkStatus: ReworkStatus.NOT_REQUIRED,
   },
 ]; 

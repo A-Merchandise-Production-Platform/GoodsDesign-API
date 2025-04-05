@@ -22,12 +22,6 @@ export class CustomerOrderDetailEntity {
     @Field(() => String)
     status: string
 
-    @Field(() => String)
-    qualityCheckStatus: string
-
-    @Field(() => String)
-    reworkStatus: string
-
     @Field(() => ProductDesignEntity, { nullable: true })
     @IsOptional()
     design?: ProductDesignEntity

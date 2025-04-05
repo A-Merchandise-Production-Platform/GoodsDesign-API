@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from "@nestjs/common"
-import { OrderStatus, PaymentStatus, PaymentType, QualityCheckStatus, ReworkStatus } from "@prisma/client"
+import { OrderStatus, PaymentStatus, PaymentType, QualityCheckStatus } from "@prisma/client"
 import { CartItemsService } from "../cart-items/cart-items.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { SystemConfigDiscountService } from "../system-config-discount/system-config-discount.service"
@@ -100,7 +100,6 @@ export class CustomerOrdersService {
                     price: itemPrice,
                     status: OrderStatus.PENDING,
                     qualityCheckStatus: QualityCheckStatus.PENDING,
-                    reworkStatus: ReworkStatus.NOT_REQUIRED,
                 };
             });
     

@@ -143,9 +143,6 @@ class FactoryProgressReportType {
   @Field()
   reportDate: Date;
 
-  @Field(() => Int)
-  completedQty: number;
-
   @Field()
   estimatedCompletion: Date;
 

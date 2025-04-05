@@ -287,7 +287,6 @@ export class FactoryOrderService {
       await this.prisma.factoryProgressReport.create({
         data: {
           factoryOrderId: id,
-          completedQty: 0,
           estimatedCompletion: dto.estimatedCompletionDate,
           notes: `Order delayed: ${dto.delayReason}`,
           photoUrls: [],
@@ -338,7 +337,6 @@ export class FactoryOrderService {
       await this.prisma.factoryProgressReport.create({
         data: {
           factoryOrderId: id,
-          completedQty: factoryOrder.orderDetails.reduce((sum, detail) => sum + detail.completedQty, 0),
           estimatedCompletion: new Date(),
           notes: 'Production completed successfully',
           photoUrls: [],
@@ -390,7 +388,6 @@ export class FactoryOrderService {
       await this.prisma.factoryProgressReport.create({
         data: {
           factoryOrderId: orderDetail.factoryOrderId,
-          completedQty: 0,
           estimatedCompletion: new Date(),
           notes: dto.note,
           photoUrls: [],

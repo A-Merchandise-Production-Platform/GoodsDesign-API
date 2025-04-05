@@ -9,9 +9,6 @@ export class FactoryProgressReport {
   @Field(() => ID)
   factoryOrderId: string;
 
-  @Field(() => Int)
-  completedQty: number;
-
   @Field(() => Date)
   reportDate: Date;
 

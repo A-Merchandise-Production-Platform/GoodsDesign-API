@@ -235,9 +235,7 @@ type CustomerOrderDetailEntity {
   id: ID!
   orderId: String!
   price: Int!
-  qualityCheckStatus: String!
   quantity: Int!
-  reworkStatus: String!
   status: String!
 }
 
@@ -284,7 +282,6 @@ input DoneCheckQualityDto {
   failedQuantity: Int!
   note: String
   passedQuantity: Int!
-  reworkRequired: Boolean!
 }
 
 type FactoryDashboardResponse {
@@ -373,6 +370,7 @@ type FactoryOrderDetailEntity {
   factoryOrder: FactoryOrder
   factoryOrderId: ID!
   id: ID!
+  isRework: Boolean!
   orderDetail: CustomerOrderDetailEntity!
   orderDetailId: ID!
   price: Int!
@@ -448,7 +446,6 @@ type FactoryProductEntity {
 }
 
 type FactoryProgressReport {
-  completedQty: Int!
   estimatedCompletion: DateTime!
   factoryOrder: FactoryOrder
   factoryOrderId: ID!
@@ -459,7 +456,6 @@ type FactoryProgressReport {
 }
 
 type FactoryProgressReportType {
-  completedQty: Int!
   estimatedCompletion: DateTime!
   factoryOrderId: String!
   id: String!
@@ -601,9 +597,6 @@ enum OrderDetailStatus {
   COMPLETED
   IN_PRODUCTION
   PENDING
-  QUALITY_CHECK_FAILED
-  QUALITY_CHECK_PASSED
-  QUALITY_CHECK_PENDING
   REJECTED
   REWORK_COMPLETED
   REWORK_IN_PROGRESS
@@ -729,7 +722,6 @@ type Province {
 
 enum QualityCheckStatus {
   APPROVED
-  PARTIAL_APPROVED
   PENDING
   REJECTED
 }
