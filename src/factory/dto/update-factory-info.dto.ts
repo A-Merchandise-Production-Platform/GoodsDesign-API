@@ -1,8 +1,14 @@
 import { Field, InputType, Int } from "@nestjs/graphql"
 import { IsString, IsOptional, IsDate, IsInt, IsArray, IsBoolean } from "class-validator"
+import { CreateAddressInput } from "src/addresses/dto/create-address.input"
 
 @InputType({ description: "Update factory information input" })
 export class UpdateFactoryInfoDto {
+    @Field(() => [String], { nullable: true })
+    @IsArray()
+    @IsOptional()
+    systemConfigVariantIds?: string[]
+
     @Field(() => String, { nullable: true })
     @IsString()
     @IsOptional()
@@ -23,10 +29,9 @@ export class UpdateFactoryInfoDto {
     @IsOptional()
     taxIdentificationNumber?: string
 
-    @Field(() => String, { nullable: true })
-    @IsString()
+    @Field(() => CreateAddressInput, { nullable: true })
     @IsOptional()
-    addressId?: string
+    addressInput?: CreateAddressInput
 
     @Field(() => String, { nullable: true })
     @IsString()
@@ -92,14 +97,6 @@ export class UpdateFactoryInfoDto {
     @IsInt()
     @IsOptional()
     minimumOrderQuantity?: number
-
-    @Field(() => Boolean, {
-        nullable: true,
-        description: "Set to true to submit factory information for approval"
-    })
-    @IsBoolean()
-    @IsOptional()
-    submit?: boolean
 
     constructor(partial: Partial<UpdateFactoryInfoDto>) {
         Object.assign(this, partial)

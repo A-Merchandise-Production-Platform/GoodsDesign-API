@@ -5,21 +5,36 @@ import {
     Logger,
     NotFoundException
 } from "@nestjs/common"
-import { Factory, FactoryOrderStatus, OrderDetailStatus, OrderStatus, QualityCheckStatus, Roles } from "@prisma/client"
+import {
+    Factory,
+    FactoryOrderStatus,
+    FactoryStatus,
+    OrderDetailStatus,
+    OrderStatus,
+    QualityCheckStatus,
+    Roles
+} from "@prisma/client"
 import { CustomerOrderEntity } from "src/customer-orders/entities"
 import { FactoryEntity } from "src/factory/entities/factory.entity"
 import { NotificationsService } from "src/notifications/notifications.service"
 import { UserEntity } from "src/users/entities/users.entity"
 import { PrismaService } from "../prisma/prisma.service"
 import { UpdateFactoryInfoDto } from "./dto/update-factory-info.dto"
-import { FactoryProductEntity } from "./entities/factory-product.entity"
+import { AddressesService } from "src/addresses/addresses.service"
+import { AddressEntity } from "src/addresses/entities/address.entity"
+import { FactoryProductEntity } from "src/factory-products/entities/factory-product.entity"
+import { FactoryProductsService } from "src/factory-products/factory-products.service"
+import { UpdateFactoryStatusDto } from "src/factory/dto/update-factory-status"
 
 @Injectable()
 export class FactoryService {
     private logger = new Logger(FactoryService.name)
 
-    constructor(private prisma: PrismaService,
-        private notificationService: NotificationsService
+    constructor(
+        private prisma: PrismaService,
+        private notificationsService: NotificationsService,
+        private addressesService: AddressesService,
+        private factoryProductsService: FactoryProductsService
     ) {}
 
     public async checkPaymentReceivedOrderForAssignIntoFactory(): Promise<void> {
@@ -89,6 +104,13 @@ export class FactoryService {
         // Check if the factory already exists for this user
         const existingFactory = user.ownedFactory
 
+        // Check if the factory is in a state that allows updates
+        if (existingFactory && existingFactory.factoryStatus === "SUSPENDED") {
+            throw new BadRequestException(
+                "Factory information cannot be updated while in PENDING_APPROVAL or SUSPENDED status"
+            )
+        }
+
         // Check if the factory is already submitted for approval
         if (existingFactory && existingFactory.isSubmitted) {
             throw new BadRequestException(
@@ -97,7 +119,22 @@ export class FactoryService {
         }
 
         // Set isSubmitted to true if submit flag is provided
-        const isSubmitted = dto.submit === true
+        const isSubmitted = true
+
+        let address: AddressEntity
+
+        if (existingFactory.addressId) {
+            address = await this.addressesService.updateAddress(
+                existingFactory.addressId,
+                dto.addressInput,
+                new UserEntity({ ...user, ownedFactory: null })
+            )
+        } else {
+            address = await this.addressesService.createAddress(
+                dto.addressInput,
+                new UserEntity({ ...user, ownedFactory: null })
+            )
+        }
 
         // Update or create factory information
         const updatedFactory = await this.prisma.factory.upsert({
@@ -109,7 +146,7 @@ export class FactoryService {
                 description: dto.description,
                 businessLicenseUrl: dto.businessLicenseUrl,
                 taxIdentificationNumber: dto.taxIdentificationNumber,
-                addressId: dto.addressId,
+                addressId: address.id,
                 website: dto.website,
                 establishedDate: dto.establishedDate,
                 totalEmployees: dto.totalEmployees,
@@ -123,7 +160,8 @@ export class FactoryService {
                 operationalHours: dto.operationalHours,
                 leadTime: dto.leadTime,
                 minimumOrderQuantity: dto.minimumOrderQuantity,
-                isSubmitted: isSubmitted
+                isSubmitted: isSubmitted,
+                factoryStatus: "PENDING_APPROVAL"
             },
             create: {
                 factoryOwnerId: userId,
@@ -131,7 +169,7 @@ export class FactoryService {
                 description: dto.description,
                 businessLicenseUrl: dto.businessLicenseUrl,
                 taxIdentificationNumber: dto.taxIdentificationNumber,
-                addressId: dto.addressId,
+                addressId: address.id,
                 website: dto.website,
                 establishedDate: dto.establishedDate || new Date(),
                 totalEmployees: dto.totalEmployees || 0,
@@ -145,7 +183,8 @@ export class FactoryService {
                 operationalHours: dto.operationalHours || "9AM-5PM",
                 leadTime: dto.leadTime,
                 minimumOrderQuantity: dto.minimumOrderQuantity || 0,
-                isSubmitted: isSubmitted
+                isSubmitted: isSubmitted,
+                factoryStatus: "PENDING_APPROVAL"
             },
             include: {
                 address: true,
@@ -156,15 +195,65 @@ export class FactoryService {
             }
         })
 
+        // Handle system config variants if provided
+        if (dto.systemConfigVariantIds && dto.systemConfigVariantIds.length > 0) {
+            // Get existing factory products
+            const existingProducts = await this.prisma.factoryProduct.findMany({
+                where: {
+                    factoryId: userId
+                }
+            })
+
+            // Create new factory products for new variants
+            for (const variantId of dto.systemConfigVariantIds) {
+                if (!existingProducts.some((p) => p.systemConfigVariantId === variantId)) {
+                    await this.factoryProductsService.create({
+                        factoryId: userId,
+                        systemConfigVariantId: variantId,
+                        productionCapacity: updatedFactory.maxPrintingCapacity,
+                        estimatedProductionTime: updatedFactory.leadTime || 1
+                    })
+                }
+            }
+
+            // Remove factory products for variants that are no longer selected
+            const variantsToRemove = existingProducts.filter(
+                (p) => !dto.systemConfigVariantIds.includes(p.systemConfigVariantId)
+            )
+
+            for (const product of variantsToRemove) {
+                await this.factoryProductsService.delete(
+                    product.factoryId,
+                    product.systemConfigVariantId
+                )
+            }
+        }
+
+        await this.notificationsService.create({
+            title: "Factory Information Updated",
+            content:
+                "Your factory information has been updated and is pending approval, please wait for approval",
+            userId: userId
+        })
+
         return new FactoryEntity({
             ...updatedFactory,
-            products: updatedFactory.products.map(
-                (product) =>
-                    new FactoryProductEntity({
-                        ...product,
-                        id: product.id
-                    })
-            ),
+            address: updatedFactory?.address
+                ? new AddressEntity({
+                      ...updatedFactory.address,
+                      id: updatedFactory.address.id
+                  })
+                : null,
+            products: updatedFactory.products
+                ? updatedFactory.products.map(
+                      (product) =>
+                          new FactoryProductEntity({
+                              ...product,
+                              factoryId: updatedFactory.factoryOwnerId,
+                              systemConfigVariantId: product.systemConfigVariantId
+                          })
+                  )
+                : [],
             owner: new UserEntity({
                 ...updatedFactory.owner,
                 id: updatedFactory.owner.id
@@ -179,6 +268,10 @@ export class FactoryService {
     }
 
     async getMyFactory(userId: string) {
+        if (!userId) {
+            throw new BadRequestException("User ID is required")
+        }
+
         const factory = await this.prisma.factory.findUnique({
             where: { factoryOwnerId: userId },
             include: {
@@ -194,24 +287,63 @@ export class FactoryService {
 
         return new FactoryEntity({
             ...factory,
-            products: factory.products.map(
-                (product) =>
-                    new FactoryProductEntity({
-                        ...product,
-                        id: product.id
-                    })
-            ),
+            address: factory?.address
+                ? new AddressEntity({
+                      ...factory.address,
+                      id: factory?.address?.id
+                  })
+                : null,
+            products: factory?.products
+                ? factory.products.map(
+                      (product) =>
+                          new FactoryProductEntity({
+                              ...product,
+                              factoryId: factory.factoryOwnerId,
+                              systemConfigVariantId: product.systemConfigVariantId
+                          })
+                  )
+                : [],
             owner: new UserEntity({
                 ...factory.owner,
                 id: factory.owner.id
             }),
-            staff: factory.staff
+            staff: factory?.staff
                 ? new UserEntity({
                       ...factory.staff,
                       id: factory.staff.id
                   })
                 : null
         })
+    }
+
+    private getMessageForFactoryStatusChange(status: FactoryStatus) {
+        switch (status) {
+            case FactoryStatus.APPROVED:
+                return "Your factory has been approved and is now active"
+            case FactoryStatus.SUSPENDED:
+                return "Your factory has been suspended and is no longer active"
+            case FactoryStatus.REJECTED:
+                return "Your factory has been rejected by system"
+        }
+    }
+
+    async changeFactoryStatus(dto: UpdateFactoryStatusDto, user: UserEntity) {
+        if (!user || (user.role !== Roles.ADMIN && user.role !== Roles.MANAGER)) {
+            throw new ForbiddenException("You are not allowed to change factory status")
+        }
+
+        const factory = await this.prisma.factory.update({
+            where: { factoryOwnerId: dto.factoryOwnerId },
+            data: { factoryStatus: dto.status }
+        })
+
+        await this.notificationsService.create({
+            title: "Factory Status Changed",
+            content: this.getMessageForFactoryStatusChange(dto.status),
+            userId: dto.factoryOwnerId
+        })
+
+        return new FactoryEntity(factory)
     }
 
     async assignStaffToFactory(factoryId: string, staffId: string, user: UserEntity) {
@@ -221,7 +353,7 @@ export class FactoryService {
 
         const factory = await this.prisma.factory.findUnique({
             where: { factoryOwnerId: factoryId },
-            include: { owner: true }
+            include: { owner: true, staff: true }
         })
 
         if (!factory) {
@@ -254,10 +386,7 @@ export class FactoryService {
                 ...factory.owner,
                 id: factory.owner.id
             }),
-            staff: new UserEntity({
-                ...staff,
-                id: staff.id
-            })
+            staff: new UserEntity(factory.staff)
         })
     }
 
@@ -462,9 +591,7 @@ export class FactoryService {
             )
 
             // Sort by score (highest first) and filter out factories with zero score
-            return factoryScores
-                .filter(f => f.score > 0)
-                .sort((a, b) => b.score - a.score)
+            return factoryScores.filter((f) => f.score > 0).sort((a, b) => b.score - a.score)
         } catch (error) {
             this.logger.error(`Error finding and ranking factories: ${error.message}`)
             return []
@@ -501,10 +628,14 @@ export class FactoryService {
             }
 
             // Get all factories that have rejected this order
-            const rejectedFactoryIds = rejectedOrder.rejectedHistory.map(history => history.factoryId)
-            
+            const rejectedFactoryIds = rejectedOrder.rejectedHistory.map(
+                (history) => history.factoryId
+            )
+
             // Get variant IDs from the order details
-            const variantIds = rejectedOrder.orderDetails.map(detail => detail.design.systemConfigVariantId)
+            const variantIds = rejectedOrder.orderDetails.map(
+                (detail) => detail.design.systemConfigVariantId
+            )
             const uniqueVariantIds = [...new Set(variantIds)]
 
             // Find and rank all eligible factories
@@ -522,7 +653,10 @@ export class FactoryService {
             const selectedFactory = rankedFactories[0].factory
 
             // Calculate total items and production costs
-            const totalItems = rejectedOrder.orderDetails.reduce((sum, detail) => sum + detail.quantity, 0)
+            const totalItems = rejectedOrder.orderDetails.reduce(
+                (sum, detail) => sum + detail.quantity,
+                0
+            )
             let totalProductionCost = 0
 
             // Calculate production costs for each order detail
@@ -563,20 +697,20 @@ export class FactoryService {
                 data: {
                     factoryId: selectedFactory.owner.id,
                     customerOrderId: rejectedOrder.customerOrderId,
-                    status: 'PENDING_ACCEPTANCE',
+                    status: "PENDING_ACCEPTANCE",
                     assignedAt: new Date(),
                     acceptanceDeadline,
                     totalItems,
                     totalProductionCost,
                     orderDetails: {
-                        create: orderDetailsWithCost.map(detail => ({
+                        create: orderDetailsWithCost.map((detail) => ({
                             designId: detail.designId,
                             orderDetailId: detail.orderDetailId,
                             quantity: detail.quantity,
                             price: detail.price,
                             productionCost: detail.productionCost,
                             qualityStatus: QualityCheckStatus.PENDING,
-                            status:OrderDetailStatus.PENDING
+                            status: OrderDetailStatus.PENDING
                         }))
                     }
                 }
@@ -604,8 +738,10 @@ export class FactoryService {
                 }
             })
 
-            this.logger.log(`Successfully reassigned factory order ${factoryOrderId} to factory ${selectedFactory.owner.id} (rank: ${rankedFactories[0].score.toFixed(2)})`)
-            
+            this.logger.log(
+                `Successfully reassigned factory order ${factoryOrderId} to factory ${selectedFactory.owner.id} (rank: ${rankedFactories[0].score.toFixed(2)})`
+            )
+
             return newFactoryOrder
         } catch (error) {
             this.logger.error(`Failed to reassign factory order ${factoryOrderId}:`, error)
