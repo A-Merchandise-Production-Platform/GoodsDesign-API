@@ -308,6 +308,7 @@ type FactoryEntity {
   contractUrl: String
   description: String
   establishedDate: DateTime
+  factoryOwnerId: ID!
   factoryStatus: FactoryStatus
   isSubmitted: Boolean
   leadTime: Int
@@ -395,12 +396,18 @@ enum FactoryOrderStatus {
   ACCEPTED
   CANCELLED
   COMPLETED
+  DONE_CHECK_QUALITY
   DONE_PRODUCTION
   EXPIRED
   IN_PRODUCTION
   PENDING_ACCEPTANCE
   REJECTED
+  REWORK_COMPLETED
+  REWORK_REQUIRED
   SHIPPED
+  WAITING_FOR_CHECKING_QUALITY
+  WAITING_FOR_MANAGER_ASSIGN_FACTORY
+  WAITING_FOR_MANAGER_ASSIGN_STAFF
 }
 
 type FactoryOrderWithCustomer {
@@ -783,9 +790,11 @@ type Query {
   factoryProgressReport(id: ID!): FactoryProgressReport!
   factoryProgressReports(factoryOrderId: ID!): [FactoryProgressReport!]!
   getAllDiscountByProductId(productId: String!): [SystemConfigDiscountEntity!]!
+  getAllFactories: [FactoryEntity!]!
   getApplicableDiscount(productId: String!, quantity: Float!): Float!
   getCartItem(id: String!): CartItemEntity!
   getCartItemCount: Float!
+  getFactoryById(factoryId: String!): FactoryEntity!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
   managerDashboard: ManagerDashboardResponse!

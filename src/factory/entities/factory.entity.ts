@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType, registerEnumType } from "@nestjs/graphql"
+import { Field, ID, Int, ObjectType, registerEnumType } from "@nestjs/graphql"
 import { FactoryStatus } from "@prisma/client"
 import { ProductEntity } from "src/products/entities/products.entity"
 import { UserEntity } from "src/users/entities/users.entity"
@@ -11,6 +11,9 @@ registerEnumType(FactoryStatus, {
 
 @ObjectType()
 export class FactoryEntity {
+    @Field(() => ID)
+    factoryOwnerId: string
+
     @Field(() => String)
     name: string
 
