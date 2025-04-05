@@ -19,8 +19,8 @@ export const productDesignsData: ProductDesignsData = {
             userEmail: "customer@gmail.com",
             systemConfigVariantId: "var001",
             isFinalized: true,
-            isPublic: true,
-            isTemplate: true,
+            isPublic: false,
+            isTemplate: false,
             thumbnailUrl:
                 "https://files.cdn.printful.com/o/upload/product-catalog-img/ea/ea968722fc4980abb0a61b90e7cc0451_l"
         },

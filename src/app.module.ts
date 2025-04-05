@@ -32,6 +32,7 @@ import { StaffTasksModule } from "./staff-tasks/staff-tasks.module"
 import { NotificationsModule } from "./notifications/notifications.module"
 import { FactoryOrdersModule } from "./factory-orders/factory-orders.module"
 import { DashboardModule } from './dashboard/dashboard.module'
+import { FactoryProductsModule } from "./factory-products/factory-products.module"
 
 @Module({
     imports: [
@@ -77,6 +78,7 @@ import { DashboardModule } from './dashboard/dashboard.module'
         FactoryOrdersModule,
         StaffTasksModule,
         DashboardModule,
+        // FactoryProductsModule
         // TestModule,
     ],
     controllers: [AppController],

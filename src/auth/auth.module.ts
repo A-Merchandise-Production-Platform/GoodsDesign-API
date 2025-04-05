@@ -1,14 +1,15 @@
 import { Module } from "@nestjs/common"
-import { JwtModule } from "@nestjs/jwt";
-import { PassportModule } from "@nestjs/passport";
-import { envConfig, TokenType } from "src/dynamic-modules";
-import { PrismaModule } from "src/prisma";
-import { RedisModule } from "src/redis";
-import { UsersModule } from "src/users";
-import { AuthResolver } from "./auth.resolver";
-import { AuthService } from "./auth.service";
-import { RolesGuard } from "./guards";
-import { JwtStrategy } from "./strategies";
+import { JwtModule } from "@nestjs/jwt"
+import { PassportModule } from "@nestjs/passport"
+import { envConfig, TokenType } from "src/dynamic-modules"
+import { NotificationsModule } from "src/notifications/notifications.module"
+import { PrismaModule } from "src/prisma"
+import { RedisModule } from "src/redis"
+import { UsersModule } from "src/users"
+import { AuthResolver } from "./auth.resolver"
+import { AuthService } from "./auth.service"
+import { RolesGuard } from "./guards"
+import { JwtStrategy } from "./strategies"
 
 @Module({
     imports: [
@@ -19,7 +20,8 @@ import { JwtStrategy } from "./strategies";
             signOptions: { expiresIn: envConfig().jwt[TokenType.AccessToken].expiresIn }
         }),
         RedisModule,
-        UsersModule
+        UsersModule,
+        NotificationsModule
     ],
     providers: [AuthService, JwtStrategy, RolesGuard, AuthResolver],
     exports: [AuthService]
