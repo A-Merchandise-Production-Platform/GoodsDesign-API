@@ -67,6 +67,9 @@ export class FactoryOrderDetailEntity {
   @Field(() => ProductDesign)
   design: ProductDesign;
 
+  @Field(() => Boolean)
+  isRework: boolean
+
   @Field(() => CustomerOrderDetailEntity)
   orderDetail: CustomerOrderDetailEntity;
 

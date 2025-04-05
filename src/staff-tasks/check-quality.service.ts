@@ -245,7 +245,8 @@ export class CheckQualityService {
           where: { id: currentCheckQuality.factoryOrderDetailId },
           data: {
             status: OrderDetailStatus.REWORK_REQUIRED,
-            rejectedQty: data.failedQuantity
+            rejectedQty: data.failedQuantity,
+            completedQty: data.passedQuantity
           },
         });
 

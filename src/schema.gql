@@ -369,6 +369,7 @@ type FactoryOrderDetailEntity {
   factoryOrder: FactoryOrder
   factoryOrderId: ID!
   id: ID!
+  isRework: Boolean!
   orderDetail: CustomerOrderDetailEntity!
   orderDetailId: ID!
   price: Int!
@@ -444,7 +445,6 @@ type FactoryProductEntity {
 }
 
 type FactoryProgressReport {
-  completedQty: Int!
   estimatedCompletion: DateTime!
   factoryOrder: FactoryOrder
   factoryOrderId: ID!
@@ -455,7 +455,6 @@ type FactoryProgressReport {
 }
 
 type FactoryProgressReportType {
-  completedQty: Int!
   estimatedCompletion: DateTime!
   factoryOrderId: String!
   id: String!

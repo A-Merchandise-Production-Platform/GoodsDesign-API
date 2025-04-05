@@ -14,7 +14,6 @@ export class FactoryProgressReportService {
       const report = await this.prisma.factoryProgressReport.create({
         data: {
           factoryOrderId: dto.factoryOrderId,
-          completedQty: dto.completedQty,
           estimatedCompletion: dto.estimatedCompletion,
           notes: dto.notes,
           photoUrls: dto.photoUrls,

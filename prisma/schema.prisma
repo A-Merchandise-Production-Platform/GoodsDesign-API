@@ -555,7 +555,7 @@ model FactoryProgressReport {
   id                  String   @id @default(uuid())
   factoryOrderId      String
   reportDate          DateTime @default(now())
-  completedQty        Int
+  completed        Int? 
   estimatedCompletion DateTime
   notes               String?
   photoUrls           String[]
