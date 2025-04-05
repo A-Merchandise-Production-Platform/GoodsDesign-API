@@ -305,6 +305,7 @@ type FactoryEntity {
   contractUrl: String
   description: String
   establishedDate: DateTime
+  factoryOwnerId: ID!
   factoryStatus: FactoryStatus
   isSubmitted: Boolean
   leadTime: Int
@@ -781,9 +782,11 @@ type Query {
   factoryProgressReport(id: ID!): FactoryProgressReport!
   factoryProgressReports(factoryOrderId: ID!): [FactoryProgressReport!]!
   getAllDiscountByProductId(productId: String!): [SystemConfigDiscountEntity!]!
+  getAllFactories: [FactoryEntity!]!
   getApplicableDiscount(productId: String!, quantity: Float!): Float!
   getCartItem(id: String!): CartItemEntity!
   getCartItemCount: Float!
+  getFactoryById(factoryId: String!): FactoryEntity!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
   managerDashboard: ManagerDashboardResponse!

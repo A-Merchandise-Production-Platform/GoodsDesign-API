@@ -82,6 +82,22 @@ export class FactoryService {
         }
     }
 
+    async getAllFactories() {
+        const factories = await this.prisma.factory.findMany({
+            include: {
+                address: true,
+                products: true,
+                orders: true,
+                owner: true,
+                staff: true
+            }
+        })
+
+        console.log(factories)
+
+        return factories.map((factory) => new FactoryEntity(factory))
+    }
+
     async updateFactoryInfo(userId: string, dto: UpdateFactoryInfoDto) {
         // First, check if the user is a factory owner
         const user = await this.prisma.user.findUnique({
@@ -265,6 +281,29 @@ export class FactoryService {
                   })
                 : null
         })
+    }
+
+    async getFactoryById(factoryId: string) {
+        const factory = await this.prisma.factory.findUnique({
+            where: { factoryOwnerId: factoryId },
+            include: {
+                address: true,
+                products: {
+                    include: {
+                        systemConfigVariant: true
+                    }
+                },
+                orders: true,
+                owner: true,
+                staff: true
+            }
+        })
+
+        if (!factory) {
+            throw new NotFoundException("Factory not found")
+        }
+
+        return new FactoryEntity(factory)
     }
 
     async getMyFactory(userId: string) {
