@@ -225,91 +225,14 @@ export class CheckQualityService {
       }
     }
 
-    // If rework is required, handle factory order details and change status
-    if (data.failedQuantity > 0) {
-      // Update the customer order detail status
-      await this.prisma.factoryOrder.update({
-        where: { id: currentCheckQuality.factoryOrderDetail.factoryOrderId },
-        data: {
-          status: OrderDetailStatus.REWORK_REQUIRED,
-        },
-      });
-
-      // If there's a factory order detail, update its status and create new order details
-      if (currentCheckQuality.factoryOrderDetailId && currentCheckQuality.factoryOrderDetail) {
-        const factoryOrderDetail = currentCheckQuality.factoryOrderDetail;
-        const factoryOrder = factoryOrderDetail.factoryOrder;
-        
-        // Update the factory order detail status
-        await this.prisma.factoryOrderDetail.update({
-          where: { id: currentCheckQuality.factoryOrderDetailId },
-          data: {
-            status: OrderDetailStatus.REWORK_REQUIRED,
-            rejectedQty: data.failedQuantity,
-            completedQty: data.passedQuantity
-          },
-        });
-
-        // Create a new factory order detail for the rework items
-        if (data.failedQuantity > 0) {
-          await this.prisma.factoryOrderDetail.create({
-            data: {
-              designId: factoryOrderDetail.designId,
-              factoryOrderId: factoryOrder.id,
-              orderDetailId: currentCheckQuality.orderDetailId,
-              quantity: data.failedQuantity,
-              price: factoryOrderDetail.price,
-              status: OrderDetailStatus.PENDING,
-              completedQty: 0,
-              rejectedQty: 0,
-              productionCost: factoryOrderDetail.productionCost,
-              qualityStatus: QualityCheckStatus.PENDING,
-              isRework: true
-            }
-          });
-
-          //change factory order details others into isRework = false
-          await this.prisma.factoryOrderDetail.updateMany({
-            where: {
-              factoryOrderId: factoryOrder.id,
-              id: {
-                not: currentCheckQuality.factoryOrderDetailId
-              }
-            },
-            data: {
-              isRework: false
-            }
-          });
-
-          await this.prisma.factoryOrderDetail.update({
-            where: { id: factoryOrderDetail.id },
-            data: {
-              qualityStatus: QualityCheckStatus.REJECTED
-            }
-          });
-          
-        }else{
-          
-        }
-
-        // Update the factory order status
-        await this.prisma.factoryOrder.update({
-          where: { id: factoryOrder.id },
-          data: {
-            status: FactoryOrderStatus.REWORK_REQUIRED,
-            isDelayed: true,
-            delayReason: 'Rework required due to quality issues',
-            currentProgress: 0 // Reset progress since new items need to be produced
-          }
-        });
-      }
-    }else{
-      const factoryOrderDetail = currentCheckQuality.factoryOrderDetail;
-        const factoryOrder = factoryOrderDetail.factoryOrder;
+    // Update factory order detail quality status
+    if (currentCheckQuality.factoryOrderDetailId) {
       await this.prisma.factoryOrderDetail.update({
-        where: { id: factoryOrderDetail.id },
+        where: { id: currentCheckQuality.factoryOrderDetailId },
         data: {
-          qualityStatus: QualityCheckStatus.APPROVED
+          qualityStatus: status,
+          rejectedQty: data.failedQuantity,
+          completedQty: data.passedQuantity
         }
       });
     }

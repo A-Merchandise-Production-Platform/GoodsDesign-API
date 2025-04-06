@@ -4,23 +4,17 @@ import {
     seedUsers,
     seedCategories,
     seedProducts,
-    seedTasks,
     seedProductPositionTypes,
     seedProductDesigns,
-    seedCustomerOrders,
     seedDesignPositions,
-    seedPayments,
-    seedStaffTasks,
-    seedCheckQualities,
     seedFavoriteDesigns,
     seedFactories,
     seedFactoryProducts,
-    seedFactoryOrders,
-    seedFactoryOrderDetails,
     seedCartItems,
     seedDiscounts,
     seedSystemConfigVariants,
-    seedNotifications
+    seedNotifications,
+    seedOrders
 } from "./seeds"
 
 const prisma = new PrismaClient()
@@ -90,16 +84,7 @@ async function main() {
         await seedCartItems(prisma)
 
         // Seed orders and payments
-        await seedCustomerOrders(prisma)
-        await seedFactoryOrders(prisma)
-        await seedFactoryOrderDetails(prisma)
-        await seedPayments(prisma)
-
-        // Seed tasks and quality checks
-        await seedTasks(prisma)
-        await seedStaffTasks(prisma)
-        await seedCheckQualities(prisma)
-
+        await seedOrders(prisma)
         // Seed notifications
         await seedNotifications(prisma)
 
