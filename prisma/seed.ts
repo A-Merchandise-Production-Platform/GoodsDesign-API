@@ -83,10 +83,11 @@ async function main() {
         await seedFavoriteDesigns(prisma)
         await seedCartItems(prisma)
 
-        // Seed orders and payments
+        // Seed orders 
         await seedOrders(prisma)
         // Seed notifications
         await seedNotifications(prisma)
+       
 
         console.log("Seeding completed successfully!")
     } catch (error) {

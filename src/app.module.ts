@@ -12,12 +12,13 @@ import { AuthModule } from "./auth"
 import { CartItemsModule } from "./cart-items/cart-items.module"
 import { CategoriesModule } from "./categories"
 import { CronModule } from "./cron/cron.module"
-import { CustomerOrdersModule } from "./customer-orders/customer-orders.module"
+import { DashboardModule } from './dashboard/dashboard.module'
 import { DesignPositionModule } from "./design-position/design-position.module"
 import { EnvModule } from "./dynamic-modules"
 import { FactoryModule } from "./factory/factory.module"
 import { FileModule } from "./file/file.module"
 import { MailModule } from "./mail/mail.module"
+import { NotificationsModule } from "./notifications/notifications.module"
 import { PaymentGatewayModule } from "./payment-gateway/payment-gateway.module"
 import { PrismaModule } from "./prisma"
 import { ProductDesignModule } from "./product-design/product-design.module"
@@ -28,11 +29,6 @@ import { ShippingModule } from "./shipping/shipping.module"
 import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
-import { StaffTasksModule } from "./staff-tasks/staff-tasks.module"
-import { NotificationsModule } from "./notifications/notifications.module"
-import { FactoryOrdersModule } from "./factory-orders/factory-orders.module"
-import { DashboardModule } from './dashboard/dashboard.module'
-import { FactoryProductsModule } from "./factory-products/factory-products.module"
 
 @Module({
     imports: [
@@ -65,7 +61,6 @@ import { FactoryProductsModule } from "./factory-products/factory-products.modul
         ShippingModule,
         FileModule,
         MailModule,
-        CustomerOrdersModule,
         ServeStaticModule.forRoot({
             rootPath: join(process.cwd(), "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
             serveRoot: "/admin"
@@ -75,8 +70,6 @@ import { FactoryProductsModule } from "./factory-products/factory-products.modul
         SystemConfigVariantModule,
         CronModule,
         NotificationsModule,
-        FactoryOrdersModule,
-        StaffTasksModule,
         DashboardModule,
         // FactoryProductsModule
         // TestModule,

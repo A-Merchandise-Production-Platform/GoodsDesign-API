@@ -58,8 +58,7 @@ model Address {
 
   user    User     @relation(fields: [userId], references: [id])
   factory Factory?
-
-  @@map("Addresses")
+  orders  Order[]
 }
 
 model Category {
@@ -77,8 +76,6 @@ model Category {
   deletedBy   String?
 
   products Product[]
-
-  @@map("Categories")
 }
 
 model Product {
@@ -102,8 +99,6 @@ model Product {
   positionTypes ProductPositionType[]
   discounts     SystemConfigDiscount[]
   variants      SystemConfigVariant[]
-
-  @@map("Products")
 }
 
 model SystemConfigBank {
@@ -285,8 +280,6 @@ model CartItem {
 
   user   User          @relation(fields: [userId], references: [id])
   design ProductDesign @relation(fields: [designId], references: [id])
-
-  @@map("CartItems")
 }
 
 
@@ -294,7 +287,7 @@ model FactoryProduct {
   factoryId               String 
   systemConfigVariantId   String
   productionCapacity      Int
-  estimatedProductionTime Int
+  productionTimeInMinutes Int  @default(300)
 
   factory             Factory             @relation(fields: [factoryId], references: [factoryOwnerId])
   systemConfigVariant SystemConfigVariant @relation(fields: [systemConfigVariantId], references: [id])
@@ -347,58 +340,6 @@ model Factory {
   rejectedOrders RejectedOrder[]
 }
 
-
-
-
-model Order {
-  id                      String      @id @default(uuid())
-  customerId              String
-  factoryId               String?
-  status                  OrderStatus
-  totalPrice              Int
-  shippingPrice           Int
-  depositPaid             Int
-  orderDate               DateTime    @default(now())
-  assignedAt              DateTime?
-  acceptanceDeadline      DateTime?
-  acceptedAt              DateTime?
-  rejectionReason         String?
-  estimatedCompletionDate DateTime?
-  completedAt             DateTime?
-  shippedAt               DateTime?
-  totalItems              Int
-  updatedAt               DateTime?   @updatedAt
-  totalProductionCost     Int?
-
-  // Production progress
-  lastUpdated     DateTime?
-  currentProgress Int?
-  delayReason     String?
-  isDelayed       Boolean   @default(false)
-
-  // Quality rating
-  rating        Int?
-  ratingComment String?
-  ratedAt       DateTime?
-  ratedBy       String?
-
-  // Bổ sung thêm:
-  cancelReason        String?      // Lý do hủy đơn
-  cancellationDate    DateTime?    // Ngày hủy đơn
-  deliveredAt         DateTime?    // Ngày giao hàng
-  deliveryAddress     String?      // Địa chỉ giao hàng
-  estimatedShippingDate DateTime?  // Dự kiến ngày vận chuyển
-  priorityLevel       Int?         // Mức độ ưu tiên
-  customerNotes       String?      // Ghi chú của khách hàng
-
-  customer     User                 @relation(fields: [customerId], references: [id])
-  factory      Factory?             @relation(fields: [factoryId], references: [factoryOwnerId])
-  orderDetails OrderDetail[]
-  payments     Payment[]
-  orderProgressReports OrderProgressReport[]
-  tasks           Task[]
-  rejectedHistory RejectedOrder[]
-}
 enum OrderStatus {
   // Trạng thái ban đầu
   PENDING
@@ -445,13 +386,63 @@ enum OrderDetailStatus {
   COMPLETED                       // Thêm để nhất quán với OrderStatus
 }
 
+model Order {
+  id                      String      @id @default(uuid())
+  customerId              String
+  factoryId               String?
+  status                  OrderStatus
+  totalPrice              Int
+  shippingPrice           Int @default(0)
+  orderDate               DateTime    @default(now())
+  
+  totalItems              Int
+  updatedAt               DateTime?   @updatedAt
+  totalProductionCost     Int?
+
+  currentProgress Int?
+  delayReason     String?
+  isDelayed       Boolean   @default(false)
+
+  // Quality rating
+  rating        Int?
+  ratingComment String?
+  ratedAt       DateTime?
+  ratedBy       String?
+
+
+//Time
+  assignedAt              DateTime?
+  acceptanceDeadline      DateTime?
+  acceptedAt              DateTime?
+  
+  shippedAt               DateTime?
+  estimatedShippingAt DateTime
+  doneProductionAt     DateTime?
+  estimatedDoneProductionAt DateTime
+  doneCheckQualityAt  DateTime?
+  estimatedCheckQualityAt DateTime
+  completedAt             DateTime?
+  estimatedCompletionAt DateTime
+
+  addressId      String?
+  address        Address?               @relation(fields: [addressId], references: [id])
+
+  customer     User                 @relation(fields: [customerId], references: [id])
+  factory      Factory?             @relation(fields: [factoryId], references: [factoryOwnerId])
+  orderDetails OrderDetail[]
+  payments     Payment[]
+  orderProgressReports OrderProgressReport[]
+  tasks           Task[]
+  rejectedHistory RejectedOrder[]
+}
+
 model OrderDetail {
   id             String            @id @default(uuid())
   orderId        String
   designId       String
   price          Int
   quantity       Int
-  status         OrderDetailStatus
+  status         OrderDetailStatus @default(PENDING)
   completedQty   Int               @default(0)
   rejectedQty    Int               @default(0)
   createdAt      DateTime          @default(now())
@@ -469,8 +460,8 @@ model OrderProgressReport {
   id                  String   @id @default(uuid())
   orderId             String
   reportDate          DateTime @default(now())
-  notes               String?
-  photoUrls           String[]
+  note                String?
+  imageUrls           String[]
 
   order Order @relation(fields: [orderId], references: [id])
 }
@@ -538,13 +529,26 @@ model CheckQuality {
   totalChecked   Int            @default(0)
   passedQuantity Int            @default(0)
   failedQuantity Int            @default(0)
-  status         QualityCheckStatus
+  status         QualityCheckStatus @default(PENDING)
   note           String?
   createdAt       DateTime       @default(now())
   checkedAt      DateTime
   checkedBy      String?
+  imageUrls      String[]
 
   task        Task        @relation(fields: [taskId], references: [id])
   orderDetail OrderDetail @relation(fields: [orderDetailId], references: [id])
 }
 
+enum SystemConfigOrderType {
+  SYSTEM_CONFIG_ORDER
+}
+
+model SystemConfigOrder {
+  id          String @id @default(uuid())
+  type        SystemConfigOrderType @default(SYSTEM_CONFIG_ORDER) @unique
+  limitFactoryRejectOrders Int @default(3)
+  checkQualityTimesDays Int @default(2)
+  limitReworkTimes Int @default(2)
+  shippingDays Int @default(2)
+}
