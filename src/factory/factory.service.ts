@@ -6,25 +6,20 @@ import {
     NotFoundException
 } from "@nestjs/common"
 import {
-    Factory,
-    FactoryOrderStatus,
     FactoryStatus,
-    OrderDetailStatus,
     OrderStatus,
-    QualityCheckStatus,
     Roles
 } from "@prisma/client"
-import { CustomerOrderEntity } from "src/customer-orders/entities"
+import { AddressesService } from "src/addresses/addresses.service"
+import { AddressEntity } from "src/addresses/entities/address.entity"
+import { UpdateFactoryStatusDto } from "src/factory/dto/update-factory-status"
 import { FactoryEntity } from "src/factory/entities/factory.entity"
 import { NotificationsService } from "src/notifications/notifications.service"
 import { UserEntity } from "src/users/entities/users.entity"
 import { PrismaService } from "../prisma/prisma.service"
 import { UpdateFactoryInfoDto } from "./dto/update-factory-info.dto"
-import { AddressesService } from "src/addresses/addresses.service"
-import { AddressEntity } from "src/addresses/entities/address.entity"
 import { FactoryProductEntity } from "src/factory-products/entities/factory-product.entity"
 import { FactoryProductsService } from "src/factory-products/factory-products.service"
-import { UpdateFactoryStatusDto } from "src/factory/dto/update-factory-status"
 
 @Injectable()
 export class FactoryService {
@@ -37,50 +32,50 @@ export class FactoryService {
         private factoryProductsService: FactoryProductsService
     ) {}
 
-    public async checkPaymentReceivedOrderForAssignIntoFactory(): Promise<void> {
-        try {
-            this.logger.verbose("Running cron job: checkPaymentReceivedOrderForAssignIntoFactory")
+    // public async checkPaymentReceivedOrderForAssignIntoFactory(): Promise<void> {
+    //     try {
+    //         this.logger.verbose("Running cron job: checkPaymentReceivedOrderForAssignIntoFactory")
 
-            // Find orders with PAYMENT_RECEIVED status that don't already have factory orders
-            const orders = await this.prisma.customerOrder.findMany({
-                where: {
-                    status: OrderStatus.PAYMENT_RECEIVED,
-                    factoryOrder: {
-                        none: {} // Ensure no factory orders exist for this customer order
-                    }
-                },
-                include: {
-                    orderDetails: {
-                        include: {
-                            design: {
-                                include: {
-                                    systemConfigVariant: true
-                                }
-                            }
-                        }
-                    }
-                }
-            })
+    //         // Find orders with PAYMENT_RECEIVED status that don't already have factory orders
+    //         const orders = await this.prisma.customerOrder.findMany({
+    //             where: {
+    //                 status: OrderStatus.PAYMENT_RECEIVED,
+    //                 factoryOrder: {
+    //                     none: {} // Ensure no factory orders exist for this customer order
+    //                 }
+    //             },
+    //             include: {
+    //                 orderDetails: {
+    //                     include: {
+    //                         design: {
+    //                             include: {
+    //                                 systemConfigVariant: true
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         })
 
-            this.logger.verbose(
-                `Found ${orders.length} orders with PAYMENT_RECEIVED status to assign to factories`
-            )
+    //         this.logger.verbose(
+    //             `Found ${orders.length} orders with PAYMENT_RECEIVED status to assign to factories`
+    //         )
 
-            if (orders.length === 0) {
-                return
-            }
+    //         if (orders.length === 0) {
+    //             return
+    //         }
 
-            // Process each order individually
-            for (const order of orders) {
-                await this.processOrderForFactoryAssignment(order)
-            }
+    //         // Process each order individually
+    //         for (const order of orders) {
+    //             await this.processOrderForFactoryAssignment(order)
+    //         }
 
-            this.logger.verbose("Completed cron job: checkPaymentReceivedOrderForAssignIntoFactory")
-        } catch (error) {
-            this.logger.error(`Error in factory assignment cron job: ${error.message}`)
-            throw error
-        }
-    }
+    //         this.logger.verbose("Completed cron job: checkPaymentReceivedOrderForAssignIntoFactory")
+    //     } catch (error) {
+    //         this.logger.error(`Error in factory assignment cron job: ${error.message}`)
+    //         throw error
+    //     }
+    // }
 
     async getAllFactories() {
         const factories = await this.prisma.factory.findMany({
@@ -429,486 +424,486 @@ export class FactoryService {
         })
     }
 
-    /**
-     * Calculate a score for a factory based on its capacity, workload, and ability to handle variants
-     * @param factory The factory to score
-     * @param variantIds Array of variant IDs that need to be produced
-     * @returns Score between 0-1, higher is better
-     */
-    async calculateFactoryScore(
-        factory: Factory & { products: any[] },
-        variantIds: string[]
-    ): Promise<number> {
-        try {
-            // Check current workload (active orders)
-            const activeOrders = await this.prisma.factoryOrder.count({
-                where: {
-                    factoryId: factory.factoryOwnerId,
-                    status: {
-                        in: [
-                            FactoryOrderStatus.PENDING_ACCEPTANCE,
-                            FactoryOrderStatus.ACCEPTED,
-                            FactoryOrderStatus.IN_PRODUCTION
-                        ]
-                    }
-                }
-            })
+    // /**
+    //  * Calculate a score for a factory based on its capacity, workload, and ability to handle variants
+    //  * @param factory The factory to score
+    //  * @param variantIds Array of variant IDs that need to be produced
+    //  * @returns Score between 0-1, higher is better
+    //  */
+    // async calculateFactoryScore(
+    //     factory: Factory & { products: any[] },
+    //     variantIds: string[]
+    // ): Promise<number> {
+    //     try {
+    //         // Check current workload (active orders)
+    //         const activeOrders = await this.prisma.factoryOrder.count({
+    //             where: {
+    //                 factoryId: factory.factoryOwnerId,
+    //                 status: {
+    //                     in: [
+    //                         FactoryOrderStatus.PENDING_ACCEPTANCE,
+    //                         FactoryOrderStatus.ACCEPTED,
+    //                         FactoryOrderStatus.IN_PRODUCTION
+    //                     ]
+    //                 }
+    //             }
+    //         })
 
-            // Calculate capacity availability (as a percentage)
-            const totalCapacity = factory.maxPrintingCapacity
-            const capacityScore = Math.max(0, (totalCapacity - activeOrders * 50) / totalCapacity)
+    //         // Calculate capacity availability (as a percentage)
+    //         const totalCapacity = factory.maxPrintingCapacity
+    //         const capacityScore = Math.max(0, (totalCapacity - activeOrders * 50) / totalCapacity)
 
-            // Check if factory can handle all variants
-            const canHandleAllVariants = variantIds.every((variantId) =>
-                factory.products.some((p) => p.systemConfigVariantId === variantId)
-            )
+    //         // Check if factory can handle all variants
+    //         const canHandleAllVariants = variantIds.every((variantId) =>
+    //             factory.products.some((p) => p.systemConfigVariantId === variantId)
+    //         )
 
-            if (!canHandleAllVariants) {
-                return 0
-            }
+    //         if (!canHandleAllVariants) {
+    //             return 0
+    //         }
 
-            // Calculate lead time score (shorter is better)
-            const leadTimeScore = factory.leadTime ? 1 / factory.leadTime : 0
+    //         // Calculate lead time score (shorter is better)
+    //         const leadTimeScore = factory.leadTime ? 1 / factory.leadTime : 0
 
-            // Calculate specialization score (if factory specializes in these products)
-            const specializationScore = this.calculateSpecializationScore(factory, variantIds)
+    //         // Calculate specialization score (if factory specializes in these products)
+    //         const specializationScore = this.calculateSpecializationScore(factory, variantIds)
 
-            // Calculate final score (weighted combination)
-            const finalScore = capacityScore * 0.5 + leadTimeScore * 0.3 + specializationScore * 0.2
+    //         // Calculate final score (weighted combination)
+    //         const finalScore = capacityScore * 0.5 + leadTimeScore * 0.3 + specializationScore * 0.2
 
-            return finalScore
-        } catch (error) {
-            this.logger.error(`Error calculating factory score: ${error.message}`)
-            return 0
-        }
-    }
+    //         return finalScore
+    //     } catch (error) {
+    //         this.logger.error(`Error calculating factory score: ${error.message}`)
+    //         return 0
+    //     }
+    // }
 
-    /**
-     * Calculate how specialized a factory is for specific variants
-     * @param factory The factory to evaluate
-     * @param variantIds Variant IDs needed for production
-     * @returns Specialization score between 0-1
-     */
-    private calculateSpecializationScore(
-        factory: Factory & { products: any[] },
-        variantIds: string[]
-    ): number {
-        try {
-            // Calculate average production time as a measure of specialization
-            // Lower time means more specialized/efficient
-            const relevantProducts = factory.products.filter((p) =>
-                variantIds.includes(p.systemConfigVariantId)
-            )
+    // /**
+    //  * Calculate how specialized a factory is for specific variants
+    //  * @param factory The factory to evaluate
+    //  * @param variantIds Variant IDs needed for production
+    //  * @returns Specialization score between 0-1
+    //  */
+    // private calculateSpecializationScore(
+    //     factory: Factory & { products: any[] },
+    //     variantIds: string[]
+    // ): number {
+    //     try {
+    //         // Calculate average production time as a measure of specialization
+    //         // Lower time means more specialized/efficient
+    //         const relevantProducts = factory.products.filter((p) =>
+    //             variantIds.includes(p.systemConfigVariantId)
+    //         )
 
-            if (relevantProducts.length === 0) return 0
+    //         if (relevantProducts.length === 0) return 0
 
-            const avgProductionTime =
-                relevantProducts.reduce(
-                    (sum, product) => sum + product.estimatedProductionTime,
-                    0
-                ) / relevantProducts.length
+    //         const avgProductionTime =
+    //             relevantProducts.reduce(
+    //                 (sum, product) => sum + product.estimatedProductionTime,
+    //                 0
+    //             ) / relevantProducts.length
 
-            // Convert to a score where lower time means higher score
-            // Assuming 60 is a reasonable max production time
-            const MAX_PRODUCTION_TIME = 60
-            return Math.max(0, 1 - avgProductionTime / MAX_PRODUCTION_TIME)
-        } catch (error) {
-            this.logger.error(`Error calculating specialization score: ${error.message}`)
-            return 0
-        }
-    }
+    //         // Convert to a score where lower time means higher score
+    //         // Assuming 60 is a reasonable max production time
+    //         const MAX_PRODUCTION_TIME = 60
+    //         return Math.max(0, 1 - avgProductionTime / MAX_PRODUCTION_TIME)
+    //     } catch (error) {
+    //         this.logger.error(`Error calculating specialization score: ${error.message}`)
+    //         return 0
+    //     }
+    // }
 
-    /**
-     * Find best factory for producing a given set of variants
-     * @param variantIds Array of variant IDs that need to be produced
-     * @returns The best factory or null if none found
-     */
-    async findBestFactoryForVariants(variantIds: string[]): Promise<FactoryEntity | null> {
-        try {
-            // Find eligible factories that can produce all variants
-            const factories = await this.prisma.factory.findMany({
-                where: {
-                    factoryStatus: "APPROVED",
-                    products: {
-                        some: {
-                            systemConfigVariantId: {
-                                in: variantIds
-                            }
-                        }
-                    }
-                },
-                include: {
-                    owner: true,
-                    products: {
-                        where: {
-                            systemConfigVariantId: {
-                                in: variantIds
-                            }
-                        }
-                    }
-                }
-            })
+    // /**
+    //  * Find best factory for producing a given set of variants
+    //  * @param variantIds Array of variant IDs that need to be produced
+    //  * @returns The best factory or null if none found
+    //  */
+    // async findBestFactoryForVariants(variantIds: string[]): Promise<FactoryEntity | null> {
+    //     try {
+    //         // Find eligible factories that can produce all variants
+    //         const factories = await this.prisma.factory.findMany({
+    //             where: {
+    //                 factoryStatus: "APPROVED",
+    //                 products: {
+    //                     some: {
+    //                         systemConfigVariantId: {
+    //                             in: variantIds
+    //                         }
+    //                     }
+    //                 }
+    //             },
+    //             include: {
+    //                 owner: true,
+    //                 products: {
+    //                     where: {
+    //                         systemConfigVariantId: {
+    //                             in: variantIds
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         })
 
-            if (factories.length === 0) {
-                return null
-            }
+    //         if (factories.length === 0) {
+    //             return null
+    //         }
 
-            // Score each factory
-            const factoryScores = await Promise.all(
-                factories.map(async (factory) => {
-                    const score = await this.calculateFactoryScore(factory, variantIds)
-                    return { factory, score }
-                })
-            )
+    //         // Score each factory
+    //         const factoryScores = await Promise.all(
+    //             factories.map(async (factory) => {
+    //                 const score = await this.calculateFactoryScore(factory, variantIds)
+    //                 return { factory, score }
+    //             })
+    //         )
 
-            // Sort by score (highest first)
-            factoryScores.sort((a, b) => b.score - a.score)
+    //         // Sort by score (highest first)
+    //         factoryScores.sort((a, b) => b.score - a.score)
 
-            // Return the best factory or null if none have a positive score
-            if (factoryScores[0]?.score > 0) {
-                return new FactoryEntity({
-                    ...factoryScores[0].factory,
-                    products: factoryScores[0].factory.products.map(
-                        (p) => new FactoryProductEntity(p)
-                    ),
-                    owner: new UserEntity(factoryScores[0].factory.owner)
-                })
-            }
-            return null
-        } catch (error) {
-            this.logger.error(`Error finding best factory: ${error.message}`)
-            return null
-        }
-    }
+    //         // Return the best factory or null if none have a positive score
+    //         if (factoryScores[0]?.score > 0) {
+    //             return new FactoryEntity({
+    //                 ...factoryScores[0].factory,
+    //                 products: factoryScores[0].factory.products.map(
+    //                     (p) => new FactoryProductEntity(p)
+    //                 ),
+    //                 owner: new UserEntity(factoryScores[0].factory.owner)
+    //             })
+    //         }
+    //         return null
+    //     } catch (error) {
+    //         this.logger.error(`Error finding best factory: ${error.message}`)
+    //         return null
+    //     }
+    // }
 
-    /**
-     * Find and rank all eligible factories for a set of variants
-     * @param variantIds Array of variant IDs that need to be produced
-     * @param excludedFactoryIds Array of factory IDs to exclude (e.g., those that have rejected the order)
-     * @returns Array of factories with their scores, sorted by score (highest first)
-     */
-    async findAndRankFactoriesForVariants(
-        variantIds: string[],
-        excludedFactoryIds: string[] = []
-    ): Promise<Array<{ factory: Factory & { owner: any; products: any[] }; score: number }>> {
-        try {
-            // Find eligible factories that can produce all variants
-            const factories = await this.prisma.factory.findMany({
-                where: {
-                    factoryOwnerId: { notIn: excludedFactoryIds },
-                    factoryStatus: "APPROVED",
-                    products: {
-                        some: {
-                            systemConfigVariantId: {
-                                in: variantIds
-                            }
-                        }
-                    }
-                },
-                include: {
-                    owner: true,
-                    products: {
-                        where: {
-                            systemConfigVariantId: {
-                                in: variantIds
-                            }
-                        }
-                    }
-                }
-            })
+    // /**
+    //  * Find and rank all eligible factories for a set of variants
+    //  * @param variantIds Array of variant IDs that need to be produced
+    //  * @param excludedFactoryIds Array of factory IDs to exclude (e.g., those that have rejected the order)
+    //  * @returns Array of factories with their scores, sorted by score (highest first)
+    //  */
+    // async findAndRankFactoriesForVariants(
+    //     variantIds: string[],
+    //     excludedFactoryIds: string[] = []
+    // ): Promise<Array<{ factory: Factory & { owner: any; products: any[] }; score: number }>> {
+    //     try {
+    //         // Find eligible factories that can produce all variants
+    //         const factories = await this.prisma.factory.findMany({
+    //             where: {
+    //                 factoryOwnerId: { notIn: excludedFactoryIds },
+    //                 factoryStatus: "APPROVED",
+    //                 products: {
+    //                     some: {
+    //                         systemConfigVariantId: {
+    //                             in: variantIds
+    //                         }
+    //                     }
+    //                 }
+    //             },
+    //             include: {
+    //                 owner: true,
+    //                 products: {
+    //                     where: {
+    //                         systemConfigVariantId: {
+    //                             in: variantIds
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         })
 
-            if (factories.length === 0) {
-                return []
-            }
+    //         if (factories.length === 0) {
+    //             return []
+    //         }
 
-            // Score each factory
-            const factoryScores = await Promise.all(
-                factories.map(async (factory) => {
-                    const score = await this.calculateFactoryScore(factory, variantIds)
-                    return { factory, score }
-                })
-            )
+    //         // Score each factory
+    //         const factoryScores = await Promise.all(
+    //             factories.map(async (factory) => {
+    //                 const score = await this.calculateFactoryScore(factory, variantIds)
+    //                 return { factory, score }
+    //             })
+    //         )
 
-            // Sort by score (highest first) and filter out factories with zero score
-            return factoryScores.filter((f) => f.score > 0).sort((a, b) => b.score - a.score)
-        } catch (error) {
-            this.logger.error(`Error finding and ranking factories: ${error.message}`)
-            return []
-        }
-    }
+    //         // Sort by score (highest first) and filter out factories with zero score
+    //         return factoryScores.filter((f) => f.score > 0).sort((a, b) => b.score - a.score)
+    //     } catch (error) {
+    //         this.logger.error(`Error finding and ranking factories: ${error.message}`)
+    //         return []
+    //     }
+    // }
 
-    /**
-     * Reassign a rejected factory order to a new factory
-     * @param factoryOrderId ID of the rejected factory order
-     * @returns The newly created factory order or null if reassignment failed
-     */
-    async reassignRejectedFactoryOrder(factoryOrderId: string): Promise<any> {
-        try {
-            // Find the rejected factory order
-            const rejectedOrder = await this.prisma.factoryOrder.findUnique({
-                where: { id: factoryOrderId },
-                include: {
-                    rejectedHistory: true,
-                    orderDetails: {
-                        include: {
-                            design: {
-                                include: {
-                                    systemConfigVariant: true
-                                }
-                            }
-                        }
-                    }
-                }
-            })
+    // /**
+    //  * Reassign a rejected factory order to a new factory
+    //  * @param factoryOrderId ID of the rejected factory order
+    //  * @returns The newly created factory order or null if reassignment failed
+    //  */
+    // async reassignRejectedFactoryOrder(factoryOrderId: string): Promise<any> {
+    //     try {
+    //         // Find the rejected factory order
+    //         const rejectedOrder = await this.prisma.factoryOrder.findUnique({
+    //             where: { id: factoryOrderId },
+    //             include: {
+    //                 rejectedHistory: true,
+    //                 orderDetails: {
+    //                     include: {
+    //                         design: {
+    //                             include: {
+    //                                 systemConfigVariant: true
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         })
 
-            if (!rejectedOrder) {
-                this.logger.warn(`Factory order ${factoryOrderId} not found`)
-                return null
-            }
+    //         if (!rejectedOrder) {
+    //             this.logger.warn(`Factory order ${factoryOrderId} not found`)
+    //             return null
+    //         }
 
-            // Get all factories that have rejected this order
-            const rejectedFactoryIds = rejectedOrder.rejectedHistory.map(
-                (history) => history.factoryId
-            )
+    //         // Get all factories that have rejected this order
+    //         const rejectedFactoryIds = rejectedOrder.rejectedHistory.map(
+    //             (history) => history.factoryId
+    //         )
 
-            // Get variant IDs from the order details
-            const variantIds = rejectedOrder.orderDetails.map(
-                (detail) => detail.design.systemConfigVariantId
-            )
-            const uniqueVariantIds = [...new Set(variantIds)]
+    //         // Get variant IDs from the order details
+    //         const variantIds = rejectedOrder.orderDetails.map(
+    //             (detail) => detail.design.systemConfigVariantId
+    //         )
+    //         const uniqueVariantIds = [...new Set(variantIds)]
 
-            // Find and rank all eligible factories
-            const rankedFactories = await this.findAndRankFactoriesForVariants(
-                uniqueVariantIds,
-                rejectedFactoryIds
-            )
+    //         // Find and rank all eligible factories
+    //         const rankedFactories = await this.findAndRankFactoriesForVariants(
+    //             uniqueVariantIds,
+    //             rejectedFactoryIds
+    //         )
 
-            if (rankedFactories.length === 0) {
-                this.logger.warn(`No suitable factories found for order ${factoryOrderId}`)
-                return null
-            }
+    //         if (rankedFactories.length === 0) {
+    //             this.logger.warn(`No suitable factories found for order ${factoryOrderId}`)
+    //             return null
+    //         }
 
-            // Select the highest ranked factory
-            const selectedFactory = rankedFactories[0].factory
+    //         // Select the highest ranked factory
+    //         const selectedFactory = rankedFactories[0].factory
 
-            // Calculate total items and production costs
-            const totalItems = rejectedOrder.orderDetails.reduce(
-                (sum, detail) => sum + detail.quantity,
-                0
-            )
-            let totalProductionCost = 0
+    //         // Calculate total items and production costs
+    //         const totalItems = rejectedOrder.orderDetails.reduce(
+    //             (sum, detail) => sum + detail.quantity,
+    //             0
+    //         )
+    //         let totalProductionCost = 0
 
-            // Calculate production costs for each order detail
-            const orderDetailsWithCost = await Promise.all(
-                rejectedOrder.orderDetails.map(async (detail) => {
-                    const factoryProduct = selectedFactory.products.find(
-                        (p) => p.systemConfigVariantId === detail.design.systemConfigVariantId
-                    )
+    //         // Calculate production costs for each order detail
+    //         const orderDetailsWithCost = await Promise.all(
+    //             rejectedOrder.orderDetails.map(async (detail) => {
+    //                 const factoryProduct = selectedFactory.products.find(
+    //                     (p) => p.systemConfigVariantId === detail.design.systemConfigVariantId
+    //                 )
 
-                    if (!factoryProduct) {
-                        this.logger.warn(
-                            `Factory product not found for variant ${detail.design.systemConfigVariantId} in factory ${selectedFactory.name}`
-                        )
-                        return {
-                            ...detail,
-                            productionCost: 0
-                        }
-                    }
+    //                 if (!factoryProduct) {
+    //                     this.logger.warn(
+    //                         `Factory product not found for variant ${detail.design.systemConfigVariantId} in factory ${selectedFactory.name}`
+    //                     )
+    //                     return {
+    //                         ...detail,
+    //                         productionCost: 0
+    //                     }
+    //                 }
 
-                    // Calculate production cost (base rate x quantity)
-                    const baseCostPerUnit = factoryProduct.estimatedProductionTime * 10000
-                    const detailProductionCost = baseCostPerUnit * detail.quantity
-                    totalProductionCost += detailProductionCost
+    //                 // Calculate production cost (base rate x quantity)
+    //                 const baseCostPerUnit = factoryProduct.estimatedProductionTime * 10000
+    //                 const detailProductionCost = baseCostPerUnit * detail.quantity
+    //                 totalProductionCost += detailProductionCost
 
-                    return {
-                        ...detail,
-                        productionCost: detailProductionCost
-                    }
-                })
-            )
+    //                 return {
+    //                     ...detail,
+    //                     productionCost: detailProductionCost
+    //                 }
+    //             })
+    //         )
 
-            // Set acceptance deadline to 24 hours from now
-            const acceptanceDeadline = new Date()
-            acceptanceDeadline.setHours(acceptanceDeadline.getHours() + 24)
+    //         // Set acceptance deadline to 24 hours from now
+    //         const acceptanceDeadline = new Date()
+    //         acceptanceDeadline.setHours(acceptanceDeadline.getHours() + 24)
 
-            // Create new factory order
-            const newFactoryOrder = await this.prisma.factoryOrder.create({
-                data: {
-                    factoryId: selectedFactory.owner.id,
-                    customerOrderId: rejectedOrder.customerOrderId,
-                    status: "PENDING_ACCEPTANCE",
-                    assignedAt: new Date(),
-                    acceptanceDeadline,
-                    totalItems,
-                    totalProductionCost,
-                    orderDetails: {
-                        create: orderDetailsWithCost.map((detail) => ({
-                            designId: detail.designId,
-                            orderDetailId: detail.orderDetailId,
-                            quantity: detail.quantity,
-                            price: detail.price,
-                            productionCost: detail.productionCost,
-                            qualityStatus: QualityCheckStatus.PENDING,
-                            status: OrderDetailStatus.PENDING
-                        }))
-                    }
-                }
-            })
+    //         // Create new factory order
+    //         const newFactoryOrder = await this.prisma.factoryOrder.create({
+    //             data: {
+    //                 factoryId: selectedFactory.owner.id,
+    //                 customerOrderId: rejectedOrder.customerOrderId,
+    //                 status: "PENDING_ACCEPTANCE",
+    //                 assignedAt: new Date(),
+    //                 acceptanceDeadline,
+    //                 totalItems,
+    //                 totalProductionCost,
+    //                 orderDetails: {
+    //                     create: orderDetailsWithCost.map((detail) => ({
+    //                         designId: detail.designId,
+    //                         orderDetailId: detail.orderDetailId,
+    //                         quantity: detail.quantity,
+    //                         price: detail.price,
+    //                         productionCost: detail.productionCost,
+    //                         qualityStatus: QualityCheckStatus.PENDING,
+    //                         status: OrderDetailStatus.PENDING
+    //                     }))
+    //                 }
+    //             }
+    //         })
 
-            // Update the rejected history with reassignment information
-            await this.prisma.rejectedFactoryOrder.updateMany({
-                where: {
-                    factoryOrderId: factoryOrderId,
-                    reassignedTo: null
-                },
-                data: {
-                    reassignedTo: selectedFactory.owner.id,
-                    reassignedAt: new Date()
-                }
-            })
+    //         // Update the rejected history with reassignment information
+    //         await this.prisma.rejectedFactoryOrder.updateMany({
+    //             where: {
+    //                 factoryOrderId: factoryOrderId,
+    //                 reassignedTo: null
+    //             },
+    //             data: {
+    //                 reassignedTo: selectedFactory.owner.id,
+    //                 reassignedAt: new Date()
+    //             }
+    //         })
 
-            // Create notification for the new factory
-            await this.prisma.notification.create({
-                data: {
-                    userId: selectedFactory.owner.id,
-                    title: "New Order Assignment",
-                    content: `You have been assigned a new order #${rejectedOrder.customerOrderId} with ${totalItems} items.`,
-                    url: `/factory/orders/${newFactoryOrder.id}`
-                }
-            })
+    //         // Create notification for the new factory
+    //         await this.prisma.notification.create({
+    //             data: {
+    //                 userId: selectedFactory.owner.id,
+    //                 title: "New Order Assignment",
+    //                 content: `You have been assigned a new order #${rejectedOrder.customerOrderId} with ${totalItems} items.`,
+    //                 url: `/factory/orders/${newFactoryOrder.id}`
+    //             }
+    //         })
 
-            this.logger.log(
-                `Successfully reassigned factory order ${factoryOrderId} to factory ${selectedFactory.owner.id} (rank: ${rankedFactories[0].score.toFixed(2)})`
-            )
+    //         this.logger.log(
+    //             `Successfully reassigned factory order ${factoryOrderId} to factory ${selectedFactory.owner.id} (rank: ${rankedFactories[0].score.toFixed(2)})`
+    //         )
 
-            return newFactoryOrder
-        } catch (error) {
-            this.logger.error(`Failed to reassign factory order ${factoryOrderId}:`, error)
-            return null
-        }
-    }
+    //         return newFactoryOrder
+    //     } catch (error) {
+    //         this.logger.error(`Failed to reassign factory order ${factoryOrderId}:`, error)
+    //         return null
+    //     }
+    // }
 
-    /**
-     * Process a single order for factory assignment
-     * @param order The customer order to process
-     */
-    public async processOrderForFactoryAssignment(order: CustomerOrderEntity): Promise<void> {
-        try {
-            // Extract all variant IDs from this order
-            const variantIds = order.orderDetails.map(
-                (detail) => detail.design.systemConfigVariantId
-            )
-            const uniqueVariantIds = [...new Set(variantIds)]
+    // /**
+    //  * Process a single order for factory assignment
+    //  * @param order The customer order to process
+    //  */
+    // public async processOrderForFactoryAssignment(order: CustomerOrderEntity): Promise<void> {
+    //     try {
+    //         // Extract all variant IDs from this order
+    //         const variantIds = order.orderDetails.map(
+    //             (detail) => detail.design.systemConfigVariantId
+    //         )
+    //         const uniqueVariantIds = [...new Set(variantIds)]
 
-            // Calculate total items
-            const totalItems = order.orderDetails.reduce((sum, detail) => sum + detail.quantity, 0)
+    //         // Calculate total items
+    //         const totalItems = order.orderDetails.reduce((sum, detail) => sum + detail.quantity, 0)
 
-            this.logger.verbose(
-                `Processing order ${order.id} with ${totalItems} items across ${uniqueVariantIds.length} variants`
-            )
+    //         this.logger.verbose(
+    //             `Processing order ${order.id} with ${totalItems} items across ${uniqueVariantIds.length} variants`
+    //         )
 
-            // Find the best factory for this order
-            const selectedFactory = await this.findBestFactoryForVariants(uniqueVariantIds)
+    //         // Find the best factory for this order
+    //         const selectedFactory = await this.findBestFactoryForVariants(uniqueVariantIds)
 
-            if (!selectedFactory) {
-                this.logger.warn(
-                    `No suitable factory found for order ${order.id}. Manual assignment required.`
-                )
-                return
-            }
+    //         if (!selectedFactory) {
+    //             this.logger.warn(
+    //                 `No suitable factory found for order ${order.id}. Manual assignment required.`
+    //             )
+    //             return
+    //         }
 
-            // Calculate production costs for each order detail
-            let totalProductionCost = 0
-            const orderDetailsWithCost = await Promise.all(
-                order.orderDetails.map(async (detail) => {
-                    // Find the factory product for this variant
-                    const factoryProduct = selectedFactory.products.find(
-                        (p) => p.systemConfigVariantId == detail.design.systemConfigVariantId
-                    )
+    //         // Calculate production costs for each order detail
+    //         let totalProductionCost = 0
+    //         const orderDetailsWithCost = await Promise.all(
+    //             order.orderDetails.map(async (detail) => {
+    //                 // Find the factory product for this variant
+    //                 const factoryProduct = selectedFactory.products.find(
+    //                     (p) => p.systemConfigVariantId == detail.design.systemConfigVariantId
+    //                 )
 
-                    if (!factoryProduct) {
-                        this.logger.warn(
-                            `Factory product not found for variant ${detail.design.systemConfigVariantId} in factory ${selectedFactory.name}`
-                        )
-                        return {
-                            ...detail,
-                            productionCost: 0
-                        }
-                    }
+    //                 if (!factoryProduct) {
+    //                     this.logger.warn(
+    //                         `Factory product not found for variant ${detail.design.systemConfigVariantId} in factory ${selectedFactory.name}`
+    //                     )
+    //                     return {
+    //                         ...detail,
+    //                         productionCost: 0
+    //                     }
+    //                 }
 
-                    // Calculate production cost (base rate x quantity)
-                    const baseCostPerUnit = factoryProduct.estimatedProductionTime * 10000 // Cost calculation based on time
-                    const detailProductionCost = baseCostPerUnit * detail.quantity
+    //                 // Calculate production cost (base rate x quantity)
+    //                 const baseCostPerUnit = factoryProduct.estimatedProductionTime * 10000 // Cost calculation based on time
+    //                 const detailProductionCost = baseCostPerUnit * detail.quantity
 
-                    totalProductionCost += detailProductionCost
+    //                 totalProductionCost += detailProductionCost
 
-                    return {
-                        ...detail,
-                        productionCost: detailProductionCost
-                    }
-                })
-            )
+    //                 return {
+    //                     ...detail,
+    //                     productionCost: detailProductionCost
+    //                 }
+    //             })
+    //         )
 
-            // Set acceptance deadline to 24 hours from now
-            const acceptanceDeadline = new Date()
-            acceptanceDeadline.setHours(acceptanceDeadline.getHours() + 24)
+    //         // Set acceptance deadline to 24 hours from now
+    //         const acceptanceDeadline = new Date()
+    //         acceptanceDeadline.setHours(acceptanceDeadline.getHours() + 24)
 
-            // Use transaction to ensure atomicity
-            await this.prisma.$transaction(async (tx) => {
-                // Create factory order for this customer order
-                const factoryOrder = await tx.factoryOrder.create({
-                    data: {
-                        factoryId: selectedFactory.owner.id,
-                        customerOrderId: order.id,
-                        status: FactoryOrderStatus.PENDING_ACCEPTANCE,
-                        assignedAt: new Date(),
-                        acceptanceDeadline,
-                        totalItems,
-                        totalProductionCost,
-                        orderDetails: {
-                            create: orderDetailsWithCost.map((detail) => ({
-                                designId: detail.designId,
-                                orderDetailId: detail.id,
-                                quantity: detail.quantity,
-                                price: detail.price,
-                                status: OrderStatus.PENDING,
-                                productionCost: detail.productionCost
-                            }))
-                        }
-                    }
-                })
+    //         // Use transaction to ensure atomicity
+    //         await this.prisma.$transaction(async (tx) => {
+    //             // Create factory order for this customer order
+    //             const factoryOrder = await tx.factoryOrder.create({
+    //                 data: {
+    //                     factoryId: selectedFactory.owner.id,
+    //                     customerOrderId: order.id,
+    //                     status: FactoryOrderStatus.PENDING_ACCEPTANCE,
+    //                     assignedAt: new Date(),
+    //                     acceptanceDeadline,
+    //                     totalItems,
+    //                     totalProductionCost,
+    //                     orderDetails: {
+    //                         create: orderDetailsWithCost.map((detail) => ({
+    //                             designId: detail.designId,
+    //                             orderDetailId: detail.id,
+    //                             quantity: detail.quantity,
+    //                             price: detail.price,
+    //                             status: OrderStatus.PENDING,
+    //                             productionCost: detail.productionCost
+    //                         }))
+    //                     }
+    //                 }
+    //             })
 
-                // Update customer order status
-                await tx.customerOrder.update({
-                    where: { id: order.id },
-                    data: {
-                        status: OrderStatus.ASSIGNED_TO_FACTORY,
-                        history: {
-                            create: {
-                                status: OrderStatus.ASSIGNED_TO_FACTORY,
-                                timestamp: new Date(),
-                                note: `Order assigned to factory: ${selectedFactory.name}`
-                            }
-                        }
-                    }
-                })
+    //             // Update customer order status
+    //             await tx.customerOrder.update({
+    //                 where: { id: order.id },
+    //                 data: {
+    //                     status: OrderStatus.ASSIGNED_TO_FACTORY,
+    //                     history: {
+    //                         create: {
+    //                             status: OrderStatus.ASSIGNED_TO_FACTORY,
+    //                             timestamp: new Date(),
+    //                             note: `Order assigned to factory: ${selectedFactory.name}`
+    //                         }
+    //                     }
+    //                 }
+    //             })
 
-                // Create notification for factory owner
-                await tx.notification.create({
-                    data: {
-                        userId: selectedFactory.owner.id,
-                        title: "New Order Assignment",
-                        content: `You have been assigned a new order #${order.id} with ${totalItems} items.`,
-                        url: `/factory/orders/${factoryOrder.id}`
-                    }
-                })
-            })
+    //             // Create notification for factory owner
+    //             await tx.notification.create({
+    //                 data: {
+    //                     userId: selectedFactory.owner.id,
+    //                     title: "New Order Assignment",
+    //                     content: `You have been assigned a new order #${order.id} with ${totalItems} items.`,
+    //                     url: `/factory/orders/${factoryOrder.id}`
+    //                 }
+    //             })
+    //         })
 
-            this.logger.log(
-                `Successfully assigned order ${order.id} to factory ${selectedFactory.name}`
-            )
-        } catch (error) {
-            this.logger.error(`Error processing order ${order.id}: ${error.message}`)
-        }
-    }
+    //         this.logger.log(
+    //             `Successfully assigned order ${order.id} to factory ${selectedFactory.name}`
+    //         )
+    //     } catch (error) {
+    //         this.logger.error(`Error processing order ${order.id}: ${error.message}`)
+    //     }
+    // }
 }

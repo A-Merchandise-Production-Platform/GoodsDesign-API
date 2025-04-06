@@ -12,18 +12,4 @@ import { AdminDashboardResponse, FactoryDashboardResponse, ManagerDashboardRespo
 export class DashboardResolver {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @Query(() => AdminDashboardResponse)
-  async adminDashboard() {
-    return this.dashboardService.getAdminDashboard();
-  }
-
-  @Query(() => ManagerDashboardResponse)
-  async managerDashboard() {
-    return this.dashboardService.getManagerDashboard();
-  }
-
-  @Query(() => FactoryDashboardResponse)
-  async factoryDashboard(@CurrentUser() user: User) {
-    return this.dashboardService.getFactoryDashboard(user.id);
-  }
 } 
