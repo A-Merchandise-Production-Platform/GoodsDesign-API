@@ -6,6 +6,8 @@ import { FactoryService } from "./factory.service"
 import { UpdateFactoryInfoDto } from "./dto/update-factory-info.dto"
 import { CurrentUser } from "src/auth/decorators/current-user.decorator"
 import { UserEntity } from "src/users/entities/users.entity"
+import { FactoryStatus } from "@prisma/client"
+import { UpdateFactoryStatusDto } from "src/factory/dto/update-factory-status"
 
 @Resolver(() => FactoryEntity)
 @UseGuards(GraphqlJwtAuthGuard)
@@ -42,5 +44,13 @@ export class FactoryResolver {
     @Query(() => FactoryEntity)
     async getFactoryById(@Args("factoryId") factoryId: string) {
         return this.factoryService.getFactoryById(factoryId)
+    }
+
+    @Mutation(() => FactoryEntity)
+    async changeFactoryStatus(
+        @CurrentUser() user: UserEntity,
+        @Args("data") data: UpdateFactoryStatusDto
+    ) {
+        return this.factoryService.changeFactoryStatus(data, user)
     }
 }
