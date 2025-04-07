@@ -29,6 +29,12 @@ export class OrdersResolver {
     return this.ordersService.findAll();
   }
 
+  @Query(() => [OrderEntity], { name: 'myOrders' })
+  @UseGuards(GraphqlJwtAuthGuard)
+  findMyOrders(@CurrentUser() user: UserEntity) {
+    return this.ordersService.findByCustomerId(user.id);
+  }
+
   @Query(() => OrderEntity, { name: 'order' })
   findOne(@Args('id', { type: () => String }) id: string) {
     return this.ordersService.findOne(id);

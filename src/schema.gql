@@ -222,7 +222,7 @@ type FactoryEntity {
   minimumOrderQuantity: Int
   name: String!
   operationalHours: String
-  owner: UserEntity!
+  owner: UserEntity
   printingMethods: [String!]!
   products: [FactoryProductEntity!]
   qualityCertifications: String
@@ -424,20 +424,15 @@ type OrderProgressReportEntity {
 
 type PaymentEntity {
   amount: Int!
-  createdAt: String
   customer: UserEntity
   customerId: String!
   id: ID!
-  note: String
   order: OrderEntity
   orderId: String!
-  paidAt: String
-  paidBy: String
   paymentLog: String!
   status: String!
   transactions: [PaymentTransactionEntity!]
   type: String!
-  updatedAt: String
 }
 
 """Method of payment"""
@@ -529,6 +524,7 @@ type Query {
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
   myNotifications: [NotificationEntity!]!
+  myOrders: [OrderEntity!]!
   notification(id: String!): NotificationEntity!
   notifications: [NotificationEntity!]!
   notificationsByUserId(isRead: Boolean): [NotificationEntity!]!

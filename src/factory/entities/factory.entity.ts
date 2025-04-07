@@ -51,55 +51,55 @@ export class FactoryEntity {
     specializations: string[]
 
     @Field(() => String, { nullable: true })
-    contactPersonName: string
+    contactPersonName?: string
 
     @Field(() => String, { nullable: true })
-    contactPersonRole: string
+    contactPersonRole?: string
 
     @Field(() => String, { nullable: true })
-    contactPersonPhone: string
+    contactPersonPhone?: string
 
     @Field(() => String, { nullable: true })
-    operationalHours: string
+    operationalHours?: string
 
     @Field(() => Int, { nullable: true })
-    leadTime: number
+    leadTime?: number
 
     @Field(() => Int, { nullable: true })
-    minimumOrderQuantity: number
+    minimumOrderQuantity?: number
 
     @Field(() => FactoryStatus, { nullable: true })
-    factoryStatus: FactoryStatus
+    factoryStatus?: FactoryStatus
 
     @Field(() => Boolean, { nullable: true })
-    isSubmitted: boolean
+    isSubmitted?: boolean
 
     @Field(() => String, { nullable: true })
-    statusNote: string
+    statusNote?: string
 
     @Field(() => Boolean, { nullable: true })
-    contractAccepted: boolean
+    contractAccepted?: boolean
 
     @Field(() => Date, { nullable: true })
-    contractAcceptedAt: Date
+    contractAcceptedAt?: Date
 
     @Field(() => String, { nullable: true })
-    reviewedBy: string
+    reviewedBy?: string
 
     @Field(() => Date, { nullable: true })
-    reviewedAt: Date
+    reviewedAt?: Date
 
     @Field(() => String, { nullable: true })
-    contractUrl: string
+    contractUrl?: string
 
-    @Field(() => UserEntity)
-    owner: UserEntity
+    @Field(() => UserEntity, { nullable: true })
+    owner?: UserEntity
 
     @Field(() => [FactoryProductEntity], { nullable: true })
     products?: FactoryProductEntity[]
 
     @Field(() => UserEntity, { nullable: true })
-    staff: UserEntity
+    staff?: UserEntity
 
     // @Field(() => [FactoryOrderEntity])
     // orders: FactoryOrderEntity[]

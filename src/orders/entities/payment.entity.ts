@@ -32,17 +32,9 @@ export class PaymentEntity {
     @Field()
     paymentLog: string;
 
-    @Field(() => String, { nullable: true })
-    note?: string;
-
     @Field(() => String)
     status: PaymentStatus;
 
-    @Field(() => String, { nullable: true })
-    paidAt?: Date;
-
-    @Field(() => String, { nullable: true })
-    paidBy?: string;
 
     @Field(() => OrderEntity, { nullable: true })
     order?: OrderEntity;
@@ -52,12 +44,6 @@ export class PaymentEntity {
 
     @Field(() => [PaymentTransactionEntity], { nullable: true })
     transactions?: PaymentTransactionEntity[];
-
-    @Field(() => String, { nullable: true })
-    createdAt?: Date;
-
-    @Field(() => String, { nullable: true })
-    updatedAt?: Date;
 
     constructor(partial: Partial<PaymentEntity>) {
         Object.assign(this, partial);

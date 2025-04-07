@@ -400,7 +400,7 @@ model Order {
   updatedAt               DateTime?   @updatedAt
   totalProductionCost     Int?
 
-  currentProgress Int?
+  currentProgress Int @default(0)
   delayReason     String?
   isDelayed       Boolean   @default(false)
 

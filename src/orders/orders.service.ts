@@ -192,20 +192,256 @@ export class OrdersService {
   }
 
   findAll() {
-    return this.prisma.order.findMany();
+    return this.prisma.order.findMany({
+      include: {
+        address: true,
+        customer: {
+          select: {
+            imageUrl: true,
+            name: true,
+            email: true
+          }
+        },
+        factory: {
+          include: {
+            owner: true,
+            staff: true,
+            address: true
+          }
+        },
+        orderDetails: {
+          include: {
+            checkQualities: {
+              include: {
+                task: {
+                  include: {
+                    assignee: {
+                      select: {
+                        email: true,
+                        name: true,
+                        imageUrl: true,
+                        id: true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            design: {
+              include: {
+                systemConfigVariant: {
+                  include: {
+                    product: {
+                      select: {
+                        name: true,
+                        imageUrl: true
+                      }
+                    }
+                  }
+                },
+                designPositions: {
+                  include: {
+                    positionType: {
+                      select: {
+                        positionName: true,
+                        basePrice: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        orderProgressReports: true,
+        payments: {
+          include: {
+            transactions: true
+          }
+        },
+        rejectedHistory: {
+          include: {
+            factory: {
+              include: {
+                owner: {
+                  select: {
+                    name: true,
+                    email: true,
+                    imageUrl: true
+                  }
+                },
+                address: {
+                  select: {
+                    wardCode: true,
+                    street: true,
+                    districtID: true,
+                    provinceID: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        tasks: {
+          include: {
+            assignee: true
+          }
+        }
+      }
+    });
+  }
+
+  findByCustomerId(customerId: string) {
+    return this.prisma.order.findMany({
+      where: {
+        customerId
+      },
+      include: {
+        address: true,
+        customer: true,
+        factory: {
+          include: {
+            owner: true
+          }
+        },
+        orderDetails: {
+          include: {
+            checkQualities: {
+              include: {
+                task: {
+                  include: {
+                    assignee: {
+                      select: {
+                        email: true,
+                        name: true,
+                        imageUrl: true,
+                        id: true
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            design: {
+              include: {
+                systemConfigVariant: {
+                  include: {
+                    product: {
+                      select: {
+                        name: true,
+                        imageUrl: true
+                      }
+                    }
+                  }
+                },
+                designPositions: {
+                  include: {
+                    positionType: {
+                      select: {
+                        positionName: true,
+                        basePrice: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        orderProgressReports: true,
+        payments: {
+          include: {
+            transactions: true
+          }
+        },
+        rejectedHistory: {
+          include: {
+            factory: {
+              include: {
+                owner: {
+                  select: {
+                    name: true,
+                    email: true,
+                    imageUrl: true
+                  }
+                },
+                address: {
+                  select: {
+                    wardCode: true,
+                    street: true,
+                    districtID: true,
+                    provinceID: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        tasks: {
+          include: {
+            assignee: true
+          }
+        }
+      }
+    });
   }
 
   async findOne(id: string) {
     const result = await this.prisma.order.findUnique({
       where: { id },
       include: {
-        orderDetails: true,
-        payments: true,
-        orderProgressReports: true,
         address: true,
         customer: true,
-        rejectedHistory: true,
-        tasks: true
+        factory: {
+          include: {
+            owner: true,
+            staff: true,
+            address: true
+          }
+        },
+        orderDetails: {
+          include: {
+            checkQualities: {
+              include: {
+                task: {
+                  include: {
+                    assignee: true
+                  }
+                }
+              }
+            },
+            design: {
+              include: {
+                systemConfigVariant: {
+                  include: {
+                    product: true
+                  }
+                },
+                designPositions: {
+                  include: {
+                    positionType: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        orderProgressReports: true,
+        payments: {
+          include: {
+            transactions: true
+          }
+        },
+        rejectedHistory: {
+          include: {
+            factory: {
+              include: {
+                owner: true,
+                address: true
+              }
+            }
+          }
+        },
       }
     });
 
