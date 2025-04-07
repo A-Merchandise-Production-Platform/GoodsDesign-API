@@ -19,7 +19,7 @@ registerEnumType(TransactionStatus, {
 
 
 @ObjectType()
-export class PaymentTransaction {
+export class PaymentTransactionEntity {
   @Field(() => ID)
   id: string;
 

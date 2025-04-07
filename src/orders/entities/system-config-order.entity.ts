@@ -1,5 +1,9 @@
-import { Field, ID, ObjectType, Int } from '@nestjs/graphql';
+import { Field, ID, ObjectType, Int, registerEnumType } from '@nestjs/graphql';
 import { SystemConfigOrderType } from '@prisma/client';
+
+registerEnumType(SystemConfigOrderType, {
+    name: "SystemConfigOrderType"
+})
 
 @ObjectType()
 export class SystemConfigOrderEntity {

@@ -1,8 +1,16 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { TaskStatus, TaskType } from '@prisma/client';
 import { OrderEntity } from './order.entity';
 import { CheckQualityEntity } from './check-quality.entity';
 import { UserEntity } from 'src/users';
+
+registerEnumType(TaskType, {
+    name: "TaskType"
+})
+
+registerEnumType(TaskStatus, {
+    name: "TaskStatus"
+})
 
 @ObjectType()
 export class TaskEntity {

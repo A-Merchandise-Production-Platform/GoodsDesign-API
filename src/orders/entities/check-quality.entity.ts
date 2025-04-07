@@ -1,7 +1,11 @@
-import { Field, ID, ObjectType, Int } from '@nestjs/graphql';
+import { Field, ID, ObjectType, Int, registerEnumType } from '@nestjs/graphql';
 import { QualityCheckStatus } from '@prisma/client';
 import { TaskEntity } from './task.entity';
 import { OrderDetailEntity } from './order-detail.entity';
+
+registerEnumType(QualityCheckStatus, {
+    name: "QualityCheckStatus"
+})
 
 @ObjectType()
 export class CheckQualityEntity {

@@ -1,31 +1,31 @@
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { PaymentTransactionService } from './payment-transaction.service';
-import { PaymentTransaction } from './types/payment-transaction.type';
-import { CreatePaymentTransactionInput } from './types/create-payment-transaction.input';
-import { UpdatePaymentTransactionInput } from './types/update-payment-transaction.input';
+import { CreatePaymentTransactionInput } from './entities/create-payment-transaction.input';
+import { UpdatePaymentTransactionInput } from './entities/update-payment-transaction.input';
+import { PaymentTransactionEntity } from './entities/payment-transaction.entity';
 
-@Resolver(() => PaymentTransaction)
+@Resolver(() => PaymentTransactionEntity)
 export class PaymentTransactionResolver {
   constructor(private readonly paymentTransactionService: PaymentTransactionService) {}
 
-  @Mutation(() => PaymentTransaction)
+  @Mutation(() => PaymentTransactionEntity)
   createPaymentTransaction(
     @Args('input') createPaymentTransactionInput: CreatePaymentTransactionInput,
   ) {
     return this.paymentTransactionService.create(createPaymentTransactionInput);
   }
 
-  @Query(() => [PaymentTransaction])
+  @Query(() => [PaymentTransactionEntity])
   paymentTransactions() {
     return this.paymentTransactionService.findAll();
   }
 
-  @Query(() => PaymentTransaction, { nullable: true })
+  @Query(() => PaymentTransactionEntity, { nullable: true })
   paymentTransaction(@Args('id', { type: () => ID }) id: string) {
     return this.paymentTransactionService.findOne(id);
   }
 
-  @Mutation(() => PaymentTransaction)
+  @Mutation(() => PaymentTransactionEntity)
   updatePaymentTransaction(
     @Args('id', { type: () => ID }) id: string,
     @Args('input') updatePaymentTransactionInput: UpdatePaymentTransactionInput,
@@ -33,17 +33,17 @@ export class PaymentTransactionResolver {
     return this.paymentTransactionService.update(id, updatePaymentTransactionInput);
   }
 
-  @Mutation(() => PaymentTransaction)
+  @Mutation(() => PaymentTransactionEntity)
   removePaymentTransaction(@Args('id', { type: () => ID }) id: string) {
     return this.paymentTransactionService.remove(id);
   }
 
-  @Query(() => [PaymentTransaction])
+  @Query(() => [PaymentTransactionEntity])
   paymentTransactionsByPayment(@Args('paymentId', { type: () => ID }) paymentId: string) {
     return this.paymentTransactionService.findByPaymentId(paymentId);
   }
 
-  @Query(() => [PaymentTransaction])
+  @Query(() => [PaymentTransactionEntity])
   paymentTransactionsByCustomer(@Args('customerId', { type: () => ID }) customerId: string) {
     return this.paymentTransactionService.findByCustomerId(customerId);
   }

@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { PaymentStatus, Prisma, TransactionStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePaymentTransactionDto } from './dto/create-payment-transaction.dto';
 import { UpdatePaymentTransactionDto } from './dto/update-payment-transaction.dto';
-import { OrderStatus, PaymentStatus, Prisma, TransactionStatus } from '@prisma/client';
 
 @Injectable()
 export class PaymentTransactionService {

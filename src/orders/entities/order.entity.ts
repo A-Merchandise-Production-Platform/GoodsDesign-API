@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, Int } from "@nestjs/graphql";
+import { ObjectType, Field, ID, Int, registerEnumType } from "@nestjs/graphql";
 import { OrderStatus } from "@prisma/client";
 import { AddressEntity } from "src/addresses/entities/address.entity";
 import { FactoryEntity } from "src/factory/entities/factory.entity";
@@ -9,6 +9,9 @@ import { RejectedOrderEntity } from "./rejected-order.entity";
 import { TaskEntity } from "./task.entity";
 import { PaymentEntity } from "./payment.entity";
 
+registerEnumType(OrderStatus, {
+    name: "OrderStatus"
+})
 
 @ObjectType()
 export class OrderEntity {

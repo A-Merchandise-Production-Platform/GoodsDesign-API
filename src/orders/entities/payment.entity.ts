@@ -1,7 +1,16 @@
-import { Field, ID, ObjectType, Int } from '@nestjs/graphql';
-import { PaymentStatus } from '@prisma/client';
+import { Field, ID, ObjectType, Int, registerEnumType } from '@nestjs/graphql';
+import { PaymentStatus, PaymentType } from '@prisma/client';
 import { OrderEntity } from './order.entity';
-import { PaymentTransactionEntity } from './payment-transaction.entity';
+import { PaymentTransactionEntity } from 'src/payment-transaction/entities/payment-transaction.entity';
+import { UserEntity } from 'src/users';
+
+registerEnumType(PaymentStatus, {
+    name: "PaymentStatus"
+})
+
+registerEnumType(PaymentType, {
+    name: "PaymentType"
+})
 
 @ObjectType()
 export class PaymentEntity {
@@ -11,20 +20,23 @@ export class PaymentEntity {
     @Field()
     orderId: string;
 
+    @Field()
+    customerId: string;
+
     @Field(() => Int)
     amount: number;
 
     @Field(() => String)
-    status: PaymentStatus;
+    type: PaymentType;
+
+    @Field()
+    paymentLog: string;
 
     @Field(() => String, { nullable: true })
     note?: string;
 
-    @Field()
-    createdAt: Date;
-
-    @Field()
-    updatedAt: Date;
+    @Field(() => String)
+    status: PaymentStatus;
 
     @Field(() => String, { nullable: true })
     paidAt?: Date;
@@ -35,8 +47,17 @@ export class PaymentEntity {
     @Field(() => OrderEntity, { nullable: true })
     order?: OrderEntity;
 
+    @Field(() => UserEntity, { nullable: true })
+    customer?: UserEntity;
+
     @Field(() => [PaymentTransactionEntity], { nullable: true })
     transactions?: PaymentTransactionEntity[];
+
+    @Field(() => String, { nullable: true })
+    createdAt?: Date;
+
+    @Field(() => String, { nullable: true })
+    updatedAt?: Date;
 
     constructor(partial: Partial<PaymentEntity>) {
         Object.assign(this, partial);

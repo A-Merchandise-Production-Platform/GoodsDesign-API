@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common"
+import { Injectable, NotFoundException } from "@nestjs/common"
 import { registerEnumType } from "@nestjs/graphql"
 import PayOS from "@payos/node"
 import {
@@ -37,7 +37,7 @@ export interface VNPayQueryParams {
 }
 
 @Injectable()
-export class PaymentGatewayService implements OnModuleInit {
+export class PaymentGatewayService {
     private readonly payOS: PayOS
 
     constructor(
@@ -50,22 +50,6 @@ export class PaymentGatewayService implements OnModuleInit {
             envConfig().payment.payos.checksumKey
         )
     }
-
-    async onModuleInit() {
-        console.log("PaymentGatewayService initialized")
-
-        //find 1 paymentId
-        // const payment = await this.prisma.payment.findFirst({
-        // });
-
-        // if (payment) {
-        //   const vnpUrl = await this.createVNPayPayment({
-        //     paymentId: payment.id,
-        //     userId: payment.customerId,
-        //   });
-        // }
-    }
-
     async createPayOSPayment(paymentData: { paymentId: string; userId: string }) {
         const payment = await this.prisma.payment.findFirst({
             where: { id: paymentData.paymentId }
@@ -93,7 +77,7 @@ export class PaymentGatewayService implements OnModuleInit {
         })
 
         const createPaymentLinkRequest: CheckoutRequestType = {
-            amount: payment.amount,
+            amount: 2000,
             orderCode: parseInt(orderCode),
             description: `Payment for ${orderCode}`,
             cancelUrl: envConfig().payment.payos.cancelUrl,

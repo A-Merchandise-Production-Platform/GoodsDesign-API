@@ -276,7 +276,7 @@ type Mutation {
   createNotificationForManyUsers(content: String!, title: String!, url: String, userIds: [String!]!): [NotificationEntity!]!
   createOrder(createOrderInput: CreateOrderInput!): OrderEntity!
   createPayment(gateway: String!, paymentId: String!): String!
-  createPaymentTransaction(input: CreatePaymentTransactionInput!): PaymentTransaction!
+  createPaymentTransaction(input: CreatePaymentTransactionInput!): PaymentTransactionEntity!
   createProduct(input: CreateProductDto!): ProductEntity!
   createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
@@ -296,8 +296,7 @@ type Mutation {
   markNotificationAsRead(id: String!): NotificationEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
-  removeOrder(id: Int!): OrderEntity!
-  removePaymentTransaction(id: ID!): PaymentTransaction!
+  removePaymentTransaction(id: ID!): PaymentTransactionEntity!
   removeProductDesign(id: ID!): ProductDesignEntity!
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
   removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
@@ -313,8 +312,7 @@ type Mutation {
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateFactoryProduct(data: UpdateFactoryProductInput!, factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
-  updateOrder(updateOrderInput: UpdateOrderInput!): OrderEntity!
-  updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransaction!
+  updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransactionEntity!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
@@ -405,16 +403,20 @@ type OrderProgressReportEntity {
 
 type PaymentEntity {
   amount: Int!
-  createdAt: DateTime!
+  createdAt: String
+  customer: UserEntity
+  customerId: String!
   id: ID!
   note: String
   order: OrderEntity
   orderId: String!
   paidAt: String
   paidBy: String
+  paymentLog: String!
   status: String!
   transactions: [PaymentTransactionEntity!]
-  updatedAt: DateTime!
+  type: String!
+  updatedAt: String
 }
 
 """Method of payment"""
@@ -423,7 +425,7 @@ enum PaymentMethod {
   VNPAY
 }
 
-type PaymentTransaction {
+type PaymentTransactionEntity {
   amount: Float!
   createdAt: DateTime!
   customer: UserEntity
@@ -434,19 +436,6 @@ type PaymentTransaction {
   status: TransactionStatus!
   transactionLog: String!
   type: TransactionType!
-}
-
-type PaymentTransactionEntity {
-  amount: Int!
-  createdAt: DateTime!
-  id: ID!
-  note: String
-  paidAt: String
-  paidBy: String
-  payment: PaymentEntity
-  paymentId: String!
-  status: String!
-  updatedAt: DateTime!
 }
 
 type ProductDesignEntity {
@@ -522,12 +511,12 @@ type Query {
   notification(id: String!): NotificationEntity!
   notifications: [NotificationEntity!]!
   notificationsByUserId(isRead: Boolean): [NotificationEntity!]!
-  order(id: Int!): OrderEntity!
+  order(id: String!): OrderEntity!
   orders: [OrderEntity!]!
-  paymentTransaction(id: ID!): PaymentTransaction
-  paymentTransactions: [PaymentTransaction!]!
-  paymentTransactionsByCustomer(customerId: ID!): [PaymentTransaction!]!
-  paymentTransactionsByPayment(paymentId: ID!): [PaymentTransaction!]!
+  paymentTransaction(id: ID!): PaymentTransactionEntity
+  paymentTransactions: [PaymentTransactionEntity!]!
+  paymentTransactionsByCustomer(customerId: ID!): [PaymentTransactionEntity!]!
+  paymentTransactionsByPayment(paymentId: ID!): [PaymentTransactionEntity!]!
   product(id: String!): ProductEntity!
   productDesign(id: ID!): ProductDesignEntity!
   productDesigns: [ProductDesignEntity!]!
@@ -715,11 +704,6 @@ input UpdateFactoryProductInput {
   factoryId: String
   productionCapacity: Int
   systemConfigVariantId: String
-}
-
-input UpdateOrderInput {
-  id: Int!
-  orderDetails: [CreateOrderDetailInput!]
 }
 
 input UpdatePaymentTransactionInput {
