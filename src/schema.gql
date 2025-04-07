@@ -265,6 +265,7 @@ input LoginDto {
 }
 
 type Mutation {
+  acceptOrderForFactory(orderId: String!): OrderEntity!
   assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   clearCart: Boolean!
@@ -296,6 +297,7 @@ type Mutation {
   markNotificationAsRead(id: String!): NotificationEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
+  rejectOrder(orderId: String!, reason: String!): OrderEntity!
   removePaymentTransaction(id: ID!): PaymentTransactionEntity!
   removeProductDesign(id: ID!): ProductDesignEntity!
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!

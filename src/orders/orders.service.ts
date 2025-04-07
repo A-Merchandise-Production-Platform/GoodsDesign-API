@@ -203,4 +203,139 @@ export class OrdersService {
       }
     });
   }
+
+  async acceptOrderForFactory(orderId: string, factoryId: string) {
+    const now = new Date();
+    
+    return this.prisma.$transaction(async (tx) => {
+      // Get the order with its details
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          orderDetails: true
+        }
+      });
+
+      if (!order) {
+        throw new BadRequestException("Order not found");
+      }
+
+      if (order.factoryId !== factoryId) {
+        throw new BadRequestException("This order is not assigned to your factory");
+      }
+
+      if (order.status !== OrderStatus.PENDING_ACCEPTANCE) {
+        throw new BadRequestException("This order is not in PENDING_ACCEPTANCE status");
+      }
+
+      // Update order status and dates
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.IN_PRODUCTION,
+          acceptedAt: now,
+          orderProgressReports: {
+            create: {
+              reportDate: now,
+              note: `Order accepted by factory ${factoryId} and production started`,
+              imageUrls: []
+            }
+          }
+        },
+        include: {
+          orderDetails: true
+        }
+      });
+
+      // Update all order details status
+      await tx.orderDetail.updateMany({
+        where: {
+          orderId: orderId
+        },
+        data: {
+          status: OrderDetailStatus.IN_PRODUCTION,
+        }
+      });
+
+      return updatedOrder;
+    });
+  }
+
+  async rejectOrder(orderId: string, factoryId: string, reason: string) {
+    const now = new Date();
+    
+    return this.prisma.$transaction(async (tx) => {
+      // Get the order with its details
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          orderDetails: true
+        }
+      });
+
+      if (!order) {
+        throw new BadRequestException("Order not found");
+      }
+
+      if (order.factoryId !== factoryId) {
+        throw new BadRequestException("This order is not assigned to your factory");
+      }
+
+      if (order.status !== OrderStatus.PENDING_ACCEPTANCE) {
+        throw new BadRequestException("This order is not in PENDING_ACCEPTANCE status");
+      }
+
+      // Get system config for order
+      const systemConfig = await tx.systemConfigOrder.findUnique({
+        where: { type: 'SYSTEM_CONFIG_ORDER' }
+      });
+
+      if (!systemConfig) {
+        throw new BadRequestException("System configuration not found");
+      }
+
+      // Create rejected order record
+      await tx.rejectedOrder.create({
+        data: {
+          orderId,
+          factoryId,
+          reason,
+          rejectedAt: now
+        }
+      });
+
+      // Update factory legit points
+      await tx.factory.update({
+        where: { factoryOwnerId: factoryId },
+        data: {
+          legitPoint: {
+            decrement: systemConfig.reduceLegitPointIfReject
+          }
+        }
+      });
+
+      // Update order status back to PAYMENT_RECEIVED
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.PAYMENT_RECEIVED,
+          factoryId: null,
+          assignedAt: null,
+          acceptanceDeadline: null,
+          orderProgressReports: {
+            create: {
+              reportDate: now,
+              note: `Order rejected by factory ${factoryId}. Reason: ${reason}`,
+              imageUrls: []
+            }
+          }
+        },
+        include: {
+          orderDetails: true
+        }
+      });
+
+      return updatedOrder;
+    });
+  }
 }

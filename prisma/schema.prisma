@@ -328,6 +328,8 @@ model Factory {
   reviewedBy         String?
   reviewedAt         DateTime?
 
+  legitPoint Int @default(100)
+
   contractUrl String?
 
   staffId String? @unique
@@ -347,7 +349,7 @@ enum OrderStatus {
   WAITING_FILL_INFORMATION
   
   // Trạng thái phân công
-  NEED_ASSIGN
+  NEED_MANAGER_HANDLE
   PENDING_ACCEPTANCE
   REJECTED                        // Bị từ chối bởi nhà máy
   
@@ -552,4 +554,5 @@ model SystemConfigOrder {
   checkQualityTimesDays Int @default(2)
   limitReworkTimes Int @default(2)
   shippingDays Int @default(2)
+  reduceLegitPointIfReject Int @default(3)
 }

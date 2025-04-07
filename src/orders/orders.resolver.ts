@@ -29,4 +29,23 @@ export class OrdersResolver {
   findOne(@Args('id', { type: () => String }) id: string) {
     return this.ordersService.findOne(id);
   }
+
+  @Mutation(() => OrderEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
+  acceptOrderForFactory(
+    @Args('orderId', { type: () => String }) orderId: string,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.ordersService.acceptOrderForFactory(orderId, user.id);
+  }
+
+  @Mutation(() => OrderEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
+  rejectOrder(
+    @Args('orderId', { type: () => String }) orderId: string,
+    @Args('reason', { type: () => String }) reason: string,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.ordersService.rejectOrder(orderId, user.id, reason);
+  }
 }
