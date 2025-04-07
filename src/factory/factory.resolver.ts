@@ -1,13 +1,12 @@
 import { UseGuards } from "@nestjs/common"
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql"
+import { CurrentUser } from "src/auth/decorators/current-user.decorator"
 import { GraphqlJwtAuthGuard } from "src/auth/guards/graphql-jwt-auth.guard"
+import { UpdateFactoryStatusDto } from "src/factory/dto/update-factory-status"
+import { UserEntity } from "src/users/entities/users.entity"
+import { UpdateFactoryInfoDto } from "./dto/update-factory-info.dto"
 import { FactoryEntity } from "./entities/factory.entity"
 import { FactoryService } from "./factory.service"
-import { UpdateFactoryInfoDto } from "./dto/update-factory-info.dto"
-import { CurrentUser } from "src/auth/decorators/current-user.decorator"
-import { UserEntity } from "src/users/entities/users.entity"
-import { FactoryStatus } from "@prisma/client"
-import { UpdateFactoryStatusDto } from "src/factory/dto/update-factory-status"
 
 @Resolver(() => FactoryEntity)
 @UseGuards(GraphqlJwtAuthGuard)
