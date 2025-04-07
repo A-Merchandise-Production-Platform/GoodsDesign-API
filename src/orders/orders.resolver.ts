@@ -1,15 +1,15 @@
-import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
-import { OrdersService } from './orders.service';
-import { CreateOrderInput } from './dto/create-order.input';
-import { OrderEntity } from './entities/order.entity';
 import { UseGuards } from '@nestjs/common';
-import { GraphqlJwtAuthGuard } from '../auth/guards/graphql-jwt-auth.guard';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth';
 import { UserEntity } from 'src/users';
-import { OrderDetailEntity } from './entities/order-detail.entity';
-import { CheckQualityEntity } from './entities/check-quality.entity';
+import { GraphqlJwtAuthGuard } from '../auth/guards/graphql-jwt-auth.guard';
+import { CreateOrderInput } from './dto/create-order.input';
 import { DoneCheckQualityInput } from './dto/done-check-quality.input';
-import { Field, Int } from '@nestjs/graphql';
+import { FeedbackOrderInput } from './dto/feedback-order.input';
+import { CheckQualityEntity } from './entities/check-quality.entity';
+import { OrderDetailEntity } from './entities/order-detail.entity';
+import { OrderEntity } from './entities/order.entity';
+import { OrdersService } from './orders.service';
 
 @Resolver(() => OrderEntity)
 export class OrdersResolver {
@@ -76,5 +76,41 @@ export class OrdersResolver {
       input.note,
       input.imageUrls
     );
+  }
+
+  @Mutation(() => OrderEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
+  startRework(
+    @Args('orderId', { type: () => String }) orderId: string,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.ordersService.startRework(orderId, user.id);
+  }
+
+  @Mutation(() => OrderDetailEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
+  doneReworkForOrderDetails(
+    @Args('orderDetailId', { type: () => String }) orderDetailId: string,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.ordersService.doneReworkForOrderDetails(orderDetailId, user.id);
+  }
+
+  @Mutation(() => OrderEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
+  shippedOrder(
+    @Args('orderId', { type: () => String }) orderId: string
+  ) {
+    return this.ordersService.shippedOrder(orderId);
+  }
+
+  @Mutation(() => OrderEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
+  feedbackOrder(
+    @Args('orderId', { type: () => String }) orderId: string,
+    @Args('input') input: FeedbackOrderInput,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.ordersService.feedbackOrder(orderId, user.id, input);
   }
 }

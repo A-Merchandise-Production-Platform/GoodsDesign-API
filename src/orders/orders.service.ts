@@ -3,6 +3,7 @@ import { OrderDetailStatus, OrderStatus, QualityCheckStatus, TaskStatus, TaskTyp
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderInput } from './dto/create-order.input';
 import { OrderEntity } from './entities/order.entity';
+import { FeedbackOrderInput } from './dto/feedback-order.input';
 
 @Injectable()
 export class OrdersService {
@@ -542,6 +543,14 @@ export class OrdersService {
         }
       );
 
+      // Update current order detail status based on check result
+      await tx.orderDetail.update({
+        where: { id: checkQuality.orderDetailId },
+        data: {
+          status: failedQuantity > 0 ? OrderDetailStatus.REWORK_REQUIRED : OrderDetailStatus.DONE_CHECK_QUALITY
+        }
+      });
+
       if (allDetailsChecked) {
         // Check if any order details failed quality check
         const hasFailedChecks = checkQuality.orderDetail.order.orderDetails.some(
@@ -584,26 +593,26 @@ export class OrdersService {
             }
           });
         } else {
-          // Update all order details to DONE_CHECK_QUALITY
+          // Update all order details to READY_FOR_SHIPPING
           await tx.orderDetail.updateMany({
             where: {
               orderId: checkQuality.orderDetail.order.id
             },
             data: {
-              status: OrderDetailStatus.DONE_CHECK_QUALITY
+              status: OrderDetailStatus.READY_FOR_SHIPPING
             }
           });
 
-          // Update order status to DONE_CHECK_QUALITY
+          // Update order status to READY_FOR_SHIPPING
           await tx.order.update({
             where: { id: checkQuality.orderDetail.order.id },
             data: {
-              status: OrderStatus.DONE_CHECK_QUALITY,
+              status: OrderStatus.READY_FOR_SHIPPING,
               doneCheckQualityAt: now,
               orderProgressReports: {
                 create: {
                   reportDate: now,
-                  note: "All items passed quality check.",
+                  note: "All items passed quality check. Ready for shipping.",
                   imageUrls: []
                 }
               }
@@ -613,6 +622,321 @@ export class OrdersService {
       }
 
       return updatedCheckQuality;
+    });
+  }
+
+  async startRework(orderId: string, factoryId: string) {
+    const now = new Date();
+    
+    return this.prisma.$transaction(async (tx) => {
+      // Get the order with its details
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          orderDetails: {
+            where: {
+              status: OrderDetailStatus.REWORK_REQUIRED
+            }
+          }
+        }
+      });
+
+      if (!order) {
+        throw new BadRequestException("Order not found");
+      }
+
+      if (order.factoryId !== factoryId) {
+        throw new BadRequestException("This order is not assigned to your factory");
+      }
+
+      if (order.status !== OrderStatus.REWORK_REQUIRED) {
+        throw new BadRequestException("This order is not in REWORK_REQUIRED status");
+      }
+
+      // Get system config for order
+      const systemConfig = await tx.systemConfigOrder.findUnique({
+        where: { type: 'SYSTEM_CONFIG_ORDER' }
+      });
+
+      if (!systemConfig) {
+        throw new BadRequestException("System configuration not found");
+      }
+
+      // Calculate estimated check quality time
+      const estimatedCheckQualityAt = new Date(now.getTime() + systemConfig.checkQualityTimesDays * 24 * 60 * 60 * 1000);
+      
+      // Calculate estimated completion time (check quality + shipping days)
+      const estimatedCompletionAt = new Date(estimatedCheckQualityAt.getTime() + systemConfig.shippingDays * 24 * 60 * 60 * 1000);
+
+      // Update order status
+      await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.REWORK_IN_PROGRESS,
+          estimatedCheckQualityAt,
+          estimatedCompletionAt,
+          orderProgressReports: {
+            create: {
+              reportDate: now,
+              note: "Rework started by factory",
+              imageUrls: []
+            }
+          }
+        }
+      });
+
+      // Update order details status
+      await tx.orderDetail.updateMany({
+        where: {
+          orderId: orderId,
+          status: OrderDetailStatus.REWORK_REQUIRED
+        },
+        data: {
+          status: OrderDetailStatus.REWORK_IN_PROGRESS,
+          reworkTime: {
+            increment: 1
+          }
+        }
+      });
+
+      // Create tasks and check qualities for rework
+      for (const orderDetail of order.orderDetails) {
+        const task = await tx.task.create({
+          data: {
+            taskname: `Quality check for rework order ${orderId}`,
+            description: `Quality check for rework design ${orderDetail.designId}`,
+            startDate: now,
+            expiredTime: estimatedCheckQualityAt,
+            taskType: TaskType.QUALITY_CHECK,
+            orderId: order.id,
+            status: TaskStatus.PENDING
+          }
+        });
+
+        await tx.checkQuality.create({
+          data: {
+            taskId: task.id,
+            orderDetailId: orderDetail.id,
+            totalChecked: 0,
+            passedQuantity: 0,
+            failedQuantity: 0,
+            status: QualityCheckStatus.PENDING,
+            checkedAt: now
+          }
+        });
+      }
+
+      return order;
+    });
+  }
+
+  async doneReworkForOrderDetails(orderDetailId: string, factoryId: string) {
+    const now = new Date();
+    
+    return this.prisma.$transaction(async (tx) => {
+      // Get the order detail with its order
+      const orderDetail = await tx.orderDetail.findUnique({
+        where: { id: orderDetailId },
+        include: {
+          order: {
+            include: {
+              orderDetails: true,
+              tasks: true
+            }
+          }
+        }
+      });
+
+      if (!orderDetail) {
+        throw new BadRequestException("Order detail not found");
+      }
+
+      if (orderDetail.order.factoryId !== factoryId) {
+        throw new BadRequestException("This order is not assigned to your factory");
+      }
+
+      if (orderDetail.status !== OrderDetailStatus.REWORK_IN_PROGRESS) {
+        throw new BadRequestException("This order detail is not in REWORK_IN_PROGRESS status");
+      }
+
+      // Update order detail status to REWORK_DONE
+      await tx.orderDetail.update({
+        where: { id: orderDetailId },
+        data: {
+          status: OrderDetailStatus.REWORK_DONE,
+          updatedAt: now
+        }
+      });
+
+      // Create progress report
+      await tx.orderProgressReport.create({
+        data: {
+          orderId: orderDetail.order.id,
+          reportDate: now,
+          note: `Rework completed for order detail ${orderDetailId}`,
+          imageUrls: []
+        }
+      });
+
+      // Check if all rework order details are done
+      const allReworkDone = orderDetail.order.orderDetails.every(
+        detail => detail.status !== OrderDetailStatus.REWORK_IN_PROGRESS
+      );
+
+      if (allReworkDone) {
+        // Update all rework done order details to WAITING_FOR_CHECKING_QUALITY
+        await tx.orderDetail.updateMany({
+          where: {
+            orderId: orderDetail.order.id,
+            status: OrderDetailStatus.REWORK_DONE
+          },
+          data: {
+            status: OrderDetailStatus.WAITING_FOR_CHECKING_QUALITY
+          }
+        });
+
+        // Update order status to WAITING_FOR_CHECKING_QUALITY
+        await tx.order.update({
+          where: { id: orderDetail.order.id },
+          data: {
+            status: OrderStatus.WAITING_FOR_CHECKING_QUALITY,
+            orderProgressReports: {
+              create: {
+                reportDate: now,
+                note: "All rework completed. Moving to quality check phase.",
+                imageUrls: []
+              }
+            }
+          }
+        });
+
+        // Update all quality check tasks to IN_PROGRESS
+        const qualityCheckTasks = orderDetail.order.tasks.filter(
+          task => task.taskType === TaskType.QUALITY_CHECK
+        );
+
+        for (const task of qualityCheckTasks) {
+          await tx.task.update({
+            where: { id: task.id },
+            data: {
+              status: TaskStatus.IN_PROGRESS
+            }
+          });
+        }
+      }
+
+      return orderDetail;
+    });
+  }
+
+  async shippedOrder(orderId: string) {
+    const now = new Date();
+    
+    return this.prisma.$transaction(async (tx) => {
+      // Get the order with its details
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          orderDetails: true
+        }
+      });
+
+      if (!order) {
+        throw new BadRequestException("Order not found");
+      }
+
+      if (order.status !== OrderStatus.READY_FOR_SHIPPING) {
+        throw new BadRequestException("This order is not in READY_FOR_SHIPPING status");
+      }
+
+      // Update all order details to SHIPPED
+      await tx.orderDetail.updateMany({
+        where: {
+          orderId: orderId
+        },
+        data: {
+          status: OrderDetailStatus.SHIPPED
+        }
+      });
+
+      // Update order status to SHIPPED
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.SHIPPED,
+          shippedAt: now,
+          orderProgressReports: {
+            create: {
+              reportDate: now,
+              note: "Order has been shipped",
+              imageUrls: []
+            }
+          }
+        },
+        include: {
+          orderDetails: true
+        }
+      });
+
+      return updatedOrder;
+    });
+  }
+
+  async feedbackOrder(orderId: string, customerId: string, input: FeedbackOrderInput) {
+    const now = new Date();
+    
+    return this.prisma.$transaction(async (tx) => {
+      // Get the order
+      const order = await tx.order.findUnique({
+        where: { id: orderId }
+      });
+
+      if (!order) {
+        throw new BadRequestException("Order not found");
+      }
+
+      if (order.customerId !== customerId) {
+        throw new BadRequestException("This order does not belong to you");
+      }
+
+      if (order.status !== OrderStatus.SHIPPED) {
+        throw new BadRequestException("This order is not in SHIPPED status");
+      }
+
+      // Update all order details to COMPLETED
+      await tx.orderDetail.updateMany({
+        where: {
+          orderId: orderId
+        },
+        data: {
+          status: OrderDetailStatus.COMPLETED
+        }
+      });
+
+      // Update order status to COMPLETED and add feedback
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.COMPLETED,
+          completedAt: now,
+          rating: input.rating,
+          ratingComment: input.ratingComment,
+          ratedAt: now,
+          ratedBy: customerId,
+          orderProgressReports: {
+            create: {
+              reportDate: now,
+              note: `Order completed with rating ${input.rating}${input.ratingComment ? `: ${input.ratingComment}` : ''}`,
+              imageUrls: []
+            }
+          }
+        },
+        include: {
+          orderDetails: true
+        }
+      });
+
+      return updatedOrder;
     });
   }
 }

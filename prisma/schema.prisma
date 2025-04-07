@@ -358,7 +358,6 @@ enum OrderStatus {
   
   // Trạng thái kiểm tra
   WAITING_FOR_CHECKING_QUALITY
-  DONE_CHECK_QUALITY
   REWORK_REQUIRED
   REWORK_IN_PROGRESS           
   
