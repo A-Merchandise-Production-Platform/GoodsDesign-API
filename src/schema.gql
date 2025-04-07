@@ -195,6 +195,14 @@ type District {
   provinceId: Int!
 }
 
+input DoneCheckQualityInput {
+  checkQualityId: String!
+  failedQuantity: Int!
+  imageUrls: [String!]
+  note: String
+  passedQuantity: Int!
+}
+
 type FactoryEntity {
   address: AddressEntity
   businessLicenseUrl: String
@@ -291,6 +299,8 @@ type Mutation {
   deleteFile(fileUrl: String!): Boolean!
   deleteProduct(id: String!): ProductEntity!
   deleteUser(id: String!): UserEntity!
+  doneCheckQuality(input: DoneCheckQualityInput!): CheckQualityEntity!
+  doneProductionOrderDetails(orderDetailId: String!): OrderDetailEntity!
   duplicateProductDesign(id: ID!): ProductDesignEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!

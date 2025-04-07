@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { OrderDetailStatus, OrderStatus, QualityCheckStatus, TaskStatus, TaskType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderInput } from './dto/create-order.input';
+import { OrderEntity } from './entities/order.entity';
 
 @Injectable()
 export class OrdersService {
@@ -193,15 +194,21 @@ export class OrdersService {
     return this.prisma.order.findMany();
   }
 
-  findOne(id: string) {
-    return this.prisma.order.findUnique({
+  async findOne(id: string) {
+    const result = await this.prisma.order.findUnique({
       where: { id },
       include: {
         orderDetails: true,
         payments: true,
-        orderProgressReports: true
+        orderProgressReports: true,
+        address: true,
+        customer: true,
+        rejectedHistory: true,
+        tasks: true
       }
     });
+
+    return new OrderEntity(result)
   }
 
   async acceptOrderForFactory(orderId: string, factoryId: string) {
@@ -336,6 +343,276 @@ export class OrdersService {
       });
 
       return updatedOrder;
+    });
+  }
+
+  async doneProductionOrderDetails(orderDetailId: string, factoryId: string) {
+    const now = new Date();
+    
+    return this.prisma.$transaction(async (tx) => {
+      // Get the order detail with its order
+      const orderDetail = await tx.orderDetail.findUnique({
+        where: { id: orderDetailId },
+        include: {
+          order: {
+            include: {
+              orderDetails: true,
+              tasks: true
+            }
+          }
+        }
+      });
+
+      if (!orderDetail) {
+        throw new BadRequestException("Order detail not found");
+      }
+
+      if (orderDetail.order.factoryId !== factoryId) {
+        throw new BadRequestException("This order is not assigned to your factory");
+      }
+
+      if (orderDetail.status !== OrderDetailStatus.IN_PRODUCTION) {
+        throw new BadRequestException("This order detail is not in IN_PRODUCTION status");
+      }
+
+      // Update order detail status to DONE_PRODUCTION
+      await tx.orderDetail.update({
+        where: { id: orderDetailId },
+        data: {
+          status: OrderDetailStatus.DONE_PRODUCTION,
+          completedQty: orderDetail.quantity,
+          updatedAt: now
+        }
+      });
+
+      // Create progress report
+      await tx.orderProgressReport.create({
+        data: {
+          orderId: orderDetail.order.id,
+          reportDate: now,
+          note: `Order detail ${orderDetailId} production completed`,
+          imageUrls: []
+        }
+      });
+
+      // Check if all order details are done
+      const allDetailsDone = orderDetail.order.orderDetails.every(
+        detail => detail.status === OrderDetailStatus.DONE_PRODUCTION || 
+                 detail.id === orderDetailId // Include the current detail as it's being updated
+      );
+
+      if (allDetailsDone) {
+        // Update all order details to WAITING_FOR_CHECKING_QUALITY
+        await tx.orderDetail.updateMany({
+          where: {
+            orderId: orderDetail.order.id
+          },
+          data: {
+            status: OrderDetailStatus.WAITING_FOR_CHECKING_QUALITY
+          }
+        });
+
+        // Update order status to WAITING_FOR_CHECKING_QUALITY
+        await tx.order.update({
+          where: { id: orderDetail.order.id },
+          data: {
+            status: OrderStatus.WAITING_FOR_CHECKING_QUALITY,
+            doneProductionAt: now,
+            orderProgressReports: {
+              create: {
+                reportDate: now,
+                note: "All order details production completed. Moving to quality check phase.",
+                imageUrls: []
+              }
+            }
+          }
+        });
+
+        // Update all quality check tasks to IN_PROGRESS
+        const qualityCheckTasks = orderDetail.order.tasks.filter(
+          task => task.taskType === TaskType.QUALITY_CHECK
+        );
+
+        for (const task of qualityCheckTasks) {
+          await tx.task.update({
+            where: { id: task.id },
+            data: {
+              status: TaskStatus.IN_PROGRESS
+            }
+          });
+        }
+      }
+
+      return orderDetail;
+    });
+  }
+
+  async doneCheckQuality(
+    checkQualityId: string,
+    staffId: string,
+    passedQuantity: number,
+    failedQuantity: number,
+    note?: string,
+    imageUrls?: string[]
+  ) {
+    const now = new Date();
+    
+    return this.prisma.$transaction(async (tx) => {
+      // Get the check quality with its task and order detail
+      const checkQuality = await tx.checkQuality.findUnique({
+        where: { id: checkQualityId },
+        include: {
+          task: true,
+          orderDetail: {
+            include: {
+              checkQualities: true,
+              order: {
+                include: {
+                  orderDetails: {
+                    include: {
+                      checkQualities: true
+                    }
+                  },
+                  tasks: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (!checkQuality) {
+        throw new BadRequestException("Check quality record not found");
+      }
+
+      if (checkQuality.task.userId !== staffId) {
+        throw new BadRequestException("This task is not assigned to you");
+      }
+
+      if (checkQuality.status !== QualityCheckStatus.PENDING) {
+        throw new BadRequestException("This quality check is not in PENDING status");
+      }
+
+      // Validate quantities
+      if (passedQuantity + failedQuantity > checkQuality.orderDetail.quantity) {
+        throw new BadRequestException("Total checked quantity exceeds order detail quantity");
+      }
+
+      // Update check quality
+      const updatedCheckQuality = await tx.checkQuality.update({
+        where: { id: checkQualityId },
+        data: {
+          totalChecked: passedQuantity + failedQuantity,
+          passedQuantity,
+          failedQuantity,
+          status: failedQuantity > 0 ? QualityCheckStatus.REJECTED : QualityCheckStatus.APPROVED,
+          note,
+          imageUrls: imageUrls || [],
+          checkedAt: now,
+          checkedBy: staffId
+        }
+      });
+
+      // Update task status to COMPLETED
+      await tx.task.update({
+        where: { id: checkQuality.taskId },
+        data: {
+          status: TaskStatus.COMPLETED,
+          completedDate: now
+        }
+      });
+
+      // Create progress report
+      await tx.orderProgressReport.create({
+        data: {
+          orderId: checkQuality.orderDetail.order.id,
+          reportDate: now,
+          note: `Quality check completed for order detail ${checkQuality.orderDetailId}. Passed: ${passedQuantity}, Failed: ${failedQuantity}`,
+          imageUrls: imageUrls || []
+        }
+      });
+
+      // Check if all order details have been checked
+      const allDetailsChecked = checkQuality.orderDetail.order.orderDetails.every(
+        detail => {
+          const detailCheckQualities = detail.checkQualities || [];
+          return detailCheckQualities.some(
+            check => check.status !== QualityCheckStatus.PENDING
+          );
+        }
+      );
+
+      if (allDetailsChecked) {
+        // Check if any order details failed quality check
+        const hasFailedChecks = checkQuality.orderDetail.order.orderDetails.some(
+          detail => {
+            const detailCheckQualities = detail.checkQualities || [];
+            return detailCheckQualities.some(
+              check => check.status === QualityCheckStatus.REJECTED
+            );
+          }
+        );
+
+        if (hasFailedChecks) {
+          // Update failed order details to REWORK_REQUIRED
+          await tx.orderDetail.updateMany({
+            where: {
+              orderId: checkQuality.orderDetail.order.id,
+              checkQualities: {
+                some: {
+                  status: QualityCheckStatus.REJECTED
+                }
+              }
+            },
+            data: {
+              status: OrderDetailStatus.REWORK_REQUIRED
+            }
+          });
+
+          // Update order status to REWORK_REQUIRED
+          await tx.order.update({
+            where: { id: checkQuality.orderDetail.order.id },
+            data: {
+              status: OrderStatus.REWORK_REQUIRED,
+              orderProgressReports: {
+                create: {
+                  reportDate: now,
+                  note: "Some items failed quality check. Rework required.",
+                  imageUrls: []
+                }
+              }
+            }
+          });
+        } else {
+          // Update all order details to DONE_CHECK_QUALITY
+          await tx.orderDetail.updateMany({
+            where: {
+              orderId: checkQuality.orderDetail.order.id
+            },
+            data: {
+              status: OrderDetailStatus.DONE_CHECK_QUALITY
+            }
+          });
+
+          // Update order status to DONE_CHECK_QUALITY
+          await tx.order.update({
+            where: { id: checkQuality.orderDetail.order.id },
+            data: {
+              status: OrderStatus.DONE_CHECK_QUALITY,
+              doneCheckQualityAt: now,
+              orderProgressReports: {
+                create: {
+                  reportDate: now,
+                  note: "All items passed quality check.",
+                  imageUrls: []
+                }
+              }
+            }
+          });
+        }
+      }
+
+      return updatedCheckQuality;
     });
   }
 }
