@@ -29,6 +29,7 @@ import { ShippingModule } from "./shipping/shipping.module"
 import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
     imports: [
@@ -71,6 +72,7 @@ import { UsersModule } from "./users"
         CronModule,
         NotificationsModule,
         DashboardModule,
+        OrdersModule,
         // FactoryProductsModule
         // TestModule,
     ],

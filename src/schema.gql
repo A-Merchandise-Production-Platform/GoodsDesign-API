@@ -59,6 +59,23 @@ type CategoryEntity {
   updatedBy: String
 }
 
+type CheckQualityEntity {
+  checkedAt: DateTime!
+  checkedBy: String
+  createdAt: DateTime!
+  failedQuantity: Int!
+  id: ID!
+  imageUrls: [String!]!
+  note: String
+  orderDetail: OrderDetailEntity
+  orderDetailId: String!
+  passedQuantity: Int!
+  status: String!
+  task: TaskEntity
+  taskId: String!
+  totalChecked: Int!
+}
+
 """Create Address Input"""
 input CreateAddressInput {
   districtID: Float!
@@ -85,6 +102,14 @@ input CreateFactoryProductInput {
   factoryId: String!
   productionCapacity: Int!
   systemConfigVariantId: String!
+}
+
+input CreateOrderDetailInput {
+  cartItemId: String!
+}
+
+input CreateOrderInput {
+  orderDetails: [CreateOrderDetailInput!]!
 }
 
 input CreatePaymentTransactionInput {
@@ -249,6 +274,7 @@ type Mutation {
   createFactoryProduct(data: CreateFactoryProductInput!): FactoryProductEntity!
   createNotification(content: String!, title: String!, url: String, userId: String!): NotificationEntity!
   createNotificationForManyUsers(content: String!, title: String!, url: String, userIds: [String!]!): [NotificationEntity!]!
+  createOrder(createOrderInput: CreateOrderInput!): OrderEntity!
   createPayment(gateway: String!, paymentId: String!): String!
   createPaymentTransaction(input: CreatePaymentTransactionInput!): PaymentTransaction!
   createProduct(input: CreateProductDto!): ProductEntity!
@@ -270,6 +296,7 @@ type Mutation {
   markNotificationAsRead(id: String!): NotificationEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
+  removeOrder(id: Int!): OrderEntity!
   removePaymentTransaction(id: ID!): PaymentTransaction!
   removeProductDesign(id: ID!): ProductDesignEntity!
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
@@ -286,6 +313,7 @@ type Mutation {
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateFactoryProduct(data: UpdateFactoryProductInput!, factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
+  updateOrder(updateOrderInput: UpdateOrderInput!): OrderEntity!
   updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransaction!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
@@ -307,6 +335,88 @@ type NotificationEntity {
   user: UserEntity
 }
 
+type OrderDetailEntity {
+  checkQualities: [CheckQualityEntity!]
+  completedQty: Int!
+  createdAt: DateTime!
+  design: ProductDesignEntity
+  designId: String!
+  id: ID!
+  isRework: Boolean!
+  order: OrderEntity
+  orderId: String!
+  price: Int!
+  productionCost: Int
+  quantity: Int!
+  rejectedQty: Int!
+  reworkTime: Int!
+  status: String!
+  updatedAt: DateTime
+}
+
+type OrderEntity {
+  acceptanceDeadline: DateTime
+  acceptedAt: DateTime
+  address: AddressEntity
+  addressId: String
+  assignedAt: DateTime
+  completedAt: DateTime
+  currentProgress: Int
+  customer: UserEntity
+  customerId: String!
+  delayReason: String
+  doneCheckQualityAt: DateTime
+  doneProductionAt: DateTime
+  estimatedCheckQualityAt: DateTime!
+  estimatedCompletionAt: DateTime!
+  estimatedDoneProductionAt: DateTime!
+  estimatedShippingAt: DateTime!
+  factory: FactoryEntity
+  factoryId: String
+  id: ID!
+  isDelayed: Boolean!
+  orderDate: DateTime!
+  orderDetails: [OrderDetailEntity!]
+  orderProgressReports: [OrderProgressReportEntity!]
+  payments: [PaymentEntity!]
+  ratedAt: DateTime
+  ratedBy: String
+  rating: Int
+  ratingComment: String
+  rejectedHistory: [RejectedOrderEntity!]
+  shippedAt: DateTime
+  shippingPrice: Int!
+  status: String!
+  tasks: [TaskEntity!]
+  totalItems: Int!
+  totalPrice: Int!
+  totalProductionCost: Int
+  updatedAt: DateTime
+}
+
+type OrderProgressReportEntity {
+  id: ID!
+  imageUrls: [String!]!
+  note: String
+  order: OrderEntity
+  orderId: String!
+  reportDate: DateTime!
+}
+
+type PaymentEntity {
+  amount: Int!
+  createdAt: DateTime!
+  id: ID!
+  note: String
+  order: OrderEntity
+  orderId: String!
+  paidAt: String
+  paidBy: String
+  status: String!
+  transactions: [PaymentTransactionEntity!]
+  updatedAt: DateTime!
+}
+
 """Method of payment"""
 enum PaymentMethod {
   PAYOS
@@ -324,6 +434,19 @@ type PaymentTransaction {
   status: TransactionStatus!
   transactionLog: String!
   type: TransactionType!
+}
+
+type PaymentTransactionEntity {
+  amount: Int!
+  createdAt: DateTime!
+  id: ID!
+  note: String
+  paidAt: String
+  paidBy: String
+  payment: PaymentEntity
+  paymentId: String!
+  status: String!
+  updatedAt: DateTime!
 }
 
 type ProductDesignEntity {
@@ -399,6 +522,8 @@ type Query {
   notification(id: String!): NotificationEntity!
   notifications: [NotificationEntity!]!
   notificationsByUserId(isRead: Boolean): [NotificationEntity!]!
+  order(id: Int!): OrderEntity!
+  orders: [OrderEntity!]!
   paymentTransaction(id: ID!): PaymentTransaction
   paymentTransactions: [PaymentTransaction!]!
   paymentTransactionsByCustomer(customerId: ID!): [PaymentTransaction!]!
@@ -438,6 +563,18 @@ input RegisterDto {
   isFactoryOwner: Boolean! = false
   name: String!
   password: String!
+}
+
+type RejectedOrderEntity {
+  factory: FactoryEntity
+  factoryId: String!
+  id: ID!
+  order: OrderEntity
+  orderId: String!
+  reason: String!
+  reassignedAt: DateTime
+  reassignedTo: String
+  rejectedAt: DateTime!
 }
 
 """User roles"""
@@ -492,6 +629,24 @@ type SystemConfigVariantEntity {
   product: ProductEntity!
   productId: String!
   size: String
+}
+
+type TaskEntity {
+  assignedDate: DateTime!
+  assignee: UserEntity
+  checkQualities: [CheckQualityEntity!]
+  completedDate: DateTime
+  description: String!
+  expiredTime: DateTime!
+  id: ID!
+  note: String
+  order: OrderEntity
+  orderId: String
+  startDate: DateTime!
+  status: String!
+  taskType: String!
+  taskname: String!
+  userId: String
 }
 
 """Status of transaction"""
@@ -560,6 +715,11 @@ input UpdateFactoryProductInput {
   factoryId: String
   productionCapacity: Int
   systemConfigVariantId: String
+}
+
+input UpdateOrderInput {
+  id: Int!
+  orderDetails: [CreateOrderDetailInput!]
 }
 
 input UpdatePaymentTransactionInput {

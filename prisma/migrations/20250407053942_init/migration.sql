@@ -2,12 +2,6 @@
 CREATE TYPE "Roles" AS ENUM ('ADMIN', 'MANAGER', 'STAFF', 'FACTORYOWNER', 'CUSTOMER');
 
 -- CreateEnum
-CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAYMENT_RECEIVED', 'ASSIGNED_TO_FACTORY', 'ACCEPTED', 'IN_PRODUCTION', 'DONE_PRODUCTION', 'WAITING_PAYMENT', 'WAITING_FILL_INFORMATION', 'DELIVERED', 'CANCELED');
-
--- CreateEnum
-CREATE TYPE "QualityCheckStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
-
--- CreateEnum
 CREATE TYPE "PaymentType" AS ENUM ('DEPOSIT', 'WITHDRAWN');
 
 -- CreateEnum
@@ -23,19 +17,25 @@ CREATE TYPE "PaymentMethod" AS ENUM ('VNPAY', 'PAYOS');
 CREATE TYPE "TransactionStatus" AS ENUM ('COMPLETED', 'PENDING', 'FAILED');
 
 -- CreateEnum
-CREATE TYPE "StaffTaskStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'EXPIRED', 'CANCELLED');
-
--- CreateEnum
 CREATE TYPE "FactoryStatus" AS ENUM ('PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'SUSPENDED');
 
 -- CreateEnum
-CREATE TYPE "FactoryOrderStatus" AS ENUM ('PENDING_ACCEPTANCE', 'ACCEPTED', 'EXPIRED', 'REJECTED', 'WAITING_FOR_MANAGER_ASSIGN_FACTORY', 'IN_PRODUCTION', 'DONE_PRODUCTION', 'WAITING_FOR_CHECKING_QUALITY', 'DONE_CHECK_QUALITY', 'REWORK_REQUIRED', 'REWORK_COMPLETED', 'COMPLETED', 'SHIPPED', 'CANCELLED', 'WAITING_FOR_MANAGER_ASSIGN_STAFF');
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAYMENT_RECEIVED', 'WAITING_FILL_INFORMATION', 'NEED_ASSIGN', 'PENDING_ACCEPTANCE', 'REJECTED', 'IN_PRODUCTION', 'WAITING_FOR_CHECKING_QUALITY', 'DONE_CHECK_QUALITY', 'REWORK_REQUIRED', 'REWORK_IN_PROGRESS', 'WAITING_PAYMENT', 'READY_FOR_SHIPPING', 'SHIPPED', 'COMPLETED', 'CANCELED');
 
 -- CreateEnum
-CREATE TYPE "OrderDetailStatus" AS ENUM ('PENDING', 'IN_PRODUCTION', 'COMPLETED', 'REJECTED', 'REWORK_REQUIRED', 'REWORK_IN_PROGRESS', 'REWORK_COMPLETED', 'SHIPPED');
+CREATE TYPE "OrderDetailStatus" AS ENUM ('PENDING', 'IN_PRODUCTION', 'DONE_PRODUCTION', 'WAITING_FOR_CHECKING_QUALITY', 'DONE_CHECK_QUALITY', 'REWORK_REQUIRED', 'REWORK_IN_PROGRESS', 'REWORK_DONE', 'READY_FOR_SHIPPING', 'SHIPPED', 'COMPLETED');
 
 -- CreateEnum
-CREATE TYPE "QualityIssueStatus" AS ENUM ('REPORTED', 'INVESTIGATING', 'RESOLVED', 'REJECTED');
+CREATE TYPE "TaskStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'EXPIRED', 'NEED_ASSIGN', 'CANCELLED');
+
+-- CreateEnum
+CREATE TYPE "TaskType" AS ENUM ('QUALITY_CHECK');
+
+-- CreateEnum
+CREATE TYPE "QualityCheckStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+
+-- CreateEnum
+CREATE TYPE "SystemConfigOrderType" AS ENUM ('SYSTEM_CONFIG_ORDER');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -61,7 +61,7 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "Addresses" (
+CREATE TABLE "Address" (
     "id" TEXT NOT NULL,
     "provinceID" INTEGER NOT NULL,
     "districtID" INTEGER NOT NULL,
@@ -70,11 +70,11 @@ CREATE TABLE "Addresses" (
     "userId" TEXT NOT NULL,
     "factoryId" TEXT,
 
-    CONSTRAINT "Addresses_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Address_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Categories" (
+CREATE TABLE "Category" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
@@ -88,11 +88,11 @@ CREATE TABLE "Categories" (
     "deletedAt" TIMESTAMP(3),
     "deletedBy" TEXT,
 
-    CONSTRAINT "Categories_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Products" (
+CREATE TABLE "Product" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
@@ -109,7 +109,7 @@ CREATE TABLE "Products" (
     "deletedBy" TEXT,
     "categoryId" TEXT NOT NULL,
 
-    CONSTRAINT "Products_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -199,35 +199,6 @@ CREATE TABLE "FavoriteDesign" (
 );
 
 -- CreateTable
-CREATE TABLE "CustomerOrder" (
-    "id" TEXT NOT NULL,
-    "customerId" TEXT NOT NULL,
-    "status" "OrderStatus" NOT NULL,
-    "totalPrice" INTEGER NOT NULL,
-    "shippingPrice" INTEGER NOT NULL,
-    "depositPaid" INTEGER NOT NULL,
-    "orderDate" TIMESTAMP(3) NOT NULL,
-    "rating" INTEGER,
-    "ratingComment" TEXT,
-    "ratedAt" TIMESTAMP(3),
-    "ratedBy" TEXT,
-
-    CONSTRAINT "CustomerOrder_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "CustomerOrderDetail" (
-    "id" TEXT NOT NULL,
-    "orderId" TEXT NOT NULL,
-    "designId" TEXT NOT NULL,
-    "price" INTEGER NOT NULL,
-    "quantity" INTEGER NOT NULL,
-    "status" "OrderDetailStatus" NOT NULL,
-
-    CONSTRAINT "CustomerOrderDetail_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Payment" (
     "id" TEXT NOT NULL,
     "orderId" TEXT NOT NULL,
@@ -258,60 +229,28 @@ CREATE TABLE "PaymentTransaction" (
 );
 
 -- CreateTable
-CREATE TABLE "OrderHistory" (
+CREATE TABLE "Notification" (
     "id" TEXT NOT NULL,
-    "orderId" TEXT NOT NULL,
-    "status" TEXT NOT NULL,
-    "timestamp" TIMESTAMP(3) NOT NULL,
-    "note" TEXT,
+    "title" TEXT,
+    "content" TEXT,
+    "url" TEXT,
+    "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3),
 
-    CONSTRAINT "OrderHistory_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Task" (
-    "id" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "taskname" TEXT NOT NULL,
-    "startDate" TIMESTAMP(3) NOT NULL,
-    "expiredTime" TIMESTAMP(3) NOT NULL,
-    "qualityCheckStatus" "QualityCheckStatus" NOT NULL,
-    "taskType" TEXT,
-    "factoryOrderId" TEXT,
-    "assignedBy" TEXT,
-
-    CONSTRAINT "Task_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "StaffTask" (
+CREATE TABLE "CartItem" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "taskId" TEXT NOT NULL,
-    "assignedDate" TIMESTAMP(3) NOT NULL,
-    "note" TEXT,
-    "status" "StaffTaskStatus" NOT NULL,
-    "completedDate" TIMESTAMP(3),
+    "designId" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "StaffTask_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "CheckQuality" (
-    "id" TEXT NOT NULL,
-    "taskId" TEXT NOT NULL,
-    "orderDetailId" TEXT NOT NULL,
-    "factoryOrderDetailId" TEXT,
-    "totalChecked" INTEGER NOT NULL,
-    "passedQuantity" INTEGER NOT NULL,
-    "failedQuantity" INTEGER NOT NULL,
-    "status" "QualityCheckStatus" NOT NULL,
-    "reworkRequired" BOOLEAN NOT NULL,
-    "note" TEXT,
-    "checkedAt" TIMESTAMP(3) NOT NULL,
-    "checkedBy" TEXT,
-
-    CONSTRAINT "CheckQuality_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "CartItem_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -319,7 +258,7 @@ CREATE TABLE "FactoryProduct" (
     "factoryId" TEXT NOT NULL,
     "systemConfigVariantId" TEXT NOT NULL,
     "productionCapacity" INTEGER NOT NULL,
-    "estimatedProductionTime" INTEGER NOT NULL,
+    "productionTimeInMinutes" INTEGER NOT NULL DEFAULT 300,
 
     CONSTRAINT "FactoryProduct_pkey" PRIMARY KEY ("factoryId","systemConfigVariantId")
 );
@@ -359,119 +298,129 @@ CREATE TABLE "Factory" (
 );
 
 -- CreateTable
-CREATE TABLE "FactoryOrder" (
+CREATE TABLE "Order" (
     "id" TEXT NOT NULL,
-    "factoryId" TEXT NOT NULL,
-    "customerOrderId" TEXT NOT NULL,
-    "status" "FactoryOrderStatus" NOT NULL,
-    "assignedAt" TIMESTAMP(3) NOT NULL,
-    "acceptanceDeadline" TIMESTAMP(3) NOT NULL,
-    "acceptedAt" TIMESTAMP(3),
-    "rejectionReason" TEXT,
-    "estimatedCompletionDate" TIMESTAMP(3),
-    "completedAt" TIMESTAMP(3),
-    "shippedAt" TIMESTAMP(3),
+    "customerId" TEXT NOT NULL,
+    "factoryId" TEXT,
+    "status" "OrderStatus" NOT NULL,
+    "totalPrice" INTEGER NOT NULL,
+    "shippingPrice" INTEGER NOT NULL DEFAULT 0,
+    "orderDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "totalItems" INTEGER NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3),
-    "totalProductionCost" INTEGER NOT NULL,
-    "lastUpdated" TIMESTAMP(3),
+    "totalProductionCost" INTEGER,
     "currentProgress" INTEGER,
     "delayReason" TEXT,
     "isDelayed" BOOLEAN NOT NULL DEFAULT false,
+    "rating" INTEGER,
+    "ratingComment" TEXT,
+    "ratedAt" TIMESTAMP(3),
+    "ratedBy" TEXT,
+    "assignedAt" TIMESTAMP(3),
+    "acceptanceDeadline" TIMESTAMP(3),
+    "acceptedAt" TIMESTAMP(3),
+    "shippedAt" TIMESTAMP(3),
+    "estimatedShippingAt" TIMESTAMP(3) NOT NULL,
+    "doneProductionAt" TIMESTAMP(3),
+    "estimatedDoneProductionAt" TIMESTAMP(3) NOT NULL,
+    "doneCheckQualityAt" TIMESTAMP(3),
+    "estimatedCheckQualityAt" TIMESTAMP(3) NOT NULL,
+    "completedAt" TIMESTAMP(3),
+    "estimatedCompletionAt" TIMESTAMP(3) NOT NULL,
+    "addressId" TEXT,
 
-    CONSTRAINT "FactoryOrder_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "RejectedFactoryOrders" (
+CREATE TABLE "OrderDetail" (
     "id" TEXT NOT NULL,
-    "factoryOrderId" TEXT NOT NULL,
+    "orderId" TEXT NOT NULL,
+    "designId" TEXT NOT NULL,
+    "price" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "status" "OrderDetailStatus" NOT NULL DEFAULT 'PENDING',
+    "completedQty" INTEGER NOT NULL DEFAULT 0,
+    "rejectedQty" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3),
+    "productionCost" INTEGER,
+    "reworkTime" INTEGER NOT NULL DEFAULT 0,
+    "isRework" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "OrderDetail_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "OrderProgressReport" (
+    "id" TEXT NOT NULL,
+    "orderId" TEXT NOT NULL,
+    "reportDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "note" TEXT,
+    "imageUrls" TEXT[],
+
+    CONSTRAINT "OrderProgressReport_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "RejectedOrder" (
+    "id" TEXT NOT NULL,
+    "orderId" TEXT NOT NULL,
     "factoryId" TEXT NOT NULL,
     "reason" TEXT NOT NULL,
     "rejectedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "reassignedTo" TEXT,
     "reassignedAt" TIMESTAMP(3),
 
-    CONSTRAINT "RejectedFactoryOrders_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "RejectedOrder_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "FactoryOrderDetail" (
+CREATE TABLE "Task" (
     "id" TEXT NOT NULL,
-    "designId" TEXT NOT NULL,
-    "factoryOrderId" TEXT NOT NULL,
-    "orderDetailId" TEXT NOT NULL,
-    "quantity" INTEGER NOT NULL,
-    "price" INTEGER NOT NULL,
-    "status" "OrderDetailStatus" NOT NULL DEFAULT 'PENDING',
-    "completedQty" INTEGER NOT NULL DEFAULT 0,
-    "rejectedQty" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3),
-    "productionCost" INTEGER NOT NULL,
-    "isRework" BOOLEAN NOT NULL DEFAULT false,
-    "qualityStatus" "QualityCheckStatus",
-    "qualityCheckedAt" TIMESTAMP(3),
-    "qualityCheckedBy" TEXT,
-
-    CONSTRAINT "FactoryOrderDetail_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "FactoryProgressReport" (
-    "id" TEXT NOT NULL,
-    "factoryOrderId" TEXT NOT NULL,
-    "reportDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "completed" INTEGER,
-    "estimatedCompletion" TIMESTAMP(3) NOT NULL,
-    "notes" TEXT,
-    "photoUrls" TEXT[],
-
-    CONSTRAINT "FactoryProgressReport_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "QualityIssue" (
-    "id" TEXT NOT NULL,
-    "factoryOrderId" TEXT NOT NULL,
-    "reportedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "reportedBy" TEXT,
-    "assignedTo" TEXT,
-    "issueType" TEXT NOT NULL,
+    "taskname" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "photoUrls" TEXT[],
-    "status" "QualityIssueStatus" NOT NULL,
-    "resolution" TEXT,
-    "resolvedAt" TIMESTAMP(3),
-    "resolvedBy" TEXT,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "expiredTime" TIMESTAMP(3) NOT NULL,
+    "taskType" "TaskType" NOT NULL DEFAULT 'QUALITY_CHECK',
+    "orderId" TEXT,
+    "userId" TEXT,
+    "assignedDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "status" "TaskStatus" NOT NULL DEFAULT 'PENDING',
+    "completedDate" TIMESTAMP(3),
+    "note" TEXT,
 
-    CONSTRAINT "QualityIssue_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Task_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Notification" (
+CREATE TABLE "CheckQuality" (
     "id" TEXT NOT NULL,
-    "title" TEXT,
-    "content" TEXT,
-    "url" TEXT,
-    "isRead" BOOLEAN NOT NULL DEFAULT false,
-    "userId" TEXT NOT NULL,
+    "taskId" TEXT NOT NULL,
+    "orderDetailId" TEXT NOT NULL,
+    "totalChecked" INTEGER NOT NULL DEFAULT 0,
+    "passedQuantity" INTEGER NOT NULL DEFAULT 0,
+    "failedQuantity" INTEGER NOT NULL DEFAULT 0,
+    "status" "QualityCheckStatus" NOT NULL DEFAULT 'PENDING',
+    "note" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3),
+    "checkedAt" TIMESTAMP(3) NOT NULL,
+    "checkedBy" TEXT,
+    "imageUrls" TEXT[],
 
-    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "CheckQuality_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "CartItems" (
+CREATE TABLE "SystemConfigOrder" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "designId" TEXT NOT NULL,
-    "quantity" INTEGER NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "type" "SystemConfigOrderType" NOT NULL DEFAULT 'SYSTEM_CONFIG_ORDER',
+    "limitFactoryRejectOrders" INTEGER NOT NULL DEFAULT 3,
+    "checkQualityTimesDays" INTEGER NOT NULL DEFAULT 2,
+    "limitReworkTimes" INTEGER NOT NULL DEFAULT 2,
+    "shippingDays" INTEGER NOT NULL DEFAULT 2,
 
-    CONSTRAINT "CartItems_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "SystemConfigOrder_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -489,20 +438,23 @@ CREATE UNIQUE INDEX "Factory_addressId_key" ON "Factory"("addressId");
 -- CreateIndex
 CREATE UNIQUE INDEX "Factory_staffId_key" ON "Factory"("staffId");
 
--- AddForeignKey
-ALTER TABLE "Addresses" ADD CONSTRAINT "Addresses_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- CreateIndex
+CREATE UNIQUE INDEX "SystemConfigOrder_type_key" ON "SystemConfigOrder"("type");
 
 -- AddForeignKey
-ALTER TABLE "Products" ADD CONSTRAINT "Products_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Address" ADD CONSTRAINT "Address_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "SystemConfigDiscount" ADD CONSTRAINT "SystemConfigDiscount_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Product" ADD CONSTRAINT "Product_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "SystemConfigVariant" ADD CONSTRAINT "SystemConfigVariant_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "SystemConfigDiscount" ADD CONSTRAINT "SystemConfigDiscount_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductPositionType" ADD CONSTRAINT "ProductPositionType_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "SystemConfigVariant" ADD CONSTRAINT "SystemConfigVariant_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductPositionType" ADD CONSTRAINT "ProductPositionType_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProductDesign" ADD CONSTRAINT "ProductDesign_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -523,16 +475,7 @@ ALTER TABLE "FavoriteDesign" ADD CONSTRAINT "FavoriteDesign_userId_fkey" FOREIGN
 ALTER TABLE "FavoriteDesign" ADD CONSTRAINT "FavoriteDesign_designId_fkey" FOREIGN KEY ("designId") REFERENCES "ProductDesign"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CustomerOrder" ADD CONSTRAINT "CustomerOrder_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "CustomerOrderDetail" ADD CONSTRAINT "CustomerOrderDetail_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "CustomerOrder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "CustomerOrderDetail" ADD CONSTRAINT "CustomerOrderDetail_designId_fkey" FOREIGN KEY ("designId") REFERENCES "ProductDesign"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Payment" ADD CONSTRAINT "Payment_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "CustomerOrder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -544,25 +487,13 @@ ALTER TABLE "PaymentTransaction" ADD CONSTRAINT "PaymentTransaction_paymentId_fk
 ALTER TABLE "PaymentTransaction" ADD CONSTRAINT "PaymentTransaction_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OrderHistory" ADD CONSTRAINT "OrderHistory_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "CustomerOrder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Task" ADD CONSTRAINT "Task_factoryOrderId_fkey" FOREIGN KEY ("factoryOrderId") REFERENCES "FactoryOrder"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "StaffTask" ADD CONSTRAINT "StaffTask_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "StaffTask" ADD CONSTRAINT "StaffTask_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "CheckQuality" ADD CONSTRAINT "CheckQuality_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "CheckQuality" ADD CONSTRAINT "CheckQuality_orderDetailId_fkey" FOREIGN KEY ("orderDetailId") REFERENCES "CustomerOrderDetail"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "CheckQuality" ADD CONSTRAINT "CheckQuality_factoryOrderDetailId_fkey" FOREIGN KEY ("factoryOrderDetailId") REFERENCES "FactoryOrderDetail"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_designId_fkey" FOREIGN KEY ("designId") REFERENCES "ProductDesign"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "FactoryProduct" ADD CONSTRAINT "FactoryProduct_factoryId_fkey" FOREIGN KEY ("factoryId") REFERENCES "Factory"("factoryOwnerId") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -577,40 +508,40 @@ ALTER TABLE "Factory" ADD CONSTRAINT "Factory_factoryOwnerId_fkey" FOREIGN KEY (
 ALTER TABLE "Factory" ADD CONSTRAINT "Factory_staffId_fkey" FOREIGN KEY ("staffId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Factory" ADD CONSTRAINT "Factory_addressId_fkey" FOREIGN KEY ("addressId") REFERENCES "Addresses"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Factory" ADD CONSTRAINT "Factory_addressId_fkey" FOREIGN KEY ("addressId") REFERENCES "Address"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FactoryOrder" ADD CONSTRAINT "FactoryOrder_factoryId_fkey" FOREIGN KEY ("factoryId") REFERENCES "Factory"("factoryOwnerId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Order" ADD CONSTRAINT "Order_addressId_fkey" FOREIGN KEY ("addressId") REFERENCES "Address"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FactoryOrder" ADD CONSTRAINT "FactoryOrder_customerOrderId_fkey" FOREIGN KEY ("customerOrderId") REFERENCES "CustomerOrder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Order" ADD CONSTRAINT "Order_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "RejectedFactoryOrders" ADD CONSTRAINT "RejectedFactoryOrders_factoryOrderId_fkey" FOREIGN KEY ("factoryOrderId") REFERENCES "FactoryOrder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Order" ADD CONSTRAINT "Order_factoryId_fkey" FOREIGN KEY ("factoryId") REFERENCES "Factory"("factoryOwnerId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "RejectedFactoryOrders" ADD CONSTRAINT "RejectedFactoryOrders_factoryId_fkey" FOREIGN KEY ("factoryId") REFERENCES "Factory"("factoryOwnerId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FactoryOrderDetail" ADD CONSTRAINT "FactoryOrderDetail_factoryOrderId_fkey" FOREIGN KEY ("factoryOrderId") REFERENCES "FactoryOrder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_designId_fkey" FOREIGN KEY ("designId") REFERENCES "ProductDesign"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FactoryOrderDetail" ADD CONSTRAINT "FactoryOrderDetail_designId_fkey" FOREIGN KEY ("designId") REFERENCES "ProductDesign"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderProgressReport" ADD CONSTRAINT "OrderProgressReport_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FactoryOrderDetail" ADD CONSTRAINT "FactoryOrderDetail_orderDetailId_fkey" FOREIGN KEY ("orderDetailId") REFERENCES "CustomerOrderDetail"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "RejectedOrder" ADD CONSTRAINT "RejectedOrder_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "FactoryProgressReport" ADD CONSTRAINT "FactoryProgressReport_factoryOrderId_fkey" FOREIGN KEY ("factoryOrderId") REFERENCES "FactoryOrder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "RejectedOrder" ADD CONSTRAINT "RejectedOrder_factoryId_fkey" FOREIGN KEY ("factoryId") REFERENCES "Factory"("factoryOwnerId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "QualityIssue" ADD CONSTRAINT "QualityIssue_factoryOrderId_fkey" FOREIGN KEY ("factoryOrderId") REFERENCES "FactoryOrder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Task" ADD CONSTRAINT "Task_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Task" ADD CONSTRAINT "Task_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CartItems" ADD CONSTRAINT "CartItems_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "CheckQuality" ADD CONSTRAINT "CheckQuality_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CartItems" ADD CONSTRAINT "CartItems_designId_fkey" FOREIGN KEY ("designId") REFERENCES "ProductDesign"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "CheckQuality" ADD CONSTRAINT "CheckQuality_orderDetailId_fkey" FOREIGN KEY ("orderDetailId") REFERENCES "OrderDetail"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
