@@ -18,31 +18,31 @@ export class FactoryEntity {
     name: string
 
     @Field(() => String, { nullable: true })
-    description: string
+    description?: string
 
     @Field(() => String, { nullable: true })
-    businessLicenseUrl: string
+    businessLicenseUrl?: string
 
     @Field(() => String, { nullable: true })
-    taxIdentificationNumber: string
+    taxIdentificationNumber?: string
 
     @Field(() => AddressEntity, { nullable: true })
     address?: AddressEntity
 
     @Field(() => String, { nullable: true })
-    website: string
+    website?: string
 
     @Field(() => Date, { nullable: true })
-    establishedDate: Date
+    establishedDate?: Date
 
     @Field(() => Int, { nullable: true })
-    totalEmployees: number
+    totalEmployees?: number
 
     @Field(() => Int, { nullable: true })
-    maxPrintingCapacity: number
+    maxPrintingCapacity?: number
 
     @Field(() => String, { nullable: true })
-    qualityCertifications: string
+    qualityCertifications?: string
 
     @Field(() => [String])
     printingMethods: string[]
@@ -106,5 +106,15 @@ export class FactoryEntity {
 
     constructor(partial: Partial<FactoryEntity>) {
         Object.assign(this, partial)
+    }
+}
+
+@ObjectType()
+export class FactoryArrayEntity {
+    @Field(() => [FactoryEntity])
+    factories: FactoryEntity[]
+
+    constructor(factories: FactoryEntity[]) {
+        this.factories = factories
     }
 }

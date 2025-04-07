@@ -245,6 +245,7 @@ type FactoryProductEntity {
   systemConfigVariantId: String!
 }
 
+"""The status of the factory"""
 enum FactoryStatus {
   APPROVED
   PENDING_APPROVAL
@@ -281,6 +282,7 @@ type Mutation {
   acceptOrderForFactory(orderId: String!): OrderEntity!
   assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
+  changeFactoryStatus(data: UpdateFactoryStatusDto!): FactoryEntity!
   clearCart: Boolean!
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
@@ -369,8 +371,22 @@ type OrderDetailEntity {
   quantity: Int!
   rejectedQty: Int!
   reworkTime: Int!
-  status: String!
+  status: OrderDetailStatus!
   updatedAt: DateTime
+}
+
+enum OrderDetailStatus {
+  COMPLETED
+  DONE_CHECK_QUALITY
+  DONE_PRODUCTION
+  IN_PRODUCTION
+  PENDING
+  READY_FOR_SHIPPING
+  REWORK_DONE
+  REWORK_IN_PROGRESS
+  REWORK_REQUIRED
+  SHIPPED
+  WAITING_FOR_CHECKING_QUALITY
 }
 
 type OrderEntity {
@@ -405,7 +421,7 @@ type OrderEntity {
   rejectedHistory: [RejectedOrderEntity!]
   shippedAt: DateTime
   shippingPrice: Int!
-  status: String!
+  status: OrderStatus!
   tasks: [TaskEntity!]
   totalItems: Int!
   totalPrice: Int!
@@ -420,6 +436,24 @@ type OrderProgressReportEntity {
   order: OrderEntity
   orderId: String!
   reportDate: DateTime!
+}
+
+enum OrderStatus {
+  CANCELED
+  COMPLETED
+  IN_PRODUCTION
+  NEED_MANAGER_HANDLE
+  PAYMENT_RECEIVED
+  PENDING
+  PENDING_ACCEPTANCE
+  READY_FOR_SHIPPING
+  REJECTED
+  REWORK_IN_PROGRESS
+  REWORK_REQUIRED
+  SHIPPED
+  WAITING_FILL_INFORMATION
+  WAITING_FOR_CHECKING_QUALITY
+  WAITING_PAYMENT
 }
 
 type PaymentEntity {
@@ -515,6 +549,7 @@ type Query {
   distinctVariantAttributes(productId: String!): VariantAttributes!
   district(districtId: Int!): District!
   districts(provinceId: Int!): [District!]!
+  factoryOrders: [OrderEntity!]!
   factoryProduct(factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
   factoryProducts: [FactoryProductEntity!]!
   getAllFactories: [FactoryEntity!]!
@@ -543,6 +578,7 @@ type Query {
   products: [ProductEntity!]!
   province(provinceId: Int!): Province!
   provinces: [Province!]!
+  staffOrders: [OrderEntity!]!
   staffs: [UserEntity!]!
   systemConfigBank(id: ID!): SystemConfigBankEntity!
   systemConfigBanks: [SystemConfigBankEntity!]!
@@ -721,6 +757,11 @@ input UpdateFactoryProductInput {
   factoryId: String
   productionCapacity: Int
   systemConfigVariantId: String
+}
+
+input UpdateFactoryStatusDto {
+  factoryOwnerId: String!
+  status: FactoryStatus!
 }
 
 input UpdatePaymentTransactionInput {

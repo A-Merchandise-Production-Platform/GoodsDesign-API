@@ -191,17 +191,11 @@ export class OrdersService {
     });
   }
 
-  findAll() {
-    return this.prisma.order.findMany({
+  async findAll() {
+    const orders = await this.prisma.order.findMany({
       include: {
         address: true,
-        customer: {
-          select: {
-            imageUrl: true,
-            name: true,
-            email: true
-          }
-        },
+        customer: true,
         factory: {
           include: {
             owner: true,
@@ -215,14 +209,7 @@ export class OrdersService {
               include: {
                 task: {
                   include: {
-                    assignee: {
-                      select: {
-                        email: true,
-                        name: true,
-                        imageUrl: true,
-                        id: true
-                      }
-                    }
+                    assignee: true
                   }
                 }
               }
@@ -231,22 +218,12 @@ export class OrdersService {
               include: {
                 systemConfigVariant: {
                   include: {
-                    product: {
-                      select: {
-                        name: true,
-                        imageUrl: true
-                      }
-                    }
+                    product: true
                   }
                 },
                 designPositions: {
                   include: {
-                    positionType: {
-                      select: {
-                        positionName: true,
-                        basePrice: true
-                      }
-                    }
+                    positionType: true
                   }
                 }
               }
@@ -263,36 +240,20 @@ export class OrdersService {
           include: {
             factory: {
               include: {
-                owner: {
-                  select: {
-                    name: true,
-                    email: true,
-                    imageUrl: true
-                  }
-                },
-                address: {
-                  select: {
-                    wardCode: true,
-                    street: true,
-                    districtID: true,
-                    provinceID: true
-                  }
-                }
+                owner: true,
+                address: true
               }
             }
           }
         },
-        tasks: {
-          include: {
-            assignee: true
-          }
-        }
       }
     });
+
+    return orders.map(data => new OrderEntity(data))
   }
 
-  findByCustomerId(customerId: string) {
-    return this.prisma.order.findMany({
+  async findByCustomerId(customerId: string) {
+    const orders = await this.prisma.order.findMany({
       where: {
         customerId
       },
@@ -301,7 +262,9 @@ export class OrdersService {
         customer: true,
         factory: {
           include: {
-            owner: true
+            owner: true,
+            staff: true,
+            address: true
           }
         },
         orderDetails: {
@@ -310,14 +273,7 @@ export class OrdersService {
               include: {
                 task: {
                   include: {
-                    assignee: {
-                      select: {
-                        email: true,
-                        name: true,
-                        imageUrl: true,
-                        id: true
-                      }
-                    }
+                    assignee: true
                   }
                 }
               }
@@ -326,22 +282,12 @@ export class OrdersService {
               include: {
                 systemConfigVariant: {
                   include: {
-                    product: {
-                      select: {
-                        name: true,
-                        imageUrl: true
-                      }
-                    }
+                    product: true
                   }
                 },
                 designPositions: {
                   include: {
-                    positionType: {
-                      select: {
-                        positionName: true,
-                        basePrice: true
-                      }
-                    }
+                    positionType: true
                   }
                 }
               }
@@ -358,32 +304,153 @@ export class OrdersService {
           include: {
             factory: {
               include: {
-                owner: {
-                  select: {
-                    name: true,
-                    email: true,
-                    imageUrl: true
+                owner: true,
+                address: true
+              }
+            }
+          }
+        },
+      }
+    });
+    return orders.map(order => new OrderEntity(order));
+  }
+
+  async findByFactoryId(factoryId: string) {
+    const orders = await this.prisma.order.findMany({
+      where: {
+        factoryId
+      },
+      include: {
+        address: true,
+        customer: true,
+        factory: {
+          include: {
+            owner: true,
+            staff: true,
+            address: true
+          }
+        },
+        orderDetails: {
+          include: {
+            checkQualities: {
+              include: {
+                task: {
+                  include: {
+                    assignee: true
+                  }
+                }
+              }
+            },
+            design: {
+              include: {
+                systemConfigVariant: {
+                  include: {
+                    product: true
                   }
                 },
-                address: {
-                  select: {
-                    wardCode: true,
-                    street: true,
-                    districtID: true,
-                    provinceID: true
+                designPositions: {
+                  include: {
+                    positionType: true
                   }
                 }
               }
             }
           }
         },
+        orderProgressReports: true,
+        payments: {
+          include: {
+            transactions: true
+          }
+        },
+        rejectedHistory: {
+          include: {
+            factory: {
+              include: {
+                owner: true,
+                address: true
+              }
+            }
+          }
+        },
+      }
+    });
+    return orders.map(order => new OrderEntity(order));
+  }
+
+  async findByStaffId(staffId: string) {
+    const orders = await this.prisma.order.findMany({
+      where: {
         tasks: {
+          some: {
+            userId: staffId
+          }
+        }
+      },
+      include: {
+        address: true,
+        customer: true,
+        factory: {
+          include: {
+            owner: true,
+            staff: true,
+            address: true
+          }
+        },
+        orderDetails: {
+          include: {
+            checkQualities: {
+              include: {
+                task: {
+                  include: {
+                    assignee: true
+                  }
+                }
+              }
+            },
+            design: {
+              include: {
+                systemConfigVariant: {
+                  include: {
+                    product: true
+                  }
+                },
+                designPositions: {
+                  include: {
+                    positionType: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        orderProgressReports: true,
+        payments: {
+          include: {
+            transactions: true
+          }
+        },
+        rejectedHistory: {
+          include: {
+            factory: {
+              include: {
+                owner: true,
+                address: true
+              }
+            }
+          }
+        },
+        tasks: {
+          where: {
+            userId: staffId
+          },
           include: {
             assignee: true
           }
         }
       }
     });
+    return orders.map(order => new OrderEntity(order));
   }
 
   async findOne(id: string) {
@@ -694,102 +761,127 @@ export class OrdersService {
   ) {
     const now = new Date();
     
-    return this.prisma.$transaction(async (tx) => {
-      // Get the check quality with its task and order detail
-      const checkQuality = await tx.checkQuality.findUnique({
-        where: { id: checkQualityId },
-        include: {
-          task: true,
-          orderDetail: {
-            include: {
-              checkQualities: true,
-              order: {
-                include: {
-                  orderDetails: {
-                    include: {
-                      checkQualities: true
-                    }
-                  },
-                  tasks: true
-                }
+    // Get the check quality with its task and order detail
+    const checkQuality = await this.prisma.checkQuality.findUnique({
+      where: { id: checkQualityId },
+      include: {
+        task: true,
+        orderDetail: {
+          include: {
+            checkQualities: true,
+            order: {
+              include: {
+                orderDetails: {
+                  include: {
+                    checkQualities: true
+                  }
+                },
+                tasks: true
               }
             }
           }
         }
-      });
-
-      if (!checkQuality) {
-        throw new BadRequestException("Check quality record not found");
       }
+    });
 
-      if (checkQuality.task.userId !== staffId) {
-        throw new BadRequestException("This task is not assigned to you");
+    if (!checkQuality) {
+      throw new BadRequestException("Check quality record not found");
+    }
+
+    if (checkQuality.task.userId !== staffId) {
+      throw new BadRequestException("This task is not assigned to you");
+    }
+
+    if (checkQuality.status !== QualityCheckStatus.PENDING) {
+      throw new BadRequestException("This quality check is not in PENDING status");
+    }
+
+    // Validate quantities
+    if (passedQuantity + failedQuantity > checkQuality.orderDetail.quantity) {
+      throw new BadRequestException("Total checked quantity exceeds order detail quantity");
+    }
+
+    // Update check quality
+    const updatedCheckQuality = await this.prisma.checkQuality.update({
+      where: { id: checkQualityId },
+      data: {
+        totalChecked: passedQuantity + failedQuantity,
+        passedQuantity,
+        failedQuantity,
+        status: failedQuantity > 0 ? QualityCheckStatus.REJECTED : QualityCheckStatus.APPROVED,
+        note,
+        imageUrls: imageUrls || [],
+        checkedAt: now,
+        checkedBy: staffId
       }
+    });
 
-      if (checkQuality.status !== QualityCheckStatus.PENDING) {
-        throw new BadRequestException("This quality check is not in PENDING status");
+    // Update task status to COMPLETED
+    await this.prisma.task.update({
+      where: { id: checkQuality.taskId },
+      data: {
+        status: TaskStatus.COMPLETED,
+        completedDate: now
       }
+    });
 
-      // Validate quantities
-      if (passedQuantity + failedQuantity > checkQuality.orderDetail.quantity) {
-        throw new BadRequestException("Total checked quantity exceeds order detail quantity");
+    // Create progress report
+    await this.prisma.orderProgressReport.create({
+      data: {
+        orderId: checkQuality.orderDetail.order.id,
+        reportDate: now,
+        note: `Quality check completed for order detail ${checkQuality.orderDetailId}. Passed: ${passedQuantity}, Failed: ${failedQuantity}`,
+        imageUrls: imageUrls || []
       }
+    });
 
-      // Update check quality
-      const updatedCheckQuality = await tx.checkQuality.update({
-        where: { id: checkQualityId },
-        data: {
-          totalChecked: passedQuantity + failedQuantity,
-          passedQuantity,
-          failedQuantity,
-          status: failedQuantity > 0 ? QualityCheckStatus.REJECTED : QualityCheckStatus.APPROVED,
-          note,
-          imageUrls: imageUrls || [],
-          checkedAt: now,
-          checkedBy: staffId
-        }
-      });
+    // Update current order detail status based on check result
+    await this.prisma.orderDetail.update({
+      where: { id: checkQuality.orderDetailId },
+      data: {
+        status: failedQuantity > 0 ? OrderDetailStatus.REWORK_REQUIRED : OrderDetailStatus.DONE_CHECK_QUALITY
+      }
+    });
 
-      // Update task status to COMPLETED
-      await tx.task.update({
-        where: { id: checkQuality.taskId },
-        data: {
-          status: TaskStatus.COMPLETED,
-          completedDate: now
-        }
-      });
+    // Check if all order details have been checked
+    const allDetailsChecked = checkQuality.orderDetail.order.orderDetails.every(
+      detail => {
+        const detailCheckQualities = detail.checkQualities || [];
+        return detailCheckQualities.some(
+          check => {
+            //if current check, skip
+            if(check.id === checkQualityId) {
+              return true;
+            }
+            console.log("status", check.status, detail.checkQualities)
+            return check.status !== QualityCheckStatus.PENDING
+          }
+        );
+      }
+    );
 
-      // Create progress report
-      await tx.orderProgressReport.create({
-        data: {
-          orderId: checkQuality.orderDetail.order.id,
-          reportDate: now,
-          note: `Quality check completed for order detail ${checkQuality.orderDetailId}. Passed: ${passedQuantity}, Failed: ${failedQuantity}`,
-          imageUrls: imageUrls || []
-        }
-      });
+    console.log("allDetailsChecked", allDetailsChecked)
 
-      // Check if all order details have been checked
-      const allDetailsChecked = checkQuality.orderDetail.order.orderDetails.every(
-        detail => {
-          const detailCheckQualities = detail.checkQualities || [];
-          return detailCheckQualities.some(
-            check => check.status !== QualityCheckStatus.PENDING
-          );
-        }
-      );
+    if (allDetailsChecked) {
+      let hasFailedChecks: boolean = false
+      // Check if any order details failed quality check
+      if(failedQuantity > 0){
+        hasFailedChecks = true
+      } else {
+        const order = await this.prisma.order.findFirst({
+          where: {
+            id: checkQuality.orderDetail.order.id
+          },
+          include: {
+            orderDetails: {
+              include: {
+                checkQualities: true
+              }
+            }
+          }
+        })
 
-      // Update current order detail status based on check result
-      await tx.orderDetail.update({
-        where: { id: checkQuality.orderDetailId },
-        data: {
-          status: failedQuantity > 0 ? OrderDetailStatus.REWORK_REQUIRED : OrderDetailStatus.DONE_CHECK_QUALITY
-        }
-      });
-
-      if (allDetailsChecked) {
-        // Check if any order details failed quality check
-        const hasFailedChecks = checkQuality.orderDetail.order.orderDetails.some(
+        hasFailedChecks = order.orderDetails.some(
           detail => {
             const detailCheckQualities = detail.checkQualities || [];
             return detailCheckQualities.some(
@@ -797,68 +889,70 @@ export class OrdersService {
             );
           }
         );
-
-        if (hasFailedChecks) {
-          // Update failed order details to REWORK_REQUIRED
-          await tx.orderDetail.updateMany({
-            where: {
-              orderId: checkQuality.orderDetail.order.id,
-              checkQualities: {
-                some: {
-                  status: QualityCheckStatus.REJECTED
-                }
-              }
-            },
-            data: {
-              status: OrderDetailStatus.REWORK_REQUIRED
-            }
-          });
-
-          // Update order status to REWORK_REQUIRED
-          await tx.order.update({
-            where: { id: checkQuality.orderDetail.order.id },
-            data: {
-              status: OrderStatus.REWORK_REQUIRED,
-              orderProgressReports: {
-                create: {
-                  reportDate: now,
-                  note: "Some items failed quality check. Rework required.",
-                  imageUrls: []
-                }
-              }
-            }
-          });
-        } else {
-          // Update all order details to READY_FOR_SHIPPING
-          await tx.orderDetail.updateMany({
-            where: {
-              orderId: checkQuality.orderDetail.order.id
-            },
-            data: {
-              status: OrderDetailStatus.READY_FOR_SHIPPING
-            }
-          });
-
-          // Update order status to READY_FOR_SHIPPING
-          await tx.order.update({
-            where: { id: checkQuality.orderDetail.order.id },
-            data: {
-              status: OrderStatus.READY_FOR_SHIPPING,
-              doneCheckQualityAt: now,
-              orderProgressReports: {
-                create: {
-                  reportDate: now,
-                  note: "All items passed quality check. Ready for shipping.",
-                  imageUrls: []
-                }
-              }
-            }
-          });
-        }
       }
 
-      return updatedCheckQuality;
-    });
+      console.log("hasFailedChecks", hasFailedChecks)
+
+      if (!hasFailedChecks) {
+        // Update failed order details to REWORK_REQUIRED
+        await this.prisma.orderDetail.updateMany({
+          where: {
+            orderId: checkQuality.orderDetail.order.id,
+            checkQualities: {
+              some: {
+                status: QualityCheckStatus.REJECTED
+              }
+            }
+          },
+          data: {
+            status: OrderDetailStatus.REWORK_REQUIRED
+          }
+        });
+
+        // Update order status to REWORK_REQUIRED
+        await this.prisma.order.update({
+          where: { id: checkQuality.orderDetail.order.id },
+          data: {
+            status: OrderStatus.REWORK_REQUIRED,
+            orderProgressReports: {
+              create: {
+                reportDate: now,
+                note: "Some items failed quality check. Rework required.",
+                imageUrls: []
+              }
+            }
+          }
+        });
+      } else {
+        // Update all order details to READY_FOR_SHIPPING
+        await this.prisma.orderDetail.updateMany({
+          where: {
+            orderId: checkQuality.orderDetail.order.id
+          },
+          data: {
+            status: OrderDetailStatus.READY_FOR_SHIPPING
+          }
+        });
+
+        // Update order status to READY_FOR_SHIPPING
+        await this.prisma.order.update({
+          where: { id: checkQuality.orderDetail.order.id },
+          data: {
+            status: OrderStatus.READY_FOR_SHIPPING,
+            doneCheckQualityAt: now,
+            orderProgressReports: {
+              create: {
+                reportDate: now,
+                note: "All items passed quality check. Ready for shipping.",
+                imageUrls: []
+              }
+            }
+          }
+        });
+      }
+    }
+
+    return updatedCheckQuality;
   }
 
   async startRework(orderId: string, factoryId: string) {
