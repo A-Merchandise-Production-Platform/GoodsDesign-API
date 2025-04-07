@@ -195,6 +195,14 @@ type District {
   provinceId: Int!
 }
 
+input DoneCheckQualityInput {
+  checkQualityId: String!
+  failedQuantity: Int!
+  imageUrls: [String!]
+  note: String
+  passedQuantity: Int!
+}
+
 type FactoryEntity {
   address: AddressEntity
   businessLicenseUrl: String
@@ -244,6 +252,11 @@ enum FactoryStatus {
   SUSPENDED
 }
 
+input FeedbackOrderInput {
+  rating: Int!
+  ratingComment: String
+}
+
 type FileUploadResponse {
   url: String!
 }
@@ -291,7 +304,11 @@ type Mutation {
   deleteFile(fileUrl: String!): Boolean!
   deleteProduct(id: String!): ProductEntity!
   deleteUser(id: String!): UserEntity!
+  doneCheckQuality(input: DoneCheckQualityInput!): CheckQualityEntity!
+  doneProductionOrderDetails(orderDetailId: String!): OrderDetailEntity!
+  doneReworkForOrderDetails(orderDetailId: String!): OrderDetailEntity!
   duplicateProductDesign(id: ID!): ProductDesignEntity!
+  feedbackOrder(input: FeedbackOrderInput!, orderId: String!): OrderEntity!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
   markNotificationAsRead(id: String!): NotificationEntity!
@@ -306,6 +323,8 @@ type Mutation {
   restoreCategory(id: String!): CategoryEntity!
   restoreProduct(id: String!): ProductEntity!
   sendEmail(to: String!): Boolean!
+  shippedOrder(orderId: String!): OrderEntity!
+  startRework(orderId: String!): OrderEntity!
   toggleActiveCategory(id: String!): CategoryEntity!
   toggleActiveProduct(id: String!): ProductEntity!
   updateAddress(id: String!, updateAddressInput: UpdateAddressInput!): AddressEntity!
