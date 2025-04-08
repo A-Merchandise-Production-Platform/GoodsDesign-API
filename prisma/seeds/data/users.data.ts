@@ -95,6 +95,23 @@ export const usersData: UsersData = {
       }
     },
     {
+      id: "staff-id-1",
+      email: "staff1@gmail.com",
+      name: "Staff 1",
+      phoneNumber: "0902331633",
+      gender: true,
+      dateOfBirth: "1990-01-01",
+      imageUrl: "https://avatar.iran.liara.run/public/boy",
+      isActive: true,
+      role: Roles.STAFF,
+      address: {
+        provinceID: 202,
+        districtID: 1533,
+        wardCode: "22003",
+        street: "2089 Ấp 2"
+      }
+    },
+    {
       id: "factory-id",
       email: "factory@gmail.com",
       name: "Factory",

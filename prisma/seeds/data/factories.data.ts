@@ -98,5 +98,6 @@ export const factoriesData = [
 
         // Contract
         contract: null,
+        staffId: "staff-id-1"
     }
 ]
