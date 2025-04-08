@@ -29,6 +29,25 @@ export class OrdersResolver {
     return this.ordersService.findAll();
   }
 
+  @Query(() => [OrderEntity], { name: 'myOrders' })
+  @UseGuards(GraphqlJwtAuthGuard)
+  findMyOrders(@CurrentUser() user: UserEntity) {
+    console.log("user", user)
+    return this.ordersService.findByCustomerId(user.id);
+  }
+
+  @Query(() => [OrderEntity], { name: 'factoryOrders' })
+  @UseGuards(GraphqlJwtAuthGuard)
+  findFactoryOrders(@CurrentUser() user: UserEntity) {
+    return this.ordersService.findByFactoryId(user.id);
+  }
+
+  @Query(() => [OrderEntity], { name: 'staffOrders' })
+  @UseGuards(GraphqlJwtAuthGuard)
+  findStaffOrders(@CurrentUser() user: UserEntity) {
+    return this.ordersService.findByStaffId(user.id);
+  }
+
   @Query(() => OrderEntity, { name: 'order' })
   findOne(@Args('id', { type: () => String }) id: string) {
     return this.ordersService.findOne(id);

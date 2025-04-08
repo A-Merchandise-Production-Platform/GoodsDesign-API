@@ -25,7 +25,7 @@ export class OrderDetailEntity {
     @Field(() => Int)
     quantity: number;
 
-    @Field(() => String)
+    @Field(() => OrderDetailStatus)
     status: OrderDetailStatus;
 
     @Field(() => Int)

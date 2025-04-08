@@ -24,7 +24,7 @@ export class OrderEntity {
     @Field(() => String, { nullable: true })
     factoryId?: string;
 
-    @Field(() => String)
+    @Field(() => OrderStatus)
     status: OrderStatus;
 
     @Field(() => Int)
