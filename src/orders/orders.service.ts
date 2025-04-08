@@ -110,12 +110,23 @@ export class OrdersService {
       const estimatedDoneProductionAt = new Date(now.getTime() + systemConfig.shippingDays * 24 * 60 * 60 * 1000);
       const estimatedCompletionAt = new Date(now.getTime() + (systemConfig.shippingDays + 2) * 24 * 60 * 60 * 1000);
 
+      // TODO: get address id from user
+      const user = await tx.user.findUnique({
+        where: {
+          id: userId
+        },
+        include: {
+          addresses: true
+        }
+      })
       // Create the order
       const order = await tx.order.create({
         data: {
           customerId: userId,
           status: OrderStatus.PENDING,
           totalPrice: totalOrderPrice,
+          // TODO: get address id from user
+          addressId: user.addresses[0].id,
           shippingPrice: 0,
           orderDate: now,
           totalItems: cartItems.length,
