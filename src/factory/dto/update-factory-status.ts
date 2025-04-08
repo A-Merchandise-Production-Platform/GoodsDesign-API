@@ -18,4 +18,9 @@ export class UpdateFactoryStatusDto {
     @IsNotEmpty()
     @IsString()
     factoryOwnerId: string
+
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    staffId: string
 }

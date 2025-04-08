@@ -5,11 +5,7 @@ import {
     Logger,
     NotFoundException
 } from "@nestjs/common"
-import {
-    FactoryStatus,
-    OrderStatus,
-    Roles
-} from "@prisma/client"
+import { FactoryStatus, OrderStatus, Roles } from "@prisma/client"
 import { AddressesService } from "src/addresses/addresses.service"
 import { AddressEntity } from "src/addresses/entities/address.entity"
 import { UpdateFactoryStatusDto } from "src/factory/dto/update-factory-status"
@@ -20,6 +16,7 @@ import { PrismaService } from "../prisma/prisma.service"
 import { UpdateFactoryInfoDto } from "./dto/update-factory-info.dto"
 import { FactoryProductEntity } from "src/factory-products/entities/factory-product.entity"
 import { FactoryProductsService } from "src/factory-products/factory-products.service"
+import { MAIL_CONSTANT, MailService } from "src/mail"
 
 @Injectable()
 export class FactoryService {
@@ -29,7 +26,8 @@ export class FactoryService {
         private prisma: PrismaService,
         private notificationsService: NotificationsService,
         private addressesService: AddressesService,
-        private factoryProductsService: FactoryProductsService
+        private factoryProductsService: FactoryProductsService,
+        private mailService: MailService
     ) {}
 
     async getAllFactories() {
@@ -177,7 +175,7 @@ export class FactoryService {
                         factoryId: userId,
                         systemConfigVariantId: variantId,
                         productionCapacity: updatedFactory.maxPrintingCapacity,
-                        estimatedProductionTime: updatedFactory.leadTime || 1
+                        productionTimeInMinutes: updatedFactory.leadTime || 1
                     })
                 }
             }
@@ -323,13 +321,35 @@ export class FactoryService {
 
         const factory = await this.prisma.factory.update({
             where: { factoryOwnerId: dto.factoryOwnerId },
-            data: { factoryStatus: dto.status }
+            data: { factoryStatus: dto.status },
+            include: { owner: true }
         })
 
         await this.notificationsService.create({
             title: "Factory Status Changed",
             content: this.getMessageForFactoryStatusChange(dto.status),
             userId: dto.factoryOwnerId
+        })
+
+        await this.assignStaffToFactory(dto.factoryOwnerId, dto.staffId, user)
+
+        this.mailService.sendSingleEmail({
+            from: MAIL_CONSTANT.FROM_EMAIL,
+            to: factory.owner.email,
+            subject: "Factory Status Changed",
+            html: this.getMessageForFactoryStatusChange(dto.status)
+        })
+
+        await this.notificationsService.create({
+            title: "Factory Status Changed",
+            content: `Your factory status has been changed to ${dto.status}`,
+            userId: factory.owner.id
+        })
+
+        await this.notificationsService.create({
+            title: "Factory Status Changed",
+            content: `You have been assigned to a factory ${factory.name}`,
+            userId: dto.staffId
         })
 
         return new FactoryEntity(factory)
@@ -378,5 +398,4 @@ export class FactoryService {
             staff: new UserEntity(factory.staff)
         })
     }
-
 }

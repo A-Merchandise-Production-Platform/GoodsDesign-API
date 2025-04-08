@@ -48,4 +48,9 @@ export class UsersResolver {
     async deleteUser(@CurrentUser() user: UserEntity, @Args("id") id: string) {
         return this.usersService.remove(id, user)
     }
+
+    @Query(() => [UserEntity], { name: "availableStaffForFactory" })
+    async getAvailableStaffForFactory(@CurrentUser() user: UserEntity) {
+        return this.usersService.getAvailableStaffForFactory(user)
+    }
 }

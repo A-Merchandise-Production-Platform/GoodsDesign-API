@@ -12,6 +12,7 @@ import { UserEntity } from "../users/entities/users.entity"
 import { LoginDto } from "./dto/login.dto"
 import { RefreshTokenDto } from "./dto/refresh-token.dto"
 import { RegisterDto } from "./dto/register.dto"
+import { MAIL_CONSTANT, MailService } from "src/mail"
 
 @Injectable()
 export class AuthService {
@@ -19,7 +20,8 @@ export class AuthService {
         private prisma: PrismaService,
         private jwtService: JwtService,
         private redisService: RedisService,
-        private notificationsService: NotificationsService
+        private notificationsService: NotificationsService,
+        private mailService: MailService
     ) {}
 
     async validateUser(email: string, password: string): Promise<UserEntity> {
@@ -122,6 +124,13 @@ export class AuthService {
                 title: "Factory created",
                 content: `Factory ${factory.name} created successfully, update your factory profile for approval by admin`,
                 userId: user.id
+            })
+
+            this.mailService.sendSingleEmail({
+                from: MAIL_CONSTANT.FROM_EMAIL,
+                to: user.email,
+                subject: "Factory created",
+                html: `Factory ${factory.name} created successfully, update your factory profile for approval by admin`
             })
 
             return new AuthResponseDto(

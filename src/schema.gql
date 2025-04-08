@@ -98,9 +98,9 @@ input CreateCategoryDto {
 }
 
 input CreateFactoryProductInput {
-  estimatedProductionTime: Int!
   factoryId: String!
   productionCapacity: Int!
+  productionTimeInMinutes: Int!
   systemConfigVariantId: String!
 }
 
@@ -245,6 +245,7 @@ type FactoryProductEntity {
   systemConfigVariantId: String!
 }
 
+"""The status of the factory"""
 enum FactoryStatus {
   APPROVED
   PENDING_APPROVAL
@@ -281,6 +282,7 @@ type Mutation {
   acceptOrderForFactory(orderId: String!): OrderEntity!
   assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
+  changeFactoryStatus(data: UpdateFactoryStatusDto!): FactoryEntity!
   clearCart: Boolean!
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
@@ -514,6 +516,7 @@ type Query {
   address(id: String!): AddressEntity!
   addresses: [AddressEntity!]!
   availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
+  availableStaffForFactory: [UserEntity!]!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
   designPosition(designId: ID!, productPositionTypeId: ID!): DesignPositionEntity!
@@ -721,10 +724,16 @@ input UpdateFactoryInfoDto {
 }
 
 input UpdateFactoryProductInput {
-  estimatedProductionTime: Int
   factoryId: String
   productionCapacity: Int
+  productionTimeInMinutes: Int
   systemConfigVariantId: String
+}
+
+input UpdateFactoryStatusDto {
+  factoryOwnerId: String!
+  staffId: String!
+  status: FactoryStatus!
 }
 
 input UpdatePaymentTransactionInput {

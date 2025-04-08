@@ -12,5 +12,5 @@ export class CreateFactoryProductInput {
     productionCapacity: number
 
     @Field(() => Int)
-    estimatedProductionTime: number
+    productionTimeInMinutes: number
 }

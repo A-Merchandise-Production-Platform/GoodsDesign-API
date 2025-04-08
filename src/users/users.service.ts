@@ -8,6 +8,7 @@ import { PrismaService } from "../prisma/prisma.service"
 import { getRolesBelowOrEqual } from "../utils/role.utils"
 import { CreateUserDto, UpdateUserDto } from "./dto"
 import { UserEntity } from "./entities/users.entity"
+import { Roles } from "@prisma/client"
 
 @Injectable()
 export class UsersService {
@@ -148,5 +149,22 @@ export class UsersService {
         })
 
         return this.toUserEntity(deletedUser)
+    }
+
+    async getAvailableStaffForFactory(user: UserEntity) {
+        if (!user || (user.role !== Roles.MANAGER && user.role !== Roles.ADMIN)) {
+            throw new ForbiddenException("You are not authorized to access this resource")
+        }
+
+        const staff = await this.prisma.user.findMany({
+            where: {
+                role: Roles.STAFF,
+                isActive: true,
+                isDeleted: false,
+                staffedFactory: null
+            }
+        })
+
+        return staff.map((staff) => this.toUserEntity(staff))
     }
 }
