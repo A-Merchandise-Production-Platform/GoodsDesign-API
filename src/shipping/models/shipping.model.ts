@@ -56,3 +56,59 @@ export class ShippingFee {
   // @Field(() => String)
   // serviceName: string;
 }
+
+@ObjectType()
+export class ShippingOrderFee {
+  @Field(() => Int, { nullable: true })
+  coupon: number;
+
+  @Field(() => Int, { nullable: true })
+  insurance: number;
+
+  @Field(() => Int, { nullable: true })
+  main_service: number;
+
+  @Field(() => Int, { nullable: true })
+  r2s: number;
+
+  @Field(() => Int, { nullable: true })
+  return: number;
+
+  @Field(() => Int, { nullable: true })
+  station_do: number;
+
+  @Field(() => Int, { nullable: true })
+  station_pu: number;
+}
+
+@ObjectType()
+export class ShippingOrder {
+  @Field(() => String, { nullable: true })
+  orderCode?: string;
+
+  @Field(() => String, { nullable: true })
+  sortCode?: string;
+
+  @Field(() => String, { nullable: true })
+  transType?: string;
+
+  @Field(() => String, { nullable: true })
+  wardEncode?: string;
+
+  @Field(() => String, { nullable: true })
+  districtEncode?: string;
+
+  @Field(() => String, { nullable: true })
+  expectedDeliveryTime?: string;
+
+  @Field(() => String, { nullable: true })
+  totalFee?: string;
+  @Field(() => ShippingOrderFee, { nullable: true })
+  fee?: ShippingOrderFee;
+
+  @Field(() => String, { nullable: true })
+  message?: string;
+
+  @Field(() => Int, { nullable: true })
+  code?: number;
+}

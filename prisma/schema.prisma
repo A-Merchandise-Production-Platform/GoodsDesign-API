@@ -563,10 +563,9 @@ model SystemConfigOrder {
   maxProductionCapacity Int @default(1000)
   
   // Factory scoring weights
-  capacityScoreWeight Float @default(0.2)
+  capacityScoreWeight Float @default(0.25)
   leadTimeScoreWeight Float @default(0.15)
   specializationScoreWeight Float @default(0.15)
   legitPointScoreWeight Float @default(0.25)
-  operationalHoursScoreWeight Float @default(0.15)
-  productionCapacityScoreWeight Float @default(0.1)
+  productionCapacityScoreWeight Float @default(0.2)
 }

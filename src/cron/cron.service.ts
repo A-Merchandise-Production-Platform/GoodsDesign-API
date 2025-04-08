@@ -316,9 +316,21 @@ export class CronService {
                       }
                   })
 
+                  console.log('Debug factory scoring:', {
+                      factoryId: factory.factoryOwnerId,
+                      factoryName: factory.name,
+                      activeOrders,
+                  })
+
                   // Calculate capacity availability (as a percentage)
                   const totalCapacity = factory.maxPrintingCapacity
                   const capacityScore = Math.max(0, (totalCapacity - activeOrders * 50) / totalCapacity)
+                  
+                  console.log('Capacity score:', {
+                      totalCapacity,
+                      activeOrders,
+                      capacityScore
+                  })
 
                   // Check if factory can handle all variants
                   const canHandleAllVariants = variantIds.every((variantId) =>
@@ -326,40 +338,74 @@ export class CronService {
                   )
 
                   if (!canHandleAllVariants) {
+                      console.log('Factory cannot handle all variants')
                       return { factory, score: 0 }
                   }
 
                   // Calculate lead time score (shorter is better)
                   const leadTimeScore = factory.leadTime ? 1 / factory.leadTime : 0
+                  console.log('Lead time score:', {
+                      leadTime: factory.leadTime,
+                      leadTimeScore
+                  })
 
-                  // Calculate specialization score (if factory specializes in these products)
+                  // Calculate specialization score
                   const specializationScore = this.calculateSpecializationScore(factory, variantIds, systemConfig)
+                  console.log('Specialization score:', {
+                      specializationScore
+                  })
 
                   // Calculate legitimacy points score
-                  // Normalize the score between 0 and 1, where higher legitPoint means higher score
                   const maxLegitPoint = (systemConfig as any).maxLegitPoint || 100
                   const legitPointScore = Math.min(1, factory.legitPoint / maxLegitPoint)
+                  console.log('Legitimacy score:', {
+                      legitPoint: factory.legitPoint,
+                      maxLegitPoint,
+                      legitPointScore
+                  })
 
-                  // Calculate operational hours score
-                  // Higher operational hours means more availability
-                  const operationalHoursScore = this.calculateOperationalHoursScore(factory.operationalHours)
-
-                  // Calculate production capacity score based on factory products
+                  // Calculate production capacity score
                   const productionCapacityScore = this.calculateProductionCapacityScore(factory, variantIds, systemConfig)
+                  console.log('Production capacity score:', {
+                      productionCapacityScore
+                  })
 
-                  // Calculate final score (weighted combination)
-                  // Using weights from system configuration with fallbacks
+                  // Get weights from system config with fallbacks
+                  const weights = {
+                      capacity: (systemConfig as any)?.capacityScoreWeight || 0.2,
+                      leadTime: (systemConfig as any)?.leadTimeScoreWeight || 0.15,
+                      specialization: (systemConfig as any)?.specializationScoreWeight || 0.15,
+                      legitPoint: (systemConfig as any)?.legitPointScoreWeight || 0.25,
+                      productionCapacity: (systemConfig as any)?.productionCapacityScoreWeight || 0.1
+                  }
+                  console.log('Weights:', weights)
+
+                  // Calculate final score
                   const finalScore = 
-                      capacityScore * (systemConfig?.capacityScoreWeight || 0.2) + 
-                      leadTimeScore * (systemConfig?.leadTimeScoreWeight || 0.15) + 
-                      specializationScore * (systemConfig?.specializationScoreWeight || 0.15) + 
-                      legitPointScore * (systemConfig?.legitPointScoreWeight || 0.25) + 
-                      operationalHoursScore * (systemConfig?.operationalHoursScoreWeight || 0.15) + 
-                      productionCapacityScore * (systemConfig?.productionCapacityScoreWeight || 0.1)
+                      capacityScore * weights.capacity + 
+                      leadTimeScore * weights.leadTime + 
+                      specializationScore * weights.specialization + 
+                      legitPointScore * weights.legitPoint + 
+                      productionCapacityScore * weights.productionCapacity
+
+                  console.log('Final score components:', {
+                      capacityComponent: capacityScore * weights.capacity,
+                      leadTimeComponent: leadTimeScore * weights.leadTime,
+                      specializationComponent: specializationScore * weights.specialization,
+                      legitPointComponent: legitPointScore * weights.legitPoint,
+                      productionCapacityComponent: productionCapacityScore * weights.productionCapacity,
+                      finalScore
+                  })
 
                   return { factory, score: finalScore }
               })
           )
+
+          console.log('Final factory scores:', factoryScores.map(fs => ({
+              factoryId: fs.factory.factoryOwnerId,
+              factoryName: fs.factory.name,
+              score: fs.score
+          })))
 
           // Sort by score (highest first)
           factoryScores.sort((a, b) => b.score - a.score)
@@ -404,31 +450,6 @@ export class CronService {
       } catch (error) {
           this.logger.error(`Error calculating specialization score: ${error.message}`)
           return 0
-      }
-  }
-
-  private calculateOperationalHoursScore(operationalHours: string): number {
-      try {
-          // Parse operational hours (format: "HH:MM-HH:MM")
-          const [startTime, endTime] = operationalHours.split('-')
-          if (!startTime || !endTime) return 0.5 // Default score if format is invalid
-
-          // Convert to hours
-          const [startHour, startMinute] = startTime.split(':').map(Number)
-          const [endHour, endMinute] = endTime.split(':').map(Number)
-
-          // Calculate total operational hours
-          let totalHours = endHour - startHour
-          if (endMinute < startMinute) {
-              totalHours -= 1
-          }
-
-          // Normalize score (higher hours = higher score)
-          // Assuming 24 hours is the maximum
-          return Math.min(1, totalHours / 24)
-      } catch (error) {
-          this.logger.error(`Error calculating operational hours score: ${error.message}`)
-          return 0.5 // Default score on error
       }
   }
 

@@ -162,7 +162,7 @@ export class OrdersService {
             expiredTime: estimatedCheckQualityAt,
             taskType: TaskType.QUALITY_CHECK,
             orderId: order.id,
-            status: TaskStatus.PENDING
+            status: TaskStatus.PENDING,
           }
         });
 
@@ -523,7 +523,8 @@ export class OrdersService {
       const order = await tx.order.findUnique({
         where: { id: orderId },
         include: {
-          orderDetails: true
+          orderDetails: true,
+          factory: true
         }
       });
 
@@ -558,6 +559,14 @@ export class OrdersService {
           orderDetails: true
         }
       });
+
+      // update task staff id to factory staff id
+      await tx.task.updateMany({
+        where: {
+          orderId: orderId
+        },
+        data: { userId: order.factory.staffId }
+      })
 
       // Update all order details status
       await tx.orderDetail.updateMany({
@@ -895,7 +904,7 @@ export class OrdersService {
 
       console.log("hasFailedChecks", hasFailedChecks)
 
-      if (!hasFailedChecks) {
+      if (hasFailedChecks) {
         // Update failed order details to REWORK_REQUIRED
         await this.prisma.orderDetail.updateMany({
           where: {
