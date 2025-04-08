@@ -296,7 +296,7 @@ type Mutation {
   createProduct(input: CreateProductDto!): ProductEntity!
   createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
-  createShippingOrder: ShippingOrder!
+  createShippingOrder(orderId: String!): ShippingOrder!
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
   createSystemConfigVariant(createSystemConfigVariantInput: CreateSystemConfigVariantInput!): SystemConfigVariantEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!

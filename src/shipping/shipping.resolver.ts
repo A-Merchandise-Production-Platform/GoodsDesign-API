@@ -59,7 +59,7 @@ export class ShippingResolver {
   }
 
   @Mutation(() => ShippingOrder)
-  async createShippingOrder() {
-    return this.shippingService.createShippingOrder();
+  async createShippingOrder(@Args('orderId', { type: () => String }) orderId: string) {
+    return this.shippingService.createShippingOrder(orderId);
   }
 } 
