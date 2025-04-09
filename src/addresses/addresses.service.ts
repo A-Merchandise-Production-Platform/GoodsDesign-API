@@ -6,10 +6,16 @@ import { AddressEntity } from "src/addresses/entities/address.entity"
 import { FactoryEntity } from "src/factory/entities/factory.entity"
 import { PrismaService } from "src/prisma"
 import { UserEntity } from "src/users"
+import { FormatAddressInput } from "./dto/format-address.input"
+import { FormattedAddressModel } from "./models/formatted-address.model"
+import { ShippingService } from "src/shipping/shipping.service"
 
 @Injectable()
 export class AddressesService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly shippingService: ShippingService
+    ) {}
 
     private validateUser(user: UserEntity) {
         if (!user) {
@@ -90,5 +96,23 @@ export class AddressesService {
             include: this.getAddressInclude()
         })
         return this.transformAddress(address)
+    }
+
+    async formatAddress(formatAddressInput: FormatAddressInput): Promise<FormattedAddressModel> {
+        try {
+            // Get province, district, and ward names
+            const province = await this.shippingService.getProvince(formatAddressInput.provinceID)
+            const district = await this.shippingService.getDistrict(formatAddressInput.districtID)
+            const ward = await this.shippingService.getWard(formatAddressInput.wardCode)
+
+            // Format the full address text
+            const addressText = `${formatAddressInput.street}, ${ward.wardName}, ${district.districtName}, ${province.provinceName}`
+
+            return {
+                text: addressText
+            }
+        } catch (error) {
+            throw new NotFoundException(`Failed to format address: ${error.message}`)
+        }
     }
 }
