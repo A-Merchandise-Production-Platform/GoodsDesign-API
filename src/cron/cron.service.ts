@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { FactoryStatus, OrderStatus, TaskStatus, TaskType } from '@prisma/client';
+import { FactoryStatus, OrderStatus, PaymentStatus, TaskStatus, TaskType } from '@prisma/client';
 import { FactoryProductEntity } from 'src/factory-products/entities/factory-product.entity';
 import { FactoryEntity } from 'src/factory/entities/factory.entity';
 import { FactoryService } from 'src/factory/factory.service';
@@ -31,6 +31,55 @@ export class CronService {
   async checkPaymentReceivedOrderForAssignIntoFactoryCRON() {
     await this.checkPaymentReceivedOrderForAssignIntoFactory()
   }
+
+  @Cron(CronExpression.EVERY_SECOND, {
+    name: "checkFirstPaymentToChangeStatusOfOrderIntoPaymentReceived"
+  })
+  async checkFirstPaymentToChangeStatusOfOrderIntoPaymentReceivedCRON() {
+    await this.checkFirstPaymentToChangeStatusOfOrderIntoPaymentReceived()
+  }
+
+  public async checkFirstPaymentToChangeStatusOfOrderIntoPaymentReceived(): Promise<void> {
+    try {
+      this.logger.verbose("Running cron job: checkFirstPaymentToChangeStatusOfOrderIntoPaymentReceived")
+
+      // Get system configuration
+      //get all orders with status PENDING
+      const orders = await this.prisma.order.findMany({
+        where: {
+          status: OrderStatus.PENDING
+        }
+      }) 
+
+      for (const order of orders) {
+        const payment = await this.prisma.payment.findMany({
+          where: {
+            orderId: order.id,
+          }
+        })
+
+        if (payment.length == 1){
+          //check if payment is success
+          if (payment[0].status == PaymentStatus.COMPLETED){
+            await this.prisma.order.update({
+              where: { id: order.id },
+              data: {
+                status: OrderStatus.PAYMENT_RECEIVED
+              }
+            })
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error("Error in checkFirstPaymentToChangeStatusOfOrderIntoPaymentReceived:", error)
+    }
+  }
+      
+      
+      
+      
+  
+
 
   public async checkPaymentReceivedOrderForAssignIntoFactory(): Promise<void> {
     try {
