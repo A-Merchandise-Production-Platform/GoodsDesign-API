@@ -306,7 +306,6 @@ model Factory {
   website             String?
   establishedDate     DateTime
   totalEmployees      Int
-  maxPrintingCapacity Int
 
   qualityCertifications String?
   printingMethods       String[]
@@ -316,9 +315,11 @@ model Factory {
   contactPersonRole String?
   contactPhone      String?
 
+  maxPrintingCapacity Int
   operationalHours     String
   leadTime             Int?
   minimumOrderQuantity Int
+  legitPoint Int @default(100)
 
   factoryStatus      FactoryStatus @default(PENDING_APPROVAL)
   isSubmitted        Boolean       @default(false)
@@ -328,7 +329,6 @@ model Factory {
   reviewedBy         String?
   reviewedAt         DateTime?
 
-  legitPoint Int @default(100)
 
   contractUrl String?
 
@@ -554,4 +554,18 @@ model SystemConfigOrder {
   limitReworkTimes Int @default(2)
   shippingDays Int @default(2)
   reduceLegitPointIfReject Int @default(3)
+  legitPointToSuspend Int @default(20)
+  acceptHoursForFactory Int @default(12)
+  
+  // Factory scoring parameters
+  maxLegitPoint Int @default(100)
+  maxProductionTimeInMinutes Int @default(300)
+  maxProductionCapacity Int @default(1000)
+  
+  // Factory scoring weights
+  capacityScoreWeight Float @default(0.25)
+  leadTimeScoreWeight Float @default(0.15)
+  specializationScoreWeight Float @default(0.15)
+  legitPointScoreWeight Float @default(0.25)
+  productionCapacityScoreWeight Float @default(0.2)
 }

@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { envConfig } from 'src/dynamic-modules';
 import { RedisService } from 'src/redis/redis.service';
 import { lastValueFrom } from 'rxjs';
-import { Province, District, Ward, ShippingService as ShippingServiceModel, ShippingFee } from './models/shipping.model';
+import { Province, District, Ward, ShippingService as ShippingServiceModel, ShippingFee, ShippingOrder } from './models/shipping.model';
 import { 
   formatProvinces, 
   ProvinceResponse,
@@ -12,7 +12,7 @@ import { DistrictResponse, formatDistricts } from './dto/district.dto';
 import { WardResponse } from './dto/ward.dto';
 import { formatWards } from './dto/ward.dto';
 import { CalculateShippingFeeDto } from './dto/calculate-shipping-fee.dto';
-
+import { PrismaService } from 'src/prisma';
 @Injectable()
 export class ShippingService {
   private readonly baseUrl: string;
@@ -24,12 +24,14 @@ export class ShippingService {
     DISTRICT: '/shiip/public-api/master-data/district',
     WARD: '/shiip/public-api/master-data/ward',
     AVAILABLE_SERVICES: '/shiip/public-api/v2/shipping-order/available-services',
-    CALCULATE_FEE: '/shiip/public-api/v2/shipping-order/fee'
+    CALCULATE_FEE: '/shiip/public-api/v2/shipping-order/fee',
+    CREATE_ORDER: '/shiip/public-api/v2/shipping-order/create'
   };
 
   constructor(
     private readonly httpService: HttpService,
     private readonly redisService: RedisService,
+    private readonly prisma: PrismaService
   ) {
     this.baseUrl = envConfig().shipping.baseUrl;
     this.token = envConfig().shipping.token;
@@ -231,6 +233,157 @@ export class ShippingService {
 
     return {
       total: response.total,
+    };
+  }
+
+  async createShippingOrder(orderId: string): Promise<ShippingOrder> {
+    const order = await this.prisma.order.findUnique({
+      where: {
+        id: orderId
+      },
+      include: {  
+        orderDetails: {
+          include: {
+            design: {
+              include: {
+                designPositions: {
+                  include: {
+                    positionType: {
+                      include: {
+                        product: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } 
+      }
+    });
+
+    if (!order) {
+      throw new Error(`Order with ID ${orderId} not found`);
+    }
+
+    // Get customer information
+    const customer = await this.prisma.user.findUnique({
+      where: {
+        id: order.customerId
+      }
+    });
+
+    if (!customer) {
+      throw new Error(`Customer with ID ${order.customerId} not found`);
+    }
+
+    if(!order.addressId) {
+      throw new Error(`Address with ID ${order.addressId} not found`);
+    }
+
+    // Get address information
+    const address = await this.prisma.address.findUnique({
+      where: {
+        id: order?.addressId
+      }
+    });
+
+    if (!address) {
+      throw new Error(`Address with ID ${order.addressId} not found`);
+    }
+
+    // Get province, district, and ward information
+    const province = await this.getProvince(address.provinceID);
+    const district = await this.getDistrict(address.districtID);
+    const ward = await this.getWard(address.wardCode);
+
+    // Prepare items for shipping
+    const items = order.orderDetails.map(detail => {
+      const design = detail.design;
+      const product = design.designPositions[0]?.positionType?.product;
+      
+      return {
+        name: product?.name || "Sản phẩm",
+        code: design.id,
+        quantity: detail.quantity,
+        price: detail.price,
+        length: 12, // Default values if not available
+        width: 12,
+        height: 12,
+        weight: 1200,
+        category: {
+          level1: product?.categoryId || "Áo"
+        }
+      };
+    });
+
+    // Calculate total weight (assuming each item is 1200g)
+    const totalWeight = items.reduce((total, item) => total + (item.weight * item.quantity), 0);
+    
+    const body = {
+      payment_type_id: 2,
+      note: `Đơn hàng #${order.id}`,
+      required_note: "KHONGCHOXEMHANG",
+      from_name: "GoodsDesign",
+      from_phone: "0987654321", // Replace with actual shop phone
+      from_address: "72 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Vietnam", // Replace with actual shop address
+      from_ward_name: "Phường 14",
+      from_district_name: "Quận 10",
+      from_province_name: "HCM",
+      return_phone: "0332190444", // Replace with actual return phone
+      return_address: "39 NTT", // Replace with actual return address
+      return_district_id: null,
+      return_ward_code: "",
+      client_order_code: order.id,
+      to_name: customer.name || "Khách hàng",
+      to_phone: customer.phoneNumber || "0123456789",
+      to_address: address.street,
+      to_ward_code: ward.wardCode,
+      to_district_id: district.districtId,
+      cod_amount: order.totalPrice,
+      content: `Đơn hàng #${order.id} từ GoodsDesign`,
+      weight: totalWeight,
+      length: 1,
+      width: 19,
+      height: 10,
+      pick_station_id: 1444,
+      deliver_station_id: null,
+      insurance_value: order.totalPrice,
+      service_id: 0,
+      service_type_id: 2,
+      coupon: null,
+      pick_shift: [2],
+      items: items
+    };
+
+    const response = await this.handleRequest<any>(
+      this.ENDPOINTS.CREATE_ORDER,
+      {},
+      'POST',
+      body
+    );
+
+    console.log("response", response);
+
+    return {
+      code: 200,
+      message: "Success",
+      orderCode: response.order_code,
+      sortCode: response.sort_code,
+      transType: response.trans_type,
+      wardEncode: response.ward_encode,
+      districtEncode: response.district_encode,
+      expectedDeliveryTime: response.expected_delivery_time,
+      totalFee: response.total_fee,
+      fee: {
+        coupon: response.fee.coupon,
+        insurance: response.fee.insurance,
+        main_service: response.fee.main_service,
+        r2s: response.fee.r2s,
+        return: response.fee.return,
+        station_do: response.fee.station_do,
+        station_pu: response.fee.station_pu
+      }
     };
   }
 } 

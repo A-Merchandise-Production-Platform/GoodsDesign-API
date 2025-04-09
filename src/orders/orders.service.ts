@@ -110,12 +110,23 @@ export class OrdersService {
       const estimatedDoneProductionAt = new Date(now.getTime() + systemConfig.shippingDays * 24 * 60 * 60 * 1000);
       const estimatedCompletionAt = new Date(now.getTime() + (systemConfig.shippingDays + 2) * 24 * 60 * 60 * 1000);
 
+      // TODO: get address id from user
+      const user = await tx.user.findUnique({
+        where: {
+          id: userId
+        },
+        include: {
+          addresses: true
+        }
+      })
       // Create the order
       const order = await tx.order.create({
         data: {
           customerId: userId,
           status: OrderStatus.PENDING,
           totalPrice: totalOrderPrice,
+          // TODO: get address id from user
+          addressId: user.addresses[0].id,
           shippingPrice: 0,
           orderDate: now,
           totalItems: cartItems.length,
@@ -162,7 +173,7 @@ export class OrdersService {
             expiredTime: estimatedCheckQualityAt,
             taskType: TaskType.QUALITY_CHECK,
             orderId: order.id,
-            status: TaskStatus.PENDING
+            status: TaskStatus.PENDING,
           }
         });
 
@@ -523,7 +534,8 @@ export class OrdersService {
       const order = await tx.order.findUnique({
         where: { id: orderId },
         include: {
-          orderDetails: true
+          orderDetails: true,
+          factory: true
         }
       });
 
@@ -545,6 +557,7 @@ export class OrdersService {
         data: {
           status: OrderStatus.IN_PRODUCTION,
           acceptedAt: now,
+          currentProgress: 20,
           orderProgressReports: {
             create: {
               reportDate: now,
@@ -557,6 +570,14 @@ export class OrdersService {
           orderDetails: true
         }
       });
+
+      // update task staff id to factory staff id
+      await tx.task.updateMany({
+        where: {
+          orderId: orderId
+        },
+        data: { userId: order.factory.staffId }
+      })
 
       // Update all order details status
       await tx.orderDetail.updateMany({
@@ -722,6 +743,7 @@ export class OrdersService {
           data: {
             status: OrderStatus.WAITING_FOR_CHECKING_QUALITY,
             doneProductionAt: now,
+            currentProgress: 50,
             orderProgressReports: {
               create: {
                 reportDate: now,
@@ -893,7 +915,7 @@ export class OrdersService {
 
       console.log("hasFailedChecks", hasFailedChecks)
 
-      if (!hasFailedChecks) {
+      if (hasFailedChecks) {
         // Update failed order details to REWORK_REQUIRED
         await this.prisma.orderDetail.updateMany({
           where: {
@@ -939,6 +961,7 @@ export class OrdersService {
           where: { id: checkQuality.orderDetail.order.id },
           data: {
             status: OrderStatus.READY_FOR_SHIPPING,
+            currentProgress: 70, 
             doneCheckQualityAt: now,
             orderProgressReports: {
               create: {
@@ -992,6 +1015,71 @@ export class OrdersService {
         throw new BadRequestException("System configuration not found");
       }
 
+      // Check if any order detail has exceeded the rework limit
+      const orderDetailsWithReworkCount = await tx.orderDetail.findMany({
+        where: {
+          orderId: orderId,
+          status: OrderDetailStatus.REWORK_REQUIRED
+        },
+        select: {
+          id: true,
+          reworkTime: true
+        }
+      });
+
+      const exceededReworkLimit = orderDetailsWithReworkCount.some(
+        detail => detail.reworkTime >= systemConfig.limitReworkTimes
+      );
+
+      if (exceededReworkLimit) {
+        // Update order status to NEED_MANAGER_HANDLE
+        await tx.order.update({
+          where: { id: orderId },
+          data: {
+            status: OrderStatus.NEED_MANAGER_HANDLE,
+            orderProgressReports: {
+              create: {
+                reportDate: now,
+                note: `Order has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Manual intervention required.`,
+                imageUrls: []
+              }
+            }
+          }
+        });
+        
+        // Create notification for managers
+        await tx.notification.create({
+          data: {
+            userId: "manager-id",
+            title: "Order Exceeded Rework Limit",
+            content: `Order #${orderId} has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Manual intervention required.`,
+            url: `/manager/orders/${orderId}`
+          }
+        });
+
+        throw new BadRequestException(`Order has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Please contact support.`);
+      }
+
+      // Deduct legitimacy points from the factory for each rework
+      await tx.factory.update({
+        where: { factoryOwnerId: factoryId },
+        data: {
+          legitPoint: {
+            decrement: systemConfig.reduceLegitPointIfReject
+          }
+        }
+      });
+
+      // Create notification for factory about legitimacy point deduction
+      await tx.notification.create({
+        data: {
+          userId: factoryId,
+          title: "Legitimacy Points Deducted",
+          content: `Your factory has lost ${systemConfig.reduceLegitPointIfReject} legitimacy points due to rework requirement for order #${orderId}.`,
+          url: `/factory/orders/${orderId}`
+        }
+      });
+
       // Calculate estimated check quality time
       const estimatedCheckQualityAt = new Date(now.getTime() + systemConfig.checkQualityTimesDays * 24 * 60 * 60 * 1000);
       
@@ -1003,12 +1091,13 @@ export class OrdersService {
         where: { id: orderId },
         data: {
           status: OrderStatus.REWORK_IN_PROGRESS,
+          currentProgress: 45, 
           estimatedCheckQualityAt,
           estimatedCompletionAt,
           orderProgressReports: {
             create: {
               reportDate: now,
-              note: "Rework started by factory",
+              note: `Rework started by factory. Factory lost ${systemConfig.reduceLegitPointIfReject} legitimacy points.`,
               imageUrls: []
             }
           }
@@ -1130,6 +1219,7 @@ export class OrdersService {
           where: { id: orderDetail.order.id },
           data: {
             status: OrderStatus.WAITING_FOR_CHECKING_QUALITY,
+            currentProgress: 50,
             orderProgressReports: {
               create: {
                 reportDate: now,
@@ -1195,6 +1285,7 @@ export class OrdersService {
         data: {
           status: OrderStatus.SHIPPED,
           shippedAt: now,
+          currentProgress: 90,
           orderProgressReports: {
             create: {
               reportDate: now,
@@ -1249,6 +1340,7 @@ export class OrdersService {
         data: {
           status: OrderStatus.COMPLETED,
           completedAt: now,
+          currentProgress: 100,
           rating: input.rating,
           ratingComment: input.ratingComment,
           ratedAt: now,

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { FactoryStatus, OrderStatus } from '@prisma/client';
+import { FactoryStatus, OrderStatus, TaskStatus, TaskType } from '@prisma/client';
 import { FactoryProductEntity } from 'src/factory-products/entities/factory-product.entity';
 import { FactoryEntity } from 'src/factory/entities/factory.entity';
 import { FactoryService } from 'src/factory/factory.service';
@@ -195,9 +195,15 @@ export class CronService {
               })
           )
 
-          // Set acceptance deadline to 24 hours from now
+          // Get acceptance hours for factory
+          const { acceptHoursForFactory } = await this.prisma.systemConfigOrder.findFirst({
+            where: {
+              type: "SYSTEM_CONFIG_ORDER"
+            }
+          })
+
           const acceptanceDeadline = new Date()
-          acceptanceDeadline.setHours(acceptanceDeadline.getHours() + 24)
+          acceptanceDeadline.setHours(acceptanceDeadline.getHours() + acceptHoursForFactory)
 
           // Calculate estimated times based on system configuration
           const now = new Date()
@@ -284,6 +290,16 @@ export class CronService {
               return null
           }
 
+          // Get system configuration for legitimacy points threshold
+          const systemConfig = await this.prisma.systemConfigOrder.findFirst({
+              where: { type: "SYSTEM_CONFIG_ORDER" }
+          })
+
+          if (!systemConfig) {
+              this.logger.error("System configuration not found")
+              return null
+          }
+
           // Score each factory based on various factors
           const factoryScores = await Promise.all(
               factories.map(async (factory) => {
@@ -300,9 +316,21 @@ export class CronService {
                       }
                   })
 
+                  console.log('Debug factory scoring:', {
+                      factoryId: factory.factoryOwnerId,
+                      factoryName: factory.name,
+                      activeOrders,
+                  })
+
                   // Calculate capacity availability (as a percentage)
                   const totalCapacity = factory.maxPrintingCapacity
                   const capacityScore = Math.max(0, (totalCapacity - activeOrders * 50) / totalCapacity)
+                  
+                  console.log('Capacity score:', {
+                      totalCapacity,
+                      activeOrders,
+                      capacityScore
+                  })
 
                   // Check if factory can handle all variants
                   const canHandleAllVariants = variantIds.every((variantId) =>
@@ -310,21 +338,74 @@ export class CronService {
                   )
 
                   if (!canHandleAllVariants) {
+                      console.log('Factory cannot handle all variants')
                       return { factory, score: 0 }
                   }
 
                   // Calculate lead time score (shorter is better)
                   const leadTimeScore = factory.leadTime ? 1 / factory.leadTime : 0
+                  console.log('Lead time score:', {
+                      leadTime: factory.leadTime,
+                      leadTimeScore
+                  })
 
-                  // Calculate specialization score (if factory specializes in these products)
-                  const specializationScore = this.calculateSpecializationScore(factory, variantIds)
+                  // Calculate specialization score
+                  const specializationScore = this.calculateSpecializationScore(factory, variantIds, systemConfig)
+                  console.log('Specialization score:', {
+                      specializationScore
+                  })
 
-                  // Calculate final score (weighted combination)
-                  const finalScore = capacityScore * 0.5 + leadTimeScore * 0.3 + specializationScore * 0.2
+                  // Calculate legitimacy points score
+                  const maxLegitPoint = (systemConfig as any).maxLegitPoint || 100
+                  const legitPointScore = Math.min(1, factory.legitPoint / maxLegitPoint)
+                  console.log('Legitimacy score:', {
+                      legitPoint: factory.legitPoint,
+                      maxLegitPoint,
+                      legitPointScore
+                  })
+
+                  // Calculate production capacity score
+                  const productionCapacityScore = this.calculateProductionCapacityScore(factory, variantIds, systemConfig)
+                  console.log('Production capacity score:', {
+                      productionCapacityScore
+                  })
+
+                  // Get weights from system config with fallbacks
+                  const weights = {
+                      capacity: (systemConfig as any)?.capacityScoreWeight || 0.2,
+                      leadTime: (systemConfig as any)?.leadTimeScoreWeight || 0.15,
+                      specialization: (systemConfig as any)?.specializationScoreWeight || 0.15,
+                      legitPoint: (systemConfig as any)?.legitPointScoreWeight || 0.25,
+                      productionCapacity: (systemConfig as any)?.productionCapacityScoreWeight || 0.1
+                  }
+                  console.log('Weights:', weights)
+
+                  // Calculate final score
+                  const finalScore = 
+                      capacityScore * weights.capacity + 
+                      leadTimeScore * weights.leadTime + 
+                      specializationScore * weights.specialization + 
+                      legitPointScore * weights.legitPoint + 
+                      productionCapacityScore * weights.productionCapacity
+
+                  console.log('Final score components:', {
+                      capacityComponent: capacityScore * weights.capacity,
+                      leadTimeComponent: leadTimeScore * weights.leadTime,
+                      specializationComponent: specializationScore * weights.specialization,
+                      legitPointComponent: legitPointScore * weights.legitPoint,
+                      productionCapacityComponent: productionCapacityScore * weights.productionCapacity,
+                      finalScore
+                  })
 
                   return { factory, score: finalScore }
               })
           )
+
+          console.log('Final factory scores:', factoryScores.map(fs => ({
+              factoryId: fs.factory.factoryOwnerId,
+              factoryName: fs.factory.name,
+              score: fs.score
+          })))
 
           // Sort by score (highest first)
           factoryScores.sort((a, b) => b.score - a.score)
@@ -346,7 +427,7 @@ export class CronService {
       }
   }
 
-  private calculateSpecializationScore(factory: any, variantIds: string[]): number {
+  private calculateSpecializationScore(factory: any, variantIds: string[], systemConfig: any): number {
       try {
           // Calculate average production time as a measure of specialization
           // Lower time means more specialized/efficient
@@ -363,12 +444,228 @@ export class CronService {
               ) / relevantProducts.length
 
           // Convert to a score where lower time means higher score
-          // Assuming 300 minutes (5 hours) is a reasonable max production time
-          const MAX_PRODUCTION_TIME = 300
-          return Math.max(0, 1 - avgProductionTime / MAX_PRODUCTION_TIME)
+          // Using maxProductionTimeInMinutes from system config with fallback
+          const maxProductionTime = (systemConfig as any).maxProductionTimeInMinutes || 300
+          return Math.max(0, 1 - avgProductionTime / maxProductionTime)
       } catch (error) {
           this.logger.error(`Error calculating specialization score: ${error.message}`)
           return 0
       }
+  }
+
+  private calculateProductionCapacityScore(factory: any, variantIds: string[], systemConfig: any): number {
+      try {
+          // Get relevant factory products
+          const relevantProducts = factory.products.filter((p) =>
+              variantIds.includes(p.systemConfigVariantId)
+          )
+
+          if (relevantProducts.length === 0) return 0
+
+          // Calculate average production capacity
+          const avgProductionCapacity = relevantProducts.reduce(
+              (sum, product) => sum + product.productionCapacity,
+              0
+          ) / relevantProducts.length
+
+          // Normalize score (higher capacity = higher score)
+          // Using maxProductionCapacity from system config with fallback
+          const maxProductionCapacity = (systemConfig as any).maxProductionCapacity || 1000
+          return Math.min(1, avgProductionCapacity / maxProductionCapacity)
+      } catch (error) {
+          this.logger.error(`Error calculating production capacity score: ${error.message}`)
+          return 0
+      }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    name: "cleanupOldNotifications"
+  })
+  async cleanupOldNotifications() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    // Delete notifications older than 30 days
+    await this.prisma.notification.deleteMany({
+      where: {
+        createdAt: {
+          lt: thirtyDaysAgo
+        }
+      }
+    });
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    name: "checkExpiredTasks"
+  })
+  async checkExpiredTasks() {
+    const now = new Date();
+    
+    // Find tasks that have exceeded their expiration time
+    const expiredTasks = await this.prisma.task.findMany({
+      where: {
+        status: {
+          in: [TaskStatus.PENDING, TaskStatus.IN_PROGRESS]
+        },
+        expiredTime: {
+          lt: now
+        }
+      },
+      include: {
+        order: true
+      }
+    });
+    
+    // Update expired tasks
+    for (const task of expiredTasks) {
+      await this.prisma.task.update({
+        where: { id: task.id },
+        data: {
+          status: TaskStatus.EXPIRED,
+          note: "Task automatically expired due to exceeding deadline"
+        }
+      });
+      
+      // If this is a quality check task, update the order status
+      if (task.taskType === TaskType.QUALITY_CHECK && task.orderId) {
+        await this.prisma.order.update({
+          where: { id: task.orderId },
+          data: {
+            isDelayed: true,
+            delayReason: "Quality check task expired",
+            orderProgressReports: {
+              create: {
+                reportDate: now,
+                note: "Quality check task expired, causing order delay",
+                imageUrls: []
+              }
+            }
+          }
+        });
+      }
+    }
+  }
+
+  @Cron(CronExpression.EVERY_HOUR, {
+    name: "checkPendingAcceptanceOrders"
+  })
+  async checkPendingAcceptanceOrders() {
+    const now = new Date();
+    const expiredOrders = await this.prisma.order.findMany({
+      where: {
+        status: OrderStatus.PENDING_ACCEPTANCE,
+        acceptanceDeadline: {
+          lt: now
+        }
+      },
+      include: {
+        factory: true
+      }
+    });
+    
+    // Process each expired order
+    for (const order of expiredOrders) {
+      await this.prisma.$transaction(async (tx) => {
+        // Create rejected order record
+        await tx.rejectedOrder.create({
+          data: {
+            orderId: order.id,
+            factoryId: order.factoryId,
+            reason: "Factory did not respond within the acceptance deadline",
+            rejectedAt: now
+          }
+        });
+        
+        // Update factory legit points
+        const systemConfig = await tx.systemConfigOrder.findFirst({
+          where: { type: "SYSTEM_CONFIG_ORDER" }
+        });
+        
+        if (systemConfig && order.factoryId) {
+          await tx.factory.update({
+            where: { factoryOwnerId: order.factoryId },
+            data: {
+              legitPoint: {
+                decrement: systemConfig.reduceLegitPointIfReject
+              }
+            }
+          });
+        }
+        
+        // Update order status back to PAYMENT_RECEIVED
+        await tx.order.update({
+          where: { id: order.id },
+          data: {
+            status: OrderStatus.PAYMENT_RECEIVED,
+            factoryId: null,
+            assignedAt: null,
+            acceptanceDeadline: null,
+            orderProgressReports: {
+              create: {
+                reportDate: now,
+                note: `Order automatically rejected due to factory not responding within deadline`,
+                imageUrls: []
+              }
+            }
+          }
+        });
+      });
+    }
+  }
+
+  @Cron(CronExpression.EVERY_HOUR, {
+    name: "checkFactoryLegitimacyPoints"
+  })
+  async checkFactoryLegitimacyPointsCRON() {
+    await this.checkFactoryLegitimacyPoints()
+  }
+
+  public async checkFactoryLegitimacyPoints(): Promise<void> {
+    try {
+      this.logger.verbose("Running cron job: checkFactoryLegitimacyPoints")
+
+      // Get system configuration
+      const systemConfig = await this.prisma.systemConfigOrder.findFirst({
+        where: {
+          type: "SYSTEM_CONFIG_ORDER"
+        }
+      })
+
+      if (!systemConfig) {
+        this.logger.error("System configuration not found")
+        return
+      }
+
+      // Find factories with legitPoint below threshold
+      const factoriesToSuspend = await this.prisma.factory.findMany({
+        where: {
+          legitPoint: {
+            lte: systemConfig.legitPointToSuspend
+          },
+          factoryStatus: {
+            not: FactoryStatus.SUSPENDED
+          }
+        }
+      })
+
+      // Suspend factories
+      for (const factory of factoriesToSuspend) {
+        await this.factoryService.changeFactoryStatus(
+          { 
+            status: FactoryStatus.SUSPENDED,
+            staffId: factory.staffId,
+            factoryOwnerId: factory.factoryOwnerId
+          },
+          { id: factory.factoryOwnerId } as UserEntity
+        )
+        this.logger.log(`Factory ${factory.factoryOwnerId} suspended due to low legitimacy points (${factory.legitPoint})`)
+      }
+
+      if (factoriesToSuspend.length > 0) {
+        this.logger.log(`Suspended ${factoriesToSuspend.length} factories due to low legitimacy points`)
+      }
+    } catch (error) {
+      this.logger.error("Error in checkFactoryLegitimacyPoints:", error)
+    }
   }
 }
