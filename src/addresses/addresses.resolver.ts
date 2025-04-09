@@ -5,8 +5,11 @@ import { CurrentUser } from "src/auth/decorators/current-user.decorator"
 import { UserEntity } from "src/users"
 import { AddressesService } from "./addresses.service"
 import { CreateAddressInput } from "./dto/create-address.input"
+import { FormatAddressInput } from "./dto/format-address.input"
 import { UpdateAddressInput } from "./dto/update-address.input"
 import { AddressEntity } from "./entities/address.entity"
+import { FormattedAddressModel } from "./models/formatted-address.model"
+import { Public } from "src/auth/decorators/public.decorator"
 
 @Resolver(() => AddressEntity)
 @UseGuards(GraphqlJwtAuthGuard)
@@ -44,5 +47,11 @@ export class AddressesResolver {
     @Mutation(() => AddressEntity)
     async deleteAddress(@Args("id") id: string, @CurrentUser() user: UserEntity) {
         return this.addressesService.deleteAddress(id, user)
+    }
+
+    @Query(() => FormattedAddressModel)
+    @Public()
+    async formatAddress(@Args("formatAddressInput") formatAddressInput: FormatAddressInput) {
+        return this.addressesService.formatAddress(formatAddressInput)
     }
 }

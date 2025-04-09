@@ -41,9 +41,39 @@ export class FactoryService {
             }
         })
 
-        console.log(factories)
+        if (!factories) {
+            throw new NotFoundException("No factories found")
+        }
 
-        return factories.map((factory) => new FactoryEntity(factory))
+        // Create an array of factories with formatted addresses
+        const factoriesWithFormattedAddresses = await Promise.all(
+            factories.map(async (factory) => {
+                let formattedAddress = null
+
+                if (factory.address) {
+                    try {
+                        const formatResult = await this.addressesService.formatAddress({
+                            provinceID: factory.address.provinceID,
+                            districtID: factory.address.districtID,
+                            wardCode: factory.address.wardCode,
+                            street: factory.address.street
+                        })
+                        formattedAddress = formatResult.text
+                    } catch (error) {
+                        this.logger.error(
+                            `Failed to format address for factory ${factory.factoryOwnerId}: ${error.message}`
+                        )
+                    }
+                }
+
+                return new FactoryEntity({
+                    ...factory,
+                    formattedAddress
+                })
+            })
+        )
+
+        return factoriesWithFormattedAddresses
     }
 
     async updateFactoryInfo(userId: string, dto: UpdateFactoryInfoDto) {
@@ -98,6 +128,20 @@ export class FactoryService {
                 dto.addressInput,
                 new UserEntity({ ...user, ownedFactory: null })
             )
+        }
+
+        // Generate formatted address
+        let formattedAddress = null
+        try {
+            const formatResult = await this.addressesService.formatAddress({
+                provinceID: dto.addressInput.provinceID,
+                districtID: dto.addressInput.districtID,
+                wardCode: dto.addressInput.wardCode,
+                street: dto.addressInput.street
+            })
+            formattedAddress = formatResult.text
+        } catch (error) {
+            this.logger.error(`Failed to format address for factory ${userId}: ${error.message}`)
         }
 
         // Update or create factory information
@@ -193,6 +237,7 @@ export class FactoryService {
             }
         }
 
+        // Notify the factory owner
         await this.notificationsService.create({
             title: "Factory Information Updated",
             content:
@@ -200,8 +245,46 @@ export class FactoryService {
             userId: userId
         })
 
+        // Check if this is a new factory registration (not just an update)
+        const isNewFactoryRegistration = !existingFactory || !existingFactory.isSubmitted
+
+        // Notify all managers about the new factory registration if it's a new factory
+        if (isNewFactoryRegistration) {
+            // Get all managers
+            const managers = await this.prisma.user.findMany({
+                where: {
+                    role: Roles.MANAGER
+                }
+            })
+
+            // Send notification to each manager
+            for (const manager of managers) {
+                await this.notificationsService.create({
+                    title: "New Factory Registration",
+                    content: `A new factory "${updatedFactory.name}" has registered and is waiting for approval`,
+                    userId: manager.id
+                })
+            }
+
+            // Also send notifications to admins
+            const admins = await this.prisma.user.findMany({
+                where: {
+                    role: Roles.ADMIN
+                }
+            })
+
+            for (const admin of admins) {
+                await this.notificationsService.create({
+                    title: "New Factory Registration",
+                    content: `A new factory "${updatedFactory.name}" has registered and is waiting for approval`,
+                    userId: admin.id
+                })
+            }
+        }
+
         return new FactoryEntity({
             ...updatedFactory,
+            formattedAddress,
             address: updatedFactory?.address
                 ? new AddressEntity({
                       ...updatedFactory.address,
@@ -248,10 +331,30 @@ export class FactoryService {
         })
 
         if (!factory) {
-            throw new NotFoundException("Factory not found")
+            throw new NotFoundException(`Factory with ID ${factoryId} not found`)
         }
 
-        return new FactoryEntity(factory)
+        let formattedAddress = null
+        if (factory.address) {
+            try {
+                const formatResult = await this.addressesService.formatAddress({
+                    provinceID: factory.address.provinceID,
+                    districtID: factory.address.districtID,
+                    wardCode: factory.address.wardCode,
+                    street: factory.address.street
+                })
+                formattedAddress = formatResult.text
+            } catch (error) {
+                this.logger.error(
+                    `Failed to format address for factory ${factoryId}: ${error.message}`
+                )
+            }
+        }
+
+        return new FactoryEntity({
+            ...factory,
+            formattedAddress
+        })
     }
 
     async getMyFactory(userId: string) {
@@ -272,8 +375,26 @@ export class FactoryService {
 
         if (!factory) return null
 
+        let formattedAddress = null
+        if (factory.address) {
+            try {
+                const formatResult = await this.addressesService.formatAddress({
+                    provinceID: factory.address.provinceID,
+                    districtID: factory.address.districtID,
+                    wardCode: factory.address.wardCode,
+                    street: factory.address.street
+                })
+                formattedAddress = formatResult.text
+            } catch (error) {
+                this.logger.error(
+                    `Failed to format address for factory ${userId}: ${error.message}`
+                )
+            }
+        }
+
         return new FactoryEntity({
             ...factory,
+            formattedAddress,
             address: factory?.address
                 ? new AddressEntity({
                       ...factory.address,
@@ -310,7 +431,7 @@ export class FactoryService {
             case FactoryStatus.SUSPENDED:
                 return "Your factory has been suspended and is no longer active"
             case FactoryStatus.REJECTED:
-                return "Your factory has been rejected by system"
+                return "Your factory has been rejected. Please update your factory information and resubmit for approval."
         }
     }
 
@@ -321,9 +442,34 @@ export class FactoryService {
 
         const factory = await this.prisma.factory.update({
             where: { factoryOwnerId: dto.factoryOwnerId },
-            data: { factoryStatus: dto.status },
-            include: { owner: true }
+            data: {
+                factoryStatus: dto.status,
+                // If status is REJECTED, set isSubmitted to false so factory owner can update info
+                isSubmitted: dto.status === FactoryStatus.REJECTED ? false : undefined
+            },
+            include: {
+                owner: true,
+                address: true
+            }
         })
+
+        // Generate formatted address if available
+        let formattedAddress = null
+        if (factory.address) {
+            try {
+                const formatResult = await this.addressesService.formatAddress({
+                    provinceID: factory.address.provinceID,
+                    districtID: factory.address.districtID,
+                    wardCode: factory.address.wardCode,
+                    street: factory.address.street
+                })
+                formattedAddress = formatResult.text
+            } catch (error) {
+                this.logger.error(
+                    `Failed to format address for factory ${dto.factoryOwnerId}: ${error.message}`
+                )
+            }
+        }
 
         await this.notificationsService.create({
             title: "Factory Status Changed",
@@ -331,7 +477,10 @@ export class FactoryService {
             userId: dto.factoryOwnerId
         })
 
-        await this.assignStaffToFactory(dto.factoryOwnerId, dto.staffId, user)
+        // Only assign staff if status is not REJECTED
+        if (dto.status !== FactoryStatus.REJECTED && dto.staffId) {
+            await this.assignStaffToFactory(dto.factoryOwnerId, dto.staffId, user)
+        }
 
         this.mailService.sendSingleEmail({
             from: MAIL_CONSTANT.FROM_EMAIL,
@@ -346,13 +495,19 @@ export class FactoryService {
             userId: factory.owner.id
         })
 
-        await this.notificationsService.create({
-            title: "Factory Status Changed",
-            content: `You have been assigned to a factory ${factory.name}`,
-            userId: dto.staffId
-        })
+        // Only send staff notification if status is not REJECTED and staffId exists
+        if (dto.status !== FactoryStatus.REJECTED && dto.staffId) {
+            await this.notificationsService.create({
+                title: "Factory Status Changed",
+                content: `You have been assigned to a factory ${factory.name}`,
+                userId: dto.staffId
+            })
+        }
 
-        return new FactoryEntity(factory)
+        return new FactoryEntity({
+            ...factory,
+            formattedAddress
+        })
     }
 
     async assignStaffToFactory(factoryId: string, staffId: string, user: UserEntity) {
@@ -362,7 +517,7 @@ export class FactoryService {
 
         const factory = await this.prisma.factory.findUnique({
             where: { factoryOwnerId: factoryId },
-            include: { owner: true, staff: true }
+            include: { owner: true, staff: true, address: true }
         })
 
         if (!factory) {
@@ -389,8 +544,27 @@ export class FactoryService {
             }
         })
 
+        // Generate formatted address if available
+        let formattedAddress = null
+        if (factory.address) {
+            try {
+                const formatResult = await this.addressesService.formatAddress({
+                    provinceID: factory.address.provinceID,
+                    districtID: factory.address.districtID,
+                    wardCode: factory.address.wardCode,
+                    street: factory.address.street
+                })
+                formattedAddress = formatResult.text
+            } catch (error) {
+                this.logger.error(
+                    `Failed to format address for factory ${factoryId}: ${error.message}`
+                )
+            }
+        }
+
         return new FactoryEntity({
             ...factory,
+            formattedAddress,
             owner: new UserEntity({
                 ...factory.owner,
                 id: factory.owner.id

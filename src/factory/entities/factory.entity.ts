@@ -30,6 +30,9 @@ export class FactoryEntity {
     address?: AddressEntity
 
     @Field(() => String, { nullable: true })
+    formattedAddress?: string
+
+    @Field(() => String, { nullable: true })
     website?: string
 
     @Field(() => Date, { nullable: true })

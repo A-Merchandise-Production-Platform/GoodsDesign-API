@@ -1,10 +1,11 @@
-import { UseGuards } from "@nestjs/common"
+import { UseGuards, ForbiddenException } from "@nestjs/common"
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql"
 import { NotificationsService } from "./notifications.service"
 import { NotificationEntity } from "./entities/notification.entity"
 import { GraphqlJwtAuthGuard } from "src/auth/guards"
 import { CurrentUser } from "src/auth/decorators"
 import { UserEntity } from "src/users"
+import { Roles } from "@prisma/client"
 
 @Resolver(() => NotificationEntity)
 @UseGuards(GraphqlJwtAuthGuard)
@@ -69,5 +70,27 @@ export class NotificationsResolver {
     @Mutation(() => NotificationEntity, { name: "markNotificationAsRead" })
     async markAsRead(@CurrentUser() user: UserEntity, @Args("id") id: string) {
         return this.notificationsService.markAsRead(id, user.id)
+    }
+
+    @Mutation(() => [NotificationEntity], { name: "createNotificationForUsersByRoles" })
+    async createForUsersByRoles(
+        @CurrentUser() user: UserEntity,
+        @Args("title") title: string,
+        @Args("content") content: string,
+        @Args("roles", { type: () => [String] }) roles: string[],
+        @Args("url", { nullable: true }) url?: string
+    ) {
+        if (user.role !== Roles.ADMIN && user.role !== Roles.MANAGER) {
+            throw new ForbiddenException(
+                "You are not authorized to send notifications to users by roles"
+            )
+        }
+
+        return this.notificationsService.createForUsersByRoles({
+            title,
+            content,
+            roles: roles as Roles[],
+            url
+        })
     }
 }

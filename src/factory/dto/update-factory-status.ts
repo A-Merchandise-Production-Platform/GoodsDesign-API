@@ -21,6 +21,5 @@ export class UpdateFactoryStatusDto {
 
     @Field(() => String)
     @IsString()
-    @IsNotEmpty()
     staffId: string
 }

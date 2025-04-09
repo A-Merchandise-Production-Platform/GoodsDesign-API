@@ -3,6 +3,7 @@ import { NotificationEntity } from "src/notifications/entities/notification.enti
 import { PrismaService } from "src/prisma"
 import { UserEntity } from "src/users"
 import { NotificationsGateway } from "./notifications.gateway"
+import { Roles } from "@prisma/client"
 
 @Injectable()
 export class NotificationsService {
@@ -176,5 +177,64 @@ export class NotificationsService {
             ...notification,
             user: new UserEntity(notification.user)
         })
+    }
+
+    async createForUsersByRoles(data: {
+        title: string
+        content: string
+        roles: Roles[]
+        url?: string
+        data?: any
+    }) {
+        // Get all users with the specified roles
+        const users = await this.prisma.user.findMany({
+            where: {
+                role: {
+                    in: data.roles
+                },
+                isActive: true,
+                isDeleted: false
+            }
+        })
+
+        const userIds = users.map((user) => user.id)
+
+        // Create notifications for all users
+        const notifications = await Promise.all(
+            userIds.map((userId) =>
+                this.prisma.notification.create({
+                    data: {
+                        title: data.title,
+                        content: data.content,
+                        userId,
+                        url: data.url,
+                        isRead: false
+                    },
+                    include: {
+                        user: true
+                    }
+                })
+            )
+        )
+
+        // Send real-time notifications to all users
+        this.notificationsGateway.sendNotificationToUsers(
+            userIds,
+            notifications.map(
+                (notification) =>
+                    new NotificationEntity({
+                        ...notification,
+                        user: new UserEntity(notification.user)
+                    })
+            )
+        )
+
+        return notifications.map(
+            (notification) =>
+                new NotificationEntity({
+                    ...notification,
+                    user: new UserEntity(notification.user)
+                })
+        )
     }
 }
