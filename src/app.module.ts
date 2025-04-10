@@ -12,7 +12,7 @@ import { AuthModule } from "./auth"
 import { CartItemsModule } from "./cart-items/cart-items.module"
 import { CategoriesModule } from "./categories"
 import { CronModule } from "./cron/cron.module"
-import { DashboardModule } from './dashboard/dashboard.module'
+import { DashboardModule } from "./dashboard/dashboard.module"
 import { DesignPositionModule } from "./design-position/design-position.module"
 import { EnvModule } from "./dynamic-modules"
 import { FactoryModule } from "./factory/factory.module"
@@ -29,7 +29,8 @@ import { ShippingModule } from "./shipping/shipping.module"
 import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
-import { OrdersModule } from './orders/orders.module';
+import { OrdersModule } from "./orders/orders.module"
+import { SystemConfigDiscountModule } from "./system-config-discount/system-config-discount.module"
 
 @Module({
     imports: [
@@ -73,6 +74,7 @@ import { OrdersModule } from './orders/orders.module';
         NotificationsModule,
         DashboardModule,
         OrdersModule,
+        SystemConfigDiscountModule,
         // FactoryProductsModule
         // TestModule,
     ],

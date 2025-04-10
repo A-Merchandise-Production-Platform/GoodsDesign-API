@@ -22,7 +22,7 @@ export const productDesignsData: ProductDesignsData = {
             isPublic: false,
             isTemplate: false,
             thumbnailUrl:
-                "https://files.cdn.printful.com/o/upload/product-catalog-img/ea/ea968722fc4980abb0a61b90e7cc0451_l"
+                "https://res.cloudinary.com/drzhutfzg/image/upload/v1744285226/files/gzwa3oc4yipw4vzieidq.png"
         },
         {
             id: "design002",
@@ -32,7 +32,7 @@ export const productDesignsData: ProductDesignsData = {
             isPublic: false,
             isTemplate: false,
             thumbnailUrl:
-                "hhttps://files.cdn.printful.com/o/upload/product-catalog-img/ea/ea968722fc4980abb0a61b90e7cc0451_l"
+                "https://res.cloudinary.com/drzhutfzg/image/upload/v1744285313/files/hefzqpeizt89gmcas64o.png"
         },
         {
             id: "design003",
