@@ -1265,8 +1265,8 @@ export class OrdersService {
         throw new BadRequestException("Order not found");
       }
 
-      if (order.status !== OrderStatus.READY_FOR_SHIPPING) {
-        throw new BadRequestException("This order is not in READY_FOR_SHIPPING status");
+      if (order.status !== OrderStatus.SHIPPING) {
+        throw new BadRequestException("This order is not in SHIPPING status");
       }
 
       // Update all order details to SHIPPED
@@ -1349,6 +1349,59 @@ export class OrdersService {
             create: {
               reportDate: now,
               note: `Order completed with rating ${input.rating}${input.ratingComment ? `: ${input.ratingComment}` : ''}`,
+              imageUrls: []
+            }
+          }
+        },
+        include: {
+          orderDetails: true
+        }
+      });
+
+      return updatedOrder;
+    });
+  }
+
+  async changeOrderToShipping(orderId: string) {
+    const now = new Date();
+    
+    return this.prisma.$transaction(async (tx) => {
+      // Get the order with its details
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          orderDetails: true
+        }
+      });
+
+      if (!order) {
+        throw new BadRequestException("Order not found");
+      }
+
+      if (order.status !== OrderStatus.READY_FOR_SHIPPING) {
+        throw new BadRequestException("This order is not in READY_FOR_SHIPPING status");
+      }
+
+      // Update all order details to SHIPPING
+      await tx.orderDetail.updateMany({
+        where: {
+          orderId: orderId
+        },
+        data: {
+          status: OrderDetailStatus.SHIPPING
+        }
+      });
+
+      // Update order status to SHIPPING
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.SHIPPING,
+          currentProgress: 85,
+          orderProgressReports: {
+            create: {
+              reportDate: now,
+              note: "Order is now in shipping",
               imageUrls: []
             }
           }

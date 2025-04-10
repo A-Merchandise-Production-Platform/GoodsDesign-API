@@ -125,6 +125,14 @@ export class OrdersResolver {
 
   @Mutation(() => OrderEntity)
   @UseGuards(GraphqlJwtAuthGuard)
+  changeOrderToShipping(
+    @Args('orderId', { type: () => String }) orderId: string
+  ) {
+    return this.ordersService.changeOrderToShipping(orderId);
+  }
+
+  @Mutation(() => OrderEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
   feedbackOrder(
     @Args('orderId', { type: () => String }) orderId: string,
     @Args('input') input: FeedbackOrderInput,
