@@ -10,6 +10,7 @@ import {
 import { PaymentMethod, PaymentStatus, TransactionStatus, TransactionType } from "@prisma/client"
 import { envConfig } from "src/dynamic-modules"
 import { MailService } from "src/mail"
+import { NotificationsService } from "src/notifications/notifications.service"
 import { PrismaService } from "src/prisma"
 
 export enum PaymentGateway {
@@ -42,7 +43,8 @@ export class PaymentGatewayService {
 
     constructor(
         private prisma: PrismaService,
-        private mailService: MailService
+        private mailService: MailService,
+        private notificationsService: NotificationsService
     ) {
         this.payOS = new PayOS(
             envConfig().payment.payos.clientId,
@@ -86,6 +88,14 @@ export class PaymentGatewayService {
 
         const checkoutResponse: CheckoutResponseDataType =
             await this.payOS.createPaymentLink(createPaymentLinkRequest)
+
+        // Notify customer about payment
+        await this.notificationsService.create({
+            title: "Payment Required",
+            content: `Please make a payment for order #${orderCode}`,
+            userId: payment.customerId,
+            url: `/orders/${orderCode}`
+        })
 
         return checkoutResponse.checkoutUrl
     }
@@ -196,6 +206,15 @@ export class PaymentGatewayService {
 
         //result
         console.log("VNPay payment created link", url)
+
+        // Notify customer about payment
+        await this.notificationsService.create({
+            title: "Payment Required",
+            content: `Please make a payment for order #${orderId}`,
+            userId: payment.customerId,
+            url: `/orders/${orderId}`
+        })  
+
         return url
     }
 
@@ -253,6 +272,14 @@ export class PaymentGatewayService {
                 data: { status: TransactionStatus.FAILED }
             })
         }
+
+        // Notify customer about payment
+        await this.notificationsService.create({
+            title: "Payment Required",
+            content: `Please make a payment for order #${paymentTransaction.id}`,
+            userId: paymentTransaction.customerId,
+            url: `/orders/${paymentTransaction.id}`
+        })
 
         return {
             message: "success"
@@ -332,6 +359,14 @@ export class PaymentGatewayService {
                     data: { status: TransactionStatus.COMPLETED }
                 })
             }
+
+            // Notify customer about payment
+            await this.notificationsService.create({
+                title: "Payment Required",
+                content: `Please make a payment for order #${payment.id}`,
+                userId: payment.customerId,
+                url: `/orders/${payment.id}`
+            })
 
             return { RspCode: "00", Message: "success" }
         } else {
