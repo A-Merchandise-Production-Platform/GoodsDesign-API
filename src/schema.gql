@@ -14,8 +14,6 @@ type AddressEntity {
   wardCode: String!
 }
 
-<<<<<<< HEAD
-=======
 type AdminDashboardResponse {
   activeFactories: Int!
   factoryPerformance: [FactoryPerformance!]!
@@ -27,7 +25,6 @@ type AdminDashboardResponse {
   totalRevenue: Int!
 }
 
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
 """Authentication response"""
 type AuthResponseDto {
   accessToken: String!
@@ -71,15 +68,12 @@ type CategoryEntity {
   totalProducts: Int
   updatedAt: DateTime
   updatedBy: String
-<<<<<<< HEAD
-=======
 }
 
 """The type of change (positive or negative)"""
 enum ChangeType {
   NEGATIVE
   POSITIVE
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
 }
 
 type CheckQualityEntity {
@@ -197,8 +191,6 @@ input CreateUserDto {
   password: String!
   phoneNumber: String
   role: String
-<<<<<<< HEAD
-=======
 }
 
 type CustomerInfo {
@@ -219,7 +211,6 @@ type DashboardStats {
   orders: EnhancedOrderStats!
   revenue: EnhancedRevenueStats!
   staff: EnhancedStaffStats!
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
 }
 
 """
@@ -247,8 +238,6 @@ input DoneCheckQualityInput {
   imageUrls: [String!]
   note: String
   passedQuantity: Int!
-<<<<<<< HEAD
-=======
 }
 
 type EnhancedFactoryPerformance {
@@ -296,7 +285,6 @@ type FactoryDashboardResponse {
   recentOrders: [FactoryOrderWithCustomer!]!
   totalOrders: Int!
   totalRevenue: Int!
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
 }
 
 type FactoryEntity {
@@ -331,8 +319,6 @@ type FactoryEntity {
   taxIdentificationNumber: String
   totalEmployees: Int
   website: String
-<<<<<<< HEAD
-=======
 }
 
 type FactoryInfo {
@@ -373,7 +359,6 @@ type FactoryPerformance {
   factoryId: String!
   orderCount: Int!
   totalRevenue: Int!
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
 }
 
 type FactoryProductEntity {
@@ -385,8 +370,6 @@ type FactoryProductEntity {
   systemConfigVariantId: String!
 }
 
-<<<<<<< HEAD
-=======
 type FactoryProgressReportType {
   estimatedCompletion: DateTime!
   factoryOrderId: String!
@@ -396,7 +379,6 @@ type FactoryProgressReportType {
   reportDate: DateTime!
 }
 
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
 """The status of the factory"""
 enum FactoryStatus {
   APPROVED
@@ -440,8 +422,6 @@ scalar JSON
 input LoginDto {
   email: String!
   password: String!
-<<<<<<< HEAD
-=======
 }
 
 type ManagerDashboardResponse {
@@ -462,7 +442,6 @@ type ManagerOrderDashboardEntity {
   lastMonthPendingOrders: Int!
   pendingOrders: Int!
   totalOrders: Int!
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
 }
 
 type Mutation {
@@ -470,10 +449,7 @@ type Mutation {
   assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   changeFactoryStatus(data: UpdateFactoryStatusDto!): FactoryEntity!
-<<<<<<< HEAD
   changeOrderToShipping(orderId: String!): OrderEntity!
-=======
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
   clearCart: Boolean!
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
@@ -579,10 +555,7 @@ enum OrderDetailStatus {
   REWORK_IN_PROGRESS
   REWORK_REQUIRED
   SHIPPED
-<<<<<<< HEAD
   SHIPPING
-=======
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
   WAITING_FOR_CHECKING_QUALITY
 }
 
@@ -648,12 +621,7 @@ enum OrderStatus {
   REWORK_IN_PROGRESS
   REWORK_REQUIRED
   SHIPPED
-<<<<<<< HEAD
   SHIPPING
-  WAITING_FILL_INFORMATION
-  WAITING_FOR_CHECKING_QUALITY
-  WAITING_PAYMENT
-=======
   WAITING_FILL_INFORMATION
   WAITING_FOR_CHECKING_QUALITY
   WAITING_PAYMENT
@@ -670,7 +638,6 @@ type OrderWithFactory {
   orderDate: DateTime!
   status: String!
   totalPrice: Int!
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
 }
 
 type PaymentEntity {
@@ -754,8 +721,6 @@ type ProductPositionTypeEntity {
 type Province {
   provinceId: Int!
   provinceName: String!
-<<<<<<< HEAD
-=======
 }
 
 type QualityIssueWithFactory {
@@ -765,7 +730,6 @@ type QualityIssueWithFactory {
   issueType: String!
   reportedAt: DateTime!
   status: String!
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
 }
 
 type Query {
@@ -783,12 +747,6 @@ type Query {
   factoryProduct(factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
   factoryProducts: [FactoryProductEntity!]!
   formatAddress(formatAddressInput: FormatAddressInput!): FormattedAddressModel!
-<<<<<<< HEAD
-  getAllFactories: [FactoryEntity!]!
-  getCartItem(id: String!): CartItemEntity!
-  getCartItemCount: Float!
-  getFactoryById(factoryId: String!): FactoryEntity!
-=======
   getAdminDashboard: AdminDashboardResponse!
   getAllFactories: [FactoryEntity!]!
   getCartItem(id: String!): CartItemEntity!
@@ -798,7 +756,6 @@ type Query {
   getFactoryDashboard: FactoryDashboardResponse!
   getManagerDashboard: ManagerDashboardResponse!
   getManagerOrderDashboard: ManagerOrderDashboardEntity!
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
   myNotifications: [NotificationEntity!]!
@@ -808,10 +765,7 @@ type Query {
   notificationsByUserId(isRead: Boolean): [NotificationEntity!]!
   order(id: String!): OrderEntity!
   orders: [OrderEntity!]!
-<<<<<<< HEAD
-=======
   ordersByFactoryId(factoryId: String!): [OrderEntity!]!
->>>>>>> be3186e081da312072e03b3f653437eb189e506f
   paymentTransaction(id: ID!): PaymentTransactionEntity
   paymentTransactions: [PaymentTransactionEntity!]!
   paymentTransactionsByCustomer(customerId: ID!): [PaymentTransactionEntity!]!
