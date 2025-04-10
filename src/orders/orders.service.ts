@@ -135,6 +135,12 @@ export class OrdersService {
                     addresses: true
                 }
             })
+
+            //if address is not found, throw you should add address first
+            if (!user.addresses.length) {
+                throw new BadRequestException("You should add address first")
+            }
+
             // Create the order
             const order = await tx.order.create({
                 data: {
@@ -142,7 +148,7 @@ export class OrdersService {
                     status: OrderStatus.PENDING,
                     totalPrice: totalOrderPrice,
                     // TODO: get address id from user
-                    addressId: user.addresses[0].id,
+                    addressId: user.addresses[0]?.id,
                     shippingPrice: 0,
                     orderDate: now,
                     totalItems: cartItems.length,
