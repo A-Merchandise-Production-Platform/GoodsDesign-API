@@ -9,6 +9,7 @@ import { getRolesBelowOrEqual } from "../utils/role.utils"
 import { CreateUserDto, UpdateUserDto } from "./dto"
 import { UserEntity } from "./entities/users.entity"
 import { Roles } from "@prisma/client"
+import { UpdateProfileDto } from "src/users/dto/update-profile.dto"
 
 @Injectable()
 export class UsersService {
@@ -166,5 +167,33 @@ export class UsersService {
         })
 
         return staff.map((staff) => this.toUserEntity(staff))
+    }
+
+    async updateProfile(id: string, updateProfileDto: UpdateProfileDto, currentUser: UserEntity) {
+        const user = await this.prisma.user.findUnique({
+            where: { id }
+        })
+
+        if (id !== currentUser.id) {
+            throw new ForbiddenException("You are not authorized to update this profile")
+        }
+
+        if (!user || user.isDeleted) {
+            throw new NotFoundException(`User with ID ${id} not found`)
+        }
+
+        const updatedUser = await this.prisma.user.update({
+            where: { id },
+            data: {
+                ...updateProfileDto,
+                dateOfBirth: updateProfileDto.dateOfBirth
+                    ? new Date(updateProfileDto.dateOfBirth)
+                    : null,
+                updatedAt: new Date(),
+                updatedBy: currentUser.id
+            }
+        })
+
+        return this.toUserEntity(updatedUser)
     }
 }

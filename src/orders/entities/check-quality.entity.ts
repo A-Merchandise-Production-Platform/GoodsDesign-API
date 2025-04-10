@@ -1,7 +1,7 @@
-import { Field, ID, ObjectType, Int, registerEnumType } from '@nestjs/graphql';
-import { QualityCheckStatus } from '@prisma/client';
-import { TaskEntity } from './task.entity';
-import { OrderDetailEntity } from './order-detail.entity';
+import { Field, ID, ObjectType, Int, registerEnumType } from "@nestjs/graphql"
+import { QualityCheckStatus } from "@prisma/client"
+import { TaskEntity } from "../../tasks/entities/task.entity"
+import { OrderDetailEntity } from "./order-detail.entity"
 
 registerEnumType(QualityCheckStatus, {
     name: "QualityCheckStatus"
@@ -10,48 +10,48 @@ registerEnumType(QualityCheckStatus, {
 @ObjectType()
 export class CheckQualityEntity {
     @Field(() => ID)
-    id: string;
+    id: string
 
     @Field()
-    taskId: string;
+    taskId: string
 
     @Field()
-    orderDetailId: string;
+    orderDetailId: string
 
     @Field(() => Int)
-    totalChecked: number;
+    totalChecked: number
 
     @Field(() => Int)
-    passedQuantity: number;
+    passedQuantity: number
 
     @Field(() => Int)
-    failedQuantity: number;
+    failedQuantity: number
 
     @Field(() => String)
-    status: QualityCheckStatus;
+    status: QualityCheckStatus
 
     @Field(() => String, { nullable: true })
-    note?: string;
+    note?: string
 
     @Field()
-    createdAt: Date;
+    createdAt: Date
 
     @Field()
-    checkedAt: Date;
+    checkedAt: Date
 
     @Field(() => String, { nullable: true })
-    checkedBy?: string;
+    checkedBy?: string
 
     @Field(() => [String])
-    imageUrls: string[];
+    imageUrls: string[]
 
     @Field(() => TaskEntity, { nullable: true })
-    task?: TaskEntity;
+    task?: TaskEntity
 
     @Field(() => OrderDetailEntity, { nullable: true })
-    orderDetail?: OrderDetailEntity;
+    orderDetail?: OrderDetailEntity
 
     constructor(partial: Partial<CheckQualityEntity>) {
-        Object.assign(this, partial);
+        Object.assign(this, partial)
     }
-} 
+}

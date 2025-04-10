@@ -6,6 +6,7 @@ import { CreateUserDto } from "src/users/dto/create-user.dto"
 import { UpdateUserDto } from "src/users/dto/update-user.dto"
 import { UserEntity } from "./entities/users.entity"
 import { UsersService } from "./users.service"
+import { UpdateProfileDto } from "src/users/dto/update-profile.dto"
 
 @Resolver(() => UserEntity)
 @UseGuards(GraphqlJwtAuthGuard)
@@ -52,5 +53,13 @@ export class UsersResolver {
     @Query(() => [UserEntity], { name: "availableStaffForFactory" })
     async getAvailableStaffForFactory(@CurrentUser() user: UserEntity) {
         return this.usersService.getAvailableStaffForFactory(user)
+    }
+
+    @Mutation(() => UserEntity, { name: "updateProfile" })
+    async updateProfile(
+        @CurrentUser() user: UserEntity,
+        @Args("updateProfileInput") updateProfileInput: UpdateProfileDto
+    ) {
+        return this.usersService.updateProfile(user.id, updateProfileInput, user)
     }
 }

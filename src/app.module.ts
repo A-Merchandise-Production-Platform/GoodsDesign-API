@@ -30,6 +30,7 @@ import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
 import { OrdersModule } from './orders/orders.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
     imports: [
@@ -73,6 +74,7 @@ import { OrdersModule } from './orders/orders.module';
         NotificationsModule,
         DashboardModule,
         OrdersModule,
+        TasksModule,
         // FactoryProductsModule
         // TestModule,
     ],

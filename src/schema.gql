@@ -507,6 +507,7 @@ type Mutation {
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
+  updateProfile(updateProfileInput: UpdateProfileDto!): UserEntity!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
@@ -743,6 +744,7 @@ type Query {
   factoryOrders: [OrderEntity!]!
   factoryProduct(factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
   factoryProducts: [FactoryProductEntity!]!
+  findTasksByStaffId(staffId: String!): [TaskEntity!]!
   formatAddress(formatAddressInput: FormatAddressInput!): FormattedAddressModel!
   getAdminDashboard: AdminDashboardResponse!
   getAllFactories: [FactoryEntity!]!
@@ -1021,6 +1023,13 @@ input UpdateProductPositionTypeDto {
   id: ID!
   positionName: String
   productId: String
+}
+
+input UpdateProfileDto {
+  dateOfBirth: DateTime!
+  gender: Boolean!
+  name: String!
+  phoneNumber: String!
 }
 
 input UpdateSystemConfigBankDto {
