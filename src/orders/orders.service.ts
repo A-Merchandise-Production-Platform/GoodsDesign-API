@@ -11,11 +11,13 @@ import { CreateOrderInput } from "./dto/create-order.input"
 import { OrderEntity } from "./entities/order.entity"
 import { FeedbackOrderInput } from "./dto/feedback-order.input"
 import { NotificationsService } from "src/notifications/notifications.service"
+import { ShippingService } from "src/shipping/shipping.service"
 
 @Injectable()
 export class OrdersService {
     constructor(private readonly prisma: PrismaService,
-      private readonly notificationsService: NotificationsService
+      private readonly notificationsService: NotificationsService,
+      private readonly shippingService: ShippingService
     ) {}
 
     async create(createOrderInput: CreateOrderInput, userId: string) {
@@ -1051,6 +1053,8 @@ export class OrdersService {
                     }
                 })
 
+                // Create shipping third party task
+                await this.shippingService.createShippingOrder(checkQuality.orderDetail.order.id)
                 // Notify factory about shipping preparation
                 await this.notificationsService.create({
                     title: "Ready for Shipping",
