@@ -9,11 +9,11 @@ import { ProductDesignEntity } from './entities/product-design.entity';
 import { ProductDesignService } from './product-design.service';
 
 @Resolver(() => ProductDesignEntity)
-@UseGuards(GraphqlJwtAuthGuard)
 export class ProductDesignResolver {
   constructor(private readonly productDesignService: ProductDesignService) {}
 
   @Mutation(() => ProductDesignEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
   async createProductDesign(
     @Args('input') input: CreateProductDesignDto,
     @CurrentUser() { id }: UserEntity
@@ -25,6 +25,7 @@ export class ProductDesignResolver {
   }
 
   @Query(() => [ProductDesignEntity])
+  @UseGuards(GraphqlJwtAuthGuard)
   async productDesignsByUser(
     @CurrentUser() { id }: UserEntity
   ) {
@@ -32,11 +33,13 @@ export class ProductDesignResolver {
   }
 
   @Query(() => [ProductDesignEntity])
+  @UseGuards(GraphqlJwtAuthGuard)
   async productDesigns() {
     return this.productDesignService.findAll();
   }
 
   @Query(() => ProductDesignEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
   async productDesign(
     @Args('id', { type: () => ID }) id: string,
   ) {
@@ -44,6 +47,7 @@ export class ProductDesignResolver {
   }
 
   @Mutation(() => ProductDesignEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
   async updateProductDesign(
     @Args("id") id: string,
     @Args('input') input: UpdateProductDesignDto,
@@ -52,6 +56,7 @@ export class ProductDesignResolver {
   }
 
   @Mutation(() => ProductDesignEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
   async removeProductDesign(
     @Args('id', { type: () => ID }) id: string,
   ) {
@@ -59,10 +64,16 @@ export class ProductDesignResolver {
   }
 
   @Mutation(() => ProductDesignEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
   async duplicateProductDesign(
     @Args('id', { type: () => ID }) id: string,
     @CurrentUser() { id: userId }: UserEntity
   ) {
     return this.productDesignService.duplicate(id, userId);
+  }
+
+  @Query(() => [ProductDesignEntity])
+  async getTemplateProductDesigns() {
+    return this.productDesignService.getTemplateProductDesigns();
   }
 } 

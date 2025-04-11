@@ -20,6 +20,7 @@ import { FileModule } from "./file/file.module"
 import { MailModule } from "./mail/mail.module"
 import { NotificationsModule } from "./notifications/notifications.module"
 import { PaymentGatewayModule } from "./payment-gateway/payment-gateway.module"
+import { PdfModule } from "./pdf/pdf.module"
 import { PrismaModule } from "./prisma"
 import { ProductDesignModule } from "./product-design/product-design.module"
 import { ProductPositionTypeModule } from "./product-position-type/product-position-type.module"
@@ -75,6 +76,7 @@ import { SystemConfigDiscountModule } from "./system-config-discount/system-conf
         DashboardModule,
         OrdersModule,
         SystemConfigDiscountModule,
+        PdfModule,
         // FactoryProductsModule
         // TestModule,
     ],

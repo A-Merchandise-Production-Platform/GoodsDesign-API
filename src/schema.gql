@@ -770,6 +770,7 @@ type Query {
   getManagerOrderDashboard: ManagerOrderDashboardEntity!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
+  getTemplateProductDesigns: [ProductDesignEntity!]!
   myNotifications: [NotificationEntity!]!
   myOrders: [OrderEntity!]!
   notification(id: String!): NotificationEntity!
