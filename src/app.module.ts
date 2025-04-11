@@ -30,10 +30,10 @@ import { ShippingModule } from "./shipping/shipping.module"
 import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
-import { OrdersModule } from './orders/orders.module';
 import { TasksModule } from './tasks/tasks.module';
 import { OrdersModule } from "./orders/orders.module"
 import { SystemConfigDiscountModule } from "./system-config-discount/system-config-discount.module"
+import { FactoryProductsModule } from "./factory-products/factory-products.module"
 
 @Module({
     imports: [
@@ -80,7 +80,7 @@ import { SystemConfigDiscountModule } from "./system-config-discount/system-conf
         TasksModule,
         SystemConfigDiscountModule,
         PdfModule,
-        // FactoryProductsModule
+        FactoryProductsModule
         // TestModule,
     ],
     controllers: [AppController],

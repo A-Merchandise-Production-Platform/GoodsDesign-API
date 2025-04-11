@@ -226,6 +226,7 @@ export class OrdersService {
 
     async findAll() {
         const orders = await this.prisma.order.findMany({
+            orderBy: { orderDate: 'desc' },
             include: {
                 address: true,
                 customer: true,
@@ -290,6 +291,7 @@ export class OrdersService {
             where: {
                 customerId
             },
+            orderBy: { orderDate: 'desc' },
             include: {
                 address: true,
                 customer: true,
@@ -353,6 +355,7 @@ export class OrdersService {
             where: {
                 factoryId
             },
+            orderBy: { orderDate: 'desc' },
             include: {
                 address: true,
                 customer: true,
@@ -420,6 +423,7 @@ export class OrdersService {
                     }
                 }
             },
+            orderBy: { orderDate: 'desc' },
             include: {
                 address: true,
                 customer: true,
@@ -857,229 +861,231 @@ export class OrdersService {
         note?: string,
         imageUrls?: string[]
     ) {
-        const now = new Date()
+        return this.prisma.$transaction(async (tx) => {
+            const now = new Date()
 
-        // Get the check quality with its task and order detail
-        const checkQuality = await this.prisma.checkQuality.findUnique({
-            where: { id: checkQualityId },
-            include: {
-                task: true,
-                orderDetail: {
-                    include: {
-                        checkQualities: true,
-                        order: {
-                            include: {
-                                orderDetails: {
-                                    include: {
-                                        checkQualities: true
-                                    }
-                                },
-                                tasks: true,
-                                customer: true
+            // Get the check quality with its task and order detail
+            const checkQuality = await tx.checkQuality.findUnique({
+                where: { id: checkQualityId },
+                include: {
+                    task: true,
+                    orderDetail: {
+                        include: {
+                            checkQualities: true,
+                            order: {
+                                include: {
+                                    orderDetails: {
+                                        include: {
+                                            checkQualities: true
+                                        }
+                                    },
+                                    tasks: true,
+                                    customer: true
+                                }
                             }
                         }
                     }
                 }
-            }
-        })
-
-        if (!checkQuality) {
-            throw new BadRequestException("Check quality record not found")
-        }
-
-        if (checkQuality.task.userId !== staffId) {
-            throw new BadRequestException("This task is not assigned to you")
-        }
-
-        if (checkQuality.status !== QualityCheckStatus.PENDING) {
-            throw new BadRequestException("This quality check is not in PENDING status")
-        }
-
-        // Validate quantities
-        if (passedQuantity + failedQuantity > checkQuality.orderDetail.quantity) {
-            throw new BadRequestException("Total checked quantity exceeds order detail quantity")
-        }
-
-        // Update check quality
-        const updatedCheckQuality = await this.prisma.checkQuality.update({
-            where: { id: checkQualityId },
-            data: {
-                totalChecked: passedQuantity + failedQuantity,
-                passedQuantity,
-                failedQuantity,
-                status:
-                    failedQuantity > 0 ? QualityCheckStatus.REJECTED : QualityCheckStatus.APPROVED,
-                note,
-                imageUrls: imageUrls || [],
-                checkedAt: now,
-                checkedBy: staffId
-            }
-        })
-
-        // Update task status to COMPLETED
-        await this.prisma.task.update({
-            where: { id: checkQuality.taskId },
-            data: {
-                status: TaskStatus.COMPLETED,
-                completedDate: now
-            }
-        })
-
-        // Create progress report
-        await this.prisma.orderProgressReport.create({
-            data: {
-                orderId: checkQuality.orderDetail.order.id,
-                reportDate: now,
-                note: `Quality check completed for order detail ${checkQuality.orderDetailId}. Passed: ${passedQuantity}, Failed: ${failedQuantity}`,
-                imageUrls: imageUrls || []
-            }
-        })
-
-        // Update current order detail status based on check result
-        await this.prisma.orderDetail.update({
-            where: { id: checkQuality.orderDetailId },
-            data: {
-                status:
-                    failedQuantity > 0
-                        ? OrderDetailStatus.REWORK_REQUIRED
-                        : OrderDetailStatus.DONE_CHECK_QUALITY
-            }
-        })
-
-        // Check if all order details have been checked
-        const allDetailsChecked = checkQuality.orderDetail.order.orderDetails.every((detail) => {
-            const detailCheckQualities = detail.checkQualities || []
-            return detailCheckQualities.some((check) => {
-                //if current check, skip
-                if (check.id === checkQualityId) {
-                    return true
-                }
-                return check.status !== QualityCheckStatus.PENDING
             })
+
+            if (!checkQuality) {
+                throw new BadRequestException("Check quality record not found")
+            }
+
+            if (checkQuality.task.userId !== staffId) {
+                throw new BadRequestException("This task is not assigned to you")
+            }
+
+            if (checkQuality.status !== QualityCheckStatus.PENDING) {
+                throw new BadRequestException("This quality check is not in PENDING status")
+            }
+
+            // Validate quantities
+            if (passedQuantity + failedQuantity > checkQuality.orderDetail.quantity) {
+                throw new BadRequestException("Total checked quantity exceeds order detail quantity")
+            }
+
+            // Update check quality
+            const updatedCheckQuality = await tx.checkQuality.update({
+                where: { id: checkQualityId },
+                data: {
+                    totalChecked: passedQuantity + failedQuantity,
+                    passedQuantity,
+                    failedQuantity,
+                    status:
+                        failedQuantity > 0 ? QualityCheckStatus.REJECTED : QualityCheckStatus.APPROVED,
+                    note,
+                    imageUrls: imageUrls || [],
+                    checkedAt: now,
+                    checkedBy: staffId
+                }
+            })
+
+            // Update task status to COMPLETED
+            await tx.task.update({
+                where: { id: checkQuality.taskId },
+                data: {
+                    status: TaskStatus.COMPLETED,
+                    completedDate: now
+                }
+            })
+
+            // Create progress report
+            await tx.orderProgressReport.create({
+                data: {
+                    orderId: checkQuality.orderDetail.order.id,
+                    reportDate: now,
+                    note: `Quality check completed for order detail ${checkQuality.orderDetailId}. Passed: ${passedQuantity}, Failed: ${failedQuantity}`,
+                    imageUrls: imageUrls || []
+                }
+            })
+
+            // Update current order detail status based on check result
+            await tx.orderDetail.update({
+                where: { id: checkQuality.orderDetailId },
+                data: {
+                    status:
+                        failedQuantity > 0
+                            ? OrderDetailStatus.REWORK_REQUIRED
+                            : OrderDetailStatus.DONE_CHECK_QUALITY
+                }
+            })
+
+            // Check if all order details have been checked
+            const allDetailsChecked = checkQuality.orderDetail.order.orderDetails.every((detail) => {
+                const detailCheckQualities = detail.checkQualities || []
+                return detailCheckQualities.some((check) => {
+                    //if current check, skip
+                    if (check.id === checkQualityId) {
+                        return true
+                    }
+                    return check.status !== QualityCheckStatus.PENDING
+                })
+            })
+
+            if (allDetailsChecked) {
+                let hasFailedChecks: boolean = false
+                // Check if any order details failed quality check
+                if (failedQuantity > 0) {
+                    hasFailedChecks = true
+                } else {
+                    const order = await tx.order.findFirst({
+                        where: {
+                            id: checkQuality.orderDetail.order.id
+                        },
+                        include: {
+                            orderDetails: {
+                                include: {
+                                    checkQualities: true
+                                }
+                            }
+                        }
+                    })
+
+                    hasFailedChecks = order.orderDetails.some((detail) => {
+                        const detailCheckQualities = detail.checkQualities || []
+                        return detailCheckQualities.some(
+                            (check) => check.status === QualityCheckStatus.REJECTED
+                        )
+                    })
+                }
+
+                if (hasFailedChecks) {
+                    // Update failed order details to REWORK_REQUIRED
+                    await tx.orderDetail.updateMany({
+                        where: {
+                            orderId: checkQuality.orderDetail.order.id,
+                            checkQualities: {
+                                some: {
+                                    status: QualityCheckStatus.REJECTED
+                                }
+                            }
+                        },
+                        data: {
+                            status: OrderDetailStatus.REWORK_REQUIRED
+                        }
+                    })
+
+                    // Update order status to REWORK_REQUIRED
+                    await tx.order.update({
+                        where: { id: checkQuality.orderDetail.order.id },
+                        data: {
+                            status: OrderStatus.REWORK_REQUIRED,
+                            orderProgressReports: {
+                                create: {
+                                    reportDate: now,
+                                    note: "Some items failed quality check. Rework required.",
+                                    imageUrls: []
+                                }
+                            }
+                        }
+                    })
+
+                    // Notify factory about rework requirement
+                    await this.notificationsService.create({
+                        title: "Rework Required",
+                        content: `Some items in order #${checkQuality.orderDetail.order.id} failed quality check. Rework is required.`,
+                        userId: checkQuality.orderDetail.order.factoryId,
+                        url: `/factory/orders/${checkQuality.orderDetail.order.id}`
+                    })
+
+                    // Notify customer about quality check results
+                    await this.notificationsService.create({
+                        title: "Quality Check Results",
+                        content: `Some items in your order #${checkQuality.orderDetail.order.id} failed quality check. The factory will perform rework.`,
+                        userId: checkQuality.orderDetail.order.customer.id,
+                        url: `/orders/${checkQuality.orderDetail.order.id}`
+                    })
+                } else {
+                    // Update all order details to READY_FOR_SHIPPING
+                    await tx.orderDetail.updateMany({
+                        where: {
+                            orderId: checkQuality.orderDetail.order.id
+                        },
+                        data: {
+                            status: OrderDetailStatus.READY_FOR_SHIPPING
+                        }
+                    })
+
+                    // Update order status to READY_FOR_SHIPPING
+                    await tx.order.update({
+                        where: { id: checkQuality.orderDetail.order.id },
+                        data: {
+                            status: OrderStatus.READY_FOR_SHIPPING,
+                            currentProgress: 70,
+                            doneCheckQualityAt: now,
+                            orderProgressReports: {
+                                create: {
+                                    reportDate: now,
+                                    note: "All items passed quality check. Ready for shipping.",
+                                    imageUrls: []
+                                }
+                            }
+                        }
+                    })
+
+                    // Create shipping third party task
+                    await this.shippingService.createShippingOrder(checkQuality.orderDetail.order.id)
+                    // Notify factory about shipping preparation
+                    await this.notificationsService.create({
+                        title: "Ready for Shipping",
+                        content: `Order #${checkQuality.orderDetail.order.id} has passed quality check and is ready for shipping.`,
+                        userId: checkQuality.orderDetail.order.factoryId,
+                        url: `/factory/orders/${checkQuality.orderDetail.order.id}`
+                    })
+
+                    // Notify customer about quality check results
+                    await this.notificationsService.create({
+                        title: "Quality Check Completed",
+                        content: `All items in your order #${checkQuality.orderDetail.order.id} have passed quality check and are ready for shipping.`,
+                        userId: checkQuality.orderDetail.order.customer.id,
+                        url: `/orders/${checkQuality.orderDetail.order.id}`
+                    })
+                }
+            }
+
+            return updatedCheckQuality
         })
-
-        if (allDetailsChecked) {
-            let hasFailedChecks: boolean = false
-            // Check if any order details failed quality check
-            if (failedQuantity > 0) {
-                hasFailedChecks = true
-            } else {
-                const order = await this.prisma.order.findFirst({
-                    where: {
-                        id: checkQuality.orderDetail.order.id
-                    },
-                    include: {
-                        orderDetails: {
-                            include: {
-                                checkQualities: true
-                            }
-                        }
-                    }
-                })
-
-                hasFailedChecks = order.orderDetails.some((detail) => {
-                    const detailCheckQualities = detail.checkQualities || []
-                    return detailCheckQualities.some(
-                        (check) => check.status === QualityCheckStatus.REJECTED
-                    )
-                })
-            }
-
-            if (hasFailedChecks) {
-                // Update failed order details to REWORK_REQUIRED
-                await this.prisma.orderDetail.updateMany({
-                    where: {
-                        orderId: checkQuality.orderDetail.order.id,
-                        checkQualities: {
-                            some: {
-                                status: QualityCheckStatus.REJECTED
-                            }
-                        }
-                    },
-                    data: {
-                        status: OrderDetailStatus.REWORK_REQUIRED
-                    }
-                })
-
-                // Update order status to REWORK_REQUIRED
-                await this.prisma.order.update({
-                    where: { id: checkQuality.orderDetail.order.id },
-                    data: {
-                        status: OrderStatus.REWORK_REQUIRED,
-                        orderProgressReports: {
-                            create: {
-                                reportDate: now,
-                                note: "Some items failed quality check. Rework required.",
-                                imageUrls: []
-                            }
-                        }
-                    }
-                })
-
-                // Notify factory about rework requirement
-                await this.notificationsService.create({
-                    title: "Rework Required",
-                    content: `Some items in order #${checkQuality.orderDetail.order.id} failed quality check. Rework is required.`,
-                    userId: checkQuality.orderDetail.order.factoryId,
-                    url: `/factory/orders/${checkQuality.orderDetail.order.id}`
-                })
-
-                // Notify customer about quality check results
-                await this.notificationsService.create({
-                    title: "Quality Check Results",
-                    content: `Some items in your order #${checkQuality.orderDetail.order.id} failed quality check. The factory will perform rework.`,
-                    userId: checkQuality.orderDetail.order.customer.id,
-                    url: `/orders/${checkQuality.orderDetail.order.id}`
-                })
-            } else {
-                // Update all order details to READY_FOR_SHIPPING
-                await this.prisma.orderDetail.updateMany({
-                    where: {
-                        orderId: checkQuality.orderDetail.order.id
-                    },
-                    data: {
-                        status: OrderDetailStatus.READY_FOR_SHIPPING
-                    }
-                })
-
-                // Update order status to READY_FOR_SHIPPING
-                await this.prisma.order.update({
-                    where: { id: checkQuality.orderDetail.order.id },
-                    data: {
-                        status: OrderStatus.READY_FOR_SHIPPING,
-                        currentProgress: 70,
-                        doneCheckQualityAt: now,
-                        orderProgressReports: {
-                            create: {
-                                reportDate: now,
-                                note: "All items passed quality check. Ready for shipping.",
-                                imageUrls: []
-                            }
-                        }
-                    }
-                })
-
-                // Create shipping third party task
-                await this.shippingService.createShippingOrder(checkQuality.orderDetail.order.id)
-                // Notify factory about shipping preparation
-                await this.notificationsService.create({
-                    title: "Ready for Shipping",
-                    content: `Order #${checkQuality.orderDetail.order.id} has passed quality check and is ready for shipping.`,
-                    userId: checkQuality.orderDetail.order.factoryId,
-                    url: `/factory/orders/${checkQuality.orderDetail.order.id}`
-                })
-
-                // Notify customer about quality check results
-                await this.notificationsService.create({
-                    title: "Quality Check Completed",
-                    content: `All items in your order #${checkQuality.orderDetail.order.id} have passed quality check and are ready for shipping.`,
-                    userId: checkQuality.orderDetail.order.customer.id,
-                    url: `/orders/${checkQuality.orderDetail.order.id}`
-                })
-            }
-        }
-
-        return updatedCheckQuality
     }
 
     async startRework(orderId: string, factoryId: string) {
@@ -1522,7 +1528,8 @@ export class OrdersService {
         const orders = await this.prisma.order.findMany({
             where: {
                 factoryId: factoryId
-            }
+            },
+            orderBy: { orderDate: 'desc' }
         })
 
         return orders.map((order) => new OrderEntity(order))
