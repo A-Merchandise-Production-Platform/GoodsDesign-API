@@ -62,7 +62,7 @@ export async function seedOrders(prisma: PrismaClient) {
   const orderIds = [];
 
   // Calculate prices based on variant and position types
-  const variantPrice = variantsData.variants[0].price; // 20000
+  const variantPrice = variantsData.variants[0].price; // 50000
   const frontPositionPrice = positionTypesData.positionTypes[0].basePrice; // 100000
   const backPositionPrice = positionTypesData.positionTypes[1].basePrice; // 100000
   const sleevePositionPrice = positionTypesData.positionTypes[2].basePrice; // 50000
