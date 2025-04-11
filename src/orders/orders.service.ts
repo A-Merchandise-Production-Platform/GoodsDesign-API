@@ -602,9 +602,11 @@ export class OrdersService {
             // update task staff id to factory staff id
             await tx.task.updateMany({
                 where: {
-                    orderId: orderId
+                    orderId: orderId,
                 },
-                data: { userId: order.factory.staffId }
+                data: { 
+                    userId: order.factory.staffId,
+                }
             })
 
             // Update all order details status
@@ -951,6 +953,8 @@ export class OrdersService {
                 }
             })
 
+            console.log("checkQuality", checkQuality.orderDetail.order.orderDetails)
+
             // Check if all order details have been checked
             const allDetailsChecked = checkQuality.orderDetail.order.orderDetails.every((detail) => {
                 const detailCheckQualities = detail.checkQualities || []
@@ -982,11 +986,10 @@ export class OrdersService {
                         }
                     })
 
+                    // check if any latest order detail failed quality check
                     hasFailedChecks = order.orderDetails.some((detail) => {
-                        const detailCheckQualities = detail.checkQualities || []
-                        return detailCheckQualities.some(
-                            (check) => check.status === QualityCheckStatus.REJECTED
-                        )
+                        const detailCheckQuality = detail.checkQualities[detail.checkQualities.length - 1]
+                        return detailCheckQuality.status === QualityCheckStatus.REJECTED
                     })
                 }
 
@@ -1231,6 +1234,16 @@ export class OrdersService {
                 }
             })
 
+            //get staff if from factoryId
+            const factory = await tx.factory.findFirst({
+                where: {
+                    factoryOwnerId: factoryId
+                },
+                include: {
+                    staff: true
+                }
+            })
+
             // Create tasks and check qualities for rework
             for (const orderDetail of order.orderDetails) {
                 const task = await tx.task.create({
@@ -1241,7 +1254,8 @@ export class OrdersService {
                         expiredTime: estimatedCheckQualityAt,
                         taskType: TaskType.QUALITY_CHECK,
                         orderId: order.id,
-                        status: TaskStatus.PENDING
+                        status: TaskStatus.PENDING,
+                        userId: factory.staff.id 
                     }
                 })
 
@@ -1323,10 +1337,15 @@ export class OrdersService {
 
             // Check if all rework order details are done
             const allReworkDone = orderDetail.order.orderDetails.every(
-                (detail) => detail.status === OrderDetailStatus.REWORK_DONE
+                (detail) => {
+                    if(detail.id === orderDetailId) {
+                        return detail.status === OrderDetailStatus.REWORK_IN_PROGRESS
+                    }
+                    return detail.status !== OrderDetailStatus.REWORK_IN_PROGRESS
+                }
             )
 
-            console.log("allReworkDone", allReworkDone)
+            console.log("allReworkDone", allReworkDone, orderDetail.order.orderDetails)
 
             if (allReworkDone) {
                 // Update all rework done order details to WAITING_FOR_CHECKING_QUALITY
@@ -1367,14 +1386,6 @@ export class OrdersService {
                         data: {
                             status: TaskStatus.IN_PROGRESS
                         }
-                    })
-
-                    // Notify staff about quality check task
-                    await this.notificationsService.create({
-                        title: "Quality Check Required",
-                        content: `Please perform quality check for reworked order #${orderDetail.order.id}`,
-                        userId: task.userId,
-                        url: `/quality-checks/${task.id}`
                     })
                 }
 
