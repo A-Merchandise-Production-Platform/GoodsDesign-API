@@ -33,6 +33,7 @@ import { UsersModule } from "./users"
 import { TasksModule } from './tasks/tasks.module';
 import { SystemConfigDiscountModule } from "./system-config-discount/system-config-discount.module"
 import { FactoryProductsModule } from "./factory-products/factory-products.module"
+import { OrdersModule } from "./orders/orders.module"
 
 @Module({
     imports: [
