@@ -10,10 +10,15 @@ import { PrismaService } from "../prisma/prisma.service"
 import { CreateOrderInput } from "./dto/create-order.input"
 import { OrderEntity } from "./entities/order.entity"
 import { FeedbackOrderInput } from "./dto/feedback-order.input"
+import { NotificationsService } from "src/notifications/notifications.service"
+import { ShippingService } from "src/shipping/shipping.service"
 
 @Injectable()
 export class OrdersService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService,
+      private readonly notificationsService: NotificationsService,
+      private readonly shippingService: ShippingService
+    ) {}
 
     async create(createOrderInput: CreateOrderInput, userId: string) {
         // Validate order items
@@ -130,6 +135,12 @@ export class OrdersService {
                     addresses: true
                 }
             })
+
+            //if address is not found, throw you should add address first
+            if (!user.addresses.length) {
+                throw new BadRequestException("You should add address first")
+            }
+
             // Create the order
             const order = await tx.order.create({
                 data: {
@@ -137,7 +148,7 @@ export class OrdersService {
                     status: OrderStatus.PENDING,
                     totalPrice: totalOrderPrice,
                     // TODO: get address id from user
-                    addressId: user.addresses[0].id,
+                    addressId: user.addresses[0]?.id,
                     shippingPrice: 0,
                     orderDate: now,
                     totalItems: cartItems.length,
@@ -546,7 +557,8 @@ export class OrdersService {
                 where: { id: orderId },
                 include: {
                     orderDetails: true,
-                    factory: true
+                    factory: true,
+                    customer: true
                 }
             })
 
@@ -578,7 +590,8 @@ export class OrdersService {
                     }
                 },
                 include: {
-                    orderDetails: true
+                    orderDetails: true,
+                    customer: true
                 }
             })
 
@@ -600,6 +613,22 @@ export class OrdersService {
                 }
             })
 
+            // Notify customer about order acceptance
+            await this.notificationsService.create({
+                title: "Order Accepted",
+                content: `Your order #${orderId} has been accepted by the factory and production has started.`,
+                userId: order.customer.id,
+                url: `/orders/${orderId}`
+            })
+
+            // Notify factory staff about new task
+            await this.notificationsService.create({
+                title: "New Production Task",
+                content: `You have been assigned to handle the production of order #${orderId}.`,
+                userId: order.factory.staffId,
+                url: `/factory/orders/${orderId}`
+            })
+
             return updatedOrder
         })
     }
@@ -612,7 +641,8 @@ export class OrdersService {
             const order = await tx.order.findUnique({
                 where: { id: orderId },
                 include: {
-                    orderDetails: true
+                    orderDetails: true,
+                    customer: true
                 }
             })
 
@@ -674,8 +704,25 @@ export class OrdersService {
                     }
                 },
                 include: {
-                    orderDetails: true
+                    orderDetails: true,
+                    customer: true
                 }
+            })
+
+            // Notify customer about order rejection
+            await this.notificationsService.create({
+                title: "Order Rejected",
+                content: `Your order #${orderId} has been rejected by the factory. Reason: ${reason}`,
+                userId: order.customer.id,
+                url: `/orders/${orderId}`
+            })
+
+            // Notify factory owner about legitimacy point deduction
+            await this.notificationsService.create({
+                title: "Legitimacy Points Deducted",
+                content: `Your factory has lost ${systemConfig.reduceLegitPointIfReject} legitimacy points due to order rejection.`,
+                userId: factoryId,
+                url: `/factory/orders/${orderId}`
             })
 
             return updatedOrder
@@ -693,7 +740,8 @@ export class OrdersService {
                     order: {
                         include: {
                             orderDetails: true,
-                            tasks: true
+                            tasks: true,
+                            customer: true
                         }
                     }
                 }
@@ -778,7 +826,23 @@ export class OrdersService {
                             status: TaskStatus.IN_PROGRESS
                         }
                     })
+
+                    // Notify staff about quality check task
+                    await this.notificationsService.create({
+                        title: "Quality Check Required",
+                        content: `Please perform quality check for order #${orderDetail.order.id}`,
+                        userId: task.userId,
+                        url: `/quality-checks/${task.id}`
+                    })
                 }
+
+                // Notify customer about production completion
+                await this.notificationsService.create({
+                    title: "Production Completed",
+                    content: `Production for your order #${orderDetail.order.id} has been completed. Quality check is in progress.`,
+                    userId: orderDetail.order.customer.id,
+                    url: `/orders/${orderDetail.order.id}`
+                })
             }
 
             return orderDetail
@@ -810,7 +874,8 @@ export class OrdersService {
                                         checkQualities: true
                                     }
                                 },
-                                tasks: true
+                                tasks: true,
+                                customer: true
                             }
                         }
                     }
@@ -889,12 +954,9 @@ export class OrdersService {
                 if (check.id === checkQualityId) {
                     return true
                 }
-                console.log("status", check.status, detail.checkQualities)
                 return check.status !== QualityCheckStatus.PENDING
             })
         })
-
-        console.log("allDetailsChecked", allDetailsChecked)
 
         if (allDetailsChecked) {
             let hasFailedChecks: boolean = false
@@ -922,8 +984,6 @@ export class OrdersService {
                     )
                 })
             }
-
-            console.log("hasFailedChecks", hasFailedChecks)
 
             if (hasFailedChecks) {
                 // Update failed order details to REWORK_REQUIRED
@@ -955,6 +1015,22 @@ export class OrdersService {
                         }
                     }
                 })
+
+                // Notify factory about rework requirement
+                await this.notificationsService.create({
+                    title: "Rework Required",
+                    content: `Some items in order #${checkQuality.orderDetail.order.id} failed quality check. Rework is required.`,
+                    userId: checkQuality.orderDetail.order.factoryId,
+                    url: `/factory/orders/${checkQuality.orderDetail.order.id}`
+                })
+
+                // Notify customer about quality check results
+                await this.notificationsService.create({
+                    title: "Quality Check Results",
+                    content: `Some items in your order #${checkQuality.orderDetail.order.id} failed quality check. The factory will perform rework.`,
+                    userId: checkQuality.orderDetail.order.customer.id,
+                    url: `/orders/${checkQuality.orderDetail.order.id}`
+                })
             } else {
                 // Update all order details to READY_FOR_SHIPPING
                 await this.prisma.orderDetail.updateMany({
@@ -982,6 +1058,24 @@ export class OrdersService {
                         }
                     }
                 })
+
+                // Create shipping third party task
+                await this.shippingService.createShippingOrder(checkQuality.orderDetail.order.id)
+                // Notify factory about shipping preparation
+                await this.notificationsService.create({
+                    title: "Ready for Shipping",
+                    content: `Order #${checkQuality.orderDetail.order.id} has passed quality check and is ready for shipping.`,
+                    userId: checkQuality.orderDetail.order.factoryId,
+                    url: `/factory/orders/${checkQuality.orderDetail.order.id}`
+                })
+
+                // Notify customer about quality check results
+                await this.notificationsService.create({
+                    title: "Quality Check Completed",
+                    content: `All items in your order #${checkQuality.orderDetail.order.id} have passed quality check and are ready for shipping.`,
+                    userId: checkQuality.orderDetail.order.customer.id,
+                    url: `/orders/${checkQuality.orderDetail.order.id}`
+                })
             }
         }
 
@@ -1000,7 +1094,8 @@ export class OrdersService {
                         where: {
                             status: OrderDetailStatus.REWORK_REQUIRED
                         }
-                    }
+                    },
+                    customer: true
                 }
             })
 
@@ -1058,13 +1153,11 @@ export class OrdersService {
                 })
 
                 // Create notification for managers
-                await tx.notification.create({
-                    data: {
-                        userId: "manager-id",
-                        title: "Order Exceeded Rework Limit",
-                        content: `Order #${orderId} has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Manual intervention required.`,
-                        url: `/manager/orders/${orderId}`
-                    }
+                await this.notificationsService.createForUsersByRoles({
+                    title: "Order Exceeded Rework Limit",
+                    content: `Order #${orderId} has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Manual intervention required.`,
+                    roles: ["MANAGER"],
+                    url: `/manager/orders/${orderId}`
                 })
 
                 throw new BadRequestException(
@@ -1083,13 +1176,11 @@ export class OrdersService {
             })
 
             // Create notification for factory about legitimacy point deduction
-            await tx.notification.create({
-                data: {
-                    userId: factoryId,
-                    title: "Legitimacy Points Deducted",
-                    content: `Your factory has lost ${systemConfig.reduceLegitPointIfReject} legitimacy points due to rework requirement for order #${orderId}.`,
-                    url: `/factory/orders/${orderId}`
-                }
+            await this.notificationsService.create({
+                title: "Legitimacy Points Deducted",
+                content: `Your factory has lost ${systemConfig.reduceLegitPointIfReject} legitimacy points due to rework requirement for order #${orderId}.`,
+                userId: factoryId,
+                url: `/factory/orders/${orderId}`
             })
 
             // Calculate estimated check quality time
@@ -1161,6 +1252,14 @@ export class OrdersService {
                 })
             }
 
+            // Notify customer about rework start
+            await this.notificationsService.create({
+                title: "Rework Started",
+                content: `The factory has started reworking your order #${orderId}.`,
+                userId: order.customer.id,
+                url: `/orders/${orderId}`
+            })
+
             return order
         })
     }
@@ -1176,7 +1275,8 @@ export class OrdersService {
                     order: {
                         include: {
                             orderDetails: true,
-                            tasks: true
+                            tasks: true,
+                            customer: true
                         }
                     }
                 }
@@ -1260,7 +1360,23 @@ export class OrdersService {
                             status: TaskStatus.IN_PROGRESS
                         }
                     })
+
+                    // Notify staff about quality check task
+                    await this.notificationsService.create({
+                        title: "Quality Check Required",
+                        content: `Please perform quality check for reworked order #${orderDetail.order.id}`,
+                        userId: task.userId,
+                        url: `/quality-checks/${task.id}`
+                    })
                 }
+
+                // Notify customer about rework completion
+                await this.notificationsService.create({
+                    title: "Rework Completed",
+                    content: `The factory has completed reworking your order #${orderDetail.order.id}. Quality check is in progress.`,
+                    userId: orderDetail.order.customer.id,
+                    url: `/orders/${orderDetail.order.id}`
+                })
             }
 
             return orderDetail
@@ -1275,7 +1391,8 @@ export class OrdersService {
             const order = await tx.order.findUnique({
                 where: { id: orderId },
                 include: {
-                    orderDetails: true
+                    orderDetails: true,
+                    customer: true
                 }
             })
 
@@ -1283,8 +1400,8 @@ export class OrdersService {
                 throw new BadRequestException("Order not found")
             }
 
-            if (order.status !== OrderStatus.READY_FOR_SHIPPING) {
-                throw new BadRequestException("This order is not in READY_FOR_SHIPPING status")
+            if (order.status !== OrderStatus.SHIPPING) {
+                throw new BadRequestException("This order is not in SHIPPING status")
             }
 
             // Update all order details to SHIPPED
@@ -1313,8 +1430,17 @@ export class OrdersService {
                     }
                 },
                 include: {
-                    orderDetails: true
+                    orderDetails: true,
+                    customer: true
                 }
+            })
+
+            // Notify customer about shipment
+            await this.notificationsService.create({
+                title: "Order Shipped",
+                content: `Your order #${orderId} has been shipped and is on its way to you.`,
+                userId: order.customer.id,
+                url: `/orders/${orderId}`
             })
 
             return updatedOrder
@@ -1327,7 +1453,10 @@ export class OrdersService {
         return this.prisma.$transaction(async (tx) => {
             // Get the order
             const order = await tx.order.findUnique({
-                where: { id: orderId }
+                where: { id: orderId },
+                include: {
+                    factory: true
+                }
             })
 
             if (!order) {
@@ -1372,8 +1501,17 @@ export class OrdersService {
                     }
                 },
                 include: {
-                    orderDetails: true
+                    orderDetails: true,
+                    factory: true
                 }
+            })
+
+            // Notify factory about order completion and rating
+            await this.notificationsService.create({
+                title: "Order Completed",
+                content: `Order #${orderId} has been completed with a rating of ${input.rating}${input.ratingComment ? `. Comment: ${input.ratingComment}` : ""}`,
+                userId: order.factory.factoryOwnerId,
+                url: `/factory/orders/${orderId}`
             })
 
             return updatedOrder
@@ -1388,5 +1526,72 @@ export class OrdersService {
         })
 
         return orders.map((order) => new OrderEntity(order))
+    }
+
+    async changeOrderToShipping(orderId: string) {
+        const now = new Date()
+
+        return this.prisma.$transaction(async (tx) => {
+            // Get the order
+            const order = await tx.order.findUnique({ 
+                where: { id: orderId },
+                include: {
+                    orderDetails: true,
+                    customer: true,
+                    factory: true
+                }
+            })
+
+            if (!order) {
+                throw new BadRequestException("Order not found")
+            }
+
+            if (order.status !== OrderStatus.READY_FOR_SHIPPING) {
+                throw new BadRequestException("This order is not in READY_FOR_SHIPPING status")
+            }
+
+            // Update order status to SHIPPING
+            const updatedOrder = await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    status: OrderStatus.SHIPPING,
+                    sendForShippingAt: now,
+                    currentProgress: 85,
+                    orderProgressReports: {
+                        create: {
+                            reportDate: now,
+                            note: "Order has been sent for shipping",
+                            imageUrls: []
+                        }
+                    }
+                }
+            })
+
+            // Update all order details to SHIPPING
+            await tx.orderDetail.updateMany({
+                where: {
+                    orderId: orderId
+                },
+                data: { status: OrderDetailStatus.SHIPPING }
+            })
+
+            // Notify factory about shipping status
+            await this.notificationsService.create({
+                title: "Order Ready for Shipping",
+                content: `Order #${orderId} has been marked as ready for shipping. Please prepare the shipment.`,
+                userId: order.factory.factoryOwnerId,
+                url: `/factory/orders/${orderId}`
+            })
+
+            // Notify customer about shipping status
+            await this.notificationsService.create({
+                title: "Order Being Shipped",
+                content: `Your order #${orderId} is being prepared for shipping.`,
+                userId: order.customer.id,
+                url: `/orders/${orderId}`
+            })
+
+            return updatedOrder
+        })
     }
 }

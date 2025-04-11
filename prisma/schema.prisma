@@ -364,6 +364,7 @@ enum OrderStatus {
   // Trạng thái thanh toán và giao hàng
   WAITING_PAYMENT
   READY_FOR_SHIPPING              // Thêm trạng thái mới
+  SHIPPING
   SHIPPED
   
   // Trạng thái kết thúc
@@ -383,6 +384,7 @@ enum OrderDetailStatus {
   REWORK_DONE
   
   READY_FOR_SHIPPING              // Thêm trạng thái mới
+  SHIPPING
   SHIPPED
   COMPLETED                       // Thêm để nhất quán với OrderStatus
 }
@@ -416,14 +418,15 @@ model Order {
   acceptanceDeadline      DateTime?
   acceptedAt              DateTime?
   
+  sendForShippingAt      DateTime?
   shippedAt               DateTime?
-  estimatedShippingAt DateTime
-  doneProductionAt     DateTime?
+  estimatedShippingAt    DateTime
+  doneProductionAt       DateTime?
   estimatedDoneProductionAt DateTime
-  doneCheckQualityAt  DateTime?
+  doneCheckQualityAt     DateTime?
   estimatedCheckQualityAt DateTime
-  completedAt             DateTime?
-  estimatedCompletionAt DateTime
+  completedAt            DateTime?
+  estimatedCompletionAt  DateTime
 
   addressId      String?
   address        Address?               @relation(fields: [addressId], references: [id])

@@ -118,19 +118,27 @@ export class OrdersResolver {
         return this.ordersService.shippedOrder(orderId)
     }
 
-    @Mutation(() => OrderEntity)
-    @UseGuards(GraphqlJwtAuthGuard)
-    feedbackOrder(
-        @Args("orderId", { type: () => String }) orderId: string,
-        @Args("input") input: FeedbackOrderInput,
-        @CurrentUser() user: UserEntity
-    ) {
-        return this.ordersService.feedbackOrder(orderId, user.id, input)
-    }
+  @Mutation(() => OrderEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
+  changeOrderToShipping(
+    @Args('orderId', { type: () => String }) orderId: string
+  ) {
+    return this.ordersService.changeOrderToShipping(orderId);
+  }
 
-    @Query(() => [OrderEntity], { name: "ordersByFactoryId" })
-    @UseGuards(GraphqlJwtAuthGuard)
-    getOrdersByFactoryId(@Args("factoryId", { type: () => String }) factoryId: string) {
-        return this.ordersService.getOrdersByFactoryId(factoryId)
-    }
+  @Mutation(() => OrderEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
+  feedbackOrder(
+    @Args('orderId', { type: () => String }) orderId: string,
+    @Args('input') input: FeedbackOrderInput,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.ordersService.feedbackOrder(orderId, user.id, input);
+  }
+
+  @Query(() => [OrderEntity], { name: "ordersByFactoryId" })
+  @UseGuards(GraphqlJwtAuthGuard)
+  getOrdersByFactoryId(@Args("factoryId", { type: () => String }) factoryId: string) {
+      return this.ordersService.getOrdersByFactoryId(factoryId)
+  }
 }

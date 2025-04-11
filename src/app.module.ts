@@ -12,7 +12,7 @@ import { AuthModule } from "./auth"
 import { CartItemsModule } from "./cart-items/cart-items.module"
 import { CategoriesModule } from "./categories"
 import { CronModule } from "./cron/cron.module"
-import { DashboardModule } from './dashboard/dashboard.module'
+import { DashboardModule } from "./dashboard/dashboard.module"
 import { DesignPositionModule } from "./design-position/design-position.module"
 import { EnvModule } from "./dynamic-modules"
 import { FactoryModule } from "./factory/factory.module"
@@ -20,6 +20,7 @@ import { FileModule } from "./file/file.module"
 import { MailModule } from "./mail/mail.module"
 import { NotificationsModule } from "./notifications/notifications.module"
 import { PaymentGatewayModule } from "./payment-gateway/payment-gateway.module"
+import { PdfModule } from "./pdf/pdf.module"
 import { PrismaModule } from "./prisma"
 import { ProductDesignModule } from "./product-design/product-design.module"
 import { ProductPositionTypeModule } from "./product-position-type/product-position-type.module"
@@ -31,6 +32,8 @@ import { SystemConfigVariantModule } from "./system-config-variant/system-config
 import { UsersModule } from "./users"
 import { OrdersModule } from './orders/orders.module';
 import { TasksModule } from './tasks/tasks.module';
+import { OrdersModule } from "./orders/orders.module"
+import { SystemConfigDiscountModule } from "./system-config-discount/system-config-discount.module"
 
 @Module({
     imports: [
@@ -75,6 +78,8 @@ import { TasksModule } from './tasks/tasks.module';
         DashboardModule,
         OrdersModule,
         TasksModule,
+        SystemConfigDiscountModule,
+        PdfModule,
         // FactoryProductsModule
         // TestModule,
     ],

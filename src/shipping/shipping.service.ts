@@ -325,18 +325,18 @@ export class ShippingService {
       note: `Đơn hàng #${order.id}`,
       required_note: "KHONGCHOXEMHANG",
       from_name: "GoodsDesign",
-      from_phone: "0987654321", // Replace with actual shop phone
-      from_address: "72 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Vietnam", // Replace with actual shop address
+      from_phone: "0981331633",
+      from_address: "72 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Vietnam", 
       from_ward_name: "Phường 14",
       from_district_name: "Quận 10",
       from_province_name: "HCM",
-      return_phone: "0332190444", // Replace with actual return phone
-      return_address: "39 NTT", // Replace with actual return address
+      return_phone: "0332190444",
+      return_address: "39 NTT",
       return_district_id: null,
       return_ward_code: "",
       client_order_code: order.id,
       to_name: customer.name || "Khách hàng",
-      to_phone: customer.phoneNumber || "0123456789",
+      to_phone: customer.phoneNumber || "0902331633",
       to_address: address.street,
       to_ward_code: ward.wardCode,
       to_district_id: district.districtId,
