@@ -1339,7 +1339,7 @@ export class OrdersService {
             const allReworkDone = orderDetail.order.orderDetails.every(
                 (detail) => {
                     if(detail.id === orderDetailId) {
-                        return detail.status === OrderDetailStatus.REWORK_IN_PROGRESS
+                        return true
                     }
                     return detail.status !== OrderDetailStatus.REWORK_IN_PROGRESS
                 }
