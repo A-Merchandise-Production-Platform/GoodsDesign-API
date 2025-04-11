@@ -1,13 +1,13 @@
-import { ObjectType, Field, ID, Int, registerEnumType } from "@nestjs/graphql";
-import { OrderStatus } from "@prisma/client";
-import { AddressEntity } from "src/addresses/entities/address.entity";
-import { FactoryEntity } from "src/factory/entities/factory.entity";
-import { UserEntity } from "src/users";
-import { OrderDetailEntity } from "./order-detail.entity";
-import { OrderProgressReportEntity } from "./order-progress-report.entity";
-import { RejectedOrderEntity } from "./rejected-order.entity";
-import { TaskEntity } from "./task.entity";
-import { PaymentEntity } from "./payment.entity";
+import { ObjectType, Field, ID, Int, registerEnumType } from "@nestjs/graphql"
+import { OrderStatus } from "@prisma/client"
+import { AddressEntity } from "src/addresses/entities/address.entity"
+import { FactoryEntity } from "src/factory/entities/factory.entity"
+import { UserEntity } from "src/users"
+import { OrderDetailEntity } from "./order-detail.entity"
+import { OrderProgressReportEntity } from "./order-progress-report.entity"
+import { RejectedOrderEntity } from "./rejected-order.entity"
+import { TaskEntity } from "../../tasks/entities/task.entity"
+import { PaymentEntity } from "./payment.entity"
 
 registerEnumType(OrderStatus, {
     name: "OrderStatus"
@@ -16,117 +16,117 @@ registerEnumType(OrderStatus, {
 @ObjectType()
 export class OrderEntity {
     @Field(() => ID)
-    id: string;
+    id: string
 
     @Field()
-    customerId: string;
+    customerId: string
 
     @Field(() => String, { nullable: true })
-    factoryId?: string;
+    factoryId?: string
 
     @Field(() => OrderStatus)
-    status: OrderStatus;
+    status: OrderStatus
 
     @Field(() => Int)
-    totalPrice: number;
+    totalPrice: number
 
     @Field(() => Int)
-    shippingPrice: number;
+    shippingPrice: number
 
     @Field()
-    orderDate: Date;
+    orderDate: Date
 
     @Field(() => Int)
-    totalItems: number;
+    totalItems: number
 
     @Field(() => Date, { nullable: true })
-    updatedAt?: Date;
+    updatedAt?: Date
 
     @Field(() => Int, { nullable: true })
-    totalProductionCost?: number;
+    totalProductionCost?: number
 
     @Field(() => Int, { nullable: true })
-    currentProgress?: number;
+    currentProgress?: number
 
     @Field(() => String, { nullable: true })
-    delayReason?: string;
+    delayReason?: string
 
     @Field()
-    isDelayed: boolean;
+    isDelayed: boolean
 
     @Field(() => Int, { nullable: true })
-    rating?: number;
+    rating?: number
 
     @Field(() => String, { nullable: true })
-    ratingComment?: string;
+    ratingComment?: string
 
     @Field(() => Date, { nullable: true })
-    ratedAt?: Date;
+    ratedAt?: Date
 
     @Field(() => String, { nullable: true })
-    ratedBy?: string;
+    ratedBy?: string
 
     @Field(() => Date, { nullable: true })
-    assignedAt?: Date;
+    assignedAt?: Date
 
     @Field(() => Date, { nullable: true })
-    acceptanceDeadline?: Date;
+    acceptanceDeadline?: Date
 
     @Field(() => Date, { nullable: true })
-    acceptedAt?: Date;
+    acceptedAt?: Date
 
     @Field(() => Date, { nullable: true })
-    shippedAt?: Date;
+    shippedAt?: Date
 
     @Field()
-    estimatedShippingAt: Date;
+    estimatedShippingAt: Date
 
     @Field(() => Date, { nullable: true })
-    doneProductionAt?: Date;
+    doneProductionAt?: Date
 
     @Field()
-    estimatedDoneProductionAt: Date;
+    estimatedDoneProductionAt: Date
 
     @Field(() => Date, { nullable: true })
-    doneCheckQualityAt?: Date;
+    doneCheckQualityAt?: Date
 
     @Field()
-    estimatedCheckQualityAt: Date;
+    estimatedCheckQualityAt: Date
 
     @Field(() => Date, { nullable: true })
-    completedAt?: Date;
+    completedAt?: Date
 
     @Field()
-    estimatedCompletionAt: Date;
+    estimatedCompletionAt: Date
 
     @Field(() => String, { nullable: true })
-    addressId?: string;
+    addressId?: string
 
     @Field(() => AddressEntity, { nullable: true })
-    address?: AddressEntity;
+    address?: AddressEntity
 
     @Field(() => UserEntity, { nullable: true })
-    customer?: UserEntity;
+    customer?: UserEntity
 
     @Field(() => FactoryEntity, { nullable: true })
-    factory?: FactoryEntity;
+    factory?: FactoryEntity
 
     @Field(() => [OrderDetailEntity], { nullable: true })
-    orderDetails?: OrderDetailEntity[];
+    orderDetails?: OrderDetailEntity[]
 
     @Field(() => [PaymentEntity], { nullable: true })
-    payments?: PaymentEntity[];
+    payments?: PaymentEntity[]
 
     @Field(() => [OrderProgressReportEntity], { nullable: true })
-    orderProgressReports?: OrderProgressReportEntity[];
+    orderProgressReports?: OrderProgressReportEntity[]
 
     @Field(() => [TaskEntity], { nullable: true })
-    tasks?: TaskEntity[];
+    tasks?: TaskEntity[]
 
     @Field(() => [RejectedOrderEntity], { nullable: true })
-    rejectedHistory?: RejectedOrderEntity[];
+    rejectedHistory?: RejectedOrderEntity[]
 
     constructor(partial: Partial<OrderEntity>) {
-        Object.assign(this, partial);
+        Object.assign(this, partial)
     }
-} 
+}
