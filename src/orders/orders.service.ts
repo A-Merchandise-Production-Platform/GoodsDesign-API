@@ -1249,7 +1249,7 @@ export class OrdersService {
                     data: {
                         taskId: task.id,
                         orderDetailId: orderDetail.id,
-                        totalChecked: 0,
+                        totalChecked: orderDetail.rejectedQty,
                         passedQuantity: 0,
                         failedQuantity: 0,
                         status: QualityCheckStatus.PENDING,
@@ -1316,15 +1316,17 @@ export class OrdersService {
                 data: {
                     orderId: orderDetail.order.id,
                     reportDate: now,
-                    note: `Rework completed for order detail ${orderDetailId}`,
+                    note: `Rework completed for order detail ${orderDetailId} with quantity ${orderDetail.rejectedQty}`,
                     imageUrls: []
                 }
             })
 
             // Check if all rework order details are done
             const allReworkDone = orderDetail.order.orderDetails.every(
-                (detail) => detail.status !== OrderDetailStatus.REWORK_IN_PROGRESS
+                (detail) => detail.status === OrderDetailStatus.REWORK_DONE
             )
+
+            console.log("allReworkDone", allReworkDone)
 
             if (allReworkDone) {
                 // Update all rework done order details to WAITING_FOR_CHECKING_QUALITY
