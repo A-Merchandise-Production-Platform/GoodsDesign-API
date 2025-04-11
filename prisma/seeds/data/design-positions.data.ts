@@ -96,17 +96,17 @@ export const designPositionsData: DesignPositionsData = {
         },
         {
             designId: "design002",
+            productPositionTypeId: "back001",
+            designJSON: []
+        },
+        {
+            designId: "design002",
             productPositionTypeId: "leftSleeve001",
             designJSON: []
         },
         {
             designId: "design002",
             productPositionTypeId: "rightSleeve001",
-            designJSON: []
-        },
-        {
-            designId: "design002",
-            productPositionTypeId: "back001",
             designJSON: []
         },
         {
