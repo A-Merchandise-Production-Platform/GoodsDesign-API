@@ -110,7 +110,8 @@ export class OrdersService {
                     completedQty: 0,
                     rejectedQty: 0,
                     reworkTime: 0,
-                    isRework: false
+                    isRework: false,
+                    systemConfigVariantId: cartItem.systemConfigVariantId
                 }
             })
 

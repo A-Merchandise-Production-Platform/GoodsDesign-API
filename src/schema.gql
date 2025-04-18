@@ -50,6 +50,7 @@ type CartItemEntity {
   design: ProductDesignEntity
   id: ID!
   quantity: Int!
+  systemConfigVariant: SystemConfigVariantEntity
   userId: String!
 }
 
@@ -105,6 +106,7 @@ input CreateAddressInput {
 input CreateCartItemDto {
   designId: String!
   quantity: Int!
+  systemConfigVariantId: String!
 }
 
 """Create category input"""

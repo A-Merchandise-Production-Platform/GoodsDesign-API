@@ -13,4 +13,9 @@ export class CreateCartItemDto {
     @IsNumber()
     @Min(1)
     quantity: number
+
+    @Field(() => String)
+    @IsNotEmpty()
+    @IsString()
+    systemConfigVariantId: string
 }
