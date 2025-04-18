@@ -12,6 +12,7 @@ import { OrderEntity } from "./entities/order.entity"
 import { FeedbackOrderInput } from "./dto/feedback-order.input"
 import { NotificationsService } from "src/notifications/notifications.service"
 import { ShippingService } from "src/shipping/shipping.service"
+import { OrderProgressReportEntity } from "./entities/order-progress-report.entity"
 
 @Injectable()
 export class OrdersService {
@@ -1614,5 +1615,34 @@ export class OrdersService {
 
             return updatedOrder
         })
+    }
+
+    /**
+     * Adds a progress report to an order
+     * @param orderId The ID of the order
+     * @param note The note to add to the progress report
+     * @param imageUrls Optional array of image URLs to attach to the report
+     * @param tx Optional transaction object for use within a transaction
+     * @returns The created order progress report
+     */
+    async addOrderProgressReport(
+        orderId: string, 
+        note: string, 
+        imageUrls: string[] = [], 
+        tx?: any
+    ): Promise<OrderProgressReportEntity> {
+        const prisma = tx || this.prisma;
+        const now = new Date();
+        
+        const report = await prisma.orderProgressReport.create({
+            data: {
+                orderId,
+                reportDate: now,
+                note,
+                imageUrls
+            }
+        });
+
+        return new OrderProgressReportEntity(report);
     }
 }

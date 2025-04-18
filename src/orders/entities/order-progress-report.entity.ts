@@ -6,17 +6,17 @@ export class OrderProgressReportEntity {
     @Field(() => ID)
     id: string;
 
-    @Field()
+    @Field(() => String)
     orderId: string;
 
-    @Field()
+    @Field(() => Date)
     reportDate: Date;
 
     @Field(() => String, { nullable: true })
     note?: string;
 
-    @Field(() => [String])
-    imageUrls: string[];
+    @Field(() => [String], { nullable: true })
+    imageUrls?: string[];
 
     @Field(() => OrderEntity, { nullable: true })
     order?: OrderEntity;

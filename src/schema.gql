@@ -2,6 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AddOrderProgressReportInput {
+  imageUrls: [String!]
+  note: String!
+  orderId: String!
+}
+
 type AddressEntity {
   districtID: Float!
   factory: FactoryEntity
@@ -455,6 +461,7 @@ type ManagerOrderDashboardEntity {
 
 type Mutation {
   acceptOrderForFactory(orderId: String!): OrderEntity!
+  addOrderProgressReport(input: AddOrderProgressReportInput!): OrderProgressReportEntity!
   assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   changeFactoryStatus(data: UpdateFactoryStatusDto!): FactoryEntity!
@@ -614,7 +621,7 @@ type OrderEntity {
 
 type OrderProgressReportEntity {
   id: ID!
-  imageUrls: [String!]!
+  imageUrls: [String!]
   note: String
   order: OrderEntity
   orderId: String!

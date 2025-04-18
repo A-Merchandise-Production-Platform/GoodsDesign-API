@@ -276,26 +276,31 @@ export class ShippingService {
     if (!customer) {
       throw new Error(`Customer with ID ${order.customerId} not found`);
     }
-
-    if(!order.addressId) {
-      throw new Error(`Address with ID ${order.addressId} not found`);
-    }
-
-    // Get address information
-    const address = await this.prisma.address.findUnique({
+    let orderAddress = await this.prisma.address.findFirst({
       where: {
-        id: order?.addressId
+        userId: order.customerId
       }
     });
 
-    if (!address) {
-      throw new Error(`Address with ID ${order.addressId} not found`);
+    if(orderAddress == null) {
+      //check if user has address
+      const address = await this.prisma.address.findFirst({
+        where: {
+          userId: order.customerId
+        }
+      });
+      
+      if(!address) {
+        throw new Error(`Customer ${order.customerId} has no address`);
+      }
+
+      orderAddress = address
     }
 
     // Get province, district, and ward information
-    const province = await this.getProvince(address.provinceID);
-    const district = await this.getDistrict(address.districtID);
-    const ward = await this.getWard(address.wardCode);
+    const province = await this.getProvince(orderAddress.provinceID);
+    const district = await this.getDistrict(orderAddress.districtID);
+    const ward = await this.getWard(orderAddress.wardCode);
 
     // Prepare items for shipping
     const items = order.orderDetails.map(detail => {
@@ -337,10 +342,10 @@ export class ShippingService {
       client_order_code: order.id,
       to_name: customer.name || "Khách hàng",
       to_phone: customer.phoneNumber || "0902331633",
-      to_address: address.street,
+      to_address: orderAddress.street,
       to_ward_code: ward.wardCode,
       to_district_id: district.districtId,
-      cod_amount: order.totalPrice,
+      cod_amount: 0,
       content: `Đơn hàng #${order.id} từ GoodsDesign`,
       weight: totalWeight,
       length: 1,

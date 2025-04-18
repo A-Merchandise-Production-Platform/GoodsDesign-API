@@ -10,6 +10,8 @@ import { CheckQualityEntity } from "./entities/check-quality.entity"
 import { OrderDetailEntity } from "./entities/order-detail.entity"
 import { OrderEntity } from "./entities/order.entity"
 import { OrdersService } from "./orders.service"
+import { OrderProgressReportEntity } from "./entities/order-progress-report.entity"
+import { AddOrderProgressReportInput } from "./dto/add-order-progress-report.input"
 
 @Resolver(() => OrderEntity)
 export class OrdersResolver {
@@ -140,5 +142,18 @@ export class OrdersResolver {
   @UseGuards(GraphqlJwtAuthGuard)
   getOrdersByFactoryId(@Args("factoryId", { type: () => String }) factoryId: string) {
       return this.ordersService.getOrdersByFactoryId(factoryId)
+  }
+
+  @Mutation(() => OrderProgressReportEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
+  addOrderProgressReport(
+    @Args('input') input: AddOrderProgressReportInput,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.ordersService.addOrderProgressReport(
+      input.orderId,
+      input.note,
+      input.imageUrls
+    );
   }
 }
