@@ -86,7 +86,20 @@ export class CartItemsService {
         const userCartItems = await this.prisma.cartItem.findMany({
             where: { userId },
             include: {
-                systemConfigVariant: true,
+                systemConfigVariant: {
+                    include: {
+                        product: {
+                            include: {
+                                discounts: {
+                                    include: {
+                                        product: true
+                                    }
+                                },
+                                category: true
+                            }
+                        }
+                    }
+                },
                 design: {
                     include: {
                         systemConfigVariant: {
@@ -98,9 +111,9 @@ export class CartItemsService {
                                                 product: true
                                             }
                                         },
-                                        category: true,
+                                        category: true
                                     }
-                                },
+                                }
                             }
                         },
                         designPositions: {
@@ -108,7 +121,7 @@ export class CartItemsService {
                                 positionType: true
                             }
                         }
-                    },
+                    }
                 },
                 user: true
             }
