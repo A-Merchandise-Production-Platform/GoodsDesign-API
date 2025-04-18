@@ -111,6 +111,7 @@ export async function seedOrders(prisma: PrismaClient) {
             designId: designs[0].id,
             price: pendingOrderPrice,
             quantity: 10,
+            systemConfigVariantId: "var001"
           }
         ]
       },
@@ -179,6 +180,7 @@ export async function seedOrders(prisma: PrismaClient) {
             designId: designs[1].id,
             price: paymentReceivedOrderPrice,
             quantity: 5,
+            systemConfigVariantId: "var001"
           }
         ]
       },
@@ -263,6 +265,7 @@ export async function seedOrders(prisma: PrismaClient) {
             designId: designs[0].id,
             price: inProductionOrderPrice1,
             quantity: 3,
+            systemConfigVariantId: "var001",
             status: OrderDetailStatus.IN_PRODUCTION,
             completedQty: 1
           },
@@ -270,6 +273,7 @@ export async function seedOrders(prisma: PrismaClient) {
             designId: designs[1].id,
             price: inProductionOrderPrice2,
             quantity: 4,
+            systemConfigVariantId: "var001",
             status: OrderDetailStatus.IN_PRODUCTION,
             completedQty: 2
           }
@@ -363,6 +367,7 @@ export async function seedOrders(prisma: PrismaClient) {
             designId: designs[0].id,
             price: waitingQualityOrderPrice,
             quantity: 5,
+            systemConfigVariantId: "var001",
             status: OrderDetailStatus.WAITING_FOR_CHECKING_QUALITY,
             completedQty: 5
           }
@@ -446,6 +451,7 @@ export async function seedOrders(prisma: PrismaClient) {
             designId: designs[0].id,
             price: completedOrderPrice,
             quantity: 4,
+            systemConfigVariantId: "var001",
             status: OrderDetailStatus.COMPLETED,
             completedQty: 4
           }
@@ -542,6 +548,7 @@ export async function seedOrders(prisma: PrismaClient) {
             designId: designs[2].id,
             price: rejectedOrderPrice,
             quantity: 6,
+            systemConfigVariantId: "var001"
           }
         ]
       },

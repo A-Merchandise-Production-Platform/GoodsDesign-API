@@ -140,6 +140,8 @@ model SystemConfigVariant {
 
   factoryProducts FactoryProduct[]
   productDesigns  ProductDesign[]
+  cartItems       CartItem[]
+  orderDetails    OrderDetail[]
 }
 
 model ProductPositionType {
@@ -275,11 +277,13 @@ model CartItem {
   id        String   @id @default(uuid())
   userId    String
   designId  String
+  systemConfigVariantId String
   quantity  Int
   createdAt DateTime @default(now())
 
   user   User          @relation(fields: [userId], references: [id])
   design ProductDesign @relation(fields: [designId], references: [id])
+  systemConfigVariant SystemConfigVariant @relation(fields: [systemConfigVariantId], references: [id])
 }
 
 
@@ -444,6 +448,7 @@ model OrderDetail {
   id             String            @id @default(uuid())
   orderId        String
   designId       String
+  systemConfigVariantId String
   price          Int
   quantity       Int
   status         OrderDetailStatus @default(PENDING)
@@ -457,6 +462,7 @@ model OrderDetail {
 
   order  Order         @relation(fields: [orderId], references: [id])
   design ProductDesign @relation(fields: [designId], references: [id])
+  systemConfigVariant SystemConfigVariant @relation(fields: [systemConfigVariantId], references: [id])
 
   checkQualities CheckQuality[]
 }
