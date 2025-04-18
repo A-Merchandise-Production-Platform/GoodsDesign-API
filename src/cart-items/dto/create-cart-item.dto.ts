@@ -1,5 +1,5 @@
 import { Field, InputType, Int } from "@nestjs/graphql"
-import { IsNotEmpty, IsNumber, IsString, Min } from "class-validator"
+import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator"
 
 @InputType()
 export class CreateCartItemDto {
@@ -14,8 +14,8 @@ export class CreateCartItemDto {
     @Min(1)
     quantity: number
 
-    @Field(() => String)
-    @IsNotEmpty()
+    @Field(() => String, { nullable: true })
+    @IsOptional()
     @IsString()
-    systemConfigVariantId: string
+    systemConfigVariantId?: string
 }

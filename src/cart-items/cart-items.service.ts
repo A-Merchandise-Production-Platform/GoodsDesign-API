@@ -28,11 +28,26 @@ export class CartItemsService {
         createCartItemDto: CreateCartItemDto,
         userId: string
     ): Promise<CartItemEntity> {
+        if(createCartItemDto.systemConfigVariantId == null) {
+            const systemConfigVariant = await this.prisma.systemConfigVariant.findFirst({
+                where: {
+                    productId: createCartItemDto.designId
+                }
+            })
+
+            if (!systemConfigVariant) {
+                throw new NotFoundException(`System config variant with ID ${createCartItemDto.designId} not found`)
+            }
+
+            createCartItemDto.systemConfigVariantId = systemConfigVariant.id
+        }
+
         // Check if design exists in user's cart
         const existingUserCartItem = await this.prisma.cartItem.findFirst({
             where: {
                 userId,
-                designId: createCartItemDto.designId
+                designId: createCartItemDto.designId,
+                systemConfigVariantId: createCartItemDto.systemConfigVariantId
             }
         })
 
@@ -50,8 +65,10 @@ export class CartItemsService {
         // Create new cart item if it doesn't exist
         const cartItemWithDesign = await this.prisma.cartItem.create({
             data: {
-                ...createCartItemDto,
-                userId
+                userId,
+                designId: createCartItemDto.designId,
+                quantity: createCartItemDto.quantity,
+                systemConfigVariantId: createCartItemDto.systemConfigVariantId
             },
             include: {
                 design: {

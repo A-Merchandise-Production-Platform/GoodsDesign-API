@@ -106,7 +106,7 @@ input CreateAddressInput {
 input CreateCartItemDto {
   designId: String!
   quantity: Int!
-  systemConfigVariantId: String!
+  systemConfigVariantId: String
 }
 
 """Create category input"""
