@@ -1,11 +1,10 @@
 import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common"
 import { UserBank } from "@prisma/client"
+import { PrismaService } from "src/prisma"
+import { UserEntity } from "src/users"
 import { CreateUserBankInput } from "./dto/create-user-bank.input"
 import { UpdateUserBankInput } from "./dto/update-user-bank.input"
 import { UserBankEntity } from "./entities/user-bank.entity"
-import { PrismaService } from "src/prisma"
-import { UserEntity } from "src/users"
-import { SystemConfigBankEntity } from "src/system-config-bank/entities/system-config-bank.entity"
 
 @Injectable()
 export class UserBanksService {
