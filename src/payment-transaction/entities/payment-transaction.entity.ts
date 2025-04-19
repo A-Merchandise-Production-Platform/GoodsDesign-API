@@ -1,7 +1,7 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { PaymentMethod, TransactionStatus, TransactionType } from '@prisma/client';
 import { UserEntity } from 'src/users';
-
+import { UserBankEntity } from 'src/user-banks/entities/user-bank.entity';
 registerEnumType(TransactionType, {
   name: 'TransactionType',
   description: 'Type of transaction',
@@ -49,4 +49,11 @@ export class PaymentTransactionEntity {
 
   @Field(() => UserEntity, { nullable: true })
   customer?: UserEntity;
+
+  //images
+  @Field(() => [String], { nullable: true })
+  imageUrls?: string[];
+
+  @Field(() => UserBankEntity, { nullable: true })
+  userBank?: UserBankEntity;
 } 

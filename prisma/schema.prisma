@@ -256,9 +256,12 @@ model PaymentTransaction {
   status                      TransactionStatus
   transactionLog              String
   createdAt                   DateTime
+  imageUrls                   String[] @default([])
+  userBankId                  String?
 
   payment  Payment @relation(fields: [paymentId], references: [id])
   customer User    @relation(fields: [customerId], references: [id])
+  userBank UserBank? @relation(fields: [userBankId], references: [id])
 }
 
 model Notification {
@@ -590,4 +593,5 @@ model UserBank {
 
   user            User            @relation(fields: [userId], references: [id])
   bank            SystemConfigBank @relation(fields: [bankId], references: [id])
+  paymentTransactions PaymentTransaction[]
 }

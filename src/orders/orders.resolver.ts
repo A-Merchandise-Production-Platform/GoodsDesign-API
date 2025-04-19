@@ -1,4 +1,4 @@
-import { UseGuards } from "@nestjs/common"
+import { UseGuards, BadRequestException } from "@nestjs/common"
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql"
 import { CurrentUser } from "src/auth"
 import { UserEntity } from "src/users"
@@ -155,5 +155,15 @@ export class OrdersResolver {
       input.note,
       input.imageUrls
     );
+  }
+
+  @Mutation(() => OrderEntity)
+  @UseGuards(GraphqlJwtAuthGuard)
+  reassignNewStaffForOrder(
+    @Args("orderId", { type: () => String }) orderId: string,
+    @Args("newStaffId", { type: () => String }) newStaffId: string,
+    @CurrentUser() user: UserEntity
+  ) {
+    return this.ordersService.reassignNewStaffForOrder(orderId, newStaffId);
   }
 }
