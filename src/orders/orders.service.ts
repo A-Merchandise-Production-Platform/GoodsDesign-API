@@ -44,6 +44,7 @@ export class OrdersService {
                     userId: userId
                 },
                 include: {
+                    systemConfigVariant: true,
                     design: {
                         include: {
                             systemConfigVariant: {
@@ -71,6 +72,15 @@ export class OrdersService {
             }
 
             let totalOrderPrice = 0
+            
+            // Group cart items by designId to calculate total quantity for each design
+            const designQuantities = new Map<string, number>();
+            cartItems.forEach(cartItem => {
+                const designId = cartItem.design.id;
+                const currentQuantity = designQuantities.get(designId) || 0;
+                designQuantities.set(designId, currentQuantity + cartItem.quantity);
+            });
+            
             const orderDetailsToCreate = cartItems.map((cartItem) => {
                 const design = cartItem.design
 
@@ -85,13 +95,14 @@ export class OrdersService {
 
                 const baseItemPrice = blankPrice + positionPrices
 
-                // Get applicable discount based on quantity
+                // Get applicable discount based on total quantity for this design
                 const discounts = design.systemConfigVariant.product.discounts || []
                 let maxDiscountPercent = 0
+                const totalDesignQuantity = designQuantities.get(design.id) || 0;
 
                 for (const discount of discounts) {
                     if (
-                        cartItem.quantity >= discount.minQuantity &&
+                        totalDesignQuantity >= discount.minQuantity &&
                         discount.discountPercent > maxDiscountPercent
                     ) {
                         maxDiscountPercent = discount.discountPercent
