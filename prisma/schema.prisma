@@ -35,6 +35,7 @@ model User {
   role        Roles
 
   addresses      Address[]
+  bankAccounts   UserBank[]
   designs        ProductDesign[]
   favorites      FavoriteDesign[]
   orders         Order[]
@@ -110,6 +111,8 @@ model SystemConfigBank {
   logo      String
   isActive  Boolean @default(true)
   isDeleted Boolean @default(false)
+  
+  userBanks UserBank[]
 }
 
 model SystemConfigDiscount {
@@ -227,8 +230,6 @@ enum FactoryStatus {
   SUSPENDED
 }
 
-
-
 model Payment {
   id         String        @id @default(uuid())
   orderId    String
@@ -286,7 +287,6 @@ model CartItem {
   systemConfigVariant SystemConfigVariant @relation(fields: [systemConfigVariantId], references: [id])
 }
 
-
 model FactoryProduct {
   factoryId               String 
   systemConfigVariantId   String
@@ -332,7 +332,6 @@ model Factory {
   contractAcceptedAt DateTime?
   reviewedBy         String?
   reviewedAt         DateTime?
-
 
   contractUrl String?
 
@@ -577,4 +576,18 @@ model SystemConfigOrder {
   specializationScoreWeight Float @default(0.15)
   legitPointScoreWeight Float @default(0.25)
   productionCapacityScoreWeight Float @default(0.2)
+}
+
+model UserBank {
+  id              String   @id @default(uuid())
+  userId          String
+  bankId          String
+  accountNumber   String
+  accountName     String
+  isDefault       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User            @relation(fields: [userId], references: [id])
+  bank            SystemConfigBank @relation(fields: [bankId], references: [id])
 }
