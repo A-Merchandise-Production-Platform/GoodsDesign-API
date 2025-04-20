@@ -253,7 +253,11 @@ export class OrdersService {
                 },
                 orderDetails: {
                     include: {
-                        systemConfigVariant: true,
+                        systemConfigVariant: {
+                            include: {
+                                product: true
+                            }
+                        },
                         checkQualities: {
                             include: {
                                 task: {
@@ -319,7 +323,11 @@ export class OrdersService {
                 },
                 orderDetails: {
                     include: {
-                        systemConfigVariant: true,
+                        systemConfigVariant: {
+                            include: {
+                                product: true
+                            }
+                        },
                         checkQualities: {
                             include: {
                                 task: {
@@ -384,7 +392,11 @@ export class OrdersService {
                 },
                 orderDetails: {
                     include: {
-                        systemConfigVariant: true,
+                        systemConfigVariant: {
+                            include: {
+                                product: true
+                            }
+                        },
                         checkQualities: {
                             include: {
                                 task: {
@@ -453,7 +465,11 @@ export class OrdersService {
                 },
                 orderDetails: {
                     include: {
-                        systemConfigVariant: true,
+                        systemConfigVariant: {
+                            include: {
+                                product: true
+                            }
+                        },
                         checkQualities: {
                             include: {
                                 task: {
@@ -523,7 +539,11 @@ export class OrdersService {
                 },
                 orderDetails: {
                     include: {
-                        systemConfigVariant: true,
+                        systemConfigVariant: {
+                            include: {
+                                product: true
+                            }
+                        },
                         checkQualities: {
                             include: {
                                 task: {
