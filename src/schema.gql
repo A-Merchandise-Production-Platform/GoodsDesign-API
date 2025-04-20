@@ -578,6 +578,7 @@ type OrderDetailEntity {
   rejectedQty: Int!
   reworkTime: Int!
   status: OrderDetailStatus!
+  systemConfigVariant: SystemConfigVariantEntity
   updatedAt: DateTime
 }
 
