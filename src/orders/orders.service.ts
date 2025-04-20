@@ -253,6 +253,7 @@ export class OrdersService {
                 },
                 orderDetails: {
                     include: {
+                        systemConfigVariant: true,
                         checkQualities: {
                             include: {
                                 task: {
@@ -318,6 +319,7 @@ export class OrdersService {
                 },
                 orderDetails: {
                     include: {
+                        systemConfigVariant: true,
                         checkQualities: {
                             include: {
                                 task: {
@@ -382,6 +384,7 @@ export class OrdersService {
                 },
                 orderDetails: {
                     include: {
+                        systemConfigVariant: true,
                         checkQualities: {
                             include: {
                                 task: {
@@ -450,6 +453,7 @@ export class OrdersService {
                 },
                 orderDetails: {
                     include: {
+                        systemConfigVariant: true,
                         checkQualities: {
                             include: {
                                 task: {
@@ -519,6 +523,7 @@ export class OrdersService {
                 },
                 orderDetails: {
                     include: {
+                        systemConfigVariant: true,
                         checkQualities: {
                             include: {
                                 task: {
