@@ -35,16 +35,6 @@ export const productDesignsData: ProductDesignsData = {
                 "https://res.cloudinary.com/drzhutfzg/image/upload/v1744357322/files/c4dxnbtd7stwzu6gvmvw.png"
         },
         {
-            id: "design003",
-            userEmail: "manager@gmail.com",
-            systemConfigVariantId: "var003",
-            isFinalized: false,
-            isPublic: false,
-            isTemplate: false,
-            thumbnailUrl:
-                "https://files.cdn.printful.com/o/upload/product-catalog-img/ea/ea968722fc4980abb0a61b90e7cc0451_l"
-        },
-        {
             id: "63dc38b4-54de-43e7-b53d-504859e182bc",
             userEmail: "admin@gmail.com",
             systemConfigVariantId: "var001",
