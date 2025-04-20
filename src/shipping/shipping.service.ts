@@ -68,21 +68,25 @@ export class ShippingService {
   }
 
   async getProvinces(): Promise<Province[]> {
-    const cacheKey = 'shipping:provinces';
-    const cached = await this.redisService.getCache(cacheKey);
+    try {
+      const cacheKey = 'shipping:provinces';
+      const cached = await this.redisService.getCache(cacheKey);
 
-    if (cached) {
-      return JSON.parse(cached)
+      if (cached) {
+        return JSON.parse(cached)
+      }
+
+      const provinces = await this.handleRequest<ProvinceResponse[]>(this.ENDPOINTS.PROVINCE);
+
+      await this.redisService.setCache(
+        cacheKey,
+        JSON.stringify(formatProvinces(provinces)),
+      );
+
+      return formatProvinces(provinces);
+    } catch (error) {
+      return [];
     }
-
-    const provinces = await this.handleRequest<ProvinceResponse[]>(this.ENDPOINTS.PROVINCE);
-
-    await this.redisService.setCache(
-      cacheKey,
-      JSON.stringify(formatProvinces(provinces)),
-    );
-
-    return formatProvinces(provinces);
   }
 
   async getDistricts(provinceId: number): Promise<District[]> {
@@ -162,13 +166,17 @@ export class ShippingService {
     return formattedServices as unknown as ShippingServiceModel[];
   }
 
-  async getProvince(provinceId: number): Promise<Province> {
-    const provinces = await this.getProvinces();
-    const province = provinces.find(p => p.provinceId === provinceId);
-    if (!province) {
-      throw new Error(`Province with ID ${provinceId} not found`);
+  async getProvince(provinceId: number): Promise<Province | null> {
+    try {
+      const provinces = await this.getProvinces();
+      const province = provinces.find(p => p.provinceId === provinceId);
+      if (!province) {
+        throw new Error(`Province with ID ${provinceId} not found`);
+      }
+      return province;
+    } catch (error) {
+      return null;
     }
-    return province;
   }
 
   async getDistrict(districtId: number): Promise<District> {
@@ -315,7 +323,7 @@ export class ShippingService {
         length: 12, // Default values if not available
         width: 12,
         height: 12,
-        weight: 1200,
+        weight: 120,
         category: {
           level1: product?.categoryId || "Áo"
         }
