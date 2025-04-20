@@ -16,9 +16,10 @@ import { OrderProgressReportEntity } from "./entities/order-progress-report.enti
 
 @Injectable()
 export class OrdersService {
-    constructor(private readonly prisma: PrismaService,
-      private readonly notificationsService: NotificationsService,
-      private readonly shippingService: ShippingService
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly notificationsService: NotificationsService,
+        private readonly shippingService: ShippingService
     ) {}
 
     async create(createOrderInput: CreateOrderInput, userId: string) {
@@ -239,7 +240,7 @@ export class OrdersService {
 
     async findAll() {
         const orders = await this.prisma.order.findMany({
-            orderBy: { orderDate: 'desc' },
+            orderBy: { orderDate: "desc" },
             include: {
                 address: true,
                 customer: true,
@@ -304,7 +305,7 @@ export class OrdersService {
             where: {
                 customerId
             },
-            orderBy: { orderDate: 'desc' },
+            orderBy: { orderDate: "desc" },
             include: {
                 address: true,
                 customer: true,
@@ -368,7 +369,7 @@ export class OrdersService {
             where: {
                 factoryId
             },
-            orderBy: { orderDate: 'desc' },
+            orderBy: { orderDate: "desc" },
             include: {
                 address: true,
                 customer: true,
@@ -436,7 +437,7 @@ export class OrdersService {
                     }
                 }
             },
-            orderBy: { orderDate: 'desc' },
+            orderBy: { orderDate: "desc" },
             include: {
                 address: true,
                 customer: true,
@@ -615,10 +616,10 @@ export class OrdersService {
             // update task staff id to factory staff id
             await tx.task.updateMany({
                 where: {
-                    orderId: orderId,
+                    orderId: orderId
                 },
-                data: { 
-                    userId: order.factory.staffId,
+                data: {
+                    userId: order.factory.staffId
                 }
             })
 
@@ -917,7 +918,9 @@ export class OrdersService {
 
             // Validate quantities
             if (passedQuantity + failedQuantity > checkQuality.orderDetail.quantity) {
-                throw new BadRequestException("Total checked quantity exceeds order detail quantity")
+                throw new BadRequestException(
+                    "Total checked quantity exceeds order detail quantity"
+                )
             }
 
             // Update check quality
@@ -928,7 +931,9 @@ export class OrdersService {
                     passedQuantity,
                     failedQuantity,
                     status:
-                        failedQuantity > 0 ? QualityCheckStatus.REJECTED : QualityCheckStatus.APPROVED,
+                        failedQuantity > 0
+                            ? QualityCheckStatus.REJECTED
+                            : QualityCheckStatus.APPROVED,
                     note,
                     imageUrls: imageUrls || [],
                     checkedAt: now,
@@ -969,16 +974,18 @@ export class OrdersService {
             console.log("checkQuality", checkQuality.orderDetail.order.orderDetails)
 
             // Check if all order details have been checked
-            const allDetailsChecked = checkQuality.orderDetail.order.orderDetails.every((detail) => {
-                const detailCheckQualities = detail.checkQualities || []
-                return detailCheckQualities.some((check) => {
-                    //if current check, skip
-                    if (check.id === checkQualityId) {
-                        return true
-                    }
-                    return check.status !== QualityCheckStatus.PENDING
-                })
-            })
+            const allDetailsChecked = checkQuality.orderDetail.order.orderDetails.every(
+                (detail) => {
+                    const detailCheckQualities = detail.checkQualities || []
+                    return detailCheckQualities.some((check) => {
+                        //if current check, skip
+                        if (check.id === checkQualityId) {
+                            return true
+                        }
+                        return check.status !== QualityCheckStatus.PENDING
+                    })
+                }
+            )
 
             if (allDetailsChecked) {
                 let hasFailedChecks: boolean = false
@@ -1001,7 +1008,8 @@ export class OrdersService {
 
                     // check if any latest order detail failed quality check
                     hasFailedChecks = order.orderDetails.some((detail) => {
-                        const detailCheckQuality = detail.checkQualities[detail.checkQualities.length - 1]
+                        const detailCheckQuality =
+                            detail.checkQualities[detail.checkQualities.length - 1]
                         return detailCheckQuality.status === QualityCheckStatus.REJECTED
                     })
                 }
@@ -1081,7 +1089,9 @@ export class OrdersService {
                     })
 
                     // Create shipping third party task
-                    await this.shippingService.createShippingOrder(checkQuality.orderDetail.order.id)
+                    await this.shippingService.createShippingOrder(
+                        checkQuality.orderDetail.order.id
+                    )
                     // Notify factory about shipping preparation
                     await this.notificationsService.create({
                         title: "Ready for Shipping",
@@ -1268,7 +1278,7 @@ export class OrdersService {
                         taskType: TaskType.QUALITY_CHECK,
                         orderId: order.id,
                         status: TaskStatus.PENDING,
-                        userId: factory.staff.id 
+                        userId: factory.staff.id
                     }
                 })
 
@@ -1349,14 +1359,12 @@ export class OrdersService {
             })
 
             // Check if all rework order details are done
-            const allReworkDone = orderDetail.order.orderDetails.every(
-                (detail) => {
-                    if(detail.id === orderDetailId) {
-                        return true
-                    }
-                    return detail.status !== OrderDetailStatus.REWORK_IN_PROGRESS
+            const allReworkDone = orderDetail.order.orderDetails.every((detail) => {
+                if (detail.id === orderDetailId) {
+                    return true
                 }
-            )
+                return detail.status !== OrderDetailStatus.REWORK_IN_PROGRESS
+            })
 
             console.log("allReworkDone", allReworkDone, orderDetail.order.orderDetails)
 
@@ -1550,12 +1558,67 @@ export class OrdersService {
         })
     }
 
-    async getOrdersByFactoryId(factoryId: string) {
+    async getAllOrdersByFactoryId(factoryId: string, orderId?: string) {
         const orders = await this.prisma.order.findMany({
             where: {
-                factoryId: factoryId
+                factoryId: factoryId,
+                ...(orderId && { id: { contains: orderId } })
             },
-            orderBy: { orderDate: 'desc' }
+            orderBy: { orderDate: "desc" },
+            include: {
+                address: true,
+                customer: true,
+                factory: {
+                    include: {
+                        owner: true,
+                        staff: true,
+                        address: true
+                    }
+                },
+                orderDetails: {
+                    include: {
+                        checkQualities: {
+                            include: {
+                                task: {
+                                    include: {
+                                        assignee: true
+                                    }
+                                }
+                            }
+                        },
+                        design: {
+                            include: {
+                                systemConfigVariant: {
+                                    include: {
+                                        product: true
+                                    }
+                                },
+                                designPositions: {
+                                    include: {
+                                        positionType: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                orderProgressReports: true,
+                payments: {
+                    include: {
+                        transactions: true
+                    }
+                },
+                rejectedHistory: {
+                    include: {
+                        factory: {
+                            include: {
+                                owner: true,
+                                address: true
+                            }
+                        }
+                    }
+                }
+            }
         })
 
         return orders.map((order) => new OrderEntity(order))
@@ -1566,7 +1629,7 @@ export class OrdersService {
 
         return this.prisma.$transaction(async (tx) => {
             // Get the order
-            const order = await tx.order.findUnique({ 
+            const order = await tx.order.findUnique({
                 where: { id: orderId },
                 include: {
                     orderDetails: true,
@@ -1637,14 +1700,14 @@ export class OrdersService {
      * @returns The created order progress report
      */
     async addOrderProgressReport(
-        orderId: string, 
-        note: string, 
-        imageUrls: string[] = [], 
+        orderId: string,
+        note: string,
+        imageUrls: string[] = [],
         tx?: any
     ): Promise<OrderProgressReportEntity> {
-        const prisma = tx || this.prisma;
-        const now = new Date();
-        
+        const prisma = tx || this.prisma
+        const now = new Date()
+
         const report = await prisma.orderProgressReport.create({
             data: {
                 orderId,
@@ -1652,9 +1715,9 @@ export class OrdersService {
                 note,
                 imageUrls
             }
-        });
+        })
 
-        return new OrderProgressReportEntity(report);
+        return new OrderProgressReportEntity(report)
     }
 
     async reassignNewStaffForOrder(orderId: string, newStaffId: string) {

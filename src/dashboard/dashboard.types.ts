@@ -350,3 +350,39 @@ export class EnhancedManagerDashboardResponse {
     @Field(() => [OrderStatusDetail])
     orderStatus: OrderStatusDetail[]
 }
+
+@ObjectType()
+export class FactoryDetailDashboardResponse {
+    @Field(() => Int)
+    totalOrders: number
+
+    @Field(() => Int)
+    lastMonthTotalOrders: number
+
+    @Field(() => Int)
+    pendingOrders: number
+
+    @Field(() => Int)
+    lastMonthPendingOrders: number
+
+    @Field(() => Int)
+    inProductionOrders: number
+
+    @Field(() => Int)
+    lastMonthInProductionOrders: number
+
+    @Field(() => Int)
+    totalRevenue: number
+
+    @Field(() => Int)
+    lastMonthTotalRevenue: number
+
+    @Field(() => [FactoryOrderWithCustomer])
+    recentOrders: FactoryOrderWithCustomer[]
+
+    @Field(() => [QualityIssueWithFactory])
+    qualityIssues: QualityIssueWithFactory[]
+
+    @Field(() => [FactoryOrderWithProgress])
+    productionProgress: FactoryOrderWithProgress[]
+}
