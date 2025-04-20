@@ -22,7 +22,7 @@ export const productDesignsData: ProductDesignsData = {
             isPublic: false,
             isTemplate: false,
             thumbnailUrl:
-                "https://res.cloudinary.com/drzhutfzg/image/upload/v1744285226/files/gzwa3oc4yipw4vzieidq.png"
+                "https://res.cloudinary.com/drzhutfzg/image/upload/v1745161392/files/evkuzcqqjw2aw6fnmzw2.png"
         },
         {
             id: "design002",
