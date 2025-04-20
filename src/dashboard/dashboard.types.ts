@@ -1,4 +1,5 @@
 import { Field, Int, ObjectType, registerEnumType } from "@nestjs/graphql"
+import { TaskEntity } from "src/tasks/entities/task.entity"
 
 export enum ActivityType {
     ORDER = "order",
@@ -385,4 +386,26 @@ export class FactoryDetailDashboardResponse {
 
     @Field(() => [FactoryOrderWithProgress])
     productionProgress: FactoryOrderWithProgress[]
+}
+
+@ObjectType()
+export class StaffDashboardResponse {
+    @Field(() => Int)
+    completedTasks: number
+
+    @Field(() => Int)
+    lastMonthCompletedTasks: number
+    @Field(() => Int)
+    totalActiveTasks: number
+
+    @Field(() => Int)
+    lastMonthActiveTasks: number
+    @Field(() => Int)
+    totalTaskHistory: number
+
+    @Field(() => [TaskEntity])
+    activeTasks: TaskEntity[]
+
+    @Field(() => [TaskEntity])
+    taskHistory: TaskEntity[]
 }

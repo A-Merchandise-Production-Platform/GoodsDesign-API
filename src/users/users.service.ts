@@ -87,7 +87,11 @@ export class UsersService {
 
     async findOne(id: string, currentUser: UserEntity): Promise<UserEntity> {
         const user = await this.prisma.user.findFirst({
-            where: { id, isDeleted: false }
+            where: { id, isDeleted: false },
+            include: {
+                staffedFactory: true,
+                ownedFactory: true
+            }
         })
 
         if (!user) {

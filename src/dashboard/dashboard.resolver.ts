@@ -10,7 +10,8 @@ import {
     EnhancedManagerDashboardResponse,
     FactoryDashboardResponse,
     FactoryDetailDashboardResponse,
-    ManagerDashboardResponse
+    ManagerDashboardResponse,
+    StaffDashboardResponse
 } from "./dashboard.types"
 import { ManagerOrderDashboardEntity } from "src/dashboard/entity/manager-order.entity"
 
@@ -53,5 +54,11 @@ export class DashboardResolver {
     @AllowedRoles(Roles.FACTORYOWNER, Roles.ADMIN)
     async getFactoryDetailDashboard(@Args("factoryId") factoryId: string) {
         return this.dashboardService.getFactoryDetailDashboard(factoryId)
+    }
+
+    @Query(() => StaffDashboardResponse)
+    @AllowedRoles(Roles.STAFF)
+    async getStaffDashboard(@Args("userId") userId: string) {
+        return this.dashboardService.getStaffDashboard(userId)
     }
 }

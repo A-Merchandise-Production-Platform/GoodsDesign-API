@@ -8,7 +8,8 @@ import {
     EnhancedManagerDashboardResponse,
     FactoryDashboardResponse,
     FactoryDetailDashboardResponse,
-    ManagerDashboardResponse
+    ManagerDashboardResponse,
+    StaffDashboardResponse
 } from "./dashboard.types"
 import { UserEntity } from "src/users"
 import { ManagerOrderDashboardEntity } from "src/dashboard/entity/manager-order.entity"
@@ -553,6 +554,121 @@ export class DashboardService {
                 qualityIssues: [],
                 productionProgress: []
             }
+        }
+    }
+
+    async getStaffDashboard(userId: string): Promise<StaffDashboardResponse> {
+        // Get current date info for time-based comparisons
+        const today = new Date()
+        const currentMonth = today.getMonth()
+        const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1
+        const currentYear = today.getFullYear()
+        const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear
+
+        // Dates for current and previous month calculations
+        const startOfCurrentMonth = new Date(currentYear, currentMonth, 1)
+        const startOfPreviousMonth = new Date(
+            previousMonth === 11 ? previousYear : currentYear,
+            previousMonth,
+            1
+        )
+
+        // Get completed tasks for current month
+        const completedTasksCurrentMonth = await this.prisma.task.count({
+            where: {
+                userId: userId,
+                status: "COMPLETED",
+                completedDate: {
+                    gte: startOfCurrentMonth,
+                    lte: today
+                }
+            }
+        })
+
+        // Get completed tasks for previous month
+        const completedTasksPreviousMonth = await this.prisma.task.count({
+            where: {
+                userId: userId,
+                status: "COMPLETED",
+                completedDate: {
+                    gte: startOfPreviousMonth,
+                    lt: startOfCurrentMonth
+                }
+            }
+        })
+
+        // Get active tasks
+        const activeTasks = await this.prisma.task.findMany({
+            where: {
+                userId: userId,
+                status: { in: ["PENDING", "IN_PROGRESS"] }
+            },
+            orderBy: [
+                { status: "asc" }, // IN_PROGRESS first, then PENDING
+                { expiredTime: "asc" } // Closest deadline first
+            ],
+            include: {
+                order: true,
+                assignee: true
+            }
+        })
+
+        // Get current month active tasks count
+        const activeTasksCurrentMonth = await this.prisma.task.count({
+            where: {
+                userId: userId,
+                status: { in: ["PENDING", "IN_PROGRESS"] },
+                startDate: {
+                    gte: startOfCurrentMonth,
+                    lte: today
+                }
+            }
+        })
+
+        // Get previous month active tasks count
+        const activeTasksPreviousMonth = await this.prisma.task.count({
+            where: {
+                userId: userId,
+                status: { in: ["PENDING", "IN_PROGRESS"] },
+                startDate: {
+                    gte: startOfPreviousMonth,
+                    lt: startOfCurrentMonth
+                }
+            }
+        })
+
+        // Get task history (recently completed tasks)
+        const taskHistory = await this.prisma.task.findMany({
+            where: {
+                userId: userId,
+                status: "COMPLETED"
+            },
+            orderBy: {
+                completedDate: "desc"
+            },
+            take: 10,
+            include: {
+                order: true,
+                assignee: true
+            }
+        })
+
+        // Total task history count
+        const totalTaskHistory = await this.prisma.task.count({
+            where: {
+                userId: userId,
+                status: "COMPLETED"
+            }
+        })
+
+        return {
+            completedTasks: completedTasksCurrentMonth,
+            lastMonthCompletedTasks: completedTasksPreviousMonth,
+            totalActiveTasks: activeTasks.length,
+            lastMonthActiveTasks: activeTasksPreviousMonth,
+            totalTaskHistory: totalTaskHistory,
+            activeTasks: activeTasks,
+            taskHistory: taskHistory
         }
     }
 }

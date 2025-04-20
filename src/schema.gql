@@ -784,7 +784,9 @@ type Query {
   factoryOrders: [OrderEntity!]!
   factoryProduct(factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
   factoryProducts: [FactoryProductEntity!]!
+  findActiveTasksByStaffId(staffId: String!): [TaskEntity!]!
   findTasksByStaffId(staffId: String!): [TaskEntity!]!
+  findTasksHistoryByStaffId(staffId: String!): [TaskEntity!]!
   formatAddress(formatAddressInput: FormatAddressInput!): FormattedAddressModel!
   getAdminDashboard: AdminDashboardResponse!
   getAllDiscountByProductId(productId: String!): [SystemConfigDiscountEntity!]!
@@ -800,6 +802,7 @@ type Query {
   getManagerOrderDashboard: ManagerOrderDashboardEntity!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
+  getStaffDashboard(userId: String!): StaffDashboardResponse!
   getTemplateProductDesigns: [ProductDesignEntity!]!
   myNotifications: [NotificationEntity!]!
   myOrders: [OrderEntity!]!
@@ -905,6 +908,16 @@ type ShippingService {
   serviceId: Int!
   serviceTypeId: Int!
   shortName: String!
+}
+
+type StaffDashboardResponse {
+  activeTasks: [TaskEntity!]!
+  completedTasks: Int!
+  lastMonthActiveTasks: Int!
+  lastMonthCompletedTasks: Int!
+  taskHistory: [TaskEntity!]!
+  totalActiveTasks: Int!
+  totalTaskHistory: Int!
 }
 
 type SystemConfigBankEntity {

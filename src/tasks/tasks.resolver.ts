@@ -13,4 +13,17 @@ export class TasksResolver {
     findTasksByStaffId(@Args("staffId", { type: () => String }) staffId: string) {
         return this.tasksService.findTasksByStaffId(staffId)
     }
+
+    @Query(() => [TaskEntity])
+    @UseGuards(GraphqlJwtAuthGuard)
+    findActiveTasksByStaffId(@Args("staffId", { type: () => String }) staffId: string) {
+        return this.tasksService.findActiveTasksByStaffId(staffId)
+    }
+
+    @Query(() => [TaskEntity])
+    @UseGuards(GraphqlJwtAuthGuard)
+    findTasksHistoryByStaffId(@Args("staffId", { type: () => String }) staffId: string) {
+        return this.tasksService.findTasksHistoryByStaffId(staffId)
+    }
+    q
 }
