@@ -515,6 +515,7 @@ type Mutation {
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
   markNotificationAsRead(id: String!): NotificationEntity!
+  reassignNewStaffForOrder(newStaffId: String!, orderId: String!): OrderEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
   rejectOrder(orderId: String!, reason: String!): OrderEntity!
@@ -700,11 +701,13 @@ type PaymentTransactionEntity {
   customer: UserEntity
   customerId: ID!
   id: ID!
+  imageUrls: [String!]
   paymentGatewayTransactionId: String!
   paymentMethod: PaymentMethod!
   status: TransactionStatus!
   transactionLog: String!
   type: TransactionType!
+  userBank: UserBankEntity
 }
 
 type ProductDesignEntity {
@@ -1116,6 +1119,19 @@ input UpdateUserDto {
 
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
+
+type UserBankEntity {
+  accountName: String!
+  accountNumber: String!
+  bank: SystemConfigBankEntity
+  bankId: String!
+  createdAt: DateTime!
+  id: ID!
+  isDefault: Boolean!
+  updatedAt: DateTime!
+  user: UserEntity
+  userId: String!
+}
 
 type UserEntity {
   createdAt: DateTime!

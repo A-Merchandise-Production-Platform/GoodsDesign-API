@@ -45,6 +45,7 @@ export class OrdersService {
                     userId: userId
                 },
                 include: {
+                    systemConfigVariant: true,
                     design: {
                         include: {
                             systemConfigVariant: {
@@ -72,6 +73,15 @@ export class OrdersService {
             }
 
             let totalOrderPrice = 0
+            
+            // Group cart items by designId to calculate total quantity for each design
+            const designQuantities = new Map<string, number>();
+            cartItems.forEach(cartItem => {
+                const designId = cartItem.design.id;
+                const currentQuantity = designQuantities.get(designId) || 0;
+                designQuantities.set(designId, currentQuantity + cartItem.quantity);
+            });
+            
             const orderDetailsToCreate = cartItems.map((cartItem) => {
                 const design = cartItem.design
 
@@ -86,13 +96,14 @@ export class OrdersService {
 
                 const baseItemPrice = blankPrice + positionPrices
 
-                // Get applicable discount based on quantity
+                // Get applicable discount based on total quantity for this design
                 const discounts = design.systemConfigVariant.product.discounts || []
                 let maxDiscountPercent = 0
+                const totalDesignQuantity = designQuantities.get(design.id) || 0;
 
                 for (const discount of discounts) {
                     if (
-                        cartItem.quantity >= discount.minQuantity &&
+                        totalDesignQuantity >= discount.minQuantity &&
                         discount.discountPercent > maxDiscountPercent
                     ) {
                         maxDiscountPercent = discount.discountPercent
@@ -1707,5 +1718,103 @@ export class OrdersService {
         })
 
         return new OrderProgressReportEntity(report)
+    }
+
+    async reassignNewStaffForOrder(orderId: string, newStaffId: string) {
+        // First, check if the order exists
+        const order = await this.prisma.order.findUnique({
+            where: { id: orderId },
+            include: {
+                factory: {
+                    include: {
+                        owner: true,
+                        staff: true
+                    }
+                },
+                tasks: true,
+                customer: true
+            }
+        });
+
+        if (!order) {
+            throw new BadRequestException(`Order with ID ${orderId} not found`);
+        }
+
+        if (!order.factoryId) {
+            throw new BadRequestException(`Order with ID ${orderId} does not have an assigned factory`);
+        }
+
+        // Check if the new staff exists and has the STAFF role
+        const newStaff = await this.prisma.user.findUnique({
+            where: { id: newStaffId }
+        });
+
+        if (!newStaff) {
+            throw new BadRequestException(`User with ID ${newStaffId} not found`);
+        }
+
+        if (newStaff.role !== 'STAFF') {
+            throw new BadRequestException(`User with ID ${newStaffId} is not a staff member`);
+        }
+
+        // Check if the new staff is already assigned to another factory
+        const existingFactory = await this.prisma.factory.findFirst({
+            where: { staffId: newStaffId }
+        });
+
+        if (existingFactory && existingFactory.factoryOwnerId !== order.factoryId) {
+            throw new BadRequestException(`Staff with ID ${newStaffId} is already assigned to another factory`);
+        }
+
+        // Update the factory with the new staff
+        await this.prisma.factory.update({
+            where: { factoryOwnerId: order.factoryId },
+            data: { staffId: newStaffId }
+        });
+
+        // Update all tasks for this order to be assigned to the new staff
+        await this.prisma.task.updateMany({
+            where: { orderId: orderId },
+            data: { 
+                userId: newStaffId,
+                assignedDate: new Date()
+            }
+        });
+
+        // Add a progress report for this change
+        await this.addOrderProgressReport(
+            orderId,
+            `Staff reassigned to ${newStaff.name || 'new staff member'}`,
+            []
+        );
+
+        // Notify the factory owner about the staff reassignment
+        await this.notificationsService.create({
+            title: "Staff Reassigned",
+            content: `Staff for order #${orderId} has been reassigned to ${newStaff.name || 'a new staff member'}.`,
+            userId: order.factory.owner.id,
+            url: `/factory/orders/${orderId}`
+        });
+
+        // Notify the new staff about their assignment
+        await this.notificationsService.create({
+            title: "New Order Assignment",
+            content: `You have been assigned to handle order #${orderId}.`,
+            userId: newStaffId,
+            url: `/staff/orders/${orderId}`
+        });
+
+        // If there was a previous staff, notify them about being removed
+        if (order.factory.staff) {
+            await this.notificationsService.create({
+                title: "Order Reassignment",
+                content: `You have been removed from order #${orderId}.`,
+                userId: order.factory.staff.id,
+                url: `/staff/orders`
+            });
+        }
+
+        // Return the updated order
+        return this.findOne(orderId);
     }
 }

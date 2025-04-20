@@ -35,6 +35,7 @@ model User {
   role        Roles
 
   addresses      Address[]
+  bankAccounts   UserBank[]
   designs        ProductDesign[]
   favorites      FavoriteDesign[]
   orders         Order[]
@@ -110,6 +111,8 @@ model SystemConfigBank {
   logo      String
   isActive  Boolean @default(true)
   isDeleted Boolean @default(false)
+  
+  userBanks UserBank[]
 }
 
 model SystemConfigDiscount {
@@ -227,8 +230,6 @@ enum FactoryStatus {
   SUSPENDED
 }
 
-
-
 model Payment {
   id         String        @id @default(uuid())
   orderId    String
@@ -255,9 +256,12 @@ model PaymentTransaction {
   status                      TransactionStatus
   transactionLog              String
   createdAt                   DateTime
+  imageUrls                   String[] @default([])
+  userBankId                  String?
 
   payment  Payment @relation(fields: [paymentId], references: [id])
   customer User    @relation(fields: [customerId], references: [id])
+  userBank UserBank? @relation(fields: [userBankId], references: [id])
 }
 
 model Notification {
@@ -285,7 +289,6 @@ model CartItem {
   design ProductDesign @relation(fields: [designId], references: [id])
   systemConfigVariant SystemConfigVariant @relation(fields: [systemConfigVariantId], references: [id])
 }
-
 
 model FactoryProduct {
   factoryId               String 
@@ -332,7 +335,6 @@ model Factory {
   contractAcceptedAt DateTime?
   reviewedBy         String?
   reviewedAt         DateTime?
-
 
   contractUrl String?
 
@@ -577,4 +579,19 @@ model SystemConfigOrder {
   specializationScoreWeight Float @default(0.15)
   legitPointScoreWeight Float @default(0.25)
   productionCapacityScoreWeight Float @default(0.2)
+}
+
+model UserBank {
+  id              String   @id @default(uuid())
+  userId          String
+  bankId          String
+  accountNumber   String
+  accountName     String
+  isDefault       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User            @relation(fields: [userId], references: [id])
+  bank            SystemConfigBank @relation(fields: [bankId], references: [id])
+  paymentTransactions PaymentTransaction[]
 }
