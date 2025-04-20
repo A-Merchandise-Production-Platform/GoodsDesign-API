@@ -176,19 +176,52 @@ class FactoryProgressReportType {
 @ObjectType()
 export class AdminDashboardResponse {
     @Field(() => Int)
-    totalOrders: number
+    totalSales: number
 
     @Field(() => Int)
-    totalFactories: number
+    totalSalesChange: number
+
+    @Field(() => ChangeType)
+    totalSalesChangeType: ChangeType
+
+    @Field(() => Int)
+    activeUsers: number
+
+    @Field(() => Int)
+    activeUsersChange: number
+
+    @Field(() => ChangeType)
+    activeUsersChangeType: ChangeType
+
+    @Field(() => Int)
+    totalProducts: number
+
+    @Field(() => Int)
+    totalProductsChange: number
+
+    @Field(() => ChangeType)
+    totalProductsChangeType: ChangeType
+
+    @Field(() => Int)
+    pendingOrders: number
+
+    @Field(() => Int)
+    pendingOrdersChange: number
+
+    @Field(() => ChangeType)
+    pendingOrdersChangeType: ChangeType
 
     @Field(() => Int)
     totalCustomers: number
 
     @Field(() => Int)
+    totalOrders: number
+
+    @Field(() => Int)
     totalRevenue: number
 
     @Field(() => Int)
-    pendingOrders: number
+    totalFactories: number
 
     @Field(() => Int)
     activeFactories: number
