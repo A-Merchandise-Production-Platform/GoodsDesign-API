@@ -136,8 +136,19 @@ export class ProductDesignService {
     }
 
     async remove(id: string): Promise<ProductDesignEntity> {
-        const data = await this.prisma.productDesign.delete({
+        // First check if the product design exists
+        const existingDesign = await this.prisma.productDesign.findUnique({
+            where: { id }
+        });
+
+        if (!existingDesign) {
+            throw new Error(`Product design with ID ${id} not found`);
+        }
+
+        // Soft delete the product design
+        const data = await this.prisma.productDesign.update({
             where: { id },
+            data: { isDeleted: true },
             include: {
                 user: true,
                 systemConfigVariant: {
@@ -151,8 +162,9 @@ export class ProductDesignService {
                     }
                 }
             }
-        })
-        return new ProductDesignEntity(data)
+        });
+        
+        return new ProductDesignEntity(data);
     }
 
     async duplicate(id: string, userId: string): Promise<ProductDesignEntity> {

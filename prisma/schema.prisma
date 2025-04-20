@@ -167,6 +167,7 @@ model ProductDesign {
   isPublic              Boolean  @default(false)
   isTemplate            Boolean  @default(false)
   thumbnailUrl          String?
+  isDeleted             Boolean  @default(false)
 
   user                User                  @relation(fields: [userId], references: [id])
   systemConfigVariant SystemConfigVariant   @relation(fields: [systemConfigVariantId], references: [id])

@@ -323,7 +323,7 @@ export class ShippingService {
         length: 12, // Default values if not available
         width: 12,
         height: 12,
-        weight: 1200,
+        weight: 120,
         category: {
           level1: product?.categoryId || "Áo"
         }
