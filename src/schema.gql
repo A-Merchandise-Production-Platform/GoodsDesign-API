@@ -302,6 +302,20 @@ type FactoryDashboardResponse {
   totalRevenue: Int!
 }
 
+type FactoryDetailDashboardResponse {
+  inProductionOrders: Int!
+  lastMonthInProductionOrders: Int!
+  lastMonthPendingOrders: Int!
+  lastMonthTotalOrders: Int!
+  lastMonthTotalRevenue: Int!
+  pendingOrders: Int!
+  productionProgress: [FactoryOrderWithProgress!]!
+  qualityIssues: [QualityIssueWithFactory!]!
+  recentOrders: [FactoryOrderWithCustomer!]!
+  totalOrders: Int!
+  totalRevenue: Int!
+}
+
 type FactoryEntity {
   address: AddressEntity
   businessLicenseUrl: String
@@ -464,6 +478,7 @@ type Mutation {
   addOrderProgressReport(input: AddOrderProgressReportInput!): OrderProgressReportEntity!
   assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
+  changeFactoryStaff(factoryId: String!, newStaffId: String!): FactoryEntity!
   changeFactoryStatus(data: UpdateFactoryStatusDto!): FactoryEntity!
   changeOrderToShipping(orderId: String!): OrderEntity!
   clearCart: Boolean!
@@ -777,6 +792,7 @@ type Query {
   getEnhancedManagerDashboard: EnhancedManagerDashboardResponse!
   getFactoryById(factoryId: String!): FactoryEntity!
   getFactoryDashboard: FactoryDashboardResponse!
+  getFactoryDetailDashboard(factoryId: String!): FactoryDetailDashboardResponse!
   getManagerDashboard: ManagerDashboardResponse!
   getManagerOrderDashboard: ManagerOrderDashboardEntity!
   getMe: UserEntity!

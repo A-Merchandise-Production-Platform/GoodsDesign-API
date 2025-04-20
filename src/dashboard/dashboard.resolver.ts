@@ -1,5 +1,5 @@
 import { UseGuards } from "@nestjs/common"
-import { Query, Resolver } from "@nestjs/graphql"
+import { Args, Query, Resolver } from "@nestjs/graphql"
 import { Roles, User } from "@prisma/client"
 import { GraphqlJwtAuthGuard } from "src/auth"
 import { CurrentUser } from "../auth/decorators/current-user.decorator"
@@ -9,6 +9,7 @@ import {
     AdminDashboardResponse,
     EnhancedManagerDashboardResponse,
     FactoryDashboardResponse,
+    FactoryDetailDashboardResponse,
     ManagerDashboardResponse
 } from "./dashboard.types"
 import { ManagerOrderDashboardEntity } from "src/dashboard/entity/manager-order.entity"
@@ -46,5 +47,11 @@ export class DashboardResolver {
     @AllowedRoles(Roles.MANAGER, Roles.ADMIN)
     async getManagerOrderDashboard(@CurrentUser() user: User) {
         return this.dashboardService.getManagerOrderDashboard(user)
+    }
+
+    @Query(() => FactoryDetailDashboardResponse)
+    @AllowedRoles(Roles.FACTORYOWNER, Roles.ADMIN)
+    async getFactoryDetailDashboard(@Args("factoryId") factoryId: string) {
+        return this.dashboardService.getFactoryDetailDashboard(factoryId)
     }
 }

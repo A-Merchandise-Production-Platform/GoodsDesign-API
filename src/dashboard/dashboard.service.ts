@@ -7,6 +7,7 @@ import {
     ChangeType,
     EnhancedManagerDashboardResponse,
     FactoryDashboardResponse,
+    FactoryDetailDashboardResponse,
     ManagerDashboardResponse
 } from "./dashboard.types"
 import { UserEntity } from "src/users"
@@ -429,6 +430,129 @@ export class DashboardService {
             recentOrders: [],
             qualityIssues: [],
             productionProgress: []
+        }
+    }
+
+    async getFactoryDetailDashboard(factoryId: string): Promise<FactoryDetailDashboardResponse> {
+        if (!factoryId) {
+            throw new ForbiddenException("Factory ID is required")
+        }
+
+        try {
+            // Check if factory exists
+            const factory = await this.prisma.factory.findUnique({
+                where: { factoryOwnerId: factoryId }
+            })
+
+            if (!factory) {
+                throw new ForbiddenException(`Factory with ID ${factoryId} not found`)
+            }
+
+            // Get date ranges for current and previous month
+            const today = new Date()
+            const currentMonth = today.getMonth()
+            const currentYear = today.getFullYear()
+
+            const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1
+            const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear
+
+            const startOfCurrentMonth = new Date(currentYear, currentMonth, 1)
+            const startOfPreviousMonth = new Date(previousYear, previousMonth, 1)
+            const endOfPreviousMonth = new Date(currentYear, currentMonth, 0)
+
+            // Get orders for current month
+            const currentMonthOrders = await this.prisma.order.findMany({
+                where: {
+                    factoryId: factoryId,
+                    orderDate: {
+                        gte: startOfCurrentMonth,
+                        lte: today
+                    }
+                }
+            })
+
+            // Get orders for previous month
+            const previousMonthOrders = await this.prisma.order.findMany({
+                where: {
+                    factoryId: factoryId,
+                    orderDate: {
+                        gte: startOfPreviousMonth,
+                        lte: endOfPreviousMonth
+                    }
+                }
+            })
+
+            // Calculate current month metrics
+            const totalOrders = currentMonthOrders.length
+
+            const pendingOrders = currentMonthOrders.filter(
+                (order) =>
+                    order.status === OrderStatus.PENDING ||
+                    order.status === OrderStatus.PENDING_ACCEPTANCE ||
+                    order.status === OrderStatus.NEED_MANAGER_HANDLE
+            ).length
+
+            const inProductionOrders = currentMonthOrders.filter(
+                (order) => order.status === OrderStatus.IN_PRODUCTION
+            ).length
+
+            const totalRevenue = currentMonthOrders
+                .filter((order) => order.status === OrderStatus.COMPLETED)
+                .reduce((sum, order) => sum + (order.totalProductionCost || 0), 0)
+
+            // Calculate previous month metrics
+            const lastMonthTotalOrders = previousMonthOrders.length
+
+            const lastMonthPendingOrders = previousMonthOrders.filter(
+                (order) =>
+                    order.status === OrderStatus.PENDING ||
+                    order.status === OrderStatus.PENDING_ACCEPTANCE ||
+                    order.status === OrderStatus.NEED_MANAGER_HANDLE
+            ).length
+
+            const lastMonthInProductionOrders = previousMonthOrders.filter(
+                (order) => order.status === OrderStatus.IN_PRODUCTION
+            ).length
+
+            const lastMonthTotalRevenue = previousMonthOrders
+                .filter((order) => order.status === OrderStatus.COMPLETED)
+                .reduce((sum, order) => sum + (order.totalProductionCost || 0), 0)
+
+            // Use empty arrays for complex structures that might have schema issues
+            // These can be implemented properly once schema is confirmed
+            const recentOrders = []
+            const qualityIssues = []
+            const productionProgress = []
+
+            return {
+                totalOrders,
+                lastMonthTotalOrders,
+                pendingOrders,
+                lastMonthPendingOrders,
+                inProductionOrders,
+                lastMonthInProductionOrders,
+                totalRevenue,
+                lastMonthTotalRevenue,
+                recentOrders,
+                qualityIssues,
+                productionProgress
+            }
+        } catch (error) {
+            console.error(`Error fetching factory detail dashboard for ${factoryId}:`, error)
+            // Return empty data in case of error
+            return {
+                totalOrders: 0,
+                lastMonthTotalOrders: 0,
+                pendingOrders: 0,
+                lastMonthPendingOrders: 0,
+                inProductionOrders: 0,
+                lastMonthInProductionOrders: 0,
+                totalRevenue: 0,
+                lastMonthTotalRevenue: 0,
+                recentOrders: [],
+                qualityIssues: [],
+                productionProgress: []
+            }
         }
     }
 }

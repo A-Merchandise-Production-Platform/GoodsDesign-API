@@ -52,4 +52,13 @@ export class FactoryResolver {
     ) {
         return this.factoryService.changeFactoryStatus(data, user)
     }
+
+    @Mutation(() => FactoryEntity)
+    async changeFactoryStaff(
+        @CurrentUser() user: UserEntity,
+        @Args("factoryId") factoryId: string,
+        @Args("newStaffId") newStaffId: string
+    ) {
+        return this.factoryService.changeFactoryStaff(factoryId, newStaffId, user)
+    }
 }

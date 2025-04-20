@@ -572,4 +572,112 @@ export class FactoryService {
             staff: new UserEntity(factory.staff)
         })
     }
+
+    async changeFactoryStaff(factoryId: string, newStaffId: string, user: UserEntity) {
+        // Check if the user has permission to change factory staff
+        if (!user || (user.role !== Roles.ADMIN && user.role !== Roles.MANAGER)) {
+            throw new ForbiddenException("You are not allowed to change factory staff")
+        }
+
+        // Check if the factory exists
+        const factory = await this.prisma.factory.findUnique({
+            where: { factoryOwnerId: factoryId },
+            include: { owner: true, staff: true, address: true }
+        })
+
+        if (!factory) {
+            throw new NotFoundException(`Factory with ID ${factoryId} not found`)
+        }
+
+        // Check if the new staff exists, is actually a staff member, and is active
+        const newStaff = await this.prisma.user.findUnique({
+            where: {
+                id: newStaffId,
+                role: Roles.STAFF,
+                isActive: true
+            },
+            include: { staffedFactory: true }
+        })
+
+        if (!newStaff) {
+            throw new NotFoundException("Staff not found or is not active")
+        }
+
+        // If the new staff is already assigned to another factory
+        if (newStaff.staffedFactory && newStaff.staffedFactory.factoryOwnerId !== factoryId) {
+            throw new BadRequestException("Staff is already assigned to another factory")
+        }
+
+        // If the factory already has the same staff assigned, no need to update
+        if (factory.staffId === newStaffId) {
+            throw new BadRequestException("This staff is already assigned to this factory")
+        }
+
+        // Update the factory with the new staff
+        const updatedFactory = await this.prisma.factory.update({
+            where: { factoryOwnerId: factoryId },
+            data: {
+                staffId: newStaffId
+            },
+            include: {
+                owner: true,
+                staff: true,
+                address: true
+            }
+        })
+
+        // Generate formatted address if available
+        let formattedAddress = null
+        if (updatedFactory.address) {
+            try {
+                const formatResult = await this.addressesService.formatAddress({
+                    provinceID: updatedFactory.address.provinceID,
+                    districtID: updatedFactory.address.districtID,
+                    wardCode: updatedFactory.address.wardCode,
+                    street: updatedFactory.address.street
+                })
+                formattedAddress = formatResult.text
+            } catch (error) {
+                this.logger.error(
+                    `Failed to format address for factory ${factoryId}: ${error.message}`
+                )
+            }
+        }
+
+        // Notify the new staff
+        await this.notificationsService.create({
+            title: "Factory Assignment",
+            content: `You have been assigned to factory: ${updatedFactory.name}`,
+            userId: newStaffId
+        })
+
+        // Notify the factory owner
+        await this.notificationsService.create({
+            title: "Factory Staff Changed",
+            content: `Your factory staff has been changed`,
+            userId: factoryId
+        })
+
+        // If there was a previous staff, notify them as well
+        if (factory.staffId && factory.staffId !== newStaffId) {
+            await this.notificationsService.create({
+                title: "Factory Assignment Removed",
+                content: `You have been unassigned from factory: ${factory.name}`,
+                userId: factory.staffId
+            })
+        }
+
+        return new FactoryEntity({
+            ...updatedFactory,
+            formattedAddress,
+            owner: new UserEntity({
+                ...updatedFactory.owner,
+                id: updatedFactory.owner.id
+            }),
+            staff: new UserEntity({
+                ...updatedFactory.staff,
+                id: updatedFactory.staff.id
+            })
+        })
+    }
 }
