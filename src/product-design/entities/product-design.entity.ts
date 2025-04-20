@@ -32,6 +32,9 @@ export class ProductDesignEntity {
     @Field(() => UserEntity, { nullable: true })
     user?: UserEntity
 
+    @Field(() => Boolean, { nullable: true })
+    isDeleted?: boolean
+
     @Field(() => [DesignPositionEntity], { nullable: true })
     designPositions?: DesignPositionEntity[]
 

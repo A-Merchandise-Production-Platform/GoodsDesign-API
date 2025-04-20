@@ -727,6 +727,7 @@ type ProductDesignEntity {
   createdAt: DateTime!
   designPositions: [DesignPositionEntity!]
   id: ID!
+  isDeleted: Boolean
   isFinalized: Boolean!
   isPublic: Boolean!
   isTemplate: Boolean!
