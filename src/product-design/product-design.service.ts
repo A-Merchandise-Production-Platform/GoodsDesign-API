@@ -69,7 +69,10 @@ export class ProductDesignService {
 
     async findAll(userId?: string): Promise<ProductDesignEntity[]> {
         const data = await this.prisma.productDesign.findMany({
-            where: userId ? { userId } : undefined,
+            where: {
+                isDeleted: false,
+                ...(userId ? { userId } : {})
+            },
             include: {
                 user: true,
                 systemConfigVariant: {
@@ -93,7 +96,10 @@ export class ProductDesignService {
 
     async findOne(id: string): Promise<ProductDesignEntity> {
         const data = await this.prisma.productDesign.findUnique({
-            where: { id },
+            where: {
+                id,
+                isDeleted: false
+            },
             include: {
                 user: true,
                 systemConfigVariant: {
@@ -116,7 +122,10 @@ export class ProductDesignService {
         updateProductDesignDto: UpdateProductDesignDto
     ): Promise<ProductDesignEntity> {
         const data = await this.prisma.productDesign.update({
-            where: { id },
+            where: {
+                id,
+                isDeleted: false
+            },
             data: updateProductDesignDto,
             include: {
                 user: true,
@@ -139,10 +148,10 @@ export class ProductDesignService {
         // First check if the product design exists
         const existingDesign = await this.prisma.productDesign.findUnique({
             where: { id }
-        });
+        })
 
         if (!existingDesign) {
-            throw new Error(`Product design with ID ${id} not found`);
+            throw new Error(`Product design with ID ${id} not found`)
         }
 
         // Soft delete the product design
@@ -162,15 +171,18 @@ export class ProductDesignService {
                     }
                 }
             }
-        });
-        
-        return new ProductDesignEntity(data);
+        })
+
+        return new ProductDesignEntity(data)
     }
 
     async duplicate(id: string, userId: string): Promise<ProductDesignEntity> {
         // Get the original design with all its relations
         const originalDesign = await this.prisma.productDesign.findUnique({
-            where: { id },
+            where: {
+                id,
+                isDeleted: false
+            },
             include: {
                 designPositions: {
                     include: {
@@ -178,10 +190,10 @@ export class ProductDesignService {
                     }
                 }
             }
-        });
+        })
 
         if (!originalDesign) {
-            throw new Error('Design not found');
+            throw new Error("Design not found")
         }
 
         // Create the new design with the same data but new ID
@@ -194,7 +206,7 @@ export class ProductDesignService {
                 isTemplate: false, // Reset template status
                 thumbnailUrl: originalDesign.thumbnailUrl,
                 designPositions: {
-                    create: originalDesign.designPositions.map(position => ({
+                    create: originalDesign.designPositions.map((position) => ({
                         productPositionTypeId: position.productPositionTypeId,
                         designJSON: position.designJSON
                     }))
@@ -213,16 +225,16 @@ export class ProductDesignService {
                     }
                 }
             }
-        });
+        })
 
-        return new ProductDesignEntity(newDesign);
+        return new ProductDesignEntity(newDesign)
     }
 
     async getTemplateProductDesigns(): Promise<ProductDesignEntity[]> {
         const data = await this.prisma.productDesign.findMany({
             where: {
+                isDeleted: false,
                 isTemplate: true,
-                isPublic: true
             },
             include: {
                 user: true,
@@ -241,7 +253,7 @@ export class ProductDesignService {
                     }
                 }
             }
-        });
-        return data.map((item) => new ProductDesignEntity(item));
+        })
+        return data.map((item) => new ProductDesignEntity(item))
     }
 }
