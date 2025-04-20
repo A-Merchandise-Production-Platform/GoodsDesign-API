@@ -22,13 +22,24 @@ type AddressEntity {
 
 type AdminDashboardResponse {
   activeFactories: Int!
+  activeUsers: Int!
+  activeUsersChange: Int!
+  activeUsersChangeType: ChangeType!
   factoryPerformance: [FactoryPerformance!]!
   pendingOrders: Int!
+  pendingOrdersChange: Int!
+  pendingOrdersChangeType: ChangeType!
   recentOrders: [OrderWithFactory!]!
   totalCustomers: Int!
   totalFactories: Int!
   totalOrders: Int!
+  totalProducts: Int!
+  totalProductsChange: Int!
+  totalProductsChangeType: ChangeType!
   totalRevenue: Int!
+  totalSales: Int!
+  totalSalesChange: Int!
+  totalSalesChangeType: ChangeType!
 }
 
 """Authentication response"""

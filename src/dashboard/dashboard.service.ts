@@ -19,16 +19,276 @@ export class DashboardService {
     constructor(private prisma: PrismaService) {}
 
     async getAdminDashboard(userId: string): Promise<AdminDashboardResponse> {
-        // Implementation would go here
-        return {
-            totalOrders: 0,
-            totalFactories: 0,
-            totalCustomers: 0,
-            totalRevenue: 0,
-            pendingOrders: 0,
-            activeFactories: 0,
-            recentOrders: [],
-            factoryPerformance: []
+        try {
+            // Get current date info for time-based comparisons
+            const today = new Date()
+            const currentMonth = today.getMonth()
+            const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1
+            const currentYear = today.getFullYear()
+            const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear
+
+            // Dates for current and previous month calculations
+            const startOfCurrentMonth = new Date(currentYear, currentMonth, 1)
+            const startOfPreviousMonth = new Date(
+                previousMonth === 11 ? previousYear : currentYear,
+                previousMonth,
+                1
+            )
+
+            // 1. Total Sales (Revenue)
+            const [currentMonthRevenue, previousMonthRevenue] = await Promise.all([
+                this.prisma.paymentTransaction.aggregate({
+                    _sum: { amount: true },
+                    where: {
+                        createdAt: {
+                            gte: startOfCurrentMonth,
+                            lte: today
+                        },
+                        status: "COMPLETED",
+                        type: "PAYMENT"
+                    }
+                }),
+                this.prisma.paymentTransaction.aggregate({
+                    _sum: { amount: true },
+                    where: {
+                        createdAt: {
+                            gte: startOfPreviousMonth,
+                            lt: startOfCurrentMonth
+                        },
+                        status: "COMPLETED",
+                        type: "PAYMENT"
+                    }
+                })
+            ])
+
+            const totalSales = currentMonthRevenue._sum.amount || 0
+            const previousSales = previousMonthRevenue._sum.amount || 0
+            const salesChangePercent =
+                previousSales > 0
+                    ? Math.round(((totalSales - previousSales) / previousSales) * 100)
+                    : 0
+            const salesChangeType =
+                salesChangePercent >= 0 ? ChangeType.POSITIVE : ChangeType.NEGATIVE
+
+            // 2. Active Users
+            const [currentActiveUsers, previousActiveUsers] = await Promise.all([
+                this.prisma.user.count({
+                    where: {
+                        isDeleted: false,
+                        createdAt: {
+                            lte: today
+                        }
+                    }
+                }),
+                this.prisma.user.count({
+                    where: {
+                        isDeleted: false,
+                        createdAt: {
+                            lt: startOfCurrentMonth
+                        }
+                    }
+                })
+            ])
+
+            const usersChangePercent =
+                previousActiveUsers > 0
+                    ? Math.round(
+                          ((currentActiveUsers - previousActiveUsers) / previousActiveUsers) * 100
+                      )
+                    : 0
+            const usersChangeType =
+                usersChangePercent >= 0 ? ChangeType.POSITIVE : ChangeType.NEGATIVE
+
+            // 3. Total Products
+            const [currentProducts, previousProducts] = await Promise.all([
+                this.prisma.product.count({
+                    where: {
+                        createdAt: { lte: today }
+                    }
+                }),
+                this.prisma.product.count({
+                    where: {
+                        createdAt: { lt: startOfCurrentMonth }
+                    }
+                })
+            ])
+
+            const productsChangePercent =
+                previousProducts > 0
+                    ? Math.round(((currentProducts - previousProducts) / previousProducts) * 100)
+                    : 0
+            const productsChangeType =
+                productsChangePercent >= 0 ? ChangeType.POSITIVE : ChangeType.NEGATIVE
+
+            // 4. Pending Orders
+            const [currentPendingOrders, previousPendingOrders] = await Promise.all([
+                this.prisma.order.count({
+                    where: {
+                        status: "PENDING",
+                        orderDate: { lte: today }
+                    }
+                }),
+                this.prisma.order.count({
+                    where: {
+                        status: "PENDING",
+                        orderDate: { lt: startOfCurrentMonth }
+                    }
+                })
+            ])
+
+            const ordersChangePercent =
+                previousPendingOrders > 0
+                    ? Math.round(
+                          ((currentPendingOrders - previousPendingOrders) / previousPendingOrders) *
+                              100
+                      )
+                    : 0
+            const ordersChangeType =
+                ordersChangePercent <= 0 ? ChangeType.POSITIVE : ChangeType.NEGATIVE // Fewer pending orders is positive
+
+            // 5. Total Orders
+            const totalOrders = await this.prisma.order.count()
+
+            // 6. Total Customers Count
+            const totalCustomers = await this.prisma.user.count({
+                where: {
+                    role: "CUSTOMER",
+                    isDeleted: false
+                }
+            })
+
+            // 7. Total Revenue
+            const totalRevenue = await this.prisma.paymentTransaction.aggregate({
+                _sum: { amount: true },
+                where: {
+                    status: "COMPLETED",
+                    type: "PAYMENT"
+                }
+            })
+
+            // 8. Total & Active Factories
+            const [totalFactories, activeFactories] = await Promise.all([
+                this.prisma.factory.count(),
+                this.prisma.factory.count({
+                    where: {
+                        factoryStatus: "APPROVED"
+                    }
+                })
+            ])
+
+            // 9. Get recent orders for display
+            const recentOrders = await this.prisma.order.findMany({
+                take: 5,
+                orderBy: { orderDate: "desc" },
+                include: {
+                    factory: true
+                }
+            })
+
+            const mappedRecentOrders = recentOrders.map((order) => {
+                return {
+                    id: order.id,
+                    status: order.status,
+                    totalPrice: order.totalPrice,
+                    orderDate: order.orderDate,
+                    factory: order.factory
+                        ? {
+                              id: order.factory.factoryOwnerId,
+                              name: order.factory.name,
+                              factoryStatus: order.factory.factoryStatus
+                          }
+                        : null
+                }
+            })
+
+            // 10. Factory Performance
+            const factories = await this.prisma.factory.findMany({
+                take: 5,
+                where: {
+                    factoryStatus: "APPROVED"
+                },
+                orderBy: {
+                    legitPoint: "desc"
+                },
+                select: {
+                    factoryOwnerId: true
+                }
+            })
+
+            const factoryPerformance = await Promise.all(
+                factories.map(async (factory) => {
+                    const orders = await this.prisma.order.count({
+                        where: {
+                            factoryId: factory.factoryOwnerId,
+                            status: "COMPLETED"
+                        }
+                    })
+
+                    const revenue = await this.prisma.order.aggregate({
+                        _sum: { totalProductionCost: true },
+                        where: {
+                            factoryId: factory.factoryOwnerId,
+                            status: "COMPLETED"
+                        }
+                    })
+
+                    return {
+                        factoryId: factory.factoryOwnerId,
+                        orderCount: orders,
+                        totalRevenue: revenue._sum.totalProductionCost || 0
+                    }
+                })
+            )
+
+            return {
+                totalSales: totalSales,
+                totalSalesChange: salesChangePercent,
+                totalSalesChangeType: salesChangeType,
+
+                activeUsers: currentActiveUsers,
+                activeUsersChange: usersChangePercent,
+                activeUsersChangeType: usersChangeType,
+
+                totalProducts: currentProducts,
+                totalProductsChange: productsChangePercent,
+                totalProductsChangeType: productsChangeType,
+
+                pendingOrders: currentPendingOrders,
+                pendingOrdersChange: ordersChangePercent,
+                pendingOrdersChangeType: ordersChangeType,
+
+                totalCustomers,
+                totalOrders,
+                totalRevenue: totalRevenue._sum.amount || 0,
+                totalFactories,
+                activeFactories,
+                recentOrders: mappedRecentOrders,
+                factoryPerformance
+            }
+        } catch (error) {
+            console.error("Error fetching admin dashboard data:", error)
+            // Return empty data in case of error
+            return {
+                totalSales: 0,
+                totalSalesChange: 0,
+                totalSalesChangeType: ChangeType.POSITIVE,
+                activeUsers: 0,
+                activeUsersChange: 0,
+                activeUsersChangeType: ChangeType.POSITIVE,
+                totalProducts: 0,
+                totalProductsChange: 0,
+                totalProductsChangeType: ChangeType.POSITIVE,
+                pendingOrders: 0,
+                pendingOrdersChange: 0,
+                pendingOrdersChangeType: ChangeType.POSITIVE,
+                totalCustomers: 0,
+                totalOrders: 0,
+                totalRevenue: 0,
+                totalFactories: 0,
+                activeFactories: 0,
+                recentOrders: [],
+                factoryPerformance: []
+            }
         }
     }
 
