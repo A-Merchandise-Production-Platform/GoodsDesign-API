@@ -3,6 +3,7 @@ import { OrderDetailStatus } from '@prisma/client';
 import { OrderEntity } from './order.entity';
 import { ProductDesignEntity } from 'src/product-design/entities/product-design.entity';
 import { CheckQualityEntity } from './check-quality.entity';
+import { SystemConfigVariantEntity } from 'src/system-config-variant/entities/system-config-variant.entity';
 
 registerEnumType(OrderDetailStatus, {
     name: "OrderDetailStatus"
@@ -57,6 +58,9 @@ export class OrderDetailEntity {
 
     @Field(() => [CheckQualityEntity], { nullable: true })
     checkQualities?: CheckQualityEntity[];
+
+    @Field(() => SystemConfigVariantEntity, { nullable: true })
+    systemConfigVariant?: SystemConfigVariantEntity;
 
     constructor(partial: Partial<OrderDetailEntity>) {
         Object.assign(this, partial);

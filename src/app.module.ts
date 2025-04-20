@@ -28,6 +28,7 @@ import { ProductsModule } from "./products"
 import { RedisModule } from "./redis"
 import { ShippingModule } from "./shipping/shipping.module"
 import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.module"
+import { SystemConfigOrderModule } from "./system-config-order/system-config-order.module"
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
 import { TasksModule } from './tasks/tasks.module';
@@ -80,7 +81,8 @@ import { OrdersModule } from "./orders/orders.module"
         TasksModule,
         SystemConfigDiscountModule,
         PdfModule,
-        FactoryProductsModule
+        FactoryProductsModule,
+        SystemConfigOrderModule
         // TestModule,
     ],
     controllers: [AppController],

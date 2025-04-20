@@ -556,6 +556,7 @@ type Mutation {
   updateProfile(updateProfileInput: UpdateProfileDto!): UserEntity!
   updateSystemConfigBank(input: UpdateSystemConfigBankDto!): SystemConfigBankEntity!
   updateSystemConfigDiscount(id: String!, updateDiscountInput: UpdateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
+  updateSystemConfigOrder(updateConfigInput: UpdateSystemConfigOrderDto!): SystemConfigOrderEntity!
   updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   uploadFile(file: Upload): FileUploadResponse!
@@ -588,6 +589,7 @@ type OrderDetailEntity {
   rejectedQty: Int!
   reworkTime: Int!
   status: OrderDetailStatus!
+  systemConfigVariant: SystemConfigVariantEntity
   updatedAt: DateTime
 }
 
@@ -842,6 +844,7 @@ type Query {
   systemConfigBanks: [SystemConfigBankEntity!]!
   systemConfigDiscount(id: String!): SystemConfigDiscountEntity!
   systemConfigDiscounts: [SystemConfigDiscountEntity!]!
+  systemConfigOrder: SystemConfigOrderEntity!
   systemConfigVariant(id: String!): SystemConfigVariantEntity!
   systemConfigVariants: [SystemConfigVariantEntity!]!
   systemConfigVariantsByProduct(productId: String!): [SystemConfigVariantEntity!]!
@@ -952,6 +955,26 @@ type SystemConfigDiscountEntity {
   name: String!
   product: ProductEntity!
   updatedAt: DateTime!
+}
+
+type SystemConfigOrderEntity {
+  acceptHoursForFactory: Int!
+  capacityScoreWeight: Float!
+  checkQualityTimesDays: Int!
+  id: ID!
+  leadTimeScoreWeight: Float!
+  legitPointScoreWeight: Float!
+  legitPointToSuspend: Int!
+  limitFactoryRejectOrders: Int!
+  limitReworkTimes: Int!
+  maxLegitPoint: Int!
+  maxProductionCapacity: Int!
+  maxProductionTimeInMinutes: Int!
+  productionCapacityScoreWeight: Float!
+  reduceLegitPointIfReject: Int!
+  shippingDays: Int!
+  specializationScoreWeight: Float!
+  type: String!
 }
 
 type SystemConfigVariantEntity {
@@ -1117,6 +1140,24 @@ input UpdateSystemConfigDiscountDto {
   minQuantity: Int
   name: String
   productId: String
+}
+
+input UpdateSystemConfigOrderDto {
+  acceptHoursForFactory: Int
+  capacityScoreWeight: Float
+  checkQualityTimesDays: Int
+  leadTimeScoreWeight: Float
+  legitPointScoreWeight: Float
+  legitPointToSuspend: Int
+  limitFactoryRejectOrders: Int
+  limitReworkTimes: Int
+  maxLegitPoint: Int
+  maxProductionCapacity: Int
+  maxProductionTimeInMinutes: Int
+  productionCapacityScoreWeight: Float
+  reduceLegitPointIfReject: Int
+  shippingDays: Int
+  specializationScoreWeight: Float
 }
 
 input UpdateSystemConfigVariantInput {
