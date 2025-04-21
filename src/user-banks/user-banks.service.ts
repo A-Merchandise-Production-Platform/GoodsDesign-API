@@ -16,9 +16,7 @@ export class UserBanksService {
         }
     }
 
-    private transformUserBank(
-            userBank: UserBank
-        ) {
+    private transformUserBank(userBank: UserBank) {
         return new UserBankEntity(userBank)
     }
 
@@ -42,7 +40,7 @@ export class UserBanksService {
         // If setting this as default, unset any existing default
         if (isDefault) {
             await this.prisma.userBank.updateMany({
-                where: { 
+                where: {
                     userId: user.id,
                     isDefault: true
                 },
@@ -67,10 +65,13 @@ export class UserBanksService {
 
         const userBanks = await this.prisma.userBank.findMany({
             where: { userId: user.id },
-            include: this.getUserBankInclude()
+            include: this.getUserBankInclude(),
+            orderBy: {
+                createdAt: "desc"
+            }
         })
 
-        return userBanks.map(userBank => this.transformUserBank(userBank))
+        return userBanks.map((userBank) => this.transformUserBank(userBank))
     }
 
     async getUserBank(id: string, user: UserEntity) {
@@ -103,7 +104,7 @@ export class UserBanksService {
         // If setting this as default, unset any existing default
         if (updateUserBankInput.isDefault) {
             await this.prisma.userBank.updateMany({
-                where: { 
+                where: {
                     userId: user.id,
                     isDefault: true,
                     id: { not: id }
@@ -136,7 +137,7 @@ export class UserBanksService {
         // If this was the default bank, set another bank as default if available
         if (existingBank.isDefault) {
             const otherBanks = await this.prisma.userBank.findMany({
-                where: { 
+                where: {
                     userId: user.id,
                     id: { not: id }
                 },
@@ -158,4 +159,4 @@ export class UserBanksService {
 
         return this.transformUserBank(userBank)
     }
-} 
+}

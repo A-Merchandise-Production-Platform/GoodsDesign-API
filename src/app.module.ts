@@ -31,10 +31,11 @@ import { SystemConfigBankModule } from "./system-config-bank/system-config-bank.
 import { SystemConfigOrderModule } from "./system-config-order/system-config-order.module"
 import { SystemConfigVariantModule } from "./system-config-variant/system-config-variant.module"
 import { UsersModule } from "./users"
-import { TasksModule } from './tasks/tasks.module';
+import { TasksModule } from "./tasks/tasks.module"
 import { SystemConfigDiscountModule } from "./system-config-discount/system-config-discount.module"
 import { FactoryProductsModule } from "./factory-products/factory-products.module"
 import { OrdersModule } from "./orders/orders.module"
+import { UserBanksModule } from "src/user-banks/user-banks.module"
 
 @Module({
     imports: [
@@ -82,7 +83,8 @@ import { OrdersModule } from "./orders/orders.module"
         SystemConfigDiscountModule,
         PdfModule,
         FactoryProductsModule,
-        SystemConfigOrderModule
+        SystemConfigOrderModule,
+        UserBanksModule
         // TestModule,
     ],
     controllers: [AppController],
