@@ -207,6 +207,14 @@ input CreateSystemConfigVariantInput {
   size: String
 }
 
+"""Create User Bank Input"""
+input CreateUserBankInput {
+  accountName: String!
+  accountNumber: String!
+  bankId: String!
+  isDefault: Boolean! = false
+}
+
 """Create user input"""
 input CreateUserDto {
   dateOfBirth: String
@@ -511,6 +519,7 @@ type Mutation {
   createSystemConfigDiscount(createDiscountInput: CreateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
   createSystemConfigVariant(createSystemConfigVariantInput: CreateSystemConfigVariantInput!): SystemConfigVariantEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!
+  createUserBank(createUserBankInput: CreateUserBankInput!): UserBankEntity!
   deleteAddress(id: String!): AddressEntity!
   deleteCartItem(id: String!): CartItemEntity!
   deleteCategory(id: String!): CategoryEntity!
@@ -518,6 +527,7 @@ type Mutation {
   deleteFile(fileUrl: String!): Boolean!
   deleteProduct(id: String!): ProductEntity!
   deleteUser(id: String!): UserEntity!
+  deleteUserBank(id: String!): UserBankEntity!
   doneCheckQuality(input: DoneCheckQualityInput!): CheckQualityEntity!
   doneProductionOrderDetails(orderDetailId: String!): OrderDetailEntity!
   doneReworkForOrderDetails(orderDetailId: String!): OrderDetailEntity!
@@ -559,6 +569,7 @@ type Mutation {
   updateSystemConfigOrder(updateConfigInput: UpdateSystemConfigOrderDto!): SystemConfigOrderEntity!
   updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
+  updateUserBank(id: String!, updateUserBankInput: UpdateUserBankInput!): UserBankEntity!
   uploadFile(file: Upload): FileUploadResponse!
 }
 
@@ -850,6 +861,8 @@ type Query {
   systemConfigVariants: [SystemConfigVariantEntity!]!
   systemConfigVariantsByProduct(productId: String!): [SystemConfigVariantEntity!]!
   user(id: String!): UserEntity!
+  userBank(id: String!): UserBankEntity!
+  userBanks: [UserBankEntity!]!
   userCartItems: [CartItemEntity!]!
   users: [UserEntity!]!
   ward(wardCode: String!): Ward!
@@ -1170,6 +1183,13 @@ input UpdateSystemConfigVariantInput {
   size: String
 }
 
+input UpdateUserBankInput {
+  accountName: String
+  accountNumber: String
+  bankId: String
+  isDefault: Boolean = false
+}
+
 """Update user input"""
 input UpdateUserDto {
   dateOfBirth: String
@@ -1200,6 +1220,7 @@ type UserBankEntity {
 }
 
 type UserEntity {
+  bankAccounts: [UserBankEntity!]
   createdAt: DateTime!
   createdBy: String
   dateOfBirth: DateTime

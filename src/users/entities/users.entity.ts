@@ -1,6 +1,7 @@
 import { Field, ID, ObjectType, registerEnumType } from "@nestjs/graphql"
 import { Roles } from "@prisma/client"
 import { FactoryEntity } from "src/factory/entities/factory.entity"
+import { UserBankEntity } from "src/user-banks/entities/user-bank.entity"
 
 registerEnumType(Roles, {
     name: "Roles",
@@ -62,6 +63,9 @@ export class UserEntity {
 
     @Field(() => FactoryEntity, { nullable: true })
     staffedFactory?: FactoryEntity
+
+    @Field(() => [UserBankEntity], { nullable: true })
+    bankAccounts?: UserBankEntity[]
 
     constructor(partial: Partial<UserEntity>) {
         Object.assign(this, partial)
