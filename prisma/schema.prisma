@@ -313,7 +313,6 @@ model Factory {
 
   website             String?
   establishedDate     DateTime
-  totalEmployees      Int
 
   qualityCertifications String?
   printingMethods       String[]
@@ -324,9 +323,7 @@ model Factory {
   contactPhone      String?
 
   maxPrintingCapacity Int
-  operationalHours     String
   leadTime             Int?
-  minimumOrderQuantity Int
   legitPoint Int @default(100)
 
   factoryStatus      FactoryStatus @default(PENDING_APPROVAL)

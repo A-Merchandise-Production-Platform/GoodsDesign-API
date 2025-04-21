@@ -1070,15 +1070,12 @@ input UpdateFactoryInfoDto {
   establishedDate: DateTime
   leadTime: Int
   maxPrintingCapacity: Int
-  minimumOrderQuantity: Int
   name: String
-  operationalHours: String
   printingMethods: [String!]
   qualityCertifications: String
   specializations: [String!]
   systemConfigVariantIds: [String!]
   taxIdentificationNumber: String
-  totalEmployees: Int
   website: String
 }
 
