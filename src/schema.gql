@@ -551,6 +551,7 @@ type Mutation {
   sendEmail(to: String!): Boolean!
   shippedOrder(orderId: String!): OrderEntity!
   startRework(orderId: String!): OrderEntity!
+  startReworkByManager(orderId: String!): OrderEntity!
   toggleActiveCategory(id: String!): CategoryEntity!
   toggleActiveProduct(id: String!): ProductEntity!
   updateAddress(id: String!, updateAddressInput: UpdateAddressInput!): AddressEntity!

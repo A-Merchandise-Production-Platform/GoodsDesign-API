@@ -105,6 +105,14 @@ export class OrdersResolver {
         return this.ordersService.startRework(orderId, user.id)
     }
 
+    @Mutation(() => OrderEntity)
+    @UseGuards(GraphqlJwtAuthGuard)
+    startReworkByManager(
+        @Args("orderId", { type: () => String }) orderId: string,
+    ) {
+        return this.ordersService.startReworkByManager(orderId)
+    }
+
     @Mutation(() => OrderDetailEntity)
     @UseGuards(GraphqlJwtAuthGuard)
     doneReworkForOrderDetails(

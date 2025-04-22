@@ -44,39 +44,17 @@ export class FileService {
         throw new Error('File buffer is empty or undefined');
       }
 
-      // Convert buffer to Readable Stream
-      const stream = Readable.from(file.buffer);
-      
-      // Add error handler for the stream
-      stream.on('error', (error) => {
-        this.logger.error(`Stream error: ${error.message}`, error.stack);
-      });
+      const result = await cloudinary.uploader.upload(
+        `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+        {
+          folder: 'files',
+          resource_type: 'auto',
+          timeout: 60000, // 60 seconds timeout for the upload
+        }
+      );
 
-      return new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder: 'files',
-            resource_type: 'auto',
-            timeout: 60000, // 60 seconds timeout for the upload
-          },
-          (error, result) => {
-            if (error) {
-              this.logger.error(`Cloudinary upload failed: ${error.message}`, error.stack);
-              return reject(error);
-            }
-            this.logger.log(`File uploaded successfully: ${result.secure_url}`);
-            resolve(result.secure_url);
-          }
-        );
-
-        // Add error handler for the upload stream
-        uploadStream.on('error', (error) => {
-          this.logger.error(`Upload stream error: ${error.message}`, error.stack);
-          reject(error);
-        });
-
-        stream.pipe(uploadStream);
-      });
+      this.logger.log(`File uploaded successfully: ${result.secure_url}`);
+      return result.secure_url;
     } catch (error) {
       this.logger.error(`Failed to upload file: ${error.message}`, error.stack);
       throw new Error(`Failed to upload file: ${error.message}`);

@@ -1343,6 +1343,151 @@ export class OrdersService {
         })
     }
 
+    async startReworkByManager(orderId: string) {
+        const now = new Date()
+
+        return this.prisma.$transaction(async (tx) => {
+            // Get the order with its details
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: {
+                    orderDetails: {
+                        where: {
+                            status: OrderDetailStatus.REWORK_REQUIRED
+                        }
+                    },
+                    customer: true
+                }
+            })
+
+            if (!order) {
+                throw new BadRequestException("Order not found")
+            }
+
+
+            if (order.status !== OrderStatus.REWORK_REQUIRED) {
+                throw new BadRequestException("This order is not in REWORK_REQUIRED status")
+            }
+
+            // Get system config for order
+            const systemConfig = await tx.systemConfigOrder.findUnique({
+                where: { type: "SYSTEM_CONFIG_ORDER" }
+            })
+
+            if (!systemConfig) {
+                throw new BadRequestException("System configuration not found")
+            }
+
+            // Deduct legitimacy points from the factory for each rework
+            await tx.factory.update({
+                where: { factoryOwnerId: order.factoryId },
+                data: {
+                    legitPoint: {
+                        decrement: systemConfig.reduceLegitPointIfReject
+                    }
+                }
+            })
+
+            // Create notification for factory about legitimacy point deduction
+            await this.notificationsService.create({
+                title: "Legitimacy Points Deducted",
+                content: `Your factory has lost ${systemConfig.reduceLegitPointIfReject} legitimacy points due to rework requirement for order #${orderId}.`,
+                userId: order.factoryId,
+                url: `/factory/orders/${orderId}`
+            })
+
+            // Calculate estimated check quality time
+            const estimatedCheckQualityAt = new Date(
+                now.getTime() + systemConfig.checkQualityTimesDays * 24 * 60 * 60 * 1000
+            )
+
+            // Calculate estimated completion time (check quality + shipping days)
+            const estimatedCompletionAt = new Date(
+                estimatedCheckQualityAt.getTime() + systemConfig.shippingDays * 24 * 60 * 60 * 1000
+            )
+
+            // Update order status
+            await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    status: OrderStatus.REWORK_IN_PROGRESS,
+                    currentProgress: 45,
+                    estimatedCheckQualityAt,
+                    estimatedCompletionAt,
+                    orderProgressReports: {
+                        create: {
+                            reportDate: now,
+                            note: `Rework started by manager. Factory lost ${systemConfig.reduceLegitPointIfReject} legitimacy points.`,
+                            imageUrls: []
+                        }
+                    }
+                }
+            })
+
+            // Update order details status
+            await tx.orderDetail.updateMany({
+                where: {
+                    orderId: orderId,
+                    status: OrderDetailStatus.REWORK_REQUIRED
+                },
+                data: {
+                    status: OrderDetailStatus.REWORK_IN_PROGRESS,
+                    reworkTime: {
+                        increment: 1
+                    }
+                }
+            })
+
+            //get staff if from factoryId
+            const factory = await tx.factory.findFirst({
+                where: {
+                    factoryOwnerId: order.factoryId
+                },
+                include: {
+                    staff: true
+                }
+            })
+
+            // Create tasks and check qualities for rework
+            for (const orderDetail of order.orderDetails) {
+                const task = await tx.task.create({
+                    data: {
+                        taskname: `Quality check for rework order ${orderId}`,
+                        description: `Quality check for rework design ${orderDetail.designId}`,
+                        startDate: now,
+                        expiredTime: estimatedCheckQualityAt,
+                        taskType: TaskType.QUALITY_CHECK,
+                        orderId: order.id,
+                        status: TaskStatus.PENDING,
+                        userId: factory.staff.id
+                    }
+                })
+
+                await tx.checkQuality.create({
+                    data: {
+                        taskId: task.id,
+                        orderDetailId: orderDetail.id,
+                        totalChecked: orderDetail.rejectedQty,
+                        passedQuantity: 0,
+                        failedQuantity: 0,
+                        status: QualityCheckStatus.PENDING,
+                        checkedAt: now
+                    }
+                })
+            }
+
+            // Notify customer about rework start
+            await this.notificationsService.create({
+                title: "Rework Started",
+                content: `The factory has started reworking your order #${orderId}.`,
+                userId: order.customer.id,
+                url: `/orders/${orderId}`
+            })
+
+            return order
+        })
+    }
+
     async doneReworkForOrderDetails(orderDetailId: string, factoryId: string) {
         const now = new Date()
 
