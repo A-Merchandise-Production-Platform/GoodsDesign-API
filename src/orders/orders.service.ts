@@ -948,6 +948,11 @@ export class OrdersService {
                 )
             }
 
+            // Validate passed quantity + failed quantity == total checked quantity
+            if (passedQuantity + failedQuantity !== checkQuality.totalChecked) {
+                throw new BadRequestException("Total checked quantity does not match")
+            }
+
             // Update check quality
             const updatedCheckQuality = await tx.checkQuality.update({
                 where: { id: checkQualityId },
@@ -992,7 +997,9 @@ export class OrdersService {
                     status:
                         failedQuantity > 0
                             ? OrderDetailStatus.REWORK_REQUIRED
-                            : OrderDetailStatus.DONE_CHECK_QUALITY
+                            : OrderDetailStatus.DONE_CHECK_QUALITY,
+                    rejectedQty: failedQuantity,
+                    completedQty: passedQuantity,
                 }
             })
 
@@ -1051,7 +1058,9 @@ export class OrdersService {
                             }
                         },
                         data: {
-                            status: OrderDetailStatus.REWORK_REQUIRED
+                            status: OrderDetailStatus.REWORK_REQUIRED,
+                            completedQty: passedQuantity,
+                            rejectedQty: failedQuantity
                         }
                     })
 
@@ -1092,7 +1101,9 @@ export class OrdersService {
                             orderId: checkQuality.orderDetail.order.id
                         },
                         data: {
-                            status: OrderDetailStatus.READY_FOR_SHIPPING
+                            status: OrderDetailStatus.READY_FOR_SHIPPING,
+                            completedQty: passedQuantity,
+                            rejectedQty: failedQuantity
                         }
                     })
 
