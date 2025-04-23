@@ -41,8 +41,6 @@ export class CronService {
 
   public async checkFirstPaymentToChangeStatusOfOrderIntoPaymentReceived(): Promise<void> {
     try {
-      this.logger.verbose("Running cron job: checkFirstPaymentToChangeStatusOfOrderIntoPaymentReceived")
-
       // Get system configuration
       //get all orders with status PENDING
       const orders = await this.prisma.order.findMany({
@@ -71,7 +69,6 @@ export class CronService {
         }
       }
     } catch (error) {
-      this.logger.error("Error in checkFirstPaymentToChangeStatusOfOrderIntoPaymentReceived:", error)
     }
   }
       
@@ -83,8 +80,6 @@ export class CronService {
 
   public async checkPaymentReceivedOrderForAssignIntoFactory(): Promise<void> {
     try {
-        this.logger.verbose("Running cron job: checkPaymentReceivedOrderForAssignIntoFactory")
-
         // Get system configuration
         const systemConfig = await this.prisma.systemConfigOrder.findFirst({
             where: {
@@ -93,7 +88,6 @@ export class CronService {
         })
 
         if (!systemConfig) {
-            this.logger.error("System configuration not found")
             return
         }
 
@@ -117,10 +111,6 @@ export class CronService {
             }
         })
 
-        this.logger.verbose(
-            `Found ${orders.length} orders with PAYMENT_RECEIVED status to assign to factories`
-        )
-
         if (orders.length === 0) {
             return
         }
@@ -129,10 +119,6 @@ export class CronService {
         for (const order of orders) {
             // Check if order has been rejected too many times
             if (order.rejectedHistory.length >= systemConfig.limitFactoryRejectOrders) {
-                this.logger.warn(
-                    `Order ${order.id} has been rejected ${order.rejectedHistory.length} times. Moving to NEED_MANAGER_HANDLE status.`
-                )
-                
                 // Update order status to NEED_MANAGER_HANDLE
                 await this.prisma.order.update({
                     where: { id: order.id },
@@ -152,8 +138,6 @@ export class CronService {
 
             await this.processOrderForFactoryAssignment(order)
         }
-
-        this.logger.verbose("Completed cron job: checkPaymentReceivedOrderForAssignIntoFactory")
     } catch (error) {
         this.logger.error(`Error in factory assignment cron job: ${error.message}`)
         throw error
@@ -171,18 +155,10 @@ export class CronService {
           // Calculate total items
           const totalItems = order.orderDetails.reduce((sum, detail) => sum + detail.quantity, 0)
 
-          this.logger.verbose(
-              `Processing order ${order.id} with ${totalItems} items across ${uniqueVariantIds.length} variants`
-          )
-
           // Find the best factory for this order, excluding previously rejecting factories
           const selectedFactory = await this.findBestFactoryForVariants(uniqueVariantIds, order.id)
 
           if (!selectedFactory) {
-              this.logger.warn(
-                  `No suitable factory found for order ${order.id}. Moving to NEED_MANAGER_HANDLE status.`
-              )
-              
               // Update order status to NEED_MANAGER_HANDLE
               await this.prisma.order.update({
                   where: { id: order.id },
@@ -208,7 +184,6 @@ export class CronService {
           })
 
           if (!systemConfig) {
-              this.logger.error("System configuration not found")
               return
           }
 
@@ -222,9 +197,6 @@ export class CronService {
                   )
 
                   if (!factoryProduct) {
-                      this.logger.warn(
-                          `Factory product not found for variant ${detail.design.systemConfigVariantId} in factory ${selectedFactory.name}`
-                      )
                       return {
                           ...detail,
                           productionCost: 0
@@ -290,10 +262,6 @@ export class CronService {
                   }
               })
           })
-
-          this.logger.log(
-              `Successfully assigned order ${order.id} to factory ${selectedFactory.name}`
-          )
       } catch (error) {
           this.logger.error(`Error processing order ${order.id}: ${error.message}`)
       }
@@ -345,7 +313,6 @@ export class CronService {
           })
 
           if (!systemConfig) {
-              this.logger.error("System configuration not found")
               return null
           }
 
@@ -678,8 +645,6 @@ export class CronService {
 
   public async checkShippedOrdersForCompletion(): Promise<void> {
     try {
-      this.logger.verbose("Running cron job: checkShippedOrdersForCompletion")
-
       const now = new Date()
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
@@ -717,8 +682,6 @@ export class CronService {
               status: OrderDetailStatus.COMPLETED
             }
           })
-
-          this.logger.log(`Order ${order.id} completed based on customer feedback`)
         } 
         // Check if order has been shipped for more than 7 days
         else if (order.shippedAt && order.shippedAt < sevenDaysAgo) {
@@ -746,8 +709,6 @@ export class CronService {
               status: OrderDetailStatus.COMPLETED
             }
           })
-
-          this.logger.log(`Order ${order.id} automatically completed after 7 days`)
         }
       }
     } catch (error) {
@@ -757,8 +718,6 @@ export class CronService {
 
   public async checkFactoryLegitimacyPoints(): Promise<void> {
     try {
-      this.logger.verbose("Running cron job: checkFactoryLegitimacyPoints")
-
       // Get system configuration
       const systemConfig = await this.prisma.systemConfigOrder.findFirst({
         where: {
@@ -767,7 +726,6 @@ export class CronService {
       })
 
       if (!systemConfig) {
-        this.logger.error("System configuration not found")
         return
       }
 
@@ -793,11 +751,6 @@ export class CronService {
           },
           { id: factory.factoryOwnerId } as UserEntity
         )
-        this.logger.log(`Factory ${factory.factoryOwnerId} suspended due to low legitimacy points (${factory.legitPoint})`)
-      }
-
-      if (factoriesToSuspend.length > 0) {
-        this.logger.log(`Suspended ${factoriesToSuspend.length} factories due to low legitimacy points`)
       }
     } catch (error) {
       this.logger.error("Error in checkFactoryLegitimacyPoints:", error)

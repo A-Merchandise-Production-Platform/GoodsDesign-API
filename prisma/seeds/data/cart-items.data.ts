@@ -24,7 +24,7 @@ export const cartItemsData: CartItemsData = {
             userId: "customer-id",
             designId: "design002",
             quantity: 1,
-            systemConfigVariantId: "var001"
+            systemConfigVariantId: "var002"
         }
     ]
 }

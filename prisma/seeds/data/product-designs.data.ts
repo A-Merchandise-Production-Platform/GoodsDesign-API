@@ -18,7 +18,7 @@ export const productDesignsData: ProductDesignsData = {
             id: "design001",
             userEmail: "customer@gmail.com",
             systemConfigVariantId: "var001",
-            isFinalized: true,
+            isFinalized: false,
             isPublic: false,
             isTemplate: false,
             thumbnailUrl:
@@ -32,7 +32,7 @@ export const productDesignsData: ProductDesignsData = {
             isPublic: false,
             isTemplate: false,
             thumbnailUrl:
-                "https://res.cloudinary.com/drzhutfzg/image/upload/v1744357322/files/c4dxnbtd7stwzu6gvmvw.png"
+                "https://res.cloudinary.com/drzhutfzg/image/upload/v1745394540/files/cx1hb4sqfbu023gqk4mp.png"
         },
         {
             id: "63dc38b4-54de-43e7-b53d-504859e182bc",

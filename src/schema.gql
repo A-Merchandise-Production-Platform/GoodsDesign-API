@@ -519,6 +519,7 @@ type MonthlyRevenue {
 type Mutation {
   acceptOrderForFactory(orderId: String!): OrderEntity!
   addOrderProgressReport(input: AddOrderProgressReportInput!): OrderProgressReportEntity!
+  assignFactoryToOrder(factoryId: String!, orderId: String!): OrderEntity!
   assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   changeFactoryStaff(factoryId: String!, newStaffId: String!): FactoryEntity!
@@ -538,6 +539,7 @@ type Mutation {
   createProduct(input: CreateProductDto!): ProductEntity!
   createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
+  createRefundForOrder(orderId: String!): OrderEntity!
   createShippingOrder(orderId: String!): ShippingOrder!
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
   createSystemConfigDiscount(createDiscountInput: CreateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
@@ -560,6 +562,7 @@ type Mutation {
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
   markNotificationAsRead(id: String!): NotificationEntity!
+  processWithdrawal(imageUrls: [String!]!, paymentId: String!, userBankId: String!): String!
   reassignNewStaffForOrder(newStaffId: String!, orderId: String!): OrderEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
@@ -575,6 +578,7 @@ type Mutation {
   sendEmail(to: String!): Boolean!
   shippedOrder(orderId: String!): OrderEntity!
   startRework(orderId: String!): OrderEntity!
+  startReworkByManager(orderId: String!): OrderEntity!
   toggleActiveCategory(id: String!): CategoryEntity!
   toggleActiveProduct(id: String!): ProductEntity!
   updateAddress(id: String!, updateAddressInput: UpdateAddressInput!): AddressEntity!
@@ -720,6 +724,7 @@ enum OrderStatus {
   PENDING
   PENDING_ACCEPTANCE
   READY_FOR_SHIPPING
+  REFUNDED
   REJECTED
   REWORK_IN_PROGRESS
   REWORK_REQUIRED
@@ -727,6 +732,7 @@ enum OrderStatus {
   SHIPPING
   WAITING_FILL_INFORMATION
   WAITING_FOR_CHECKING_QUALITY
+  WAITING_FOR_REFUND
   WAITING_PAYMENT
 }
 
@@ -758,6 +764,7 @@ type PaymentEntity {
 
 """Method of payment"""
 enum PaymentMethod {
+  BANK
   PAYOS
   VNPAY
 }
@@ -907,6 +914,7 @@ type Query {
   user(id: String!): UserEntity!
   userBank(id: String!): UserBankEntity!
   userBanks: [UserBankEntity!]!
+  userBanksByUserId(id: String!): [UserBankEntity!]!
   userCartItems: [CartItemEntity!]!
   users: [UserEntity!]!
   ward(wardCode: String!): Ward!

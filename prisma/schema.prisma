@@ -216,6 +216,7 @@ enum TransactionType {
 enum PaymentMethod {
   VNPAY
   PAYOS
+  BANK
 }
 
 enum TransactionStatus {
@@ -356,6 +357,10 @@ enum OrderStatus {
   NEED_MANAGER_HANDLE
   PENDING_ACCEPTANCE
   REJECTED                        // Bị từ chối bởi nhà máy
+
+  //Refund 
+  WAITING_FOR_REFUND
+  REFUNDED
   
   // Trạng thái sản xuất
   IN_PRODUCTION

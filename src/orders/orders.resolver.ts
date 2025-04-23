@@ -105,6 +105,14 @@ export class OrdersResolver {
         return this.ordersService.startRework(orderId, user.id)
     }
 
+    @Mutation(() => OrderEntity)
+    @UseGuards(GraphqlJwtAuthGuard)
+    startReworkByManager(
+        @Args("orderId", { type: () => String }) orderId: string,
+    ) {
+        return this.ordersService.startReworkByManager(orderId)
+    }
+
     @Mutation(() => OrderDetailEntity)
     @UseGuards(GraphqlJwtAuthGuard)
     doneReworkForOrderDetails(
@@ -159,5 +167,25 @@ export class OrdersResolver {
         @CurrentUser() user: UserEntity
     ) {
         return this.ordersService.reassignNewStaffForOrder(orderId, newStaffId)
+    }
+
+    @Mutation(() => OrderEntity)
+    @UseGuards(GraphqlJwtAuthGuard)
+    createRefundForOrder(
+        @Args("orderId", { type: () => String }) orderId: string,
+        @CurrentUser() user: UserEntity
+    ) {
+        return this.ordersService.createRefundForOrder(orderId);
+    }
+
+    @Mutation(() => OrderEntity)
+    @UseGuards(GraphqlJwtAuthGuard)
+    assignFactoryToOrder(
+        @Args('orderId', { type: () => String }) orderId: string,
+        @Args('factoryId', { type: () => String }) factoryId: string,
+        @CurrentUser() user: UserEntity
+    ) {
+        // Additional access control checks can be added here if necessary
+        return this.ordersService.assignFactoryToOrder(orderId, factoryId);
     }
 }

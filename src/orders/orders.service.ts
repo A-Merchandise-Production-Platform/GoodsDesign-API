@@ -81,6 +81,16 @@ export class OrdersService {
                 const currentQuantity = designQuantities.get(designId) || 0;
                 designQuantities.set(designId, currentQuantity + cartItem.quantity);
             });
+
+            // Update all designs to mark as final when ordered
+            const uniqueDesignIds = [...designQuantities.keys()];
+            await tx.productDesign.updateMany({
+                where: { id: { in: uniqueDesignIds } },
+                data: { 
+                    isFinalized: true
+                 }
+            });
+
             
             const orderDetailsToCreate = cartItems.map((cartItem) => {
                 const design = cartItem.design
@@ -948,6 +958,11 @@ export class OrdersService {
                 )
             }
 
+            // Validate passed quantity + failed quantity == total checked quantity
+            if (passedQuantity + failedQuantity !== checkQuality.totalChecked) {
+                throw new BadRequestException("Total checked quantity does not match")
+            }
+
             // Update check quality
             const updatedCheckQuality = await tx.checkQuality.update({
                 where: { id: checkQualityId },
@@ -992,7 +1007,9 @@ export class OrdersService {
                     status:
                         failedQuantity > 0
                             ? OrderDetailStatus.REWORK_REQUIRED
-                            : OrderDetailStatus.DONE_CHECK_QUALITY
+                            : OrderDetailStatus.DONE_CHECK_QUALITY,
+                    rejectedQty: failedQuantity,
+                    completedQty: passedQuantity,
                 }
             })
 
@@ -1051,7 +1068,9 @@ export class OrdersService {
                             }
                         },
                         data: {
-                            status: OrderDetailStatus.REWORK_REQUIRED
+                            status: OrderDetailStatus.REWORK_REQUIRED,
+                            completedQty: passedQuantity,
+                            rejectedQty: failedQuantity
                         }
                     })
 
@@ -1092,7 +1111,9 @@ export class OrdersService {
                             orderId: checkQuality.orderDetail.order.id
                         },
                         data: {
-                            status: OrderDetailStatus.READY_FOR_SHIPPING
+                            status: OrderDetailStatus.READY_FOR_SHIPPING,
+                            completedQty: passedQuantity,
+                            rejectedQty: failedQuantity
                         }
                     })
 
@@ -1216,10 +1237,8 @@ export class OrdersService {
                     roles: ["MANAGER"],
                     url: `/manager/orders/${orderId}`
                 })
-
-                throw new BadRequestException(
-                    `Order has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Please contact support.`
-                )
+                
+                return order
             }
 
             // Deduct legitimacy points from the factory for each rework
@@ -1286,6 +1305,151 @@ export class OrdersService {
             const factory = await tx.factory.findFirst({
                 where: {
                     factoryOwnerId: factoryId
+                },
+                include: {
+                    staff: true
+                }
+            })
+
+            // Create tasks and check qualities for rework
+            for (const orderDetail of order.orderDetails) {
+                const task = await tx.task.create({
+                    data: {
+                        taskname: `Quality check for rework order ${orderId}`,
+                        description: `Quality check for rework design ${orderDetail.designId}`,
+                        startDate: now,
+                        expiredTime: estimatedCheckQualityAt,
+                        taskType: TaskType.QUALITY_CHECK,
+                        orderId: order.id,
+                        status: TaskStatus.PENDING,
+                        userId: factory.staff.id
+                    }
+                })
+
+                await tx.checkQuality.create({
+                    data: {
+                        taskId: task.id,
+                        orderDetailId: orderDetail.id,
+                        totalChecked: orderDetail.rejectedQty,
+                        passedQuantity: 0,
+                        failedQuantity: 0,
+                        status: QualityCheckStatus.PENDING,
+                        checkedAt: now
+                    }
+                })
+            }
+
+            // Notify customer about rework start
+            await this.notificationsService.create({
+                title: "Rework Started",
+                content: `The factory has started reworking your order #${orderId}.`,
+                userId: order.customer.id,
+                url: `/orders/${orderId}`
+            })
+
+            return order
+        })
+    }
+
+    async startReworkByManager(orderId: string) {
+        const now = new Date()
+
+        return this.prisma.$transaction(async (tx) => {
+            // Get the order with its details
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: {
+                    orderDetails: {
+                        where: {
+                            status: OrderDetailStatus.REWORK_REQUIRED
+                        }
+                    },
+                    customer: true
+                }
+            })
+
+            if (!order) {
+                throw new BadRequestException("Order not found")
+            }
+
+
+            if (order.status !== OrderStatus.REWORK_REQUIRED) {
+                throw new BadRequestException("This order is not in REWORK_REQUIRED status")
+            }
+
+            // Get system config for order
+            const systemConfig = await tx.systemConfigOrder.findUnique({
+                where: { type: "SYSTEM_CONFIG_ORDER" }
+            })
+
+            if (!systemConfig) {
+                throw new BadRequestException("System configuration not found")
+            }
+
+            // Deduct legitimacy points from the factory for each rework
+            await tx.factory.update({
+                where: { factoryOwnerId: order.factoryId },
+                data: {
+                    legitPoint: {
+                        decrement: systemConfig.reduceLegitPointIfReject
+                    }
+                }
+            })
+
+            // Create notification for factory about legitimacy point deduction
+            await this.notificationsService.create({
+                title: "Legitimacy Points Deducted",
+                content: `Your factory has lost ${systemConfig.reduceLegitPointIfReject} legitimacy points due to rework requirement for order #${orderId}.`,
+                userId: order.factoryId,
+                url: `/factory/orders/${orderId}`
+            })
+
+            // Calculate estimated check quality time
+            const estimatedCheckQualityAt = new Date(
+                now.getTime() + systemConfig.checkQualityTimesDays * 24 * 60 * 60 * 1000
+            )
+
+            // Calculate estimated completion time (check quality + shipping days)
+            const estimatedCompletionAt = new Date(
+                estimatedCheckQualityAt.getTime() + systemConfig.shippingDays * 24 * 60 * 60 * 1000
+            )
+
+            // Update order status
+            await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    status: OrderStatus.REWORK_IN_PROGRESS,
+                    currentProgress: 45,
+                    estimatedCheckQualityAt,
+                    estimatedCompletionAt,
+                    orderProgressReports: {
+                        create: {
+                            reportDate: now,
+                            note: `Rework started by manager. Factory lost ${systemConfig.reduceLegitPointIfReject} legitimacy points.`,
+                            imageUrls: []
+                        }
+                    }
+                }
+            })
+
+            // Update order details status
+            await tx.orderDetail.updateMany({
+                where: {
+                    orderId: orderId,
+                    status: OrderDetailStatus.REWORK_REQUIRED
+                },
+                data: {
+                    status: OrderDetailStatus.REWORK_IN_PROGRESS,
+                    reworkTime: {
+                        increment: 1
+                    }
+                }
+            })
+
+            //get staff if from factoryId
+            const factory = await tx.factory.findFirst({
+                where: {
+                    factoryOwnerId: order.factoryId
                 },
                 include: {
                     staff: true
@@ -1841,5 +2005,94 @@ export class OrdersService {
 
         // Return the updated order
         return this.findOne(orderId);
+    }
+
+    async createRefundForOrder(orderId: string) {
+        return this.prisma.$transaction(async (tx) => {
+            // Get the order with its payments
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: {
+                    payments: true,
+                    customer: true
+                }
+            });
+
+            if (!order) {
+                throw new BadRequestException("Order not found");
+            }
+
+            // Check if order can be refunded (add any business logic here)
+            if (order.status === OrderStatus.WAITING_FOR_REFUND || 
+                order.status === OrderStatus.REFUNDED) {
+                throw new BadRequestException("Order is already in refund process or has been refunded");
+            }
+
+            // Calculate total paid amount from previous payments
+            const totalPaidAmount = order.payments.reduce((sum, payment) => {
+                if (payment.type === "DEPOSIT" && payment.status === "COMPLETED") {
+                    return sum + payment.amount;
+                }
+                return sum;
+            }, 0);
+
+            if (totalPaidAmount <= 0) {
+                throw new BadRequestException("No payment found for refund");
+            }
+
+            // Create refund payment record
+            const refundPayment = await tx.payment.create({
+                data: {
+                    orderId: order.id,
+                    customerId: order.customerId,
+                    amount: totalPaidAmount,
+                    type: "WITHDRAWN",
+                    paymentLog: `Refund initiated for order ${order.id}`,
+                    createdAt: new Date(),
+                    status: "PENDING"
+                }
+            });
+
+            // Update order status
+            const updatedOrder = await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    status: OrderStatus.WAITING_FOR_REFUND,
+                    orderProgressReports: {
+                        create: {
+                            reportDate: new Date(),
+                            note: `Refund process initiated for amount ${totalPaidAmount}`,
+                            imageUrls: []
+                        }
+                    }
+                }
+            });
+
+            // Notify customer about refund initiation
+            await this.notificationsService.create({
+                title: "Refund Initiated",
+                content: `A refund has been initiated for your order #${orderId}. Amount: ${totalPaidAmount}`,
+                userId: order.customerId,
+                url: `/orders/${orderId}`
+            });
+
+            // Notify manager
+            await this.notificationsService.createForUsersByRoles({
+                title: "Refund Initiated",
+                content: `A refund has been initiated for your order #${orderId}. Amount: ${totalPaidAmount}`,
+                roles: ["MANAGER"],
+                url: `/manager/orders/${orderId}`
+            })
+
+            return updatedOrder;
+        });
+    }
+
+    async assignFactoryToOrder(orderId: string, factoryId: string): Promise<OrderEntity> {
+        const order = await this.prisma.order.update({
+            where: { id: orderId },
+            data: { factoryId: factoryId, status: OrderStatus.PENDING_ACCEPTANCE }
+        });
+        return order;
     }
 }

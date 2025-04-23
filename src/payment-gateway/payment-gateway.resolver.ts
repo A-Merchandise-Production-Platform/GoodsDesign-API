@@ -31,4 +31,17 @@ export class PaymentGatewayResolver {
                 throw new Error("Unsupported payment gateway")
         }
     }
+
+    @Mutation(() => String)
+    async processWithdrawal(
+        @Args("paymentId") paymentId: string,
+        @Args("imageUrls", { type: () => [String] }) imageUrls: string[],
+        @Args("userBankId") userBankId: string,
+    ) {
+        return this.paymentGatewayService.processWithdrawal({
+            paymentId,
+            imageUrls,
+            userBankId
+        });
+    }
 }

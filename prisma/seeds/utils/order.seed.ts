@@ -125,7 +125,7 @@ export async function seedOrders(prisma: PrismaClient) {
             designId: designs[0].id,
             price: completedOrderPrice,
             quantity: 4,
-            systemConfigVariantId: "var001",
+            systemConfigVariantId: "var003",
             status: OrderDetailStatus.COMPLETED,
             completedQty: 4
           }
@@ -222,7 +222,7 @@ export async function seedOrders(prisma: PrismaClient) {
             designId: designs[2].id,
             price: rejectedOrderPrice,
             quantity: 6,
-            systemConfigVariantId: "var001"
+            systemConfigVariantId: "var002"
           }
         ]
       },
