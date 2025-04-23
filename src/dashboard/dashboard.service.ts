@@ -9,6 +9,7 @@ import {
     FactoryDashboardResponse,
     FactoryDetailDashboardResponse,
     ManagerDashboardResponse,
+    MyStaffDashboardResponse,
     StaffDashboardResponse
 } from "./dashboard.types"
 import { UserEntity } from "src/users"
@@ -681,16 +682,266 @@ export class DashboardService {
         })
     }
 
-    async getFactoryDashboard(userId: string): Promise<FactoryDashboardResponse> {
-        // Implementation would go here
-        return {
-            totalOrders: 0,
-            pendingOrders: 0,
-            inProductionOrders: 0,
-            totalRevenue: 0,
-            recentOrders: [],
-            qualityIssues: [],
-            productionProgress: []
+    async getMyFactoryDashboard(userId: string): Promise<FactoryDashboardResponse> {
+        try {
+            // Get current date info for time-based comparisons
+            const today = new Date()
+            const currentMonth = today.getMonth()
+            const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1
+            const currentYear = today.getFullYear()
+            const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear
+
+            // Dates for current and previous month calculations
+            const startOfCurrentMonth = new Date(currentYear, currentMonth, 1)
+            const startOfPreviousMonth = new Date(
+                previousMonth === 11 ? previousYear : currentYear,
+                previousMonth,
+                1
+            )
+
+            // Check if the user is a factory owner
+            const factory = await this.prisma.factory.findFirst({
+                where: { factoryOwnerId: userId }
+            })
+
+            if (!factory) {
+                throw new ForbiddenException("Factory not found for this user")
+            }
+
+            // Get orders for current month
+            const currentMonthOrders = await this.prisma.order.findMany({
+                where: {
+                    factoryId: userId,
+                    orderDate: {
+                        gte: startOfCurrentMonth,
+                        lte: today
+                    }
+                }
+            })
+
+            // Get orders for previous month
+            const previousMonthOrders = await this.prisma.order.findMany({
+                where: {
+                    factoryId: userId,
+                    orderDate: {
+                        gte: startOfPreviousMonth,
+                        lt: startOfCurrentMonth
+                    }
+                }
+            })
+
+            // Total orders stats
+            const totalOrders = currentMonthOrders.length
+            const previousTotalOrders = previousMonthOrders.length
+            const totalOrdersPercentChange =
+                previousTotalOrders > 0
+                    ? Math.round(((totalOrders - previousTotalOrders) / previousTotalOrders) * 100)
+                    : 0
+
+            // Monthly revenue stats
+            const monthlyRevenue = currentMonthOrders.reduce(
+                (sum, order) => sum + (order.totalProductionCost || 0),
+                0
+            )
+            const previousMonthlyRevenue = previousMonthOrders.reduce(
+                (sum, order) => sum + (order.totalProductionCost || 0),
+                0
+            )
+            const monthlyRevenuePercentChange =
+                previousMonthlyRevenue > 0
+                    ? Math.round(
+                          ((monthlyRevenue - previousMonthlyRevenue) / previousMonthlyRevenue) * 100
+                      )
+                    : 0
+
+            // Get orders with quality checks
+            const orderIds = currentMonthOrders.map((order) => order.id)
+            const previousOrderIds = previousMonthOrders.map((order) => order.id)
+
+            // Get all order details for these orders
+            const orderDetails = await this.prisma.orderDetail.findMany({
+                where: {
+                    orderId: { in: orderIds }
+                },
+                select: {
+                    id: true
+                }
+            })
+
+            const previousOrderDetails = await this.prisma.orderDetail.findMany({
+                where: {
+                    orderId: { in: previousOrderIds }
+                },
+                select: {
+                    id: true
+                }
+            })
+
+            const orderDetailIds = orderDetails.map((detail) => detail.id)
+            const previousOrderDetailIds = previousOrderDetails.map((detail) => detail.id)
+
+            // Get quality checks for current month
+            const qualityChecks = await this.prisma.checkQuality.findMany({
+                where: {
+                    orderDetailId: { in: orderDetailIds },
+                    createdAt: {
+                        gte: startOfCurrentMonth,
+                        lte: today
+                    }
+                }
+            })
+
+            const previousQualityChecks = await this.prisma.checkQuality.findMany({
+                where: {
+                    orderDetailId: { in: previousOrderDetailIds },
+                    createdAt: {
+                        gte: startOfPreviousMonth,
+                        lt: startOfCurrentMonth
+                    }
+                }
+            })
+
+            // Calculate quality score - based on pass/fail ratio
+            const calculateScore = (checks) => {
+                if (checks.length === 0) return 98 // Default if no checks
+
+                const totalChecked = checks.reduce((sum, check) => sum + check.totalChecked, 0)
+                const totalPassed = checks.reduce((sum, check) => sum + check.passedQuantity, 0)
+
+                if (totalChecked === 0) return 98 // Default if no items checked
+                return Math.round((totalPassed / totalChecked) * 100)
+            }
+
+            const qualityScore = calculateScore(qualityChecks)
+            const previousQualityScore = calculateScore(previousQualityChecks)
+
+            const qualityScorePercentChange =
+                previousQualityScore > 0
+                    ? Math.round(
+                          ((qualityScore - previousQualityScore) / previousQualityScore) * 100
+                      )
+                    : 0
+
+            // Generate monthly revenue data for the past 7 months
+            const revenueData = []
+            const months = [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec"
+            ]
+
+            for (let i = 6; i >= 0; i--) {
+                const targetMonth = new Date()
+                targetMonth.setMonth(targetMonth.getMonth() - i)
+
+                const startOfMonth = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), 1)
+                const endOfMonth = new Date(
+                    targetMonth.getFullYear(),
+                    targetMonth.getMonth() + 1,
+                    0
+                )
+
+                const monthOrders = await this.prisma.order.findMany({
+                    where: {
+                        factoryId: userId,
+                        orderDate: {
+                            gte: startOfMonth,
+                            lte: endOfMonth
+                        }
+                    }
+                })
+
+                const monthRevenue = monthOrders.reduce(
+                    (sum, order) => sum + (order.totalProductionCost || 0),
+                    0
+                )
+
+                revenueData.push({
+                    month: months[targetMonth.getMonth()],
+                    revenue: monthRevenue
+                })
+            }
+
+            return {
+                stats: {
+                    totalOrders: {
+                        value: totalOrders,
+                        percentChange: totalOrdersPercentChange,
+                        isPositive: totalOrdersPercentChange >= 0
+                    },
+                    monthlyRevenue: {
+                        value: monthlyRevenue,
+                        percentChange: monthlyRevenuePercentChange,
+                        isPositive: monthlyRevenuePercentChange >= 0
+                    },
+                    legitPoints: {
+                        value: factory.legitPoint || 100
+                    },
+                    qualityScore: {
+                        value: qualityScore,
+                        percentChange: qualityScorePercentChange,
+                        isPositive: qualityScorePercentChange >= 0
+                    }
+                },
+                revenueData,
+                // Keep these for backward compatibility
+                totalOrders,
+                pendingOrders: currentMonthOrders.filter(
+                    (order) =>
+                        order.status === OrderStatus.PENDING ||
+                        order.status === OrderStatus.PENDING_ACCEPTANCE ||
+                        order.status === OrderStatus.NEED_MANAGER_HANDLE
+                ).length,
+                inProductionOrders: currentMonthOrders.filter(
+                    (order) => order.status === OrderStatus.IN_PRODUCTION
+                ).length,
+                totalRevenue: monthlyRevenue,
+                recentOrders: [],
+                qualityIssues: [],
+                productionProgress: []
+            }
+        } catch (error) {
+            console.error("Error fetching factory dashboard data:", error)
+            // Return placeholder data in case of error
+            return {
+                stats: {
+                    totalOrders: {
+                        value: 0,
+                        percentChange: 0,
+                        isPositive: true
+                    },
+                    monthlyRevenue: {
+                        value: 0,
+                        percentChange: 0,
+                        isPositive: true
+                    },
+                    legitPoints: {
+                        value: 0
+                    },
+                    qualityScore: {
+                        value: 0,
+                        percentChange: 0,
+                        isPositive: true
+                    }
+                },
+                revenueData: [],
+                totalOrders: 0,
+                pendingOrders: 0,
+                inProductionOrders: 0,
+                totalRevenue: 0,
+                recentOrders: [],
+                qualityIssues: [],
+                productionProgress: []
+            }
         }
     }
 
@@ -929,6 +1180,282 @@ export class DashboardService {
             totalTaskHistory: totalTaskHistory,
             activeTasks: activeTasks,
             taskHistory: taskHistory
+        }
+    }
+
+    async getMyStaffDashboard(userId: string): Promise<MyStaffDashboardResponse> {
+        try {
+            // Get current date info for time-based comparisons
+            const today = new Date()
+            const currentMonth = today.getMonth()
+            const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1
+            const currentYear = today.getFullYear()
+            const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear
+
+            // Dates for current and previous month calculations
+            const startOfCurrentMonth = new Date(currentYear, currentMonth, 1)
+            const startOfPreviousMonth = new Date(
+                previousMonth === 11 ? previousYear : currentYear,
+                previousMonth,
+                1
+            )
+
+            // Get the staff user
+            const staffUser = await this.prisma.user.findUnique({
+                where: { id: userId }
+            })
+
+            if (!staffUser) {
+                throw new ForbiddenException("Staff user not found")
+            }
+
+            // Check if staff is assigned to a factory
+            const factory = await this.prisma.factory.findFirst({
+                where: {
+                    staffId: userId
+                }
+            })
+
+            if (!factory) {
+                throw new ForbiddenException("Staff is not assigned to any factory")
+            }
+
+            // Get active tasks for current month
+            const currentMonthTasks = await this.prisma.task.count({
+                where: {
+                    userId: userId,
+                    status: { in: ["PENDING", "IN_PROGRESS"] },
+                    startDate: {
+                        gte: startOfCurrentMonth,
+                        lte: today
+                    }
+                }
+            })
+
+            // Get active tasks for previous month
+            const previousMonthTasks = await this.prisma.task.count({
+                where: {
+                    userId: userId,
+                    status: { in: ["PENDING", "IN_PROGRESS"] },
+                    startDate: {
+                        gte: startOfPreviousMonth,
+                        lt: startOfCurrentMonth
+                    }
+                }
+            })
+
+            // Active tasks stats
+            const activeTasksPercentChange =
+                previousMonthTasks > 0
+                    ? Math.round(
+                          ((currentMonthTasks - previousMonthTasks) / previousMonthTasks) * 100
+                      )
+                    : 0
+
+            // Get completed tasks for current month
+            const currentMonthCompletedTasks = await this.prisma.task.count({
+                where: {
+                    userId: userId,
+                    status: "COMPLETED",
+                    completedDate: {
+                        gte: startOfCurrentMonth,
+                        lte: today
+                    }
+                }
+            })
+
+            // Get completed tasks for previous month
+            const previousMonthCompletedTasks = await this.prisma.task.count({
+                where: {
+                    userId: userId,
+                    status: "COMPLETED",
+                    completedDate: {
+                        gte: startOfPreviousMonth,
+                        lt: startOfCurrentMonth
+                    }
+                }
+            })
+
+            // Completed tasks stats
+            const completedTasksPercentChange =
+                previousMonthCompletedTasks > 0
+                    ? Math.round(
+                          ((currentMonthCompletedTasks - previousMonthCompletedTasks) /
+                              previousMonthCompletedTasks) *
+                              100
+                      )
+                    : 0
+
+            // Get orders for factory
+            const factoryOrders = await this.prisma.order.findMany({
+                where: {
+                    factoryId: factory.factoryOwnerId,
+                    orderDate: {
+                        gte: startOfCurrentMonth,
+                        lte: today
+                    }
+                }
+            })
+
+            const previousFactoryOrders = await this.prisma.order.findMany({
+                where: {
+                    factoryId: factory.factoryOwnerId,
+                    orderDate: {
+                        gte: startOfPreviousMonth,
+                        lt: startOfCurrentMonth
+                    }
+                }
+            })
+
+            // Pending orders
+            const pendingOrders = factoryOrders.filter(
+                (order) =>
+                    order.status === OrderStatus.PENDING ||
+                    order.status === OrderStatus.PENDING_ACCEPTANCE ||
+                    order.status === OrderStatus.NEED_MANAGER_HANDLE
+            ).length
+
+            const previousPendingOrders = previousFactoryOrders.filter(
+                (order) =>
+                    order.status === OrderStatus.PENDING ||
+                    order.status === OrderStatus.PENDING_ACCEPTANCE ||
+                    order.status === OrderStatus.NEED_MANAGER_HANDLE
+            ).length
+
+            const pendingOrdersPercentChange =
+                previousPendingOrders > 0
+                    ? Math.round(
+                          ((pendingOrders - previousPendingOrders) / previousPendingOrders) * 100
+                      )
+                    : 0
+
+            // Delivered orders
+            const deliveredOrders = factoryOrders.filter(
+                (order) => order.status === OrderStatus.COMPLETED
+            ).length
+
+            const previousDeliveredOrders = previousFactoryOrders.filter(
+                (order) => order.status === OrderStatus.COMPLETED
+            ).length
+
+            const deliveredOrdersPercentChange =
+                previousDeliveredOrders > 0
+                    ? Math.round(
+                          ((deliveredOrders - previousDeliveredOrders) / previousDeliveredOrders) *
+                              100
+                      )
+                    : 0
+
+            // Get recent orders with customer details
+            const recentOrders = await this.prisma.order.findMany({
+                where: {
+                    factoryId: factory.factoryOwnerId
+                },
+                orderBy: {
+                    orderDate: "desc"
+                },
+                take: 5,
+                include: {
+                    customer: true
+                }
+            })
+
+            // Map recent orders to required format
+            const formattedRecentOrders = recentOrders.map((order) => {
+                // Determine priority based on status or other criteria
+                let priority = "Normal"
+                if (order.status === OrderStatus.NEED_MANAGER_HANDLE) {
+                    priority = "High"
+                } else if (
+                    new Date(order.orderDate).getTime() + 7 * 24 * 60 * 60 * 1000 <
+                    today.getTime()
+                ) {
+                    // If order is more than 7 days old
+                    priority = "Overdue"
+                }
+
+                return {
+                    id: order.id,
+                    customer: order.customer ? order.customer.name : "Unknown",
+                    date: order.orderDate.toISOString().split("T")[0],
+                    status: order.status,
+                    total: order.totalPrice || 0,
+                    priority: priority
+                }
+            })
+
+            // For address, use a simple version or placeholder since we don't have proper address details
+            const address = `Factory Location #${factory.factoryOwnerId.substring(0, 8)}`
+
+            return {
+                stats: {
+                    activeTasks: {
+                        value: currentMonthTasks,
+                        percentChange: activeTasksPercentChange,
+                        isPositive: activeTasksPercentChange >= 0
+                    },
+                    completedTasks: {
+                        value: currentMonthCompletedTasks,
+                        percentChange: completedTasksPercentChange,
+                        isPositive: completedTasksPercentChange >= 0
+                    },
+                    pendingOrders: {
+                        value: pendingOrders,
+                        percentChange: pendingOrdersPercentChange,
+                        isPositive: pendingOrdersPercentChange < 0 // Fewer pending orders is positive
+                    },
+                    deliveredOrders: {
+                        value: deliveredOrders,
+                        percentChange: deliveredOrdersPercentChange,
+                        isPositive: deliveredOrdersPercentChange >= 0
+                    }
+                },
+                currentFactory: {
+                    id: factory.factoryOwnerId,
+                    name: factory.name,
+                    address: address,
+                    status: factory.factoryStatus,
+                    productionCapacity: `${factory.maxPrintingCapacity || 0} units/month`,
+                    leadTime: `${factory.leadTime || 0} days`
+                },
+                recentOrders: formattedRecentOrders
+            }
+        } catch (error) {
+            console.error("Error fetching staff dashboard data:", error)
+            // Return placeholder data in case of error
+            return {
+                stats: {
+                    activeTasks: {
+                        value: 0,
+                        percentChange: 0,
+                        isPositive: true
+                    },
+                    completedTasks: {
+                        value: 0,
+                        percentChange: 0,
+                        isPositive: true
+                    },
+                    pendingOrders: {
+                        value: 0,
+                        percentChange: 0,
+                        isPositive: true
+                    },
+                    deliveredOrders: {
+                        value: 0,
+                        percentChange: 0,
+                        isPositive: true
+                    }
+                },
+                currentFactory: {
+                    id: "",
+                    name: "Not assigned",
+                    address: "N/A",
+                    status: "N/A",
+                    productionCapacity: "0 units/month",
+                    leadTime: "0 days"
+                },
+                recentOrders: []
+            }
         }
     }
 }

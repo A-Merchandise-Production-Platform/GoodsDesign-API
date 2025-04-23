@@ -317,6 +317,8 @@ type FactoryDashboardResponse {
   productionProgress: [FactoryOrderWithProgress!]!
   qualityIssues: [QualityIssueWithFactory!]!
   recentOrders: [FactoryOrderWithCustomer!]!
+  revenueData: [MonthlyRevenue!]!
+  stats: FactoryStats!
   totalOrders: Int!
   totalRevenue: Int!
 }
@@ -335,6 +337,15 @@ type FactoryDetailDashboardResponse {
   totalRevenue: Int!
 }
 
+type FactoryDetails {
+  address: String!
+  id: String!
+  leadTime: String!
+  name: String!
+  productionCapacity: String!
+  status: String!
+}
+
 type FactoryEntity {
   address: AddressEntity
   businessLicenseUrl: String
@@ -351,6 +362,7 @@ type FactoryEntity {
   formattedAddress: String
   isSubmitted: Boolean
   leadTime: Int
+  legitPoint: Int
   maxPrintingCapacity: Int
   minimumOrderQuantity: Int
   name: String!
@@ -427,6 +439,13 @@ type FactoryProgressReportType {
   reportDate: DateTime!
 }
 
+type FactoryStats {
+  legitPoints: StatValue!
+  monthlyRevenue: StatValue!
+  qualityScore: StatValue!
+  totalOrders: StatValue!
+}
+
 """The status of the factory"""
 enum FactoryStatus {
   APPROVED
@@ -490,6 +509,11 @@ type ManagerOrderDashboardEntity {
   lastMonthPendingOrders: Int!
   pendingOrders: Int!
   totalOrders: Int!
+}
+
+type MonthlyRevenue {
+  month: String!
+  revenue: Int!
 }
 
 type Mutation {
@@ -571,6 +595,25 @@ type Mutation {
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   updateUserBank(id: String!, updateUserBankInput: UpdateUserBankInput!): UserBankEntity!
   uploadFile(file: Upload): FileUploadResponse!
+}
+
+type MyStaffDashboardResponse {
+  currentFactory: FactoryDetails!
+  recentOrders: [RecentOrderInfo!]!
+  stats: MyStaffStats!
+}
+
+type MyStaffStatValue {
+  isPositive: Boolean!
+  percentChange: Int!
+  value: Int!
+}
+
+type MyStaffStats {
+  activeTasks: MyStaffStatValue!
+  completedTasks: MyStaffStatValue!
+  deliveredOrders: MyStaffStatValue!
+  pendingOrders: MyStaffStatValue!
 }
 
 type NotificationEntity {
@@ -821,12 +864,13 @@ type Query {
   getCartItemCount: Float!
   getEnhancedManagerDashboard: EnhancedManagerDashboardResponse!
   getFactoryById(factoryId: String!): FactoryEntity!
-  getFactoryDashboard: FactoryDashboardResponse!
   getFactoryDetailDashboard(factoryId: String!): FactoryDetailDashboardResponse!
   getManagerDashboard: ManagerDashboardResponse!
   getManagerOrderDashboard: ManagerOrderDashboardEntity!
   getMe: UserEntity!
   getMyFactory: FactoryEntity!
+  getMyFactoryDashboard: FactoryDashboardResponse!
+  getMyStaffDashboard: MyStaffDashboardResponse!
   getStaffDashboard(userId: String!): StaffDashboardResponse!
   getTemplateProductDesigns: [ProductDesignEntity!]!
   myNotifications: [NotificationEntity!]!
@@ -867,6 +911,15 @@ type Query {
   users: [UserEntity!]!
   ward(wardCode: String!): Ward!
   wards(districtId: Int!): [Ward!]!
+}
+
+type RecentOrderInfo {
+  customer: String!
+  date: String!
+  id: String!
+  priority: String!
+  status: String!
+  total: Int!
 }
 
 """Refresh token input"""
@@ -946,6 +999,12 @@ type StaffDashboardResponse {
   taskHistory: [TaskEntity!]!
   totalActiveTasks: Int!
   totalTaskHistory: Int!
+}
+
+type StatValue {
+  isPositive: Boolean
+  percentChange: Int
+  value: Int!
 }
 
 type SystemConfigBankEntity {
