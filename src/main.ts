@@ -8,14 +8,25 @@ import { PrismaClientExceptionFilter } from "./prisma-client-exception"
 import { graphqlUploadExpress } from 'graphql-upload-ts'
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule, {
-      cors: true
-    })
-
+    const app = await NestFactory.create(AppModule)
+    
+    // Configure CORS with specific options
     app.enableCors({
-      origin: '*',
-      credentials: true,
+        origin: true, // This allows all origins and will reflect the request origin
+        credentials: true,
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        allowedHeaders: [
+            'Origin',
+            'X-Requested-With',
+            'Content-Type',
+            'Accept',
+            'Authorization',
+            'Access-Control-Allow-Origin'
+        ],
+        preflightContinue: false,
+        optionsSuccessStatus: 204
     });
+
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, }))
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
 
@@ -27,7 +38,7 @@ async function bootstrap() {
         graphqlUploadExpress({
           maxFileSize: +envConfig().upload.maxFileSize, //50mb
           maxFiles: +envConfig().upload.maxFiles,
-          overrideSendResponse: false, // This is necessary for nest.js/koa.js
+          overrideSendResponse: false,
         }),
     )
 
