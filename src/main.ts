@@ -9,9 +9,7 @@ import { graphqlUploadExpress } from 'graphql-upload-ts'
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
-      cors: {
-        origin: ["https://goodsdesign.uydev.id.vn"]
-      }
+      cors: true
     })
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, }))
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
