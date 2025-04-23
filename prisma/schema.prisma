@@ -216,6 +216,7 @@ enum TransactionType {
 enum PaymentMethod {
   VNPAY
   PAYOS
+  BANK
 }
 
 enum TransactionStatus {

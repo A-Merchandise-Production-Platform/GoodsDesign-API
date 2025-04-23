@@ -7,7 +7,7 @@ import {
     WebhookDataType,
     WebhookType
 } from "@payos/node/lib/type"
-import { PaymentMethod, PaymentStatus, TransactionStatus, TransactionType } from "@prisma/client"
+import { PaymentMethod, PaymentStatus, PaymentType, TransactionStatus, TransactionType } from "@prisma/client"
 import { envConfig } from "src/dynamic-modules"
 import { MailService } from "src/mail"
 import { NotificationsService } from "src/notifications/notifications.service"
@@ -371,6 +371,73 @@ export class PaymentGatewayService {
             return { RspCode: "00", Message: "success" }
         } else {
             return { RspCode: "97", Message: "Fail checksum" }
+        }
+    }
+
+    async processWithdrawal(withdrawalData: { 
+        paymentId: string; 
+        imageUrls: string[]; 
+        userBankId: string 
+    }) {
+        const payment = await this.prisma.payment.findFirst({
+            where: { 
+                id: withdrawalData.paymentId,
+                type: PaymentType.WITHDRAWN
+            },
+            include: { customer: true }
+        })
+
+        if (!payment) {
+            throw new NotFoundException("Withdrawal payment not found")
+        }
+
+        // Generate transaction ID
+        const transactionId = `WD-${new Date().getTime().toString().slice(-6)}`
+
+        // Create payment transaction record
+        const paymentTransaction = await this.prisma.paymentTransaction.create({
+            data: {
+                paymentId: payment.id,
+                customerId: payment.customerId,
+                amount: payment.amount,
+                type: TransactionType.PAYMENT,
+                paymentMethod: PaymentMethod.BANK,
+                status: TransactionStatus.COMPLETED,
+                transactionLog: `Bank withdrawal processed for paymentId_${payment.id}`,
+                paymentGatewayTransactionId: transactionId,
+                createdAt: new Date(),
+                imageUrls: withdrawalData.imageUrls,
+                userBankId: withdrawalData.userBankId
+            }
+        })
+
+        // Update payment status to completed
+        await this.prisma.payment.update({
+            where: { id: payment.id },
+            data: { status: PaymentStatus.COMPLETED }
+        })
+
+        // Notify customer about completed withdrawal
+        await this.notificationsService.create({
+            title: "Withdrawal Completed",
+            content: `Your withdrawal of ${payment.amount} has been processed successfully.`,
+            userId: payment.customerId,
+            url: `/payments/${payment.id}`
+        })
+
+        // Send confirmation email
+        if (payment.customer?.email) {
+            await this.mailService.sendInvoiceEmail({
+                to: payment.customer.email,
+                orderId: paymentTransaction.id,
+                amount: payment.amount
+            })
+        }
+
+        return { 
+            success: true, 
+            message: "Withdrawal processed successfully",
+            transactionId: paymentTransaction.id
         }
     }
 }
