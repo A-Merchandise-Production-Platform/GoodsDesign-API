@@ -8,28 +8,10 @@ import { PrismaClientExceptionFilter } from "./prisma-client-exception"
 import { graphqlUploadExpress } from 'graphql-upload-ts'
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule)
-    app.enableCors({
-        origin: [
-            "http://localhost:3000",
-            "https://goodsdesign.uydev.id.vn",
-            "https://api.goodsdesign.uydev.id.vn"
-        ],
-        methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-        allowedHeaders: [
-            'Access-Control-Allow-Headers',
-            'Origin',
-            'Accept',
-            'X-Requested-With',
-            'Content-Type',
-            'Access-Control-Request-Method',
-            'Access-Control-Request-Headers',
-            'Authorization'
-        ],
-        credentials: true,
-        exposedHeaders: ['Content-Range', 'X-Content-Range'],
-        preflightContinue: false,
-        optionsSuccessStatus: 204
+    const app = await NestFactory.create(AppModule, {
+      cors: {
+        origin: ["https://goodsdesign.uydev.id.vn"]
+      }
     })
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, }))
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
