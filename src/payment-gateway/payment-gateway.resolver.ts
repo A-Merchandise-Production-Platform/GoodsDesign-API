@@ -32,7 +32,7 @@ export class PaymentGatewayResolver {
         }
     }
 
-    @Mutation(() => Object)
+    @Mutation(() => String)
     async processWithdrawal(
         @Args("paymentId") paymentId: string,
         @Args("imageUrls", { type: () => [String] }) imageUrls: string[],

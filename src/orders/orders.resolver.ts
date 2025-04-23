@@ -168,4 +168,13 @@ export class OrdersResolver {
     ) {
         return this.ordersService.reassignNewStaffForOrder(orderId, newStaffId)
     }
+
+    @Mutation(() => OrderEntity)
+    @UseGuards(GraphqlJwtAuthGuard)
+    createRefundForOrder(
+        @Args("orderId", { type: () => String }) orderId: string,
+        @CurrentUser() user: UserEntity
+    ) {
+        return this.ordersService.createRefundForOrder(orderId);
+    }
 }

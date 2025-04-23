@@ -514,6 +514,7 @@ type Mutation {
   createProduct(input: CreateProductDto!): ProductEntity!
   createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
+  createRefundForOrder(orderId: String!): OrderEntity!
   createShippingOrder(orderId: String!): ShippingOrder!
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
   createSystemConfigDiscount(createDiscountInput: CreateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
@@ -536,6 +537,7 @@ type Mutation {
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
   markNotificationAsRead(id: String!): NotificationEntity!
+  processWithdrawal(imageUrls: [String!]!, paymentId: String!, userBankId: String!): String!
   reassignNewStaffForOrder(newStaffId: String!, orderId: String!): OrderEntity!
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
@@ -678,6 +680,7 @@ enum OrderStatus {
   PENDING
   PENDING_ACCEPTANCE
   READY_FOR_SHIPPING
+  REFUNDED
   REJECTED
   REWORK_IN_PROGRESS
   REWORK_REQUIRED
@@ -685,6 +688,7 @@ enum OrderStatus {
   SHIPPING
   WAITING_FILL_INFORMATION
   WAITING_FOR_CHECKING_QUALITY
+  WAITING_FOR_REFUND
   WAITING_PAYMENT
 }
 
@@ -716,6 +720,7 @@ type PaymentEntity {
 
 """Method of payment"""
 enum PaymentMethod {
+  BANK
   PAYOS
   VNPAY
 }

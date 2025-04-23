@@ -15,10 +15,21 @@ async function bootstrap() {
             "https://goodsdesign.uydev.id.vn",
             "https://api.goodsdesign.uydev.id.vn"
         ],
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+        methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+        allowedHeaders: [
+            'Access-Control-Allow-Headers',
+            'Origin',
+            'Accept',
+            'X-Requested-With',
+            'Content-Type',
+            'Access-Control-Request-Method',
+            'Access-Control-Request-Headers',
+            'Authorization'
+        ],
         credentials: true,
         exposedHeaders: ['Content-Range', 'X-Content-Range'],
+        preflightContinue: false,
+        optionsSuccessStatus: 204
     })
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, }))
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
@@ -33,7 +44,7 @@ async function bootstrap() {
           maxFiles: +envConfig().upload.maxFiles,
           overrideSendResponse: false, // This is necessary for nest.js/koa.js
         }),
-      );
+    )
 
     await app.listen(envConfig().port)
     console.log(`Admin UI is available at: http://localhost:${envConfig().port}/admin`)

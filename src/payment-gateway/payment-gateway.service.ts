@@ -7,7 +7,7 @@ import {
     WebhookDataType,
     WebhookType
 } from "@payos/node/lib/type"
-import { PaymentMethod, PaymentStatus, PaymentType, TransactionStatus, TransactionType } from "@prisma/client"
+import { OrderStatus, PaymentMethod, PaymentStatus, PaymentType, TransactionStatus, TransactionType } from "@prisma/client"
 import { envConfig } from "src/dynamic-modules"
 import { MailService } from "src/mail"
 import { NotificationsService } from "src/notifications/notifications.service"
@@ -415,6 +415,13 @@ export class PaymentGatewayService {
         await this.prisma.payment.update({
             where: { id: payment.id },
             data: { status: PaymentStatus.COMPLETED }
+        })
+
+        await this.prisma.order.update({
+            where: { id: payment.orderId },
+            data: {
+                status: OrderStatus.REFUNDED
+            }
         })
 
         // Notify customer about completed withdrawal

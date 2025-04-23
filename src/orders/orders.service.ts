@@ -1237,10 +1237,8 @@ export class OrdersService {
                     roles: ["MANAGER"],
                     url: `/manager/orders/${orderId}`
                 })
-
-                throw new BadRequestException(
-                    `Order has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Please contact support.`
-                )
+                
+                return order
             }
 
             // Deduct legitimacy points from the factory for each rework
@@ -2007,5 +2005,86 @@ export class OrdersService {
 
         // Return the updated order
         return this.findOne(orderId);
+    }
+
+    async createRefundForOrder(orderId: string) {
+        return this.prisma.$transaction(async (tx) => {
+            // Get the order with its payments
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: {
+                    payments: true,
+                    customer: true
+                }
+            });
+
+            if (!order) {
+                throw new BadRequestException("Order not found");
+            }
+
+            // Check if order can be refunded (add any business logic here)
+            if (order.status === OrderStatus.WAITING_FOR_REFUND || 
+                order.status === OrderStatus.REFUNDED) {
+                throw new BadRequestException("Order is already in refund process or has been refunded");
+            }
+
+            // Calculate total paid amount from previous payments
+            const totalPaidAmount = order.payments.reduce((sum, payment) => {
+                if (payment.type === "DEPOSIT" && payment.status === "COMPLETED") {
+                    return sum + payment.amount;
+                }
+                return sum;
+            }, 0);
+
+            if (totalPaidAmount <= 0) {
+                throw new BadRequestException("No payment found for refund");
+            }
+
+            // Create refund payment record
+            const refundPayment = await tx.payment.create({
+                data: {
+                    orderId: order.id,
+                    customerId: order.customerId,
+                    amount: totalPaidAmount,
+                    type: "WITHDRAWN",
+                    paymentLog: `Refund initiated for order ${order.id}`,
+                    createdAt: new Date(),
+                    status: "PENDING"
+                }
+            });
+
+            // Update order status
+            const updatedOrder = await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    status: OrderStatus.WAITING_FOR_REFUND,
+                    orderProgressReports: {
+                        create: {
+                            reportDate: new Date(),
+                            note: `Refund process initiated for amount ${totalPaidAmount}`,
+                            imageUrls: []
+                        }
+                    }
+                }
+            });
+
+            // Notify customer about refund initiation
+            await this.notificationsService.create({
+                title: "Refund Initiated",
+                content: `A refund has been initiated for your order #${orderId}. Amount: ${totalPaidAmount}`,
+                userId: order.customerId,
+                url: `/orders/${orderId}`
+            });
+
+            // Notify manager
+            await this.notificationsService.createForUsersByRoles({
+                title: "Refund Initiated",
+                content: `A refund has been initiated for your order #${orderId}. Amount: ${totalPaidAmount}`,
+                roles: ["MANAGER"],
+                url: `/manager/orders/${orderId}`
+            })
+
+            return updatedOrder;
+        });
     }
 }
