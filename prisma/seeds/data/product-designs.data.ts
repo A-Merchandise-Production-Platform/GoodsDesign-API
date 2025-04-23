@@ -18,7 +18,7 @@ export const productDesignsData: ProductDesignsData = {
             id: "design001",
             userEmail: "customer@gmail.com",
             systemConfigVariantId: "var001",
-            isFinalized: true,
+            isFinalized: false,
             isPublic: false,
             isTemplate: false,
             thumbnailUrl:
