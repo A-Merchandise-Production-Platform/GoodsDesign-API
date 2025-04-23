@@ -39,7 +39,6 @@ export class ProductDesignResolver {
   }
 
   @Query(() => ProductDesignEntity)
-  @UseGuards(GraphqlJwtAuthGuard)
   async productDesign(
     @Args('id', { type: () => ID }) id: string,
   ) {
