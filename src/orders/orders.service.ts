@@ -81,6 +81,16 @@ export class OrdersService {
                 const currentQuantity = designQuantities.get(designId) || 0;
                 designQuantities.set(designId, currentQuantity + cartItem.quantity);
             });
+
+            // Update all designs to mark as final when ordered
+            const uniqueDesignIds = [...designQuantities.keys()];
+            await tx.productDesign.updateMany({
+                where: { id: { in: uniqueDesignIds } },
+                data: { 
+                    isFinalized: true
+                 }
+            });
+
             
             const orderDetailsToCreate = cartItems.map((cartItem) => {
                 const design = cartItem.design
