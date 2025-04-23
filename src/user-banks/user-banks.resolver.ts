@@ -26,6 +26,10 @@ export class UserBanksResolver {
         return this.userBanksService.getUserBanks(user)
     }
 
+    @Query(() => [UserBankEntity])
+    async userBanksByUserId(@Args("id") id: string) {
+        return this.userBanksService.getUserBanksByUserId(id)
+    }
     @Query(() => UserBankEntity)
     async userBank(@Args("id") id: string, @CurrentUser() user: UserEntity) {
         return this.userBanksService.getUserBank(id, user)

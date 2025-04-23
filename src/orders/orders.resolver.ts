@@ -177,4 +177,15 @@ export class OrdersResolver {
     ) {
         return this.ordersService.createRefundForOrder(orderId);
     }
+
+    @Mutation(() => OrderEntity)
+    @UseGuards(GraphqlJwtAuthGuard)
+    assignFactoryToOrder(
+        @Args('orderId', { type: () => String }) orderId: string,
+        @Args('factoryId', { type: () => String }) factoryId: string,
+        @CurrentUser() user: UserEntity
+    ) {
+        // Additional access control checks can be added here if necessary
+        return this.ordersService.assignFactoryToOrder(orderId, factoryId);
+    }
 }

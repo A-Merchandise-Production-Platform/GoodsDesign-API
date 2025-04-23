@@ -2087,4 +2087,12 @@ export class OrdersService {
             return updatedOrder;
         });
     }
+
+    async assignFactoryToOrder(orderId: string, factoryId: string): Promise<OrderEntity> {
+        const order = await this.prisma.order.update({
+            where: { id: orderId },
+            data: { factoryId: factoryId, status: OrderStatus.PENDING_ACCEPTANCE }
+        });
+        return order;
+    }
 }

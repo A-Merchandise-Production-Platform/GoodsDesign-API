@@ -441,10 +441,6 @@ export class PaymentGatewayService {
             })
         }
 
-        return { 
-            success: true, 
-            message: "Withdrawal processed successfully",
-            transactionId: paymentTransaction.id
-        }
+        return "Withdrawal processed successfully"
     }
 }

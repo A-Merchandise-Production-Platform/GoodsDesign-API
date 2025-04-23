@@ -74,6 +74,18 @@ export class UserBanksService {
         return userBanks.map((userBank) => this.transformUserBank(userBank))
     }
 
+    async getUserBanksByUserId(id: string){
+        const userBanks = await this.prisma.userBank.findMany({
+            where: { userId: id },
+            include: this.getUserBankInclude(),
+            orderBy: {
+                createdAt: "desc"
+            }
+        })
+
+        return userBanks.map((userBank) => this.transformUserBank(userBank))
+    }
+
     async getUserBank(id: string, user: UserEntity) {
         this.validateUser(user)
 
