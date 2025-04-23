@@ -106,16 +106,13 @@ export class AuthService {
                     name: `${user.name}'s Factory`,
                     factoryStatus: FactoryStatus.PENDING_APPROVAL,
                     establishedDate: new Date(),
-                    totalEmployees: 1,
                     maxPrintingCapacity: 0,
                     printingMethods: [],
                     specializations: [],
                     contactPersonName: user.name,
                     contactPersonRole: "Factory Owner",
                     contactPhone: user.phoneNumber || "",
-                    operationalHours: "",
                     leadTime: 0,
-                    minimumOrderQuantity: 0,
                     contractUrl: ""
                 }
             })

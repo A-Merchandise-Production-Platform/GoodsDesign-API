@@ -261,7 +261,49 @@ class FactoryOrderWithProgress extends FactoryOrderWithCustomer {
 }
 
 @ObjectType()
+class StatValue {
+    @Field(() => Int)
+    value: number
+
+    @Field(() => Int, { nullable: true })
+    percentChange?: number
+
+    @Field({ nullable: true })
+    isPositive?: boolean
+}
+
+@ObjectType()
+class FactoryStats {
+    @Field(() => StatValue)
+    totalOrders: StatValue
+
+    @Field(() => StatValue)
+    monthlyRevenue: StatValue
+
+    @Field(() => StatValue)
+    legitPoints: StatValue
+
+    @Field(() => StatValue)
+    qualityScore: StatValue
+}
+
+@ObjectType()
+class MonthlyRevenue {
+    @Field()
+    month: string
+
+    @Field(() => Int)
+    revenue: number
+}
+
+@ObjectType()
 export class FactoryDashboardResponse {
+    @Field(() => FactoryStats)
+    stats: FactoryStats
+
+    @Field(() => [MonthlyRevenue])
+    revenueData: MonthlyRevenue[]
+
     @Field(() => Int)
     totalOrders: number
 
@@ -441,4 +483,85 @@ export class StaffDashboardResponse {
 
     @Field(() => [TaskEntity])
     taskHistory: TaskEntity[]
+}
+
+@ObjectType()
+class MyStaffStatValue {
+    @Field(() => Int)
+    value: number
+
+    @Field(() => Int)
+    percentChange: number
+
+    @Field()
+    isPositive: boolean
+}
+
+@ObjectType()
+class MyStaffStats {
+    @Field(() => MyStaffStatValue)
+    activeTasks: MyStaffStatValue
+
+    @Field(() => MyStaffStatValue)
+    completedTasks: MyStaffStatValue
+
+    @Field(() => MyStaffStatValue)
+    pendingOrders: MyStaffStatValue
+
+    @Field(() => MyStaffStatValue)
+    deliveredOrders: MyStaffStatValue
+}
+
+@ObjectType()
+class FactoryDetails {
+    @Field()
+    id: string
+
+    @Field()
+    name: string
+
+    @Field()
+    address: string
+
+    @Field()
+    status: string
+
+    @Field()
+    productionCapacity: string
+
+    @Field()
+    leadTime: string
+}
+
+@ObjectType()
+class RecentOrderInfo {
+    @Field()
+    id: string
+
+    @Field()
+    customer: string
+
+    @Field()
+    date: string
+
+    @Field()
+    status: string
+
+    @Field(() => Int)
+    total: number
+
+    @Field()
+    priority: string
+}
+
+@ObjectType()
+export class MyStaffDashboardResponse {
+    @Field(() => MyStaffStats)
+    stats: MyStaffStats
+
+    @Field(() => FactoryDetails)
+    currentFactory: FactoryDetails
+
+    @Field(() => [RecentOrderInfo])
+    recentOrders: RecentOrderInfo[]
 }

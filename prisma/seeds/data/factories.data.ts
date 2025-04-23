@@ -15,7 +15,6 @@ export const factoriesData = [
         // Factory specific information
         website: "https://goodsprintmfg.com",
         yearEstablished: 2015,
-        totalEmployees: 120,
         maxPrintingCapacity: 5000,
 
         // Quality and certifications
@@ -29,9 +28,7 @@ export const factoriesData = [
         contactPhone: "+84 28 1234 5678",
 
         // Operational details
-        operationalHours: "Monday-Friday: 8:00-17:00, Saturday: 8:00-12:00",
         leadTime: 5,
-        minimumOrderQuantity: 50,
 
         // Status tracking
         factoryStatus: "APPROVED",
@@ -67,7 +64,6 @@ export const factoriesData = [
         // Factory specific information
         website: "https://textileexpress.vn",
         yearEstablished: 2018,
-        totalEmployees: 75,
         maxPrintingCapacity: 3000,
 
         // Quality and certifications
@@ -81,9 +77,7 @@ export const factoriesData = [
         contactPhone: "+84 28 9876 5432",
 
         // Operational details
-        operationalHours: "Monday-Saturday: 7:30-18:00",
         leadTime: 3,
-        minimumOrderQuantity: 20,
 
         // Status tracking
         factoryStatus: "APPROVED",

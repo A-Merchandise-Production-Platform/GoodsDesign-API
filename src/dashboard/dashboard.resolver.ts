@@ -11,6 +11,7 @@ import {
     FactoryDashboardResponse,
     FactoryDetailDashboardResponse,
     ManagerDashboardResponse,
+    MyStaffDashboardResponse,
     StaffDashboardResponse
 } from "./dashboard.types"
 import { ManagerOrderDashboardEntity } from "src/dashboard/entity/manager-order.entity"
@@ -40,8 +41,8 @@ export class DashboardResolver {
 
     @Query(() => FactoryDashboardResponse)
     @AllowedRoles(Roles.FACTORYOWNER, Roles.ADMIN)
-    async getFactoryDashboard(@CurrentUser() user: User) {
-        return this.dashboardService.getFactoryDashboard(user.id)
+    async getMyFactoryDashboard(@CurrentUser() user: User) {
+        return this.dashboardService.getMyFactoryDashboard(user.id)
     }
 
     @Query(() => ManagerOrderDashboardEntity)
@@ -60,5 +61,11 @@ export class DashboardResolver {
     @AllowedRoles(Roles.STAFF)
     async getStaffDashboard(@Args("userId") userId: string) {
         return this.dashboardService.getStaffDashboard(userId)
+    }
+
+    @Query(() => MyStaffDashboardResponse)
+    @AllowedRoles(Roles.STAFF, Roles.ADMIN)
+    async getMyStaffDashboard(@CurrentUser() user: User) {
+        return this.dashboardService.getMyStaffDashboard(user.id)
     }
 }
