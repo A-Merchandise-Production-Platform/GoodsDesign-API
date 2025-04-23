@@ -51,7 +51,7 @@ import { UserBanksModule } from "src/user-banks/user-banks.module"
                     embed: true
                 })
             ],
-            sortSchema: true
+            sortSchema: true,
         }),
         PrismaModule,
         UsersModule,
