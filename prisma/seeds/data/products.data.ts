@@ -26,16 +26,16 @@ export const productsData: ProductsData = {
             isActive: true,
             categoryId: "cat001"
         },
-        {
-            id: "prod002",
-            name: "Phone Case",
-            description: "Durable phone case available for various phone models",
-            imageUrl:
-                "https://www.zazzle.com/rlv/svc/view?realview=113759124283101892&design=441c2b80-5ed5-4207-8b3e-c2bc95456044&rlvnet=1&formfactor=apple_iphone12mini&style=tough&finish=glossy&max_dim=644&cacheDefeat=1743270021068",
-            model3DUrl: "https://example.com/models/premium-hoodie.glb",
-            weight: 200,
-            isActive: true,
-            categoryId: "cat002"
-        }
+        // {
+        //     id: "prod002",
+        //     name: "Phone Case",
+        //     description: "Durable phone case available for various phone models",
+        //     imageUrl:
+        //         "https://www.zazzle.com/rlv/svc/view?realview=113759124283101892&design=441c2b80-5ed5-4207-8b3e-c2bc95456044&rlvnet=1&formfactor=apple_iphone12mini&style=tough&finish=glossy&max_dim=644&cacheDefeat=1743270021068",
+        //     model3DUrl: "https://example.com/models/premium-hoodie.glb",
+        //     weight: 200,
+        //     isActive: true,
+        //     categoryId: "cat002"
+        // }
     ]
 }
