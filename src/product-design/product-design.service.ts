@@ -256,4 +256,31 @@ export class ProductDesignService {
         })
         return data.map((item) => new ProductDesignEntity(item))
     }
+    async getPublicProductDesigns(): Promise<ProductDesignEntity[]> {
+        const data = await this.prisma.productDesign.findMany({
+            where: {
+                isDeleted: false,
+                isPublic: true,
+                isTemplate: false,
+            },
+            include: {
+                user: true,
+                systemConfigVariant: {
+                    include: {
+                        product: {
+                            include: {
+                                category: true
+                            }
+                        }
+                    }
+                },
+                designPositions: {
+                    include: {
+                        positionType: true
+                    }
+                }
+            }
+        })
+        return data.map((item) => new ProductDesignEntity(item))
+    }
 }
