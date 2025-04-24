@@ -95,6 +95,9 @@ export class FactoryEntity {
     @Field(() => String, { nullable: true })
     contractUrl?: string
 
+    @Field(() => Int, { nullable: true })
+    legitPoint?: number
+
     @Field(() => UserEntity, { nullable: true })
     owner?: UserEntity
 

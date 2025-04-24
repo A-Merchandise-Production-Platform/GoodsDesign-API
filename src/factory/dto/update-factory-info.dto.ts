@@ -46,11 +46,6 @@ export class UpdateFactoryInfoDto {
     @Field(() => Int, { nullable: true })
     @IsInt()
     @IsOptional()
-    totalEmployees?: number
-
-    @Field(() => Int, { nullable: true })
-    @IsInt()
-    @IsOptional()
     maxPrintingCapacity?: number
 
     @Field(() => String, { nullable: true })
@@ -83,20 +78,10 @@ export class UpdateFactoryInfoDto {
     @IsOptional()
     contactPersonPhone?: string
 
-    @Field(() => String, { nullable: true })
-    @IsString()
-    @IsOptional()
-    operationalHours?: string
-
     @Field(() => Int, { nullable: true })
     @IsInt()
     @IsOptional()
     leadTime?: number
-
-    @Field(() => Int, { nullable: true })
-    @IsInt()
-    @IsOptional()
-    minimumOrderQuantity?: number
 
     constructor(partial: Partial<UpdateFactoryInfoDto>) {
         Object.assign(this, partial)
