@@ -901,6 +901,7 @@ type Query {
   products: [ProductEntity!]!
   province(provinceId: Int!): Province!
   provinces: [Province!]!
+  publicProductDesigns: [ProductDesignEntity!]!
   staffOrders: [OrderEntity!]!
   staffs: [UserEntity!]!
   systemConfigBank(id: ID!): SystemConfigBankEntity!
