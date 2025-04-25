@@ -959,9 +959,9 @@ export class OrdersService {
             }
 
             // Validate passed quantity + failed quantity == total checked quantity
-            // if (passedQuantity + failedQuantity !== checkQuality.totalChecked) {
-            //     throw new BadRequestException("Total checked quantity does not match")
-            // }
+            if (passedQuantity + failedQuantity !== checkQuality.orderDetail.quantity) {
+                throw new BadRequestException("Total checked quantity does not match")
+            }
 
             // Update check quality
             const updatedCheckQuality = await tx.checkQuality.update({
