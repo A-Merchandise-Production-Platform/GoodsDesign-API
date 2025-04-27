@@ -14,7 +14,8 @@ import {
     seedDiscounts,
     seedSystemConfigVariants,
     seedNotifications,
-    seedOrders
+    seedOrders,
+    seedVouchers
 } from "./seeds"
 
 const prisma = new PrismaClient()
@@ -49,28 +50,33 @@ async function main() {
         // Seed users first as they are referenced by many other tables
         await seedUsers(prisma)
 
+        // Seed vouchers (depends on users)
+        await seedVouchers(prisma)
+
         // Seed categories and products
         await seedCategories(prisma)
         await seedProducts(prisma)
         await seedProductPositionTypes(prisma)
-        
+
         // Seed system config variants with retry logic
-        let retryCount = 0;
-        const maxRetries = 3;
+        let retryCount = 0
+        const maxRetries = 3
         while (retryCount < maxRetries) {
             try {
-                await seedSystemConfigVariants(prisma);
-                break;
+                await seedSystemConfigVariants(prisma)
+                break
             } catch (error) {
-                retryCount++;
+                retryCount++
                 if (retryCount === maxRetries) {
-                    throw error;
+                    throw error
                 }
-                console.log(`Retrying system config variants seeding (attempt ${retryCount + 1}/${maxRetries})...`);
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                console.log(
+                    `Retrying system config variants seeding (attempt ${retryCount + 1}/${maxRetries})...`
+                )
+                await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1 second before retry
             }
         }
-        
+
         await seedDiscounts(prisma)
 
         // Seed factories and their products
@@ -83,11 +89,10 @@ async function main() {
         await seedFavoriteDesigns(prisma)
         await seedCartItems(prisma)
 
-        // Seed orders 
+        // Seed orders
         await seedOrders(prisma)
         // Seed notifications
         await seedNotifications(prisma)
-       
 
         console.log("Seeding completed successfully!")
     } catch (error) {
@@ -98,8 +103,7 @@ async function main() {
     }
 }
 
-main()
-    .catch((e) => {
-        console.error(e)
-        process.exit(1)
-    })
+main().catch((e) => {
+    console.error(e)
+    process.exit(1)
+})

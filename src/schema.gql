@@ -227,6 +227,26 @@ input CreateUserDto {
   role: String
 }
 
+input CreateVoucherForUserInput {
+  code: String
+  endDate: DateTime!
+  minOrderValue: Int
+  startDate: DateTime!
+  type: VoucherType!
+  userId: String!
+  value: Float!
+}
+
+input CreateVoucherInput {
+  code: String!
+  endDate: DateTime!
+  minOrderValue: Int
+  startDate: DateTime!
+  type: VoucherType!
+  userId: String!
+  value: Float!
+}
+
 type CustomerInfo {
   email: String!
   id: String!
@@ -480,6 +500,11 @@ input GetAvailableServicesDto {
   toDistrict: Int!
 }
 
+input GetUserVouchersInput {
+  activeOnly: Boolean = true
+  userId: String!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -546,6 +571,8 @@ type Mutation {
   createSystemConfigVariant(createSystemConfigVariantInput: CreateSystemConfigVariantInput!): SystemConfigVariantEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!
   createUserBank(createUserBankInput: CreateUserBankInput!): UserBankEntity!
+  createVoucher(createVoucherInput: CreateVoucherInput!): Voucher!
+  createVoucherForUser(createVoucherForUserInput: CreateVoucherForUserInput!): Voucher!
   deleteAddress(id: String!): AddressEntity!
   deleteCartItem(id: String!): CartItemEntity!
   deleteCategory(id: String!): CategoryEntity!
@@ -573,6 +600,7 @@ type Mutation {
   removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
   removeSystemConfigDiscount(id: String!): SystemConfigDiscountEntity!
   removeSystemConfigVariant(id: String!): SystemConfigVariantEntity!
+  removeVoucher(id: String!): Voucher!
   restoreCategory(id: String!): CategoryEntity!
   restoreProduct(id: String!): ProductEntity!
   sendEmail(to: String!): Boolean!
@@ -598,6 +626,7 @@ type Mutation {
   updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   updateUserBank(id: String!, updateUserBankInput: UpdateUserBankInput!): UserBankEntity!
+  updateVoucher(updateVoucherInput: UpdateVoucherInput!): Voucher!
   uploadFile(file: Upload): FileUploadResponse!
 }
 
@@ -882,6 +911,7 @@ type Query {
   getTemplateProductDesigns: [ProductDesignEntity!]!
   myNotifications: [NotificationEntity!]!
   myOrders: [OrderEntity!]!
+  myVouchers: [Voucher!]!
   notification(id: String!): NotificationEntity!
   notifications: [NotificationEntity!]!
   notificationsByUserId(isRead: Boolean): [NotificationEntity!]!
@@ -916,7 +946,10 @@ type Query {
   userBanks: [UserBankEntity!]!
   userBanksByUserId(id: String!): [UserBankEntity!]!
   userCartItems: [CartItemEntity!]!
+  userVouchers(getUserVouchersInput: GetUserVouchersInput!): [Voucher!]!
   users: [UserEntity!]!
+  voucher(id: String!): Voucher!
+  vouchers: [Voucher!]!
   ward(wardCode: String!): Ward!
   wards(districtId: Int!): [Ward!]!
 }
@@ -1267,6 +1300,17 @@ input UpdateUserDto {
   updatedBy: String
 }
 
+input UpdateVoucherInput {
+  code: String
+  endDate: DateTime
+  id: String!
+  minOrderValue: Int
+  startDate: DateTime
+  type: VoucherType
+  userId: String
+  value: Float
+}
+
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
 
@@ -1309,6 +1353,29 @@ type VariantAttributes {
   colors: [String!]!
   models: [String!]!
   sizes: [String!]!
+}
+
+type Voucher {
+  code: String!
+  createdAt: DateTime!
+  endDate: DateTime!
+  id: String!
+  isActive: Boolean!
+  isDeleted: Boolean!
+  minOrderValue: Int
+  startDate: DateTime!
+  type: VoucherType!
+  updatedAt: DateTime
+  usedAt: DateTime
+  user: UserEntity
+  userId: String!
+  value: Float!
+}
+
+"""Type of voucher (fixed value or percentage)"""
+enum VoucherType {
+  FIXED_VALUE
+  PERCENTAGE
 }
 
 type Ward {
