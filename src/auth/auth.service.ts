@@ -153,11 +153,11 @@ export class AuthService {
             }
         })
 
-        const storedToken = await this.redisService.getRefreshToken(user.id)
-
         if (!user) {
             throw new UnauthorizedException("Invalid token")
         }
+
+        const storedToken = await this.redisService.getRefreshToken(user.id)
 
         if (storedToken !== refreshTokenDto.refreshToken) {
             throw new UnauthorizedException("Invalid token")
