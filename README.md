@@ -40,6 +40,54 @@ cp .env.example .env
 ```
 Edit the `.env` file with your configuration.
 
+Environment variables format:
+```env
+# Database Configuration
+DATABASE_URL="postgresql://username:password@localhost:5432/database_name?schema=public"
+
+# JWT Configuration
+JWT_ACCESS_TOKEN_SECRET="your_access_token_secret"
+JWT_ACCESS_TOKEN_EXPIRES_IN="15m"
+JWT_REFRESH_TOKEN_SECRET="your_refresh_token_secret"
+JWT_REFRESH_TOKEN_EXPIRES_IN="7d"
+
+# Redis Configuration
+REDIS_URL="redis://localhost:6379"
+REDIS_TTL="604800"
+
+# GHN (Giao Hàng Nhanh) Configuration
+GHN_TOKEN="your_ghn_token"
+GHN_SHOP_ID="your_shop_id"
+GHN_BASE_URL="https://dev-online-gateway.ghn.vn"
+
+# Payment Configuration
+PAYMENT_PAYOS_CLIENT_ID="your_payos_client_id"
+PAYMENT_PAYOS_API_KEY="your_payos_api_key"
+PAYMENT_PAYOS_CHECKSUM_KEY="your_payos_checksum_key"
+PAYMENT_PAYOS_CANCEL_URL="https://your-domain.com/payment"
+PAYMENT_PAYOS_RETURN_URL="https://your-domain.com/payment"
+PAYMENT_VNPAY_RETURN_URL="https://your-domain.com/payment"
+PAYMENT_VNPAY_VNP_URL="https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+PAYMENT_VNPAY_TMN_CODE="your_tmn_code"
+PAYMENT_VNPAY_HASH_SECRET="your_hash_secret"
+PAYMENT_VNPAY_VERSION="2.1.0"
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME="your_cloud_name"
+CLOUDINARY_API_KEY="your_api_key"
+CLOUDINARY_API_SECRET="your_api_secret"
+
+# File Upload Configuration
+UPLOAD_MAX_FILE_SIZE=50000000
+UPLOAD_MAX_FILES=1
+
+# Email Configuration
+RESEND_API_KEY="your_resend_api_key"
+
+# Frontend Configuration
+APP_FRONTEND_URL="http://localhost:3000"
+```
+
 4. Start the development database:
 ```bash
 docker-compose up -d
