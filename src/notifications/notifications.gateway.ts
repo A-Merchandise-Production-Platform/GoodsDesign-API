@@ -47,6 +47,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
             })
 
             if (!user) {
+                this.logger.warn(`Client connection attempt with invalid token: ${client.id}`)
                 client.disconnect()
                 return
             }
@@ -55,7 +56,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
             this.connectedClients.set(client.id, { socket: client, userId: user.id })
             client.join(user.id)
         } catch (error) {
-            this.logger.error(`Connection error: ${error.message}`)
+            this.logger.error(`Connection error for client ${client.id}: ${error.message}`, error.stack)
             client.disconnect()
         }
     }
