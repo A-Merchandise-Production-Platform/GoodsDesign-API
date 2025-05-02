@@ -36,6 +36,7 @@ import { SystemConfigDiscountModule } from "./system-config-discount/system-conf
 import { FactoryProductsModule } from "./factory-products/factory-products.module"
 import { OrdersModule } from "./orders/orders.module"
 import { UserBanksModule } from "src/user-banks/user-banks.module"
+import { VouchersModule } from './vouchers/vouchers.module';
 
 @Module({
     imports: [
@@ -84,7 +85,8 @@ import { UserBanksModule } from "src/user-banks/user-banks.module"
         PdfModule,
         FactoryProductsModule,
         SystemConfigOrderModule,
-        UserBanksModule
+        UserBanksModule,
+        VouchersModule
         // TestModule,
     ],
     controllers: [AppController],

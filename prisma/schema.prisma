@@ -15,6 +15,11 @@ enum Roles {
   CUSTOMER
 }
 
+enum VoucherType {
+  FIXED_VALUE
+  PERCENTAGE
+}
+
 model User {
   id          String    @id @default(uuid())
   email       String    @unique
@@ -44,6 +49,7 @@ model User {
   tasks          Task[]
   notification   Notification[]
   cartItems      CartItem[]
+  vouchers       Voucher[]
   ownedFactory   Factory?             @relation("FactoryOwner")
   staffedFactory Factory?             @relation("FactoryStaff")
 }
@@ -410,6 +416,7 @@ model Order {
   totalItems              Int
   updatedAt               DateTime?   @updatedAt
   totalProductionCost     Int?
+  voucherId               String?     @unique
 
   currentProgress Int @default(0)
   delayReason     String?
@@ -442,6 +449,7 @@ model Order {
 
   customer     User                 @relation(fields: [customerId], references: [id])
   factory      Factory?             @relation(fields: [factoryId], references: [factoryOwnerId])
+  voucher      Voucher?             @relation(fields: [voucherId], references: [id])
   orderDetails OrderDetail[]
   payments     Payment[]
   orderProgressReports OrderProgressReport[]
@@ -597,4 +605,23 @@ model UserBank {
   user            User            @relation(fields: [userId], references: [id])
   bank            SystemConfigBank @relation(fields: [bankId], references: [id])
   paymentTransactions PaymentTransaction[]
+}
+
+model Voucher {
+  id              String      @id @default(uuid())
+  code            String      @unique
+  type            VoucherType
+  value           Float       // Amount or percentage based on type
+  minOrderValue   Int?        // Minimum order value to apply voucher
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean     @default(true)
+  isDeleted       Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime?   @updatedAt
+  userId          String      // Voucher belongs to a specific user
+  usedAt          DateTime?   // When the voucher was used
+  
+  user            User        @relation(fields: [userId], references: [id])
+  order           Order?      // One voucher can be used for one order only
 }
