@@ -2,6 +2,9 @@
 CREATE TYPE "Roles" AS ENUM ('ADMIN', 'MANAGER', 'STAFF', 'FACTORYOWNER', 'CUSTOMER');
 
 -- CreateEnum
+CREATE TYPE "VoucherType" AS ENUM ('FIXED_VALUE', 'PERCENTAGE');
+
+-- CreateEnum
 CREATE TYPE "PaymentType" AS ENUM ('DEPOSIT', 'WITHDRAWN');
 
 -- CreateEnum
@@ -11,7 +14,7 @@ CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'COMPLETED');
 CREATE TYPE "TransactionType" AS ENUM ('PAYMENT', 'REFUND');
 
 -- CreateEnum
-CREATE TYPE "PaymentMethod" AS ENUM ('VNPAY', 'PAYOS');
+CREATE TYPE "PaymentMethod" AS ENUM ('VNPAY', 'PAYOS', 'BANK');
 
 -- CreateEnum
 CREATE TYPE "TransactionStatus" AS ENUM ('COMPLETED', 'PENDING', 'FAILED');
@@ -20,10 +23,10 @@ CREATE TYPE "TransactionStatus" AS ENUM ('COMPLETED', 'PENDING', 'FAILED');
 CREATE TYPE "FactoryStatus" AS ENUM ('PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'SUSPENDED');
 
 -- CreateEnum
-CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAYMENT_RECEIVED', 'WAITING_FILL_INFORMATION', 'NEED_ASSIGN', 'PENDING_ACCEPTANCE', 'REJECTED', 'IN_PRODUCTION', 'WAITING_FOR_CHECKING_QUALITY', 'DONE_CHECK_QUALITY', 'REWORK_REQUIRED', 'REWORK_IN_PROGRESS', 'WAITING_PAYMENT', 'READY_FOR_SHIPPING', 'SHIPPED', 'COMPLETED', 'CANCELED');
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAYMENT_RECEIVED', 'WAITING_FILL_INFORMATION', 'NEED_MANAGER_HANDLE', 'PENDING_ACCEPTANCE', 'REJECTED', 'WAITING_FOR_REFUND', 'REFUNDED', 'IN_PRODUCTION', 'WAITING_FOR_CHECKING_QUALITY', 'REWORK_REQUIRED', 'REWORK_IN_PROGRESS', 'WAITING_PAYMENT', 'READY_FOR_SHIPPING', 'SHIPPING', 'SHIPPED', 'COMPLETED', 'CANCELED');
 
 -- CreateEnum
-CREATE TYPE "OrderDetailStatus" AS ENUM ('PENDING', 'IN_PRODUCTION', 'DONE_PRODUCTION', 'WAITING_FOR_CHECKING_QUALITY', 'DONE_CHECK_QUALITY', 'REWORK_REQUIRED', 'REWORK_IN_PROGRESS', 'REWORK_DONE', 'READY_FOR_SHIPPING', 'SHIPPED', 'COMPLETED');
+CREATE TYPE "OrderDetailStatus" AS ENUM ('PENDING', 'IN_PRODUCTION', 'DONE_PRODUCTION', 'WAITING_FOR_CHECKING_QUALITY', 'DONE_CHECK_QUALITY', 'REWORK_REQUIRED', 'REWORK_IN_PROGRESS', 'REWORK_DONE', 'READY_FOR_SHIPPING', 'SHIPPING', 'SHIPPED', 'COMPLETED');
 
 -- CreateEnum
 CREATE TYPE "TaskStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'EXPIRED', 'NEED_ASSIGN', 'CANCELLED');
@@ -175,6 +178,7 @@ CREATE TABLE "ProductDesign" (
     "isPublic" BOOLEAN NOT NULL DEFAULT false,
     "isTemplate" BOOLEAN NOT NULL DEFAULT false,
     "thumbnailUrl" TEXT,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "ProductDesign_pkey" PRIMARY KEY ("id")
 );
@@ -224,6 +228,8 @@ CREATE TABLE "PaymentTransaction" (
     "status" "TransactionStatus" NOT NULL,
     "transactionLog" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL,
+    "imageUrls" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "userBankId" TEXT,
 
     CONSTRAINT "PaymentTransaction_pkey" PRIMARY KEY ("id")
 );
@@ -247,6 +253,7 @@ CREATE TABLE "CartItem" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "designId" TEXT NOT NULL,
+    "systemConfigVariantId" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -273,17 +280,15 @@ CREATE TABLE "Factory" (
     "addressId" TEXT,
     "website" TEXT,
     "establishedDate" TIMESTAMP(3) NOT NULL,
-    "totalEmployees" INTEGER NOT NULL,
-    "maxPrintingCapacity" INTEGER NOT NULL,
     "qualityCertifications" TEXT,
     "printingMethods" TEXT[],
     "specializations" TEXT[],
     "contactPersonName" TEXT,
     "contactPersonRole" TEXT,
     "contactPhone" TEXT,
-    "operationalHours" TEXT NOT NULL,
+    "maxPrintingCapacity" INTEGER NOT NULL,
     "leadTime" INTEGER,
-    "minimumOrderQuantity" INTEGER NOT NULL,
+    "legitPoint" INTEGER NOT NULL DEFAULT 100,
     "factoryStatus" "FactoryStatus" NOT NULL DEFAULT 'PENDING_APPROVAL',
     "isSubmitted" BOOLEAN NOT NULL DEFAULT false,
     "statusNote" TEXT,
@@ -309,7 +314,8 @@ CREATE TABLE "Order" (
     "totalItems" INTEGER NOT NULL,
     "updatedAt" TIMESTAMP(3),
     "totalProductionCost" INTEGER,
-    "currentProgress" INTEGER,
+    "voucherId" TEXT,
+    "currentProgress" INTEGER NOT NULL DEFAULT 0,
     "delayReason" TEXT,
     "isDelayed" BOOLEAN NOT NULL DEFAULT false,
     "rating" INTEGER,
@@ -319,6 +325,7 @@ CREATE TABLE "Order" (
     "assignedAt" TIMESTAMP(3),
     "acceptanceDeadline" TIMESTAMP(3),
     "acceptedAt" TIMESTAMP(3),
+    "sendForShippingAt" TIMESTAMP(3),
     "shippedAt" TIMESTAMP(3),
     "estimatedShippingAt" TIMESTAMP(3) NOT NULL,
     "doneProductionAt" TIMESTAMP(3),
@@ -337,6 +344,7 @@ CREATE TABLE "OrderDetail" (
     "id" TEXT NOT NULL,
     "orderId" TEXT NOT NULL,
     "designId" TEXT NOT NULL,
+    "systemConfigVariantId" TEXT NOT NULL,
     "price" INTEGER NOT NULL,
     "quantity" INTEGER NOT NULL,
     "status" "OrderDetailStatus" NOT NULL DEFAULT 'PENDING',
@@ -419,8 +427,52 @@ CREATE TABLE "SystemConfigOrder" (
     "checkQualityTimesDays" INTEGER NOT NULL DEFAULT 2,
     "limitReworkTimes" INTEGER NOT NULL DEFAULT 2,
     "shippingDays" INTEGER NOT NULL DEFAULT 2,
+    "reduceLegitPointIfReject" INTEGER NOT NULL DEFAULT 3,
+    "legitPointToSuspend" INTEGER NOT NULL DEFAULT 20,
+    "acceptHoursForFactory" INTEGER NOT NULL DEFAULT 12,
+    "maxLegitPoint" INTEGER NOT NULL DEFAULT 100,
+    "maxProductionTimeInMinutes" INTEGER NOT NULL DEFAULT 300,
+    "maxProductionCapacity" INTEGER NOT NULL DEFAULT 1000,
+    "capacityScoreWeight" DOUBLE PRECISION NOT NULL DEFAULT 0.25,
+    "leadTimeScoreWeight" DOUBLE PRECISION NOT NULL DEFAULT 0.15,
+    "specializationScoreWeight" DOUBLE PRECISION NOT NULL DEFAULT 0.15,
+    "legitPointScoreWeight" DOUBLE PRECISION NOT NULL DEFAULT 0.25,
+    "productionCapacityScoreWeight" DOUBLE PRECISION NOT NULL DEFAULT 0.2,
 
     CONSTRAINT "SystemConfigOrder_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "UserBank" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "bankId" TEXT NOT NULL,
+    "accountNumber" TEXT NOT NULL,
+    "accountName" TEXT NOT NULL,
+    "isDefault" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "UserBank_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Voucher" (
+    "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "type" "VoucherType" NOT NULL,
+    "value" DOUBLE PRECISION NOT NULL,
+    "minOrderValue" INTEGER,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3) NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3),
+    "userId" TEXT NOT NULL,
+    "usedAt" TIMESTAMP(3),
+
+    CONSTRAINT "Voucher_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -439,7 +491,13 @@ CREATE UNIQUE INDEX "Factory_addressId_key" ON "Factory"("addressId");
 CREATE UNIQUE INDEX "Factory_staffId_key" ON "Factory"("staffId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Order_voucherId_key" ON "Order"("voucherId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "SystemConfigOrder_type_key" ON "SystemConfigOrder"("type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Voucher_code_key" ON "Voucher"("code");
 
 -- AddForeignKey
 ALTER TABLE "Address" ADD CONSTRAINT "Address_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -487,6 +545,9 @@ ALTER TABLE "PaymentTransaction" ADD CONSTRAINT "PaymentTransaction_paymentId_fk
 ALTER TABLE "PaymentTransaction" ADD CONSTRAINT "PaymentTransaction_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "PaymentTransaction" ADD CONSTRAINT "PaymentTransaction_userBankId_fkey" FOREIGN KEY ("userBankId") REFERENCES "UserBank"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -494,6 +555,9 @@ ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_userId_fkey" FOREIGN KEY ("userI
 
 -- AddForeignKey
 ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_designId_fkey" FOREIGN KEY ("designId") REFERENCES "ProductDesign"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_systemConfigVariantId_fkey" FOREIGN KEY ("systemConfigVariantId") REFERENCES "SystemConfigVariant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "FactoryProduct" ADD CONSTRAINT "FactoryProduct_factoryId_fkey" FOREIGN KEY ("factoryId") REFERENCES "Factory"("factoryOwnerId") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -520,10 +584,16 @@ ALTER TABLE "Order" ADD CONSTRAINT "Order_customerId_fkey" FOREIGN KEY ("custome
 ALTER TABLE "Order" ADD CONSTRAINT "Order_factoryId_fkey" FOREIGN KEY ("factoryId") REFERENCES "Factory"("factoryOwnerId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_voucherId_fkey" FOREIGN KEY ("voucherId") REFERENCES "Voucher"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_designId_fkey" FOREIGN KEY ("designId") REFERENCES "ProductDesign"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_systemConfigVariantId_fkey" FOREIGN KEY ("systemConfigVariantId") REFERENCES "SystemConfigVariant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OrderProgressReport" ADD CONSTRAINT "OrderProgressReport_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -545,3 +615,12 @@ ALTER TABLE "CheckQuality" ADD CONSTRAINT "CheckQuality_taskId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "CheckQuality" ADD CONSTRAINT "CheckQuality_orderDetailId_fkey" FOREIGN KEY ("orderDetailId") REFERENCES "OrderDetail"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserBank" ADD CONSTRAINT "UserBank_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserBank" ADD CONSTRAINT "UserBank_bankId_fkey" FOREIGN KEY ("bankId") REFERENCES "SystemConfigBank"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Voucher" ADD CONSTRAINT "Voucher_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
