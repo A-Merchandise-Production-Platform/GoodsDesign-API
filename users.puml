@@ -1,0 +1,118 @@
+@startuml UsersModule
+
+' Layout settings
+skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 50
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+}
+
+' Interfaces
+interface IUsersService {
+    + create(createUserDto: CreateUserDto, currentUser: UserEntity): Promise<UserEntity>
+    + findAll(user: UserEntity): Promise<UserEntity[]>
+    + findAllStaff(user: UserEntity): Promise<UserEntity[]>
+    + findOne(id: string, currentUser: UserEntity): Promise<UserEntity>
+    + update(id: string, updateUserDto: UpdateUserDto, currentUser: UserEntity): Promise<UserEntity>
+    + remove(id: string, currentUser: UserEntity): Promise<UserEntity>
+    + getAvailableStaffForFactory(user: UserEntity): Promise<UserEntity[]>
+    + updateProfile(id: string, updateProfileDto: UpdateProfileDto, currentUser: UserEntity): Promise<UserEntity>
+}
+
+' Classes
+class UsersModule {
+    + providers: [UsersService, UsersResolver]
+    + imports: [PrismaModule, PassportModule, JwtModule]
+}
+
+class UsersService implements IUsersService {
+    - prisma: PrismaService
+    + create(createUserDto: CreateUserDto, currentUser: UserEntity): Promise<UserEntity>
+    + findAll(user: UserEntity): Promise<UserEntity[]>
+    + findAllStaff(user: UserEntity): Promise<UserEntity[]>
+    + findOne(id: string, currentUser: UserEntity): Promise<UserEntity>
+    + update(id: string, updateUserDto: UpdateUserDto, currentUser: UserEntity): Promise<UserEntity>
+    + remove(id: string, currentUser: UserEntity): Promise<UserEntity>
+    + getAvailableStaffForFactory(user: UserEntity): Promise<UserEntity[]>
+    + updateProfile(id: string, updateProfileDto: UpdateProfileDto, currentUser: UserEntity): Promise<UserEntity>
+    - toUserEntity(user: any): UserEntity
+}
+
+class UsersResolver {
+    - usersService: UsersService
+    + getUsers(user: UserEntity): Promise<UserEntity[]>
+    + getStaffs(user: UserEntity): Promise<UserEntity[]>
+    + getUser(user: UserEntity, id: string): Promise<UserEntity>
+    + createUser(user: UserEntity, createUserInput: CreateUserDto): Promise<UserEntity>
+    + updateUser(user: UserEntity, updateUserInput: UpdateUserDto, id: string): Promise<UserEntity>
+    + deleteUser(user: UserEntity, id: string): Promise<UserEntity>
+    + getAvailableStaffForFactory(user: UserEntity): Promise<UserEntity[]>
+    + updateProfile(user: UserEntity, updateProfileInput: UpdateProfileDto): Promise<UserEntity>
+}
+
+class UserEntity {
+    + id: string
+    + name?: string
+    + email?: string
+    + phoneNumber?: string
+    + imageUrl?: string
+    + dateOfBirth?: Date
+    + gender: boolean
+    + role: Roles
+    + isActive: boolean
+    + isDeleted: boolean
+    + createdAt: Date
+    + createdBy?: string
+    + updatedAt?: Date
+    + updatedBy?: string
+    + deletedAt?: Date
+    + deletedBy?: string
+    + ownedFactory?: FactoryEntity
+    + staffedFactory?: FactoryEntity
+    + bankAccounts?: UserBankEntity[]
+}
+
+' DTOs
+class CreateUserDto {
+    + email: string
+    + name: string
+    + phoneNumber?: string
+    + imageUrl?: string
+    + dateOfBirth?: Date
+    + gender: boolean
+    + role: Roles
+}
+
+class UpdateUserDto {
+    + name?: string
+    + phoneNumber?: string
+    + imageUrl?: string
+    + dateOfBirth?: Date
+    + gender?: boolean
+    + role?: Roles
+    + isActive?: boolean
+}
+
+class UpdateProfileDto {
+    + name?: string
+    + phoneNumber?: string
+    + imageUrl?: string
+    + dateOfBirth?: Date
+    + gender?: boolean
+}
+
+' Relationships
+UsersModule ..> UsersService
+UsersModule ..> UsersResolver
+
+UsersResolver ..> UsersService
+UsersService ..> CreateUserDto
+UsersService ..> UpdateUserDto
+UsersService ..> UpdateProfileDto
+UsersService ..|> IUsersService
+UsersService --> UserEntity
+
+@enduml 

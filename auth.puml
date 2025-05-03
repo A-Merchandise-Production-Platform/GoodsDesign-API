@@ -1,0 +1,86 @@
+@startuml AuthModule
+
+' Layout settings
+skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 50
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+}
+
+' Classes
+class AuthModule {
+    + providers: [AuthService, JwtStrategy, RolesGuard, AuthResolver]
+    + imports: [PrismaModule, PassportModule, JwtModule, RedisModule, UsersModule, NotificationsModule, MailModule]
+}
+
+class AuthService {
+    - prisma: PrismaService
+    - jwtService: JwtService
+    - redisService: RedisService
+    - notificationsService: NotificationsService
+    - mailService: MailService
+    + validateUser(email: string, password: string): Promise<UserEntity>
+    + login(loginDto: LoginDto): Promise<AuthResponseDto>
+    + register(registerDto: RegisterDto): Promise<AuthResponseDto>
+    + refreshToken(refreshTokenDto: RefreshTokenDto, currentUser: UserEntity): Promise<AuthResponseDto>
+    + logout(userId: string): Promise<string>
+    - generateToken(userId: string, type: TokenType): Promise<string>
+}
+
+class AuthResolver {
+    - authService: AuthService
+    + register(registerInput: RegisterDto): Promise<AuthResponseDto>
+    + login(loginInput: LoginDto): Promise<AuthResponseDto>
+    + refreshToken(refreshTokenInput: RefreshTokenDto, user: UserEntity): Promise<AuthResponseDto>
+    + logout(user: UserEntity): Promise<string>
+    + getMe(user: UserEntity): Promise<UserEntity>
+}
+
+class JwtStrategy {
+    + validate(payload: any): Promise<UserEntity>
+}
+
+class RolesGuard {
+    + canActivate(context: ExecutionContext): boolean
+}
+
+' DTOs
+class LoginDto {
+    + email: string
+    + password: string
+}
+
+class RegisterDto {
+    + email: string
+    + password: string
+    + name: string
+    + isFactoryOwner: boolean
+}
+
+class RefreshTokenDto {
+    + refreshToken: string
+}
+
+class AuthResponseDto {
+    + user: UserEntity
+    + accessToken: string
+    + refreshToken: string
+}
+
+' Relationships
+AuthModule ..> AuthService
+AuthModule ..> AuthResolver
+AuthModule ..> JwtStrategy
+AuthModule ..> RolesGuard
+
+AuthResolver ..> AuthService
+AuthService ..> LoginDto
+AuthService ..> RegisterDto
+AuthService ..> RefreshTokenDto
+AuthService --> UserEntity
+AuthService --> AuthResponseDto
+
+@enduml 

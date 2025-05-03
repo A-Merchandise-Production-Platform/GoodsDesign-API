@@ -1,0 +1,145 @@
+@startuml ProductsModule
+
+' Layout settings
+skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 50
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+}
+
+' Classes
+class ProductsModule {
+    + providers: [ProductsService, ProductsResolver]
+    + imports: [PrismaModule, CategoriesModule]
+}
+
+class ProductsService {
+    - prisma: PrismaService
+    - categoryService: CategoriesService
+    + create(createProductDto: CreateProductDto, userId: string): Promise<ProductEntity>
+    + findAll(includeDeleted?: boolean): Promise<ProductEntity[]>
+    + findOne(id: string, includeDeleted?: boolean): Promise<ProductEntity>
+    + update(id: string, updateProductDto: UpdateProductDto, userId: string): Promise<ProductEntity>
+    + remove(id: string, userId: string): Promise<ProductEntity>
+    + restore(id: string, userId: string): Promise<ProductEntity>
+    + toggleActive(id: string, userId: string): Promise<ProductEntity>
+    + findByCategory(categoryId: string, includeDeleted?: boolean): Promise<ProductEntity[]>
+}
+
+class ProductsResolver {
+    - productsService: ProductsService
+    + getProducts(): Promise<ProductEntity[]>
+    + getProduct(id: string): Promise<ProductEntity>
+    + createProduct(input: CreateProductDto, user: UserEntity): Promise<ProductEntity>
+    + updateProduct(id: string, input: UpdateProductDto, user: UserEntity): Promise<ProductEntity>
+    + deleteProduct(id: string, user: UserEntity): Promise<ProductEntity>
+    + restoreProduct(id: string, user: UserEntity): Promise<ProductEntity>
+    + toggleActiveProduct(id: string, user: UserEntity): Promise<ProductEntity>
+}
+
+class ProductEntity {
+    + id: string
+    + name: string
+    + description?: string
+    + imageUrl?: string
+    + model3DUrl?: string
+    + weight?: number
+    + isActive: boolean
+    + isDeleted: boolean
+    + createdAt: Date
+    + createdBy?: string
+    + updatedAt?: Date
+    + updatedBy?: string
+    + deletedAt?: Date
+    + deletedBy?: string
+    + categoryId: string
+    + category?: CategoryEntity
+    + positionTypes?: ProductPositionTypeEntity[]
+    + discounts?: SystemConfigDiscountEntity[]
+    + variants?: SystemConfigVariantEntity[]
+}
+
+class CategoryEntity {
+    + id: string
+    + name: string
+    + description?: string
+    + imageUrl?: string
+    + isActive: boolean
+    + isDeleted: boolean
+    + createdAt: Date
+    + createdBy?: string
+    + updatedAt?: Date
+    + updatedBy?: string
+    + deletedAt?: Date
+    + deletedBy?: string
+    + totalProducts?: number
+    + products?: ProductEntity[]
+}
+
+class ProductPositionTypeEntity {
+    + id: string
+    + productId: string
+    + positionName: string
+    + basePrice: number
+    + product?: ProductEntity
+    + positionTypes?: ProductPositionTypeEntity[]
+}
+
+class SystemConfigDiscountEntity {
+    + id: string
+    + name: string
+    + minQuantity: number
+    + discountPercent: number
+    + isActive: boolean
+    + isDeleted: boolean
+    + createdAt: Date
+    + updatedAt: Date
+    + product: ProductEntity
+}
+
+class SystemConfigVariantEntity {
+    + id: string
+    + productId: string
+    + size?: string
+    + color?: string
+    + model?: string
+    + price?: number
+    + isActive: boolean
+    + isDeleted: boolean
+    + product?: ProductEntity
+}
+
+' DTOs
+class CreateProductDto {
+    + name: string
+    + description?: string
+    + imageUrl?: string
+    + model3DUrl?: string
+    + weight?: number
+    + categoryId: string
+}
+
+class UpdateProductDto {
+    + name?: string
+    + description?: string
+    + imageUrl?: string
+    + model3DUrl?: string
+    + weight?: number
+    + categoryId?: string
+    + isActive?: boolean
+}
+
+' Relationships
+ProductsModule ..> ProductsService
+ProductsResolver ..> ProductsService
+ProductsService ..> CreateProductDto
+ProductsService --> ProductEntity
+ProductEntity --> CategoryEntity
+ProductEntity *-- ProductPositionTypeEntity
+ProductEntity *-- SystemConfigDiscountEntity
+ProductEntity *-- SystemConfigVariantEntity
+
+@enduml 
