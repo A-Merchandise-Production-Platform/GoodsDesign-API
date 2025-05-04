@@ -38,7 +38,7 @@ export const vouchersData = {
             isPublic: false,
             limitedUsage: 1,
             isActive: true,
-            userId: "customer001" // User-specific voucher
+            userId: "customer-id" // User-specific voucher
         },
         {
             id: "voucher004",
@@ -63,7 +63,7 @@ export const vouchersData = {
             isPublic: false,
             limitedUsage: 1,
             isActive: true,
-            userId: "customer001", // User-specific voucher
+            userId: "customer-id", // User-specific voucher
             usedAt: "2024-04-05" // This voucher has been used
         },
         {
@@ -90,7 +90,7 @@ export const vouchersData = {
             isPublic: false,
             limitedUsage: 1,
             isActive: true,
-            userId: "customer001" // User-specific voucher
+            userId: "customer-id" // User-specific voucher
         }
     ]
 }
