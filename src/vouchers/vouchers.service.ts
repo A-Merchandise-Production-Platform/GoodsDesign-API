@@ -249,7 +249,7 @@ export class VouchersService {
             }
         })
 
-        if (input.isPublic) {
+        if (!input.isPublic) {
             await this.notificationsService.createForUsersByRoles({
                 title: "Goods Design has given you a voucher",
                 content: `You have received a voucher from Goods Design. Please check it out.`,

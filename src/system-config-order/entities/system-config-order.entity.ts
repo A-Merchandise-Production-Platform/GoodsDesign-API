@@ -65,6 +65,12 @@ export class SystemConfigOrderEntity {
     @Field(() => VoucherType)
     voucherBaseTypeForRefund: VoucherType
 
+    @Field(() => Int)
+    voucherBaseLimitedUsage: number
+
+    @Field(() => Int)
+    voucherBaseMaxDiscountValue: number
+
     constructor(partial: Partial<SystemConfigOrderEntity>) {
         Object.assign(this, partial)
     }
