@@ -1,7 +1,9 @@
 /*
   Warnings:
 
-  - You are about to drop the column `maxDiscount` on the `Voucher` table. All the data in the column will be lost.
+  - You are about to drop the column `endDate` on the `Voucher` table. All the data in the column will be lost.
+  - You are about to drop the column `startDate` on the `Voucher` table. All the data in the column will be lost.
+  - You are about to drop the column `usedAt` on the `Voucher` table. All the data in the column will be lost.
   - You are about to alter the column `value` on the `Voucher` table. The data in that column could be lost. The data in that column will be cast from `DoublePrecision` to `Integer`.
 
 */
@@ -9,7 +11,13 @@
 ALTER TABLE "Voucher" DROP CONSTRAINT "Voucher_userId_fkey";
 
 -- AlterTable
-ALTER TABLE "Voucher" DROP COLUMN "maxDiscount",
+ALTER TABLE "SystemConfigOrder" ADD COLUMN     "voucherBaseLimitedUsage" INTEGER NOT NULL DEFAULT 1,
+ADD COLUMN     "voucherBaseMaxDiscountValue" INTEGER NOT NULL DEFAULT 100000;
+
+-- AlterTable
+ALTER TABLE "Voucher" DROP COLUMN "endDate",
+DROP COLUMN "startDate",
+DROP COLUMN "usedAt",
 ADD COLUMN     "description" TEXT,
 ADD COLUMN     "isPublic" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN     "limitedUsage" INTEGER,

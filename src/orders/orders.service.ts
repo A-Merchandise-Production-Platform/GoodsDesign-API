@@ -2128,9 +2128,13 @@ export class OrdersService {
                     type: systemConfigOrder.voucherBaseTypeForRefund,
                     isPublic: false,
                     minOrderValue: 0,
-                    limitedUsage: 1,
+                    limitedUsage: systemConfigOrder.voucherBaseLimitedUsage,
                     userId: order.customerId,
-                    description: `Voucher for refund order ${orderId}`
+                    description: `Voucher for refund order ${orderId}`,
+                    maxDiscountValue:
+                        systemConfigOrder.voucherBaseTypeForRefund === VoucherType.PERCENTAGE
+                            ? systemConfigOrder.voucherBaseMaxDiscountValue
+                            : null
                 })
             }
             return updatedOrder
