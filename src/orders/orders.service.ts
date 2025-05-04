@@ -1215,11 +1215,10 @@ export class OrdersService {
             )
 
             if (exceededReworkLimit) {
-                // Update order status to NEED_MANAGER_HANDLE
                 await tx.order.update({
                     where: { id: orderId },
                     data: {
-                        status: OrderStatus.NEED_MANAGER_HANDLE,
+                        status: OrderStatus.NEED_MANAGER_HANDLE_REWORK,
                         orderProgressReports: {
                             create: {
                                 reportDate: now,
@@ -1359,22 +1358,13 @@ export class OrdersService {
             const order = await tx.order.findUnique({
                 where: { id: orderId },
                 include: {
-                    orderDetails: {
-                        where: {
-                            status: OrderDetailStatus.REWORK_REQUIRED
-                        }
-                    },
+                    orderDetails: true,
                     customer: true
                 }
             })
 
             if (!order) {
                 throw new BadRequestException("Order not found")
-            }
-
-
-            if (order.status !== OrderStatus.REWORK_REQUIRED) {
-                throw new BadRequestException("This order is not in REWORK_REQUIRED status")
             }
 
             // Get system config for order
