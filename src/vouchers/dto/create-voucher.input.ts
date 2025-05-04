@@ -1,39 +1,45 @@
-import { InputType, Field, Int, Float } from "@nestjs/graphql"
+import { InputType, Field, Int, registerEnumType } from "@nestjs/graphql"
 import { VoucherType } from "@prisma/client"
-import { IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator"
+import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator"
+
+registerEnumType(VoucherType, {
+    name: "VoucherType"
+})
 
 @InputType()
 export class CreateVoucherInput {
-    @Field(() => String)
-    @IsString()
-    @IsNotEmpty()
-    code: string
-
     @Field(() => VoucherType)
     @IsEnum(VoucherType)
+    @IsNotEmpty()
     type: VoucherType
 
-    @Field(() => Float)
+    @Field(() => Int)
+    @IsNotEmpty()
     @IsNumber()
-    @Min(0)
     value: number
 
     @Field(() => Int, { nullable: true })
     @IsOptional()
     @IsNumber()
-    @Min(0)
     minOrderValue?: number
 
-    @Field(() => Date)
-    @IsDate()
-    startDate: Date
-
-    @Field(() => Date)
-    @IsDate()
-    endDate: Date
-
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
+    @IsOptional()
     @IsString()
+    description?: string
+
+    @Field(() => Boolean, { defaultValue: false })
     @IsNotEmpty()
-    userId: string
+    @IsBoolean()
+    isPublic: boolean
+
+    @Field(() => Int, { nullable: true })
+    @IsOptional()
+    @IsNumber()
+    limitedUsage?: number
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    userId?: string
 }

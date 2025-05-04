@@ -1,22 +1,19 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common"
-import { PrismaService } from "../prisma/prisma.service"
-import {
-    CreateVoucherInput,
-    UpdateVoucherInput,
-    GetUserVouchersInput,
-    CreateVoucherForUserInput
-} from "./dto"
-import { Voucher } from "./entities/voucher.entity"
-import { UserEntity } from "src/users/entities/users.entity"
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
 import { randomBytes } from "crypto"
+import { PrismaService } from "../prisma/prisma.service"
+import { Roles, Voucher, VoucherType, VoucherUsage } from "@prisma/client"
+import { VoucherEntity } from "./entities/voucher.entity"
+import { VoucherUsageEntity } from "src/vouchers/entities/voucher-usage.entity"
+import { CreateVoucherInput } from "./dto/create-voucher.input"
+import { UpdateVoucherInput } from "src/vouchers/dto/update-voucher.input"
+import { NotificationsService } from "src/notifications/notifications.service"
 
 @Injectable()
 export class VouchersService {
-    constructor(private readonly prisma: PrismaService) {}
-
-    private toVoucherEntity(voucher: any): Voucher {
-        return new Voucher(voucher)
-    }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly notificationsService: NotificationsService
+    ) {}
 
     private generateVoucherCode(length = 8): string {
         return randomBytes(Math.ceil(length / 2))
@@ -25,207 +22,289 @@ export class VouchersService {
             .slice(0, length)
     }
 
-    async create(
-        createVoucherInput: CreateVoucherInput,
-        currentUser: UserEntity
-    ): Promise<Voucher> {
-        // Check if code already exists
-        const existingVoucher = await this.prisma.voucher.findUnique({
-            where: { code: createVoucherInput.code }
+    private toVoucherEntity(voucher: Voucher & { usages: VoucherUsage[] }) {
+        return new VoucherEntity({
+            ...voucher,
+            usages: voucher.usages.map((usage) => new VoucherUsageEntity(usage))
         })
+    }
 
-        if (existingVoucher) {
-            throw new ConflictException(
-                `Voucher with code ${createVoucherInput.code} already exists`
-            )
+    checkVoucherValueType(value: number): VoucherType {
+        if (value < 0) {
+            throw new BadRequestException("Voucher value cannot be negative")
         }
 
-        // Check if user exists
-        const user = await this.prisma.user.findUnique({
-            where: { id: createVoucherInput.userId }
-        })
-
-        if (!user) {
-            throw new NotFoundException(`User with ID ${createVoucherInput.userId} not found`)
+        if (value >= 0 && value <= 100) {
+            return VoucherType.PERCENTAGE
         }
 
-        const voucher = await this.prisma.voucher.create({
-            data: {
-                ...createVoucherInput,
-                startDate: new Date(createVoucherInput.startDate),
-                endDate: new Date(createVoucherInput.endDate)
-            }
+        if (value >= 1000) {
+            return VoucherType.FIXED_VALUE
+        }
+
+        throw new BadRequestException("Invalid voucher value")
+    }
+
+    async validateVoucher(id: string) {
+        const voucher = await this.prisma.voucher.findUnique({
+            where: { id },
+            include: { usages: true }
         })
+
+        if (!voucher) {
+            throw new NotFoundException("Voucher not found")
+        }
+
+        if (!voucher.isActive) {
+            throw new BadRequestException("Voucher is not active")
+        }
+
+        if (voucher.isDeleted) {
+            throw new BadRequestException("Voucher is deleted")
+        }
+
+        if (voucher.limitedUsage && voucher.usages.length >= voucher.limitedUsage) {
+            throw new BadRequestException("Voucher is out of stock")
+        }
 
         return this.toVoucherEntity(voucher)
     }
 
-    async createVoucherForUser(
-        createVoucherInput: CreateVoucherForUserInput,
-        currentUser: UserEntity
-    ): Promise<Voucher> {
-        // Check if user exists
-        const user = await this.prisma.user.findUnique({
-            where: { id: createVoucherInput.userId }
-        })
-
-        if (!user) {
-            throw new NotFoundException(`User with ID ${createVoucherInput.userId} not found`)
-        }
-
-        // Generate code if not provided
-        const code = createVoucherInput.code || this.generateVoucherCode()
-
-        // Check if code already exists
-        const existingVoucher = await this.prisma.voucher.findUnique({
-            where: { code }
-        })
-
-        if (existingVoucher) {
-            // If code was auto-generated, try again
-            if (!createVoucherInput.code) {
-                return this.createVoucherForUser(createVoucherInput, currentUser)
-            }
-            throw new ConflictException(`Voucher with code ${code} already exists`)
-        }
-
-        const voucher = await this.prisma.voucher.create({
-            data: {
-                ...createVoucherInput,
-                code,
-                startDate: new Date(createVoucherInput.startDate),
-                endDate: new Date(createVoucherInput.endDate)
-            }
-        })
-
-        return this.toVoucherEntity(voucher)
-    }
-
-    async findAll(): Promise<Voucher[]> {
+    async getAllPublicVouchers() {
         const vouchers = await this.prisma.voucher.findMany({
-            where: { isDeleted: false },
-            include: { user: true },
-            orderBy: { createdAt: "desc" }
+            where: {
+                isActive: true,
+                isDeleted: false,
+                isPublic: true
+            },
+            include: {
+                usages: true
+            }
         })
 
         return vouchers.map((voucher) => this.toVoucherEntity(voucher))
     }
 
-    async getUserVouchers(getUserVouchersInput: GetUserVouchersInput): Promise<Voucher[]> {
-        const { userId, activeOnly = true } = getUserVouchersInput
-
-        // Check if user exists
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId }
+    async getAvailableVouchersForUser(userId: string) {
+        const vouchers = await this.prisma.voucher.findMany({
+            where: {
+                isActive: true,
+                isDeleted: false,
+                OR: [{ isPublic: true }, { userId: userId }]
+            },
+            include: {
+                usages: {
+                    where: {
+                        userId: userId
+                    }
+                }
+            }
         })
 
-        if (!user) {
-            throw new NotFoundException(`User with ID ${userId} not found`)
-        }
+        const availableVouchers = vouchers.filter((voucher) => {
+            if (voucher.limitedUsage) {
+                const totalUsages = voucher.usages?.length || 0
+                if (totalUsages >= voucher.limitedUsage) {
+                    return false
+                }
+            }
 
-        const now = new Date()
-        const where: any = {
-            userId,
-            isDeleted: false
-        }
+            return true
+        })
 
-        // Only include active and valid vouchers if requested
-        if (activeOnly) {
-            where.isActive = true
-            where.usedAt = null
-            where.startDate = { lte: now }
-            where.endDate = { gte: now }
-        }
+        return availableVouchers.map((voucher) => this.toVoucherEntity(voucher))
+    }
 
+    async getAllSystemVouchers() {
         const vouchers = await this.prisma.voucher.findMany({
-            where,
-            include: { user: true },
-            orderBy: { createdAt: "desc" }
+            include: { usages: true }
         })
 
         return vouchers.map((voucher) => this.toVoucherEntity(voucher))
     }
 
-    async getMyVouchers(userId: string): Promise<Voucher[]> {
-        return this.getUserVouchers({ userId, activeOnly: true })
-    }
-
-    async findOne(id: string): Promise<Voucher> {
-        const voucher = await this.prisma.voucher.findFirst({
-            where: { id, isDeleted: false },
-            include: { user: true }
+    async getAllVouchersOfUser(userId: string) {
+        const vouchers = await this.prisma.voucher.findMany({
+            where: {
+                OR: [{ isPublic: true }, { userId: userId }]
+            },
+            include: { usages: true }
         })
 
-        if (!voucher) {
-            throw new NotFoundException(`Voucher with ID ${id} not found`)
-        }
+        return vouchers.map((voucher) => this.toVoucherEntity(voucher))
+    }
+
+    async getAllUserUsages(userId: string) {
+        const usages = await this.prisma.voucherUsage.findMany({
+            where: { userId },
+            include: { voucher: true }
+        })
+
+        return usages.map((usage) => new VoucherUsageEntity(usage))
+    }
+
+    async getVoucherById(id: string) {
+        const voucher = await this.prisma.voucher.findUnique({
+            where: { id },
+            include: { usages: true }
+        })
 
         return this.toVoucherEntity(voucher)
     }
 
-    async update(
-        id: string,
-        updateVoucherInput: UpdateVoucherInput,
-        currentUser: UserEntity
-    ): Promise<Voucher> {
-        // Check if voucher exists
-        const voucher = await this.prisma.voucher.findFirst({
-            where: { id, isDeleted: false }
+    async createVoucher(input: CreateVoucherInput) {
+        const voucher = await this.prisma.voucher.create({
+            data: {
+                code: this.generateVoucherCode(),
+                type: input.type,
+                value: input.value,
+                minOrderValue: input.minOrderValue,
+                description: input.description,
+                isPublic: input.isPublic,
+                limitedUsage: input.limitedUsage,
+                isDeleted: false,
+                userId: input.userId,
+                usages: {
+                    create: []
+                }
+            },
+            include: {
+                usages: true
+            }
         })
 
-        if (!voucher) {
-            throw new NotFoundException(`Voucher with ID ${id} not found`)
-        }
-
-        // If code is changing, check if the new code already exists
-        if (updateVoucherInput.code && updateVoucherInput.code !== voucher.code) {
-            const existingVoucher = await this.prisma.voucher.findUnique({
-                where: { code: updateVoucherInput.code }
+        if (input.isPublic) {
+            await this.notificationsService.createForUsersByRoles({
+                title: "Goods Design has given you a voucher",
+                content: `You have received a voucher from Goods Design. Please check it out.`,
+                url: `/profile/voucher`,
+                roles: [Roles.CUSTOMER]
             })
+        }
 
-            if (existingVoucher && existingVoucher.id !== id) {
-                throw new ConflictException(
-                    `Voucher with code ${updateVoucherInput.code} already exists`
-                )
+        return this.toVoucherEntity(voucher)
+    }
+
+    async createVoucherForUser(userId: string, input: CreateVoucherInput) {
+        const voucher = await this.prisma.voucher.create({
+            data: {
+                code: this.generateVoucherCode(),
+                type: input.type,
+                value: input.value,
+                minOrderValue: input.minOrderValue,
+                description: input.description,
+                isPublic: false,
+                limitedUsage: input.limitedUsage,
+                isDeleted: false,
+                userId: userId,
+                usages: {
+                    create: []
+                }
+            },
+            include: {
+                usages: true
+            }
+        })
+
+        await this.notificationsService.create({
+            userId,
+            title: "Voucher created",
+            content: `Voucher ${voucher.code} created successfully`,
+            url: `/profile/voucher`
+        })
+
+        return this.toVoucherEntity(voucher)
+    }
+
+    async disableVoucher(id: string) {
+        const voucher = await this.prisma.voucher.update({
+            where: { id },
+            data: { isActive: false },
+            include: { usages: true }
+        })
+
+        return this.toVoucherEntity(voucher)
+    }
+
+    async deleteVoucher(id: string) {
+        const voucher = await this.prisma.voucher.delete({
+            where: { id },
+            include: { usages: true }
+        })
+
+        return this.toVoucherEntity(voucher)
+    }
+
+    async updateVoucher(id: string, input: UpdateVoucherInput) {
+        const voucher = await this.prisma.voucher.update({
+            where: { id },
+            data: input,
+            include: { usages: true }
+        })
+
+        return this.toVoucherEntity(voucher)
+    }
+
+    async calculateVoucherDiscount(voucherId: string, orderValue: number) {
+        const voucher = await this.validateVoucher(voucherId)
+
+        if (voucher.limitedUsage && voucher.usages.length >= voucher.limitedUsage) {
+            throw new BadRequestException("Voucher is out of stock")
+        }
+
+        if (!voucher.isActive) {
+            throw new BadRequestException("Voucher is not active")
+        }
+
+        if (voucher.isDeleted) {
+            throw new BadRequestException("Voucher is deleted")
+        }
+
+        if (voucher.minOrderValue && voucher.minOrderValue > 0) {
+            if (orderValue < voucher.minOrderValue) {
+                throw new BadRequestException("Order amount is less than the minimum order value")
             }
         }
 
-        const updatedVoucher = await this.prisma.voucher.update({
-            where: { id },
-            data: {
-                ...updateVoucherInput,
-                startDate: updateVoucherInput.startDate
-                    ? new Date(updateVoucherInput.startDate)
-                    : undefined,
-                endDate: updateVoucherInput.endDate
-                    ? new Date(updateVoucherInput.endDate)
-                    : undefined,
-                updatedAt: new Date()
-            },
-            include: { user: true }
-        })
-
-        return this.toVoucherEntity(updatedVoucher)
-    }
-
-    async remove(id: string, currentUser: UserEntity): Promise<Voucher> {
-        const voucher = await this.prisma.voucher.findFirst({
-            where: { id, isDeleted: false }
-        })
-
-        if (!voucher) {
-            throw new NotFoundException(`Voucher with ID ${id} not found`)
+        if (voucher.type === "PERCENTAGE") {
+            const discount = (orderValue * voucher.value) / 100
+            return orderValue - discount
         }
 
-        const deletedVoucher = await this.prisma.voucher.update({
-            where: { id },
-            data: {
-                isDeleted: true,
-                isActive: false
-            },
-            include: { user: true }
-        })
+        if (voucher.type === "FIXED_VALUE") {
+            return orderValue - voucher.value
+        }
 
-        return this.toVoucherEntity(deletedVoucher)
+        throw new BadRequestException("Invalid voucher type")
+    }
+
+    async createVoucherUsage(voucherId: string, userId: string, orderId: string) {
+        const voucher = await this.validateVoucher(voucherId)
+
+        if (voucher.limitedUsage && voucher.usages.length >= voucher.limitedUsage) {
+            throw new BadRequestException("Voucher is out of stock")
+        }
+
+        if (!voucher.isActive) {
+            throw new BadRequestException("Voucher is not active")
+        }
+
+        if (voucher.isDeleted) {
+            throw new BadRequestException("Voucher is deleted")
+        }
+
+        return this.prisma.voucherUsage.create({
+            data: {
+                voucherId: voucherId,
+                userId: userId,
+                orderId: orderId
+            }
+        })
+    }
+
+    async useVoucher(voucherId: string, userId: string, orderId: string, orderValue: number) {
+        const finalPrice = await this.calculateVoucherDiscount(voucherId, orderValue)
+        await this.createVoucherUsage(voucherId, userId, orderId)
+        return finalPrice
     }
 }

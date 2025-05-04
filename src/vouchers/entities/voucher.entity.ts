@@ -1,6 +1,7 @@
 import { ObjectType, Field, Int, Float, registerEnumType } from "@nestjs/graphql"
 import { VoucherType } from "@prisma/client"
 import { UserEntity } from "src/users/entities/users.entity"
+import { VoucherUsageEntity } from "./voucher-usage.entity"
 
 registerEnumType(VoucherType, {
     name: "VoucherType",
@@ -8,7 +9,7 @@ registerEnumType(VoucherType, {
 })
 
 @ObjectType()
-export class Voucher {
+export class VoucherEntity {
     @Field(() => String)
     id: string
 
@@ -18,17 +19,20 @@ export class Voucher {
     @Field(() => VoucherType)
     type: VoucherType
 
-    @Field(() => Float)
+    @Field(() => Int)
     value: number
 
     @Field(() => Int, { nullable: true })
     minOrderValue?: number
 
-    @Field(() => Date)
-    startDate: Date
+    @Field(() => String, { nullable: true })
+    description?: string
 
-    @Field(() => Date)
-    endDate: Date
+    @Field(() => Boolean)
+    isPublic: boolean
+
+    @Field(() => Int, { nullable: true })
+    limitedUsage?: number
 
     @Field(() => Boolean)
     isActive: boolean
@@ -42,16 +46,16 @@ export class Voucher {
     @Field(() => Date, { nullable: true })
     updatedAt?: Date
 
-    @Field(() => String)
-    userId: string
-
-    @Field(() => Date, { nullable: true })
-    usedAt?: Date
+    @Field(() => String, { nullable: true })
+    userId?: string
 
     @Field(() => UserEntity, { nullable: true })
     user?: UserEntity
 
-    constructor(partial: Partial<Voucher>) {
+    @Field(() => [VoucherUsageEntity], { nullable: true })
+    usages?: VoucherUsageEntity[]
+
+    constructor(partial: Partial<VoucherEntity>) {
         Object.assign(this, partial)
     }
 }
