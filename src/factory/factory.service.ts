@@ -25,9 +25,9 @@ export class FactoryService {
     constructor(
         private prisma: PrismaService,
         private notificationsService: NotificationsService,
-        private addressesService: AddressesService,
         private factoryProductsService: FactoryProductsService,
-        private mailService: MailService
+        private mailService: MailService,
+        private addressesService: AddressesService,
     ) {}
 
     async getAllFactories() {

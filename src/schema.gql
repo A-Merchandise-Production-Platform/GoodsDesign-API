@@ -50,6 +50,11 @@ type AuthResponseDto {
   user: UserEntity!
 }
 
+input CalculateShippingCostAndFactoryDto {
+  addressId: String!
+  cartIds: [String!]!
+}
+
 input CalculateShippingFeeDto {
   fromDistrictId: Int!
   fromWardCode: String!
@@ -536,6 +541,7 @@ type Mutation {
   addOrderProgressReport(input: AddOrderProgressReportInput!): OrderProgressReportEntity!
   assignFactoryToOrder(factoryId: String!, orderId: String!): OrderEntity!
   assignStaffToFactory(factoryId: String!, staffId: String!): FactoryEntity!
+  calculateShippingCostAndFactoryForCart(input: CalculateShippingCostAndFactoryDto!): ShippingCostAndFactoryResponse!
   calculateShippingFee(input: CalculateShippingFeeDto!): ShippingFee!
   changeFactoryStaff(factoryId: String!, newStaffId: String!): FactoryEntity!
   changeFactoryStatus(data: UpdateFactoryStatusDto!): FactoryEntity!
@@ -988,6 +994,11 @@ enum Roles {
   FACTORYOWNER
   MANAGER
   STAFF
+}
+
+type ShippingCostAndFactoryResponse {
+  selectedFactory: FactoryEntity
+  shippingFee: ShippingFee!
 }
 
 type ShippingFee {

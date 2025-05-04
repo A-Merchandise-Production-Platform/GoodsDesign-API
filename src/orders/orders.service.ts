@@ -142,8 +142,14 @@ export class OrdersService {
                 }
             })
 
+            //using calculateShippingCostAndFactoryForCart for shipping fee and factory
+            const { shippingFee } = await this.shippingService.calculateShippingCostAndFactoryForCart(
+                createOrderInput.orderDetails.map((v) => v.cartItemId),
+                createOrderInput.addressId
+            )
+
             // Apply voucher if provided
-            let finalTotalPrice = totalOrderPrice
+            let finalTotalPrice = totalOrderPrice + (shippingFee?.total || 0)
             if (createOrderInput.voucherId) {
                 try {
                     const { finalPrice } = await this.vouchersService.calculateVoucherDiscount(
@@ -190,7 +196,7 @@ export class OrdersService {
                     status: OrderStatus.PENDING,
                     totalPrice: finalTotalPrice,
                     addressId: createOrderInput.addressId,
-                    shippingPrice: 0,
+                    shippingPrice: shippingFee?.total || 0,
                     orderDate: now,
                     totalItems: cartItems.length,
                     voucherId: createOrderInput.voucherId,

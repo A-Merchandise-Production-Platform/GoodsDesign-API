@@ -6,7 +6,7 @@ export const factoryProductsData = [
         return {
             factoryId: factoriesData[0].factoryOwnerId,
             systemConfigVariantId: v.id,
-            productionCapacity: 1000,
+            productionCapacity: 520,
             productionTimeInMinutes: 300
         }
     }),
@@ -15,7 +15,15 @@ export const factoryProductsData = [
             factoryId: factoriesData[1].factoryOwnerId,
             systemConfigVariantId: v.id,
             productionCapacity: 500,
-            productionTimeInMinutes: 300
+            productionTimeInMinutes: 280
+        }
+    }),
+    ...variantsData.variants.map((v, index) => {
+        return {
+            factoryId: factoriesData[2].factoryOwnerId,
+            systemConfigVariantId: v.id,
+            productionCapacity: 490,
+            productionTimeInMinutes: 270
         }
     })
 ]

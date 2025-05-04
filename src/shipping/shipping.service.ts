@@ -1,18 +1,20 @@
+import { AlgorithmService } from '@/algorithm/algorithm.service';
+import { FactoryEntity } from '@/factory/entities/factory.entity';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { envConfig } from 'src/dynamic-modules';
-import { RedisService } from 'src/redis/redis.service';
 import { lastValueFrom } from 'rxjs';
-import { Province, District, Ward, ShippingService as ShippingServiceModel, ShippingFee, ShippingOrder } from './models/shipping.model';
-import { 
-  formatProvinces, 
+import { envConfig } from 'src/dynamic-modules';
+import { PrismaService } from 'src/prisma';
+import { RedisService } from 'src/redis/redis.service';
+import { CalculateShippingFeeDto } from './dto/calculate-shipping-fee.dto';
+import { DistrictResponse, formatDistricts } from './dto/district.dto';
+import {
+  formatProvinces,
   ProvinceResponse,
 } from './dto/province.dto';
-import { DistrictResponse, formatDistricts } from './dto/district.dto';
-import { WardResponse } from './dto/ward.dto';
-import { formatWards } from './dto/ward.dto';
-import { CalculateShippingFeeDto } from './dto/calculate-shipping-fee.dto';
-import { PrismaService } from 'src/prisma';
+import { formatWards, WardResponse } from './dto/ward.dto';
+import { District, Province, ShippingFee, ShippingOrder, ShippingService as ShippingServiceModel, Ward } from './models/shipping.model';
+
 @Injectable()
 export class ShippingService {
   private readonly baseUrl: string;
@@ -31,7 +33,8 @@ export class ShippingService {
   constructor(
     private readonly httpService: HttpService,
     private readonly redisService: RedisService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly algorithmService: AlgorithmService
   ) {
     this.baseUrl = envConfig().shipping.baseUrl;
     this.token = envConfig().shipping.token;
@@ -398,5 +401,131 @@ export class ShippingService {
         station_pu: response.fee.station_pu
       }
     };
+  }
+
+  async calculateShippingCostAndFactoryForCart(cartIds: string[], addressId: string): Promise<{
+    shippingFee: ShippingFee;
+    selectedFactory: FactoryEntity | null;
+  }> {
+    try {
+      // Get cart items with their details
+      const cartItems = await this.prisma.cartItem.findMany({
+        where: {
+          id: {
+            in: cartIds
+          }
+        },
+        include: {
+          design: {
+            include: {
+              designPositions: {
+                include: {
+                  positionType: {
+                    include: {
+                      product: true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          systemConfigVariant: true
+        }
+      });
+
+      if (cartItems.length === 0) {
+        throw new Error('No cart items found');
+      }
+
+      // Get shipping address
+      const shippingAddress = await this.prisma.address.findUnique({
+        where: { id: addressId }
+      });
+
+      if (!shippingAddress) {
+        throw new Error(`Shipping address with ID ${addressId} not found`);
+      }
+
+      // Extract variant IDs from cart items
+      const variantIds = cartItems.map(item => item.systemConfigVariantId);
+      const uniqueVariantIds = [...new Set(variantIds)];
+
+      // Use the algorithm service to find the best factory
+      const selectedFactory = await this.algorithmService.findBestFactoryForVariants(uniqueVariantIds);
+
+      if (!selectedFactory) {
+        throw new Error('No suitable factory found for the cart items');
+      }
+
+      // Get factory address
+      const factoryAddress = await this.prisma.address.findFirst({
+        where: {
+          factoryId: selectedFactory.factoryOwnerId
+        }
+      });
+
+      if (!factoryAddress) {
+        throw new Error('Factory address not found');
+      }
+
+      // Get province, district, and ward information for both addresses
+      const fromProvince = await this.getProvince(factoryAddress.provinceID);
+      const fromDistrict = await this.getDistrict(factoryAddress.districtID);
+      const fromWard = await this.getWard(factoryAddress.wardCode);
+
+      const toProvince = await this.getProvince(shippingAddress.provinceID);
+      const toDistrict = await this.getDistrict(shippingAddress.districtID);
+      const toWard = await this.getWard(shippingAddress.wardCode);
+
+      // Calculate total weight and dimensions
+      const items = cartItems.map(item => {
+        const design = item.design;
+        const product = design.designPositions[0]?.positionType?.product;
+        
+        return {
+          quantity: item.quantity,
+          weight: product?.weight || 120, // Default weight if not available
+          length: 12, // Default dimensions
+          width: 12,
+          height: 12
+        };
+      });
+
+      const totalWeight = items.reduce((total, item) => total + (item.weight * item.quantity), 0);
+
+      // Get available shipping services
+      const availableServices = await this.getAvailableServices(
+        fromDistrict.districtId,
+        toDistrict.districtId
+      );
+
+      if (availableServices.length === 0) {
+        throw new Error('No shipping services available for this route');
+      }
+
+      // Use the first available service
+      const selectedService = availableServices[0];
+
+      // Calculate shipping fee
+      const shippingFee = await this.calculateShippingFee({
+        serviceId: selectedService.serviceId,
+        serviceTypeId: selectedService.serviceTypeId,
+        fromDistrictId: fromDistrict.districtId,
+        fromWardCode: fromWard.wardCode,
+        toDistrictId: toDistrict.districtId,
+        toWardCode: toWard.wardCode,
+        weight: totalWeight,
+        length: 12,
+        width: 12,
+        height: 12
+      });
+
+      return {
+        shippingFee,
+        selectedFactory
+      };
+    } catch (error) {
+      throw new Error(`Error calculating shipping cost and factory: ${error.message}`);
+    }
   }
 } 
