@@ -26,7 +26,6 @@ export class AddressesResolver {
 
     @Query(() => [AddressEntity])
     async addresses(@CurrentUser() user: UserEntity) {
-        console.log(user)
         return this.addressesService.getAddresses(user)
     }
 

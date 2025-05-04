@@ -15,7 +15,7 @@ import { positionTypesData } from "../data/product-position-types.data"
 import { designPositionsData } from "../data/design-positions.data"
 
 export async function seedOrders(prisma: PrismaClient) {
-    console.log("🌱 Seeding orders...")
+    console.log("Seeding orders...")
 
     // Get customer from seed data
     const customer = await prisma.user.findFirst({
@@ -322,6 +322,6 @@ export async function seedOrders(prisma: PrismaClient) {
 
     orderIds.push(rejectedOrder.id)
 
-    console.log(`✅ Seeded ${orderIds.length} orders with related data`)
+    console.log(`Seeded ${orderIds.length} orders with related data`)
     return orderIds
 }
