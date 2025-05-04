@@ -1,2 +1,0 @@
--- AlterEnum
-ALTER TYPE "OrderStatus" ADD VALUE 'NEED_MANAGER_HANDLE_REWORK';

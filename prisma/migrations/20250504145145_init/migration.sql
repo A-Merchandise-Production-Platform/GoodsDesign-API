@@ -23,7 +23,7 @@ CREATE TYPE "TransactionStatus" AS ENUM ('COMPLETED', 'PENDING', 'FAILED');
 CREATE TYPE "FactoryStatus" AS ENUM ('PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'SUSPENDED');
 
 -- CreateEnum
-CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAYMENT_RECEIVED', 'WAITING_FILL_INFORMATION', 'NEED_MANAGER_HANDLE', 'PENDING_ACCEPTANCE', 'REJECTED', 'WAITING_FOR_REFUND', 'REFUNDED', 'IN_PRODUCTION', 'WAITING_FOR_CHECKING_QUALITY', 'REWORK_REQUIRED', 'REWORK_IN_PROGRESS', 'WAITING_PAYMENT', 'READY_FOR_SHIPPING', 'SHIPPING', 'SHIPPED', 'COMPLETED', 'CANCELED');
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAYMENT_RECEIVED', 'WAITING_FILL_INFORMATION', 'NEED_MANAGER_HANDLE', 'NEED_MANAGER_HANDLE_REWORK', 'PENDING_ACCEPTANCE', 'REJECTED', 'WAITING_FOR_REFUND', 'REFUNDED', 'IN_PRODUCTION', 'WAITING_FOR_CHECKING_QUALITY', 'REWORK_REQUIRED', 'REWORK_IN_PROGRESS', 'WAITING_PAYMENT', 'READY_FOR_SHIPPING', 'SHIPPING', 'SHIPPED', 'COMPLETED', 'CANCELED');
 
 -- CreateEnum
 CREATE TYPE "OrderDetailStatus" AS ENUM ('PENDING', 'IN_PRODUCTION', 'DONE_PRODUCTION', 'WAITING_FOR_CHECKING_QUALITY', 'DONE_CHECK_QUALITY', 'REWORK_REQUIRED', 'REWORK_IN_PROGRESS', 'REWORK_DONE', 'READY_FOR_SHIPPING', 'SHIPPING', 'SHIPPED', 'COMPLETED');
@@ -72,6 +72,7 @@ CREATE TABLE "Address" (
     "street" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "factoryId" TEXT,
+    "formattedAddress" TEXT,
 
     CONSTRAINT "Address_pkey" PRIMARY KEY ("id")
 );
@@ -438,6 +439,8 @@ CREATE TABLE "SystemConfigOrder" (
     "specializationScoreWeight" DOUBLE PRECISION NOT NULL DEFAULT 0.15,
     "legitPointScoreWeight" DOUBLE PRECISION NOT NULL DEFAULT 0.25,
     "productionCapacityScoreWeight" DOUBLE PRECISION NOT NULL DEFAULT 0.2,
+    "voucherBaseValueForRefund" INTEGER NOT NULL DEFAULT 20000,
+    "voucherBaseTypeForRefund" "VoucherType" NOT NULL DEFAULT 'FIXED_VALUE',
 
     CONSTRAINT "SystemConfigOrder_pkey" PRIMARY KEY ("id")
 );
@@ -461,18 +464,30 @@ CREATE TABLE "Voucher" (
     "id" TEXT NOT NULL,
     "code" TEXT NOT NULL,
     "type" "VoucherType" NOT NULL,
-    "value" DOUBLE PRECISION NOT NULL,
+    "value" INTEGER NOT NULL,
     "minOrderValue" INTEGER,
-    "startDate" TIMESTAMP(3) NOT NULL,
-    "endDate" TIMESTAMP(3) NOT NULL,
+    "maxDiscountValue" INTEGER,
+    "description" TEXT,
+    "isPublic" BOOLEAN NOT NULL DEFAULT false,
+    "limitedUsage" INTEGER,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3),
-    "userId" TEXT NOT NULL,
-    "usedAt" TIMESTAMP(3),
+    "userId" TEXT,
 
     CONSTRAINT "Voucher_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "VoucherUsage" (
+    "id" TEXT NOT NULL,
+    "voucherId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "usedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "orderId" TEXT NOT NULL,
+
+    CONSTRAINT "VoucherUsage_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -498,6 +513,9 @@ CREATE UNIQUE INDEX "SystemConfigOrder_type_key" ON "SystemConfigOrder"("type");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Voucher_code_key" ON "Voucher"("code");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "VoucherUsage_voucherId_userId_key" ON "VoucherUsage"("voucherId", "userId");
 
 -- AddForeignKey
 ALTER TABLE "Address" ADD CONSTRAINT "Address_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -623,4 +641,13 @@ ALTER TABLE "UserBank" ADD CONSTRAINT "UserBank_userId_fkey" FOREIGN KEY ("userI
 ALTER TABLE "UserBank" ADD CONSTRAINT "UserBank_bankId_fkey" FOREIGN KEY ("bankId") REFERENCES "SystemConfigBank"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Voucher" ADD CONSTRAINT "Voucher_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Voucher" ADD CONSTRAINT "Voucher_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VoucherUsage" ADD CONSTRAINT "VoucherUsage_voucherId_fkey" FOREIGN KEY ("voucherId") REFERENCES "Voucher"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VoucherUsage" ADD CONSTRAINT "VoucherUsage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VoucherUsage" ADD CONSTRAINT "VoucherUsage_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
