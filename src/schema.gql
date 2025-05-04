@@ -1091,6 +1091,8 @@ type SystemConfigOrderEntity {
   shippingDays: Int!
   specializationScoreWeight: Float!
   type: String!
+  voucherBaseLimitedUsage: Int!
+  voucherBaseMaxDiscountValue: Int!
   voucherBaseTypeForRefund: VoucherType!
   voucherBaseValueForRefund: Int!
 }
@@ -1278,6 +1280,8 @@ input UpdateSystemConfigOrderDto {
   reduceLegitPointIfReject: Int
   shippingDays: Int
   specializationScoreWeight: Float
+  voucherBaseLimitedUsage: Int
+  voucherBaseMaxDiscountValue: Int
   voucherBaseTypeForRefund: VoucherType
   voucherBaseValueForRefund: Int
 }

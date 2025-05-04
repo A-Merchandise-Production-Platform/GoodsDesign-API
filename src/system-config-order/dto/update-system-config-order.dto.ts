@@ -97,4 +97,14 @@ export class UpdateSystemConfigOrderDto {
     @Field(() => VoucherType, { nullable: true })
     @IsEnum(VoucherType)
     voucherBaseTypeForRefund?: VoucherType
+
+    @Field(() => Int, { nullable: true })
+    @IsNumber()
+    @Min(1)
+    voucherBaseLimitedUsage?: number
+
+    @Field(() => Int, { nullable: true })
+    @IsNumber()
+    @Min(1)
+    voucherBaseMaxDiscountValue?: number
 }
