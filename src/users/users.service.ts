@@ -10,6 +10,7 @@ import { CreateUserDto, UpdateUserDto } from "./dto"
 import { UserEntity } from "./entities/users.entity"
 import { Roles } from "@prisma/client"
 import { UpdateProfileDto } from "src/users/dto/update-profile.dto"
+import { UpdatePhoneNumberDto } from "src/users/dto/update-phone-number.dto"
 
 @Injectable()
 export class UsersService {
@@ -193,6 +194,31 @@ export class UsersService {
                 dateOfBirth: updateProfileDto.dateOfBirth
                     ? new Date(updateProfileDto.dateOfBirth)
                     : null,
+                updatedAt: new Date(),
+                updatedBy: currentUser.id
+            }
+        })
+
+        return this.toUserEntity(updatedUser)
+    }
+
+    async updatePhoneNumber(
+        id: string,
+        updatePhoneNumberDto: UpdatePhoneNumberDto,
+        currentUser: UserEntity
+    ) {
+        const user = await this.prisma.user.findUnique({
+            where: { id }
+        })
+
+        if (!user || user.isDeleted) {
+            throw new NotFoundException(`User with ID ${id} not found`)
+        }
+
+        const updatedUser = await this.prisma.user.update({
+            where: { id },
+            data: {
+                phoneNumber: updatePhoneNumberDto.phoneNumber,
                 updatedAt: new Date(),
                 updatedBy: currentUser.id
             }

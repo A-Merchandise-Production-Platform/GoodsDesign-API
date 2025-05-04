@@ -1,4 +1,10 @@
-import { Field, ID, ObjectType, Float, Int } from "@nestjs/graphql"
+import { Field, ID, ObjectType, Float, Int, registerEnumType } from "@nestjs/graphql"
+import { VoucherType } from "@prisma/client"
+
+registerEnumType(VoucherType, {
+    name: "VoucherType",
+    description: "The type of voucher"
+})
 
 @ObjectType()
 export class SystemConfigOrderEntity {
@@ -53,7 +59,13 @@ export class SystemConfigOrderEntity {
     @Field(() => Float)
     productionCapacityScoreWeight: number
 
+    @Field(() => Int)
+    voucherBaseValueForRefund: number
+
+    @Field(() => VoucherType)
+    voucherBaseTypeForRefund: VoucherType
+
     constructor(partial: Partial<SystemConfigOrderEntity>) {
         Object.assign(this, partial)
     }
-} 
+}

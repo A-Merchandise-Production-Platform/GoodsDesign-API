@@ -161,6 +161,26 @@ export class NotificationsService {
         )
     }
 
+    async createForAllUsers(data: { title: string; content: string; url?: string; data?: any }) {
+        const users = await this.prisma.user.findMany({
+            select: {
+                id: true
+            },
+            where: {
+                isActive: true,
+                isDeleted: false
+            }
+        })
+
+        return this.createForManyUsers({
+            title: data.title,
+            content: data.content,
+            userIds: users.map((user) => user.id),
+            url: data.url,
+            data: data.data
+        })
+    }
+
     async markAsRead(id: string, userId: string) {
         const notification = await this.prisma.notification.update({
             where: {

@@ -1,5 +1,11 @@
-import { Field, InputType, Float, Int } from "@nestjs/graphql"
-import { IsNotEmpty, IsNumber, Min, Max } from "class-validator"
+import { Field, InputType, Float, Int, registerEnumType } from "@nestjs/graphql"
+import { VoucherType } from "@prisma/client"
+import { IsNotEmpty, IsNumber, Min, Max, IsEnum } from "class-validator"
+
+registerEnumType(VoucherType, {
+    name: "VoucherType",
+    description: "The type of voucher"
+})
 
 @InputType()
 export class UpdateSystemConfigOrderDto {
@@ -82,4 +88,13 @@ export class UpdateSystemConfigOrderDto {
     @Min(0)
     @Max(1)
     productionCapacityScoreWeight?: number
-} 
+
+    @Field(() => Int, { nullable: true })
+    @IsNumber()
+    @Min(1)
+    voucherBaseValueForRefund?: number
+
+    @Field(() => VoucherType, { nullable: true })
+    @IsEnum(VoucherType)
+    voucherBaseTypeForRefund?: VoucherType
+}

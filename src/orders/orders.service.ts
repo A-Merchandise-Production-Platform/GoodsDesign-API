@@ -4,7 +4,8 @@ import {
     OrderStatus,
     QualityCheckStatus,
     TaskStatus,
-    TaskType
+    TaskType,
+    VoucherType
 } from "@prisma/client"
 import { PrismaService } from "../prisma/prisma.service"
 import { CreateOrderInput } from "./dto/create-order.input"
@@ -13,13 +14,17 @@ import { FeedbackOrderInput } from "./dto/feedback-order.input"
 import { NotificationsService } from "src/notifications/notifications.service"
 import { ShippingService } from "src/shipping/shipping.service"
 import { OrderProgressReportEntity } from "./entities/order-progress-report.entity"
+import { VouchersService } from "src/vouchers/vouchers.service"
+import { SystemConfigOrderService } from "src/system-config-order/system-config-order.service"
 
 @Injectable()
 export class OrdersService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly notificationsService: NotificationsService,
-        private readonly shippingService: ShippingService
+        private readonly shippingService: ShippingService,
+        private readonly vouchersService: VouchersService,
+        private readonly systemConfigOrderService: SystemConfigOrderService
     ) {}
 
     async create(createOrderInput: CreateOrderInput, userId: string) {
@@ -73,25 +78,24 @@ export class OrdersService {
             }
 
             let totalOrderPrice = 0
-            
+
             // Group cart items by designId to calculate total quantity for each design
-            const designQuantities = new Map<string, number>();
-            cartItems.forEach(cartItem => {
-                const designId = cartItem.design.id;
-                const currentQuantity = designQuantities.get(designId) || 0;
-                designQuantities.set(designId, currentQuantity + cartItem.quantity);
-            });
+            const designQuantities = new Map<string, number>()
+            cartItems.forEach((cartItem) => {
+                const designId = cartItem.design.id
+                const currentQuantity = designQuantities.get(designId) || 0
+                designQuantities.set(designId, currentQuantity + cartItem.quantity)
+            })
 
             // Update all designs to mark as final when ordered
-            const uniqueDesignIds = [...designQuantities.keys()];
+            const uniqueDesignIds = [...designQuantities.keys()]
             await tx.productDesign.updateMany({
                 where: { id: { in: uniqueDesignIds } },
-                data: { 
+                data: {
                     isFinalized: true
-                 }
-            });
+                }
+            })
 
-            
             const orderDetailsToCreate = cartItems.map((cartItem) => {
                 const design = cartItem.design
 
@@ -109,7 +113,7 @@ export class OrdersService {
                 // Get applicable discount based on total quantity for this design
                 const discounts = design.systemConfigVariant.product.discounts || []
                 let maxDiscountPercent = 0
-                const totalDesignQuantity = designQuantities.get(design.id) || 0;
+                const totalDesignQuantity = designQuantities.get(design.id) || 0
 
                 for (const discount of discounts) {
                     if (
@@ -137,6 +141,20 @@ export class OrdersService {
                     systemConfigVariantId: cartItem.systemConfigVariantId
                 }
             })
+
+            // Apply voucher if provided
+            let finalTotalPrice = totalOrderPrice
+            if (createOrderInput.voucherId) {
+                try {
+                    const { finalPrice } = await this.vouchersService.calculateVoucherDiscount(
+                        createOrderInput.voucherId,
+                        totalOrderPrice
+                    )
+                    finalTotalPrice = finalPrice
+                } catch (error) {
+                    throw new BadRequestException(error.message)
+                }
+            }
 
             // Calculate estimated times based on system config
             const now = new Date()
@@ -170,12 +188,12 @@ export class OrdersService {
                 data: {
                     customerId: userId,
                     status: OrderStatus.PENDING,
-                    totalPrice: totalOrderPrice,
-                    // TODO: get address id from user
-                    addressId: user.addresses[0]?.id,
+                    totalPrice: finalTotalPrice,
+                    addressId: createOrderInput.addressId,
                     shippingPrice: 0,
                     orderDate: now,
                     totalItems: cartItems.length,
+                    voucherId: createOrderInput.voucherId,
                     estimatedCheckQualityAt,
                     estimatedDoneProductionAt,
                     estimatedCompletionAt,
@@ -196,12 +214,22 @@ export class OrdersService {
                 }
             })
 
+            // If voucher was used, create the voucher usage record
+            if (createOrderInput.voucherId) {
+                await this.vouchersService.createVoucherUsage(
+                    createOrderInput.voucherId,
+                    userId,
+                    order.id,
+                    tx
+                )
+            }
+
             // Create payment
             await tx.payment.create({
                 data: {
                     orderId: order.id,
                     customerId: userId,
-                    amount: totalOrderPrice,
+                    amount: finalTotalPrice,
                     type: "DEPOSIT",
                     paymentLog: "Initial deposit payment for order " + order.id,
                     createdAt: now,
@@ -1009,7 +1037,7 @@ export class OrdersService {
                             ? OrderDetailStatus.REWORK_REQUIRED
                             : OrderDetailStatus.DONE_CHECK_QUALITY,
                     rejectedQty: failedQuantity,
-                    completedQty: passedQuantity,
+                    completedQty: passedQuantity
                 }
             })
 
@@ -1215,11 +1243,10 @@ export class OrdersService {
             )
 
             if (exceededReworkLimit) {
-                // Update order status to NEED_MANAGER_HANDLE
                 await tx.order.update({
                     where: { id: orderId },
                     data: {
-                        status: OrderStatus.NEED_MANAGER_HANDLE,
+                        status: OrderStatus.NEED_MANAGER_HANDLE_REWORK,
                         orderProgressReports: {
                             create: {
                                 reportDate: now,
@@ -1237,7 +1264,7 @@ export class OrdersService {
                     roles: ["MANAGER"],
                     url: `/manager/orders/${orderId}`
                 })
-                
+
                 return order
             }
 
@@ -1359,22 +1386,13 @@ export class OrdersService {
             const order = await tx.order.findUnique({
                 where: { id: orderId },
                 include: {
-                    orderDetails: {
-                        where: {
-                            status: OrderDetailStatus.REWORK_REQUIRED
-                        }
-                    },
+                    orderDetails: true,
                     customer: true
                 }
             })
 
             if (!order) {
                 throw new BadRequestException("Order not found")
-            }
-
-
-            if (order.status !== OrderStatus.REWORK_REQUIRED) {
-                throw new BadRequestException("This order is not in REWORK_REQUIRED status")
             }
 
             // Get system config for order
@@ -1923,67 +1941,71 @@ export class OrdersService {
                 tasks: true,
                 customer: true
             }
-        });
+        })
 
         if (!order) {
-            throw new BadRequestException(`Order with ID ${orderId} not found`);
+            throw new BadRequestException(`Order with ID ${orderId} not found`)
         }
 
         if (!order.factoryId) {
-            throw new BadRequestException(`Order with ID ${orderId} does not have an assigned factory`);
+            throw new BadRequestException(
+                `Order with ID ${orderId} does not have an assigned factory`
+            )
         }
 
         // Check if the new staff exists and has the STAFF role
         const newStaff = await this.prisma.user.findUnique({
             where: { id: newStaffId }
-        });
+        })
 
         if (!newStaff) {
-            throw new BadRequestException(`User with ID ${newStaffId} not found`);
+            throw new BadRequestException(`User with ID ${newStaffId} not found`)
         }
 
-        if (newStaff.role !== 'STAFF') {
-            throw new BadRequestException(`User with ID ${newStaffId} is not a staff member`);
+        if (newStaff.role !== "STAFF") {
+            throw new BadRequestException(`User with ID ${newStaffId} is not a staff member`)
         }
 
         // Check if the new staff is already assigned to another factory
         const existingFactory = await this.prisma.factory.findFirst({
             where: { staffId: newStaffId }
-        });
+        })
 
         if (existingFactory && existingFactory.factoryOwnerId !== order.factoryId) {
-            throw new BadRequestException(`Staff with ID ${newStaffId} is already assigned to another factory`);
+            throw new BadRequestException(
+                `Staff with ID ${newStaffId} is already assigned to another factory`
+            )
         }
 
         // Update the factory with the new staff
         await this.prisma.factory.update({
             where: { factoryOwnerId: order.factoryId },
             data: { staffId: newStaffId }
-        });
+        })
 
         // Update all tasks for this order to be assigned to the new staff
         await this.prisma.task.updateMany({
             where: { orderId: orderId },
-            data: { 
+            data: {
                 userId: newStaffId,
                 assignedDate: new Date()
             }
-        });
+        })
 
         // Add a progress report for this change
         await this.addOrderProgressReport(
             orderId,
-            `Staff reassigned to ${newStaff.name || 'new staff member'}`,
+            `Staff reassigned to ${newStaff.name || "new staff member"}`,
             []
-        );
+        )
 
         // Notify the factory owner about the staff reassignment
         await this.notificationsService.create({
             title: "Staff Reassigned",
-            content: `Staff for order #${orderId} has been reassigned to ${newStaff.name || 'a new staff member'}.`,
+            content: `Staff for order #${orderId} has been reassigned to ${newStaff.name || "a new staff member"}.`,
             userId: order.factory.owner.id,
             url: `/factory/orders/${orderId}`
-        });
+        })
 
         // Notify the new staff about their assignment
         await this.notificationsService.create({
@@ -1991,7 +2013,7 @@ export class OrdersService {
             content: `You have been assigned to handle order #${orderId}.`,
             userId: newStaffId,
             url: `/staff/orders/${orderId}`
-        });
+        })
 
         // If there was a previous staff, notify them about being removed
         if (order.factory.staff) {
@@ -2000,11 +2022,11 @@ export class OrdersService {
                 content: `You have been removed from order #${orderId}.`,
                 userId: order.factory.staff.id,
                 url: `/staff/orders`
-            });
+            })
         }
 
         // Return the updated order
-        return this.findOne(orderId);
+        return this.findOne(orderId)
     }
 
     async createRefundForOrder(orderId: string) {
@@ -2016,28 +2038,32 @@ export class OrdersService {
                     payments: true,
                     customer: true
                 }
-            });
+            })
 
             if (!order) {
-                throw new BadRequestException("Order not found");
+                throw new BadRequestException("Order not found")
             }
 
             // Check if order can be refunded (add any business logic here)
-            if (order.status === OrderStatus.WAITING_FOR_REFUND || 
-                order.status === OrderStatus.REFUNDED) {
-                throw new BadRequestException("Order is already in refund process or has been refunded");
+            if (
+                order.status === OrderStatus.WAITING_FOR_REFUND ||
+                order.status === OrderStatus.REFUNDED
+            ) {
+                throw new BadRequestException(
+                    "Order is already in refund process or has been refunded"
+                )
             }
 
             // Calculate total paid amount from previous payments
             const totalPaidAmount = order.payments.reduce((sum, payment) => {
                 if (payment.type === "DEPOSIT" && payment.status === "COMPLETED") {
-                    return sum + payment.amount;
+                    return sum + payment.amount
                 }
-                return sum;
-            }, 0);
+                return sum
+            }, 0)
 
             if (totalPaidAmount <= 0) {
-                throw new BadRequestException("No payment found for refund");
+                throw new BadRequestException("No payment found for refund")
             }
 
             // Create refund payment record
@@ -2051,7 +2077,7 @@ export class OrdersService {
                     createdAt: new Date(),
                     status: "PENDING"
                 }
-            });
+            })
 
             // Update order status
             const updatedOrder = await tx.order.update({
@@ -2066,7 +2092,7 @@ export class OrdersService {
                         }
                     }
                 }
-            });
+            })
 
             // Notify customer about refund initiation
             await this.notificationsService.create({
@@ -2074,7 +2100,7 @@ export class OrdersService {
                 content: `A refund has been initiated for your order #${orderId}. Amount: ${totalPaidAmount}`,
                 userId: order.customerId,
                 url: `/orders/${orderId}`
-            });
+            })
 
             // Notify manager
             await this.notificationsService.createForUsersByRoles({
@@ -2084,15 +2110,27 @@ export class OrdersService {
                 url: `/manager/orders/${orderId}`
             })
 
-            return updatedOrder;
-        });
+            //gift voucher for user base on the voucherBaseValueForRefund in system config order
+            const systemConfigOrder = await this.systemConfigOrderService.findOne()
+
+            if (systemConfigOrder) {
+                await this.vouchersService.createVoucher({
+                    value: systemConfigOrder.voucherBaseValueForRefund,
+                    type: systemConfigOrder.voucherBaseTypeForRefund,
+                    isPublic: false,
+                    minOrderValue: 0,
+                    limitedUsage: 1
+                })
+            }
+            return updatedOrder
+        })
     }
 
     async assignFactoryToOrder(orderId: string, factoryId: string): Promise<OrderEntity> {
         const order = await this.prisma.order.update({
             where: { id: orderId },
             data: { factoryId: factoryId, status: OrderStatus.PENDING_ACCEPTANCE }
-        });
-        return order;
+        })
+        return order
     }
 }

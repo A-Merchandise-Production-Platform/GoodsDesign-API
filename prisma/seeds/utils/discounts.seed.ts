@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client"
 import { createDiscountData } from "../data/system-config-discounts.data"
 
 export async function seedDiscounts(prisma: PrismaClient): Promise<void> {
-    console.log("🌱 Seeding discount configurations...")
+    console.log("Seeding discount configurations...")
 
     // Get all active products
     const products = await prisma.product.findMany({
@@ -34,7 +34,7 @@ export async function seedDiscounts(prisma: PrismaClient): Promise<void> {
                         productId: product.id
                     }
                 })
-                console.log(`✅ Created discount: ${discount.name} for product: ${product.name}`)
+                console.log(`Created discount: ${discount.name} for product: ${product.name}`)
             } else {
                 console.log(
                     `⏩ Discount for product ${product.name} with quantity ${discount.minQuantity} already exists, skipping...`
@@ -43,5 +43,5 @@ export async function seedDiscounts(prisma: PrismaClient): Promise<void> {
         }
     }
 
-    console.log("✅ Discount seeding completed!")
+    console.log("Discount seeding completed!")
 }

@@ -496,31 +496,22 @@ export class DashboardService {
                 stats: {
                     factories: {
                         total: currentFactoriesCount,
-                        change:
-                            factoriesChange > 0
-                                ? `+${factoriesChange}`
-                                : factoriesChange.toString(),
+                        change: factoriesChange,
                         changeType: factoriesChangeType
                     },
                     orders: {
                         active: currentActiveOrders,
-                        change:
-                            ordersChangePercent > 0
-                                ? `+${ordersChangePercent}%`
-                                : `${ordersChangePercent}%`,
+                        change: ordersChangePercent,
                         changeType: ordersChangeType
                     },
                     staff: {
                         total: currentStaffCount,
-                        change: staffChange > 0 ? `+${staffChange}` : staffChange.toString(),
+                        change: staffChange,
                         changeType: staffChangeType
                     },
                     revenue: {
-                        monthly: `$${currentRevenue.toLocaleString()}`,
-                        change:
-                            revenueChangePercent > 0
-                                ? `+${revenueChangePercent}%`
-                                : `${revenueChangePercent}%`,
+                        monthly: currentRevenue,
+                        change: revenueChangePercent,
                         changeType: revenueChangeType
                     }
                 },
@@ -537,50 +528,27 @@ export class DashboardService {
         }
     }
 
-    private getRelativeTimeString(date: Date): string {
-        const now = new Date()
-        const diffInMilliseconds = now.getTime() - date.getTime()
-        const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60))
-        const diffInHours = Math.floor(diffInMilliseconds / (1000 * 60 * 60))
-        const diffInDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24))
-
-        if (diffInMinutes < 60) {
-            return `${diffInMinutes} minute${diffInMinutes !== 1 ? "s" : ""} ago`
-        } else if (diffInHours < 24) {
-            return `${diffInHours} hour${diffInHours !== 1 ? "s" : ""} ago`
-        } else if (diffInDays < 7) {
-            return `${diffInDays} day${diffInDays !== 1 ? "s" : ""} ago`
-        } else {
-            return date.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit"
-            })
-        }
-    }
-
     private getMockDashboardData(): EnhancedManagerDashboardResponse {
         return {
             stats: {
                 factories: {
                     total: 12,
-                    change: "+2",
+                    change: 2,
                     changeType: ChangeType.POSITIVE
                 },
                 orders: {
                     active: 148,
-                    change: "+14%",
+                    change: 14,
                     changeType: ChangeType.POSITIVE
                 },
                 staff: {
                     total: 63,
-                    change: "-2",
+                    change: -2,
                     changeType: ChangeType.NEGATIVE
                 },
                 revenue: {
-                    monthly: "$182,450",
-                    change: "+8.2%",
+                    monthly: 182450,
+                    change: 8.2,
                     changeType: ChangeType.POSITIVE
                 }
             },
@@ -892,8 +860,10 @@ export class DashboardService {
                         isPositive: qualityScorePercentChange >= 0
                     }
                 },
-                revenueData,
-                // Keep these for backward compatibility
+                revenueData: revenueData.map((data) => ({
+                    month: data.month,
+                    revenue: data.revenue
+                })),
                 totalOrders,
                 pendingOrders: currentMonthOrders.filter(
                     (order) =>
@@ -1402,7 +1372,7 @@ export class DashboardService {
                     pendingOrders: {
                         value: pendingOrders,
                         percentChange: pendingOrdersPercentChange,
-                        isPositive: pendingOrdersPercentChange < 0 // Fewer pending orders is positive
+                        isPositive: pendingOrdersPercentChange < 0
                     },
                     deliveredOrders: {
                         value: deliveredOrders,
@@ -1415,10 +1385,13 @@ export class DashboardService {
                     name: factory.name,
                     address: address,
                     status: factory.factoryStatus,
-                    productionCapacity: `${factory.maxPrintingCapacity || 0} units/month`,
-                    leadTime: `${factory.leadTime || 0} days`
+                    productionCapacity: factory.maxPrintingCapacity || 0,
+                    leadTime: factory.leadTime || 0
                 },
-                recentOrders: formattedRecentOrders
+                recentOrders: formattedRecentOrders.map((order) => ({
+                    ...order,
+                    total: order.total || 0
+                }))
             }
         } catch (error) {
             console.error("Error fetching staff dashboard data:", error)
@@ -1451,8 +1424,8 @@ export class DashboardService {
                     name: "Not assigned",
                     address: "N/A",
                     status: "N/A",
-                    productionCapacity: "0 units/month",
-                    leadTime: "0 days"
+                    productionCapacity: 0,
+                    leadTime: 0
                 },
                 recentOrders: []
             }
