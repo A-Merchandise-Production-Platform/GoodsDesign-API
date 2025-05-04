@@ -308,10 +308,6 @@ export class ShippingService {
       orderAddress = address
     }
 
-    // Get province, district, and ward information
-    const province = await this.getProvince(orderAddress.provinceID);
-    const district = await this.getDistrict(orderAddress.districtID);
-    const ward = await this.getWard(orderAddress.wardCode);
 
     // Prepare items for shipping
     const items = order.orderDetails.map(detail => {
@@ -323,10 +319,10 @@ export class ShippingService {
         code: design.id,
         quantity: detail.quantity,
         price: detail.price,
-        length: 12, // Default values if not available
-        width: 12,
-        height: 12,
-        weight: 120,
+        weight: product?.weight || 120,
+        length: product?.length || 70,
+        width: product?.width || 30,
+        height: product?.height || 1,
         category: {
           level1: product?.categoryId || "Áo"
         }
@@ -335,6 +331,45 @@ export class ShippingService {
 
     // Calculate total weight (assuming each item is 1200g)
     const totalWeight = items.reduce((total, item) => total + (item.weight * item.quantity), 0);
+    const totalHeight = items.reduce((total, item) => total + (item.height * item.quantity), 0);
+
+    //get factory address
+    const factory = await this.prisma.factory.findFirst({
+      where: {
+        owner: {
+          id: order.factoryId
+        }
+      }
+    });
+
+    if(!factory) {
+      throw new Error(`Factory with ID ${order.customerId} not found`);
+    }
+    
+    const factoryAddress = await this.prisma.address.findFirst({
+      where: {
+        id: factory.addressId
+      }
+    });
+
+    if(!factoryAddress) {
+      throw new Error(`Factory address with ID ${factory.addressId} not found`);
+    }
+    
+    const fromProvince = await this.getProvince(factoryAddress.provinceID);
+    const fromDistrictName = await this.getDistrict(factoryAddress.districtID);
+    const fromWardName = await this.getWard(factoryAddress.wardCode);
+
+    const totalDimensions = items.reduce((acc, item) => {
+      // For multiple items, we need to consider how they'll be packed
+      // Here we're using a simple approach where we take the maximum dimensions
+      // and multiply length by quantity (assuming items are stacked lengthwise)
+      return {
+        length: Math.max(acc.length, item.length),
+        width: Math.max(acc.width, item.width),
+        height: Math.max(acc.height, item.height * item.quantity)
+      };
+    }, { length: 0, width: 0, height: 0 });
     
     const body = {
       payment_type_id: 2,
@@ -342,10 +377,10 @@ export class ShippingService {
       required_note: "KHONGCHOXEMHANG",
       from_name: "GoodsDesign",
       from_phone: "0981331633",
-      from_address: "72 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Vietnam", 
-      from_ward_name: "Phường 14",
-      from_district_name: "Quận 10",
-      from_province_name: "HCM",
+      from_address: factoryAddress.formattedAddress,
+      from_ward_name: fromWardName.wardName,
+      from_district_name: fromDistrictName.districtName,
+      from_province_name: fromProvince.provinceName,
       return_phone: "0332190444",
       return_address: "39 NTT",
       return_district_id: null,
@@ -353,22 +388,22 @@ export class ShippingService {
       client_order_code: order.id,
       to_name: customer.name || "Khách hàng",
       to_phone: customer.phoneNumber || "0902331633",
-      to_address: orderAddress.street,
-      to_ward_code: ward.wardCode,
-      to_district_id: district.districtId,
+      to_address: orderAddress.formattedAddress,
+      to_ward_code: orderAddress.wardCode,
+      to_district_id: orderAddress.districtID,
       cod_amount: 0,
       content: `Đơn hàng #${order.id} từ GoodsDesign`,
       weight: totalWeight,
-      length: 1,
-      width: 19,
-      height: 10,
+      length: totalDimensions.length > 150 ? 150 : totalDimensions.length,
+      width: totalDimensions.width > 150 ? 150 : totalDimensions.width,
+      height: totalDimensions.height > 150 ? 150 : totalDimensions.height,
       pick_station_id: 1444,
       deliver_station_id: null,
-      insurance_value: order.totalPrice,
+      insurance_value: 0,
       service_id: 0,
       service_type_id: 2,
       coupon: null,
-      pick_shift: [2],
+      pick_shift: [1],
       items: items
     };
 
@@ -403,7 +438,7 @@ export class ShippingService {
     };
   }
 
-  async calculateShippingCostAndFactoryForCart(cartIds: string[], addressId: string): Promise<{
+  async calculateShippingCostAndFactoryForCart(cartIds: string[] = [], addressId: string): Promise<{
     shippingFee: ShippingFee;
     selectedFactory: FactoryEntity | null;
   }> {
@@ -457,41 +492,45 @@ export class ShippingService {
         throw new Error('No suitable factory found for the cart items');
       }
 
-      // Get factory address
-      const factoryAddress = await this.prisma.address.findFirst({
-        where: {
-          factoryId: selectedFactory.factoryOwnerId
-        }
-      });
+      const factoryAddress = selectedFactory.address
 
       if (!factoryAddress) {
         throw new Error('Factory address not found');
       }
 
-      // Get province, district, and ward information for both addresses
-      const fromProvince = await this.getProvince(factoryAddress.provinceID);
       const fromDistrict = await this.getDistrict(factoryAddress.districtID);
       const fromWard = await this.getWard(factoryAddress.wardCode);
 
-      const toProvince = await this.getProvince(shippingAddress.provinceID);
       const toDistrict = await this.getDistrict(shippingAddress.districtID);
       const toWard = await this.getWard(shippingAddress.wardCode);
 
       // Calculate total weight and dimensions
-      const items = cartItems.map(item => {
+      const items = cartItems?.map(item => {
         const design = item.design;
         const product = design.designPositions[0]?.positionType?.product;
         
         return {
           quantity: item.quantity,
-          weight: product?.weight || 120, // Default weight if not available
-          length: 12, // Default dimensions
-          width: 12,
-          height: 12
+          weight: product?.weight || 120,
+          length: product?.length || 70,
+          width: product?.width || 30,
+          height: product?.height || 1
         };
       });
 
       const totalWeight = items.reduce((total, item) => total + (item.weight * item.quantity), 0);
+
+      // Calculate total dimensions
+      const totalDimensions = items.reduce((acc, item) => {
+        // For multiple items, we need to consider how they'll be packed
+        // Here we're using a simple approach where we take the maximum dimensions
+        // and multiply length by quantity (assuming items are stacked lengthwise)
+        return {
+          length: Math.max(acc.length, item.length),
+          width: Math.max(acc.width, item.width),
+          height: Math.max(acc.height, item.height * item.quantity)
+        };
+      }, { length: 0, width: 0, height: 0 });
 
       // Get available shipping services
       const availableServices = await this.getAvailableServices(
@@ -506,6 +545,8 @@ export class ShippingService {
       // Use the first available service
       const selectedService = availableServices[0];
 
+      console.log("totalDimensions", totalDimensions)
+
       // Calculate shipping fee
       const shippingFee = await this.calculateShippingFee({
         serviceId: selectedService.serviceId,
@@ -515,9 +556,9 @@ export class ShippingService {
         toDistrictId: toDistrict.districtId,
         toWardCode: toWard.wardCode,
         weight: totalWeight,
-        length: 12,
-        width: 12,
-        height: 12
+        length: totalDimensions.length,
+        width: totalDimensions.width,
+        height: totalDimensions.height
       });
 
       return {

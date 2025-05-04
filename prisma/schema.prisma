@@ -94,6 +94,9 @@ model Product {
   imageUrl    String?
   model3DUrl  String?
   weight      Int?
+  length      Float?    @default(70)
+  width       Float?    @default(30)
+  height      Float?    @default(1)
   isActive    Boolean   @default(true)
   isDeleted   Boolean   @default(false)
   createdAt   DateTime  @default(now())

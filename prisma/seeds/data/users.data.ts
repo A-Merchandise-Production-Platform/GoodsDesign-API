@@ -138,7 +138,7 @@ export const usersData: UsersData = {
         {
             id: "factory-id-1",
             email: "factory1@gmail.com",
-            name: "Factory",
+            name: "Factory 1",
             phoneNumber: "0902331633",
             gender: true,
             dateOfBirth: "1990-01-01",

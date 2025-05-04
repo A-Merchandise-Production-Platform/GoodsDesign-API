@@ -5,6 +5,9 @@ export interface DistrictResponse {
 }
 
 export function formatDistricts(districts: DistrictResponse[]) {
+  if(!districts) {
+    return []
+  }
   return districts.map(district => ({
     districtId: district.DistrictID,
     districtName: district.DistrictName,

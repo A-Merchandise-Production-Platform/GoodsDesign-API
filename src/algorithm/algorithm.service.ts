@@ -52,7 +52,8 @@ export class AlgorithmService {
                                 in: variantIds
                             }
                         }
-                    }
+                    },
+                    address: true
                 }
             });
 

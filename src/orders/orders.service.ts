@@ -1176,10 +1176,6 @@ export class OrdersService {
                         }
                     })
 
-                    // Create shipping third party task
-                    await this.shippingService.createShippingOrder(
-                        checkQuality.orderDetail.order.id
-                    )
                     // Notify factory about shipping preparation
                     await this.notificationsService.create({
                         title: "Ready for Shipping",
@@ -1891,6 +1887,17 @@ export class OrdersService {
                 },
                 data: { status: OrderDetailStatus.SHIPPING }
             })
+
+            
+            try{
+                // Create shipping third party task
+                await this.shippingService.createShippingOrder(
+                    orderId
+                )
+            } catch (error) {
+                console.log("Third party shipping error", error)
+                throw new BadRequestException("Third party shipping error: " + error.message)
+            }
 
             // Notify factory about shipping status
             await this.notificationsService.create({
