@@ -2,7 +2,7 @@ import { PrismaClient, VoucherType } from "@prisma/client"
 import { vouchersData } from "../data/vouchers.data"
 
 export const seedVouchers = async (prisma: PrismaClient) => {
-    console.log(" Seeding vouchers...")
+    console.log("Seeding vouchers...")
 
     const vouchers = []
 
