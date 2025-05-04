@@ -25,6 +25,9 @@ export class VoucherEntity {
     @Field(() => Int, { nullable: true })
     minOrderValue?: number
 
+    @Field(() => Int, { nullable: true })
+    maxDiscountValue?: number
+
     @Field(() => String, { nullable: true })
     description?: string
 

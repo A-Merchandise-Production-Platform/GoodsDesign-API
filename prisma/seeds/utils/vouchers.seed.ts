@@ -28,6 +28,7 @@ export const seedVouchers = async (prisma: PrismaClient) => {
                 type: voucherData.type as VoucherType,
                 value: voucherData.value,
                 minOrderValue: voucherData.minOrderValue,
+                maxDiscountValue: voucherData.maxDiscountValue,
                 description: voucherData.description,
                 isPublic: voucherData.isPublic,
                 limitedUsage: voucherData.limitedUsage,

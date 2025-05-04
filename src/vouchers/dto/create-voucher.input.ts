@@ -23,6 +23,11 @@ export class CreateVoucherInput {
     @IsNumber()
     minOrderValue?: number
 
+    @Field(() => Int, { nullable: true })
+    @IsOptional()
+    @IsNumber()
+    maxDiscountValue?: number
+
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()

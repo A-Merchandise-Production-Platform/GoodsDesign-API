@@ -63,6 +63,7 @@ model Address {
   street     String
   userId     String
   factoryId  String?
+  formattedAddress String?
 
   user    User     @relation(fields: [userId], references: [id])
   factory Factory?
@@ -619,6 +620,7 @@ model Voucher {
   type            VoucherType
   value           Int      
   minOrderValue   Int?        
+  maxDiscountValue Int?       
   description     String?
   isPublic        Boolean     @default(false)
   limitedUsage    Int?

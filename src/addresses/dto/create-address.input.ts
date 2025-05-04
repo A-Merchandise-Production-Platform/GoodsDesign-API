@@ -27,5 +27,10 @@ export class CreateAddressInput {
     @Field(() => String, { nullable: true })
     @IsString()
     @IsOptional()
+    formattedAddress?: string
+
+    @Field(() => String, { nullable: true })
+    @IsString()
+    @IsOptional()
     factoryId?: string
 }

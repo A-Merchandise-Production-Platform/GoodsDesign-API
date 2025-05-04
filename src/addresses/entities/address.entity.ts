@@ -22,8 +22,11 @@ export class AddressEntity {
     @Field(() => String)
     userId: string
 
-    @Field(() => String)
-    factoryId: string
+    @Field(() => String, { nullable: true })
+    factoryId?: string
+
+    @Field(() => String, { nullable: true })
+    formattedAddress?: string
 
     @Field(() => UserEntity, { nullable: true })
     user?: UserEntity

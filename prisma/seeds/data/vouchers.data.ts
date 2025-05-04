@@ -8,6 +8,7 @@ export const vouchersData = {
             type: VoucherType.PERCENTAGE,
             value: 10,
             minOrderValue: 100000,
+            maxDiscountValue: 50000,
             description: "Welcome discount for new customers",
             isPublic: true,
             limitedUsage: 1000,
@@ -32,10 +33,10 @@ export const vouchersData = {
             type: VoucherType.PERCENTAGE,
             value: 20,
             minOrderValue: 200000,
+            maxDiscountValue: 100000,
             description: "Special discount for VIP customers",
             isPublic: false,
             limitedUsage: 1,
-
             isActive: true,
             userId: "customer001" // User-specific voucher
         },
@@ -57,6 +58,7 @@ export const vouchersData = {
             type: VoucherType.PERCENTAGE,
             value: 15,
             minOrderValue: 150000,
+            maxDiscountValue: 75000,
             description: "Birthday special discount",
             isPublic: false,
             limitedUsage: 1,
@@ -70,10 +72,10 @@ export const vouchersData = {
             type: VoucherType.PERCENTAGE,
             value: 25,
             minOrderValue: 400000,
+            maxDiscountValue: 200000,
             description: "Flash sale discount",
             isPublic: true,
             limitedUsage: 100,
-
             isActive: true,
             userId: null // Public voucher
         },
@@ -83,6 +85,7 @@ export const vouchersData = {
             type: VoucherType.PERCENTAGE,
             value: 30,
             minOrderValue: 1000000,
+            maxDiscountValue: 500000,
             description: "Loyalty reward for frequent customers",
             isPublic: false,
             limitedUsage: 1,

@@ -146,10 +146,11 @@ export class OrdersService {
             let finalTotalPrice = totalOrderPrice
             if (createOrderInput.voucherId) {
                 try {
-                    finalTotalPrice = await this.vouchersService.calculateVoucherDiscount(
+                    const { finalPrice } = await this.vouchersService.calculateVoucherDiscount(
                         createOrderInput.voucherId,
                         totalOrderPrice
                     )
+                    finalTotalPrice = finalPrice
                 } catch (error) {
                     throw new BadRequestException(error.message)
                 }
@@ -188,8 +189,7 @@ export class OrdersService {
                     customerId: userId,
                     status: OrderStatus.PENDING,
                     totalPrice: finalTotalPrice,
-                    // TODO: get address id from user
-                    addressId: user.addresses[0]?.id,
+                    addressId: createOrderInput.addressId,
                     shippingPrice: 0,
                     orderDate: now,
                     totalItems: cartItems.length,
@@ -219,7 +219,8 @@ export class OrdersService {
                 await this.vouchersService.createVoucherUsage(
                     createOrderInput.voucherId,
                     userId,
-                    order.id
+                    order.id,
+                    tx
                 )
             }
 

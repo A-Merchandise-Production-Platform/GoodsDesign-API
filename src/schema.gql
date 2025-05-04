@@ -11,7 +11,8 @@ input AddOrderProgressReportInput {
 type AddressEntity {
   districtID: Float!
   factory: FactoryEntity
-  factoryId: String!
+  factoryId: String
+  formattedAddress: String
   id: String!
   provinceID: Float!
   street: String!
@@ -115,6 +116,7 @@ type CheckQualityEntity {
 input CreateAddressInput {
   districtID: Float!
   factoryId: String
+  formattedAddress: String
   provinceID: Float!
   street: String!
   wardCode: String!
@@ -233,6 +235,7 @@ input CreateVoucherInput {
   description: String
   isPublic: Boolean! = false
   limitedUsage: Int
+  maxDiscountValue: Int
   minOrderValue: Int
   type: VoucherType!
   userId: String
@@ -601,6 +604,7 @@ type Mutation {
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateFactoryProduct(data: UpdateFactoryProductInput!, factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
   updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransactionEntity!
+  updatePhoneNumber(updatePhoneNumberInput: UpdatePhoneNumberDto!): UserEntity!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
@@ -1125,6 +1129,7 @@ enum TransactionType {
 input UpdateAddressInput {
   districtID: Float
   factoryId: String
+  formattedAddress: String
   provinceID: Float
   street: String
   wardCode: String
@@ -1189,6 +1194,10 @@ input UpdatePaymentTransactionInput {
   status: TransactionStatus
   transactionLog: String
   type: TransactionType
+}
+
+input UpdatePhoneNumberDto {
+  phoneNumber: String!
 }
 
 input UpdateProductDesignDto {
@@ -1343,6 +1352,7 @@ type VoucherEntity {
   isDeleted: Boolean!
   isPublic: Boolean!
   limitedUsage: Int
+  maxDiscountValue: Int
   minOrderValue: Int
   type: VoucherType!
   updatedAt: DateTime
