@@ -2128,7 +2128,9 @@ export class OrdersService {
                     type: systemConfigOrder.voucherBaseTypeForRefund,
                     isPublic: false,
                     minOrderValue: 0,
-                    limitedUsage: 1
+                    limitedUsage: 1,
+                    userId: order.customerId,
+                    description: `Voucher for refund order ${orderId}`
                 })
             }
             return updatedOrder
