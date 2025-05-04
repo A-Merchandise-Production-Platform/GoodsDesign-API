@@ -1,6 +1,7 @@
+import { NotificationsService } from '@/notifications/notifications.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { FactoryStatus, OrderStatus, PaymentStatus, TaskStatus, TaskType, OrderDetailStatus } from '@prisma/client';
+import { FactoryStatus, OrderStatus, PaymentStatus, TaskStatus, TaskType, OrderDetailStatus, Roles } from '@prisma/client';
 import { FactoryProductEntity } from 'src/factory-products/entities/factory-product.entity';
 import { FactoryEntity } from 'src/factory/entities/factory.entity';
 import { FactoryService } from 'src/factory/factory.service';
@@ -16,6 +17,7 @@ export class CronService {
     private prisma: PrismaService,
     private paymentTransactionService: PaymentTransactionService,
     private factoryService: FactoryService,
+    private notificationsService: NotificationsService
   ) {}
 
   @Cron(CronExpression.EVERY_MINUTE, {
@@ -119,6 +121,14 @@ export class CronService {
         for (const order of orders) {
             // Check if order has been rejected too many times
             if (order.rejectedHistory.length >= systemConfig.limitFactoryRejectOrders) {
+              // noti for manager
+              await this.notificationsService.createForUsersByRoles({
+                title: "Order Rejected",
+                content: `Order #${order.id} has been rejected ${order.rejectedHistory.length} times. Manual assignment required.`,
+                roles: [Roles.MANAGER],
+                url: `/manager/orders/${order.id}`
+              })
+
                 // Update order status to NEED_MANAGER_HANDLE
                 await this.prisma.order.update({
                     where: { id: order.id },

@@ -4,9 +4,10 @@ import { PrismaModule } from 'src/prisma';
 import { CronService } from './cron.service';
 import { PaymentTransactionModule } from 'src/payment-transaction/payment-transaction.module';
 import { FactoryModule } from 'src/factory/factory.module';
+import { NotificationsModule } from '@/notifications/notifications.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), PrismaModule, PaymentTransactionModule, FactoryModule],
+  imports: [ScheduleModule.forRoot(), PrismaModule, PaymentTransactionModule, FactoryModule, NotificationsModule],
   providers: [CronService],
 })
 export class CronModule {}

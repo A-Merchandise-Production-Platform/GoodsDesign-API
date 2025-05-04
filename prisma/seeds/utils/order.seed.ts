@@ -5,7 +5,9 @@ import {
     QualityCheckStatus,
     SystemConfigOrderType,
     TaskStatus,
-    TaskType
+    TaskType,
+    TransactionType,
+    PaymentType
 } from "@prisma/client"
 import { addDays } from "date-fns"
 import { usersData } from "../data/users.data"
@@ -166,10 +168,24 @@ export async function seedOrders(prisma: PrismaClient) {
                     {
                         customerId: customer.id,
                         amount: totalPrice,
-                        type: "DEPOSIT",
+                        type: PaymentType.DEPOSIT,
                         paymentLog: "Initial deposit via VNPay",
                         createdAt: addDays(now, -21),
-                        status: "COMPLETED"
+                        status: "COMPLETED",
+                        transactions: {
+                            create: [
+                                {
+                                    amount: totalPrice,
+                                    status: "COMPLETED",
+                                    paymentMethod: "VNPAY",
+                                    paymentGatewayTransactionId: "1234567890",
+                                    transactionLog: "Payment received via VNPay",
+                                    createdAt: addDays(now, -21),
+                                    customerId: customer.id,
+                                    type: TransactionType.PAYMENT
+                                }
+                            ]
+                        }
                     }
                 ]
             },
@@ -260,10 +276,24 @@ export async function seedOrders(prisma: PrismaClient) {
                 create: {
                     customerId: customer.id,
                     amount: rejectedOrderPrice * 6,
-                    type: "DEPOSIT",
+                    type: PaymentType.DEPOSIT,
                     paymentLog: "Payment received via VNPay",
                     createdAt: addDays(now, -4),
-                    status: "COMPLETED"
+                    status: "COMPLETED",
+                    transactions: {
+                        create: [
+                            {
+                                amount: rejectedOrderPrice * 6,
+                                status: "COMPLETED",
+                                paymentMethod: "VNPAY",
+                                paymentGatewayTransactionId: "1234567891",
+                                transactionLog: "Payment received via VNPay",
+                                createdAt: addDays(now, -4),
+                                customerId: customer.id,
+                                type: TransactionType.PAYMENT
+                            }
+                        ]
+                    }
                 }
             },
             orderProgressReports: {

@@ -28,6 +28,7 @@ export const seedUsers = async (prisma: PrismaClient) => {
                 addresses: {
                     create: [
                         {
+                            formattedAddress: userData.address.formattedAddress,
                             provinceID: userData.address.provinceID,
                             districtID: userData.address.districtID,
                             wardCode: userData.address.wardCode,
