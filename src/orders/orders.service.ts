@@ -264,6 +264,14 @@ export class OrdersService {
                 })
             }
 
+            //noti for customer
+            await this.notificationsService.create({
+                title: "Order Created",
+                content: `Order #${order.id} has been created.`,
+                userId: order.customerId,
+                url: `/my-order/${order.id}`
+            })
+
             // Remove the ordered items from the cart
             await tx.cartItem.deleteMany({
                 where: {

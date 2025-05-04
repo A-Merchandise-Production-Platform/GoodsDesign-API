@@ -56,7 +56,7 @@ export const factoriesData = [
           }
     },
     {
-        factoryOwnerId: "factory-id-2",
+        factoryOwnerId: "factory-id-1",
         name: "Textile Express",
         description: "Fast and reliable textile printing factory specializing in custom apparel",
         businessLicenseUrl:
@@ -104,7 +104,7 @@ export const factoriesData = [
         }
     },
     {
-        factoryOwnerId: "factory-id-3",
+        factoryOwnerId: "factory-id-2",
         name: "Premium Prints Co.",
         description: "High-end printing solutions with focus on quality and innovation",
         businessLicenseUrl:
