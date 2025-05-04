@@ -92,9 +92,9 @@ export class PaymentGatewayService {
         // Notify customer about payment
         await this.notificationsService.create({
             title: "Payment Required",
-            content: `Please make a payment for order #${orderCode}`,
+            content: `Please make a payment for order #${payment.orderId}`,
             userId: payment.customerId,
-            url: `/orders/${orderCode}`
+            url: `/my-order/${payment.orderId}`
         })
 
         return checkoutResponse.checkoutUrl
@@ -210,9 +210,9 @@ export class PaymentGatewayService {
         // Notify customer about payment
         await this.notificationsService.create({
             title: "Payment Required",
-            content: `Please make a payment for order #${orderId}`,
+            content: `Please make a payment for order #${payment.orderId}`,
             userId: payment.customerId,
-            url: `/orders/${orderId}`
+            url: `/my-order/${payment.orderId}`
         })  
 
         return url
@@ -273,12 +273,17 @@ export class PaymentGatewayService {
             })
         }
 
+        //get payment
+        const payment = await this.prisma.payment.findFirst({
+            where: { id: paymentTransaction.paymentId }
+        })
+
         // Notify customer about payment
         await this.notificationsService.create({
             title: "Payment Required",
-            content: `Please make a payment for order #${paymentTransaction.id}`,
+            content: `Please make a payment for order #${payment.orderId}`,
             userId: paymentTransaction.customerId,
-            url: `/orders/${paymentTransaction.id}`
+            url: `/my-order/${payment.orderId}`
         })
 
         return {
@@ -360,12 +365,17 @@ export class PaymentGatewayService {
                 })
             }
 
+            //get payment 
+            const paymentOrder = await this.prisma.payment.findFirst({
+                where: { id: payment.paymentId }
+            })
+
             // Notify customer about payment
             await this.notificationsService.create({
                 title: "Payment Required",
-                content: `Please make a payment for order #${payment.id}`,
+                content: `Please make a payment for order #${paymentOrder.orderId}`,
                 userId: payment.customerId,
-                url: `/orders/${payment.id}`
+                url: `/my-order/${paymentOrder.orderId}`
             })
 
             return { RspCode: "00", Message: "success" }
@@ -429,7 +439,7 @@ export class PaymentGatewayService {
             title: "Withdrawal Completed",
             content: `Your withdrawal of ${payment.amount} has been processed successfully.`,
             userId: payment.customerId,
-            url: `/payments/${payment.id}`
+            url: `/my-order/${payment.orderId}`
         })
 
         // Send confirmation email

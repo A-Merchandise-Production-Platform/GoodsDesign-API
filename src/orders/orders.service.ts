@@ -264,6 +264,14 @@ export class OrdersService {
                 })
             }
 
+            //noti for customer
+            await this.notificationsService.create({
+                title: "Order Created",
+                content: `Order #${order.id} has been created.`,
+                userId: order.customerId,
+                url: `/my-order/${order.id}`
+            })
+
             // Remove the ordered items from the cart
             await tx.cartItem.deleteMany({
                 where: {
@@ -701,7 +709,7 @@ export class OrdersService {
                 title: "Order Accepted",
                 content: `Your order #${orderId} has been accepted by the factory and production has started.`,
                 userId: order.customer.id,
-                url: `/orders/${orderId}`
+                url: `/my-order/${orderId}`
             })
 
             // Notify factory staff about new task
@@ -797,7 +805,7 @@ export class OrdersService {
                 title: "Order Rejected",
                 content: `Your order #${orderId} has been rejected by the factory. Reason: ${reason}`,
                 userId: order.customer.id,
-                url: `/orders/${orderId}`
+                url: `/my-order/${orderId}`
             })
 
             // Notify factory owner about legitimacy point deduction
@@ -924,7 +932,7 @@ export class OrdersService {
                     title: "Production Completed",
                     content: `Production for your order #${orderDetail.order.id} has been completed. Quality check is in progress.`,
                     userId: orderDetail.order.customer.id,
-                    url: `/orders/${orderDetail.order.id}`
+                    url: `/my-order/${orderDetail.order.id}`
                 })
             }
 
@@ -1130,7 +1138,7 @@ export class OrdersService {
                         title: "Quality Check Results",
                         content: `Some items in your order #${checkQuality.orderDetail.order.id} failed quality check. The factory will perform rework.`,
                         userId: checkQuality.orderDetail.order.customer.id,
-                        url: `/orders/${checkQuality.orderDetail.order.id}`
+                        url: `/my-order/${checkQuality.orderDetail.order.id}`
                     })
                 } else {
                     // Update all order details to READY_FOR_SHIPPING
@@ -1179,7 +1187,7 @@ export class OrdersService {
                         title: "Quality Check Completed",
                         content: `All items in your order #${checkQuality.orderDetail.order.id} have passed quality check and are ready for shipping.`,
                         userId: checkQuality.orderDetail.order.customer.id,
-                        url: `/orders/${checkQuality.orderDetail.order.id}`
+                        url: `/my-order/${checkQuality.orderDetail.order.id}`
                     })
                 }
             }
@@ -1243,11 +1251,10 @@ export class OrdersService {
             )
 
             if (exceededReworkLimit) {
-                // Update order status to NEED_MANAGER_HANDLE
                 await tx.order.update({
                     where: { id: orderId },
                     data: {
-                        status: OrderStatus.NEED_MANAGER_HANDLE,
+                        status: OrderStatus.NEED_MANAGER_HANDLE_REWORK,
                         orderProgressReports: {
                             create: {
                                 reportDate: now,
@@ -1372,7 +1379,7 @@ export class OrdersService {
                 title: "Rework Started",
                 content: `The factory has started reworking your order #${orderId}.`,
                 userId: order.customer.id,
-                url: `/orders/${orderId}`
+                url: `/my-order/${orderId}`
             })
 
             return order
@@ -1387,21 +1394,13 @@ export class OrdersService {
             const order = await tx.order.findUnique({
                 where: { id: orderId },
                 include: {
-                    orderDetails: {
-                        where: {
-                            status: OrderDetailStatus.REWORK_REQUIRED
-                        }
-                    },
+                    orderDetails: true,
                     customer: true
                 }
             })
 
             if (!order) {
                 throw new BadRequestException("Order not found")
-            }
-
-            if (order.status !== OrderStatus.REWORK_REQUIRED) {
-                throw new BadRequestException("This order is not in REWORK_REQUIRED status")
             }
 
             // Get system config for order
@@ -1516,7 +1515,7 @@ export class OrdersService {
                 title: "Rework Started",
                 content: `The factory has started reworking your order #${orderId}.`,
                 userId: order.customer.id,
-                url: `/orders/${orderId}`
+                url: `/my-order/${orderId}`
             })
 
             return order
@@ -1631,7 +1630,7 @@ export class OrdersService {
                     title: "Rework Completed",
                     content: `The factory has completed reworking your order #${orderDetail.order.id}. Quality check is in progress.`,
                     userId: orderDetail.order.customer.id,
-                    url: `/orders/${orderDetail.order.id}`
+                    url: `/my-order/${orderDetail.order.id}`
                 })
             }
 
@@ -1696,7 +1695,7 @@ export class OrdersService {
                 title: "Order Shipped",
                 content: `Your order #${orderId} has been shipped and is on its way to you.`,
                 userId: order.customer.id,
-                url: `/orders/${orderId}`
+                url: `/my-order/${orderId}`
             })
 
             return updatedOrder
@@ -1900,7 +1899,7 @@ export class OrdersService {
                 title: "Order Being Shipped",
                 content: `Your order #${orderId} is being prepared for shipping.`,
                 userId: order.customer.id,
-                url: `/orders/${orderId}`
+                url: `/my-order/${orderId}`
             })
 
             return updatedOrder
@@ -2021,7 +2020,7 @@ export class OrdersService {
             title: "New Order Assignment",
             content: `You have been assigned to handle order #${orderId}.`,
             userId: newStaffId,
-            url: `/staff/orders/${orderId}`
+            url: `/staff/tasks/${orderId}`
         })
 
         // If there was a previous staff, notify them about being removed
@@ -2030,7 +2029,7 @@ export class OrdersService {
                 title: "Order Reassignment",
                 content: `You have been removed from order #${orderId}.`,
                 userId: order.factory.staff.id,
-                url: `/staff/orders`
+                url: `/staff/tasks`
             })
         }
 
@@ -2108,7 +2107,7 @@ export class OrdersService {
                 title: "Refund Initiated",
                 content: `A refund has been initiated for your order #${orderId}. Amount: ${totalPaidAmount}`,
                 userId: order.customerId,
-                url: `/orders/${orderId}`
+                url: `/my-order/${orderId}`
             })
 
             // Notify manager

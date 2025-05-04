@@ -16,29 +16,35 @@ export async function seedFactories(prisma: PrismaClient) {
             continue
         }
 
-        // Create address first
-        const address = await prisma.address.create({
-            data: {
-                provinceID: 202,
-                districtID: 1533,
-                wardCode: "22003",
-                street: factory.address,
-                userId: user.id
-            }
-        })
-
         await prisma.factory.upsert({
             where: {
                 factoryOwnerId: user.id
             },
             update: {},
             create: {
-                factoryOwnerId: user.id,
+                owner: {
+                    connect: {
+                        id: user.id
+                    }
+                },
                 name: factory.name,
                 description: factory.description,
                 businessLicenseUrl: factory.businessLicenseUrl,
                 taxIdentificationNumber: factory.taxIdentificationNumber,
-                addressId: address.id,
+                address: {
+                    create: {
+                        formattedAddress: factory.address.formattedAddress,
+                        provinceID: factory.address.provinceID,
+                        districtID: factory.address.districtID,
+                        wardCode: factory.address.wardCode,
+                        street: factory.address.street,
+                        user: {
+                            connect: {
+                                id: user.id
+                            }
+                        }
+                    }
+                },
                 website: factory.website,
                 establishedDate: new Date(factory.yearEstablished, 0, 1),
                 maxPrintingCapacity: factory.maxPrintingCapacity,
@@ -59,7 +65,11 @@ export async function seedFactories(prisma: PrismaClient) {
                 reviewedBy: factory.reviewedBy,
                 reviewedAt: factory.reviewedAt,
                 contractUrl: factory.contractUrl,
-                staffId: factory?.staffId || null
+                staff: factory?.staffId ? {
+                    connect: {
+                        id: factory.staffId
+                    }
+                } : undefined
             }
         })
     }

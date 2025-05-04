@@ -363,6 +363,7 @@ enum OrderStatus {
   
   // Trạng thái phân công
   NEED_MANAGER_HANDLE
+  NEED_MANAGER_HANDLE_REWORK
   PENDING_ACCEPTANCE
   REJECTED                        // Bị từ chối bởi nhà máy
 
