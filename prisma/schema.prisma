@@ -52,6 +52,7 @@ model User {
   vouchers       Voucher[]
   ownedFactory   Factory?             @relation("FactoryOwner")
   staffedFactory Factory?             @relation("FactoryStaff")
+  voucherUsages  VoucherUsage[]
 }
 
 model Address {
@@ -62,6 +63,7 @@ model Address {
   street     String
   userId     String
   factoryId  String?
+  formattedAddress String?
 
   user    User     @relation(fields: [userId], references: [id])
   factory Factory?
@@ -455,6 +457,7 @@ model Order {
   orderProgressReports OrderProgressReport[]
   tasks           Task[]
   rejectedHistory RejectedOrder[]
+  voucherUsages   VoucherUsage[]
 }
 
 model OrderDetail {
@@ -590,6 +593,10 @@ model SystemConfigOrder {
   specializationScoreWeight Float @default(0.15)
   legitPointScoreWeight Float @default(0.25)
   productionCapacityScoreWeight Float @default(0.2)
+
+  // Voucher base value for refund
+  voucherBaseValueForRefund Int @default(20000)
+  voucherBaseTypeForRefund VoucherType @default(FIXED_VALUE)
 }
 
 model UserBank {
@@ -611,17 +618,33 @@ model Voucher {
   id              String      @id @default(uuid())
   code            String      @unique
   type            VoucherType
-  value           Float       // Amount or percentage based on type
-  minOrderValue   Int?        // Minimum order value to apply voucher
-  startDate       DateTime
-  endDate         DateTime
+  value           Int      
+  minOrderValue   Int?        
+  maxDiscountValue Int?       
+  description     String?
+  isPublic        Boolean     @default(false)
+  limitedUsage    Int?
   isActive        Boolean     @default(true)
   isDeleted       Boolean     @default(false)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime?   @updatedAt
-  userId          String      // Voucher belongs to a specific user
-  usedAt          DateTime?   // When the voucher was used
+  userId          String?     
   
-  user            User        @relation(fields: [userId], references: [id])
-  order           Order?      // One voucher can be used for one order only
+  user            User?        @relation(fields: [userId], references: [id])
+  order           Order?      
+  usages          VoucherUsage[]
+}
+
+model VoucherUsage {
+  id        String   @id @default(uuid())
+  voucherId String
+  userId    String
+  usedAt    DateTime @default(now())
+  orderId   String
+
+  voucher   Voucher @relation(fields: [voucherId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id])
+
+  @@unique([voucherId, userId]) 
 }

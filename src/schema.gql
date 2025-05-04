@@ -11,7 +11,8 @@ input AddOrderProgressReportInput {
 type AddressEntity {
   districtID: Float!
   factory: FactoryEntity
-  factoryId: String!
+  factoryId: String
+  formattedAddress: String
   id: String!
   provinceID: Float!
   street: String!
@@ -115,6 +116,7 @@ type CheckQualityEntity {
 input CreateAddressInput {
   districtID: Float!
   factoryId: String
+  formattedAddress: String
   provinceID: Float!
   street: String!
   wardCode: String!
@@ -145,7 +147,9 @@ input CreateOrderDetailInput {
 }
 
 input CreateOrderInput {
+  addressId: String!
   orderDetails: [CreateOrderDetailInput!]!
+  voucherId: String
 }
 
 input CreatePaymentTransactionInput {
@@ -227,24 +231,15 @@ input CreateUserDto {
   role: String
 }
 
-input CreateVoucherForUserInput {
-  code: String
-  endDate: DateTime!
-  minOrderValue: Int
-  startDate: DateTime!
-  type: VoucherType!
-  userId: String!
-  value: Float!
-}
-
 input CreateVoucherInput {
-  code: String!
-  endDate: DateTime!
+  description: String
+  isPublic: Boolean! = false
+  limitedUsage: Int
+  maxDiscountValue: Int
   minOrderValue: Int
-  startDate: DateTime!
   type: VoucherType!
-  userId: String!
-  value: Float!
+  userId: String
+  value: Int!
 }
 
 type CustomerInfo {
@@ -302,7 +297,7 @@ type EnhancedFactoryPerformance {
 }
 
 type EnhancedFactoryStats {
-  change: String!
+  change: Int!
   changeType: ChangeType!
   total: Int!
 }
@@ -315,18 +310,18 @@ type EnhancedManagerDashboardResponse {
 
 type EnhancedOrderStats {
   active: Int!
-  change: String!
+  change: Int!
   changeType: ChangeType!
 }
 
 type EnhancedRevenueStats {
-  change: String!
+  change: Int!
   changeType: ChangeType!
-  monthly: String!
+  monthly: Int!
 }
 
 type EnhancedStaffStats {
-  change: String!
+  change: Int!
   changeType: ChangeType!
   total: Int!
 }
@@ -360,9 +355,9 @@ type FactoryDetailDashboardResponse {
 type FactoryDetails {
   address: String!
   id: String!
-  leadTime: String!
+  leadTime: Int!
   name: String!
-  productionCapacity: String!
+  productionCapacity: Int!
   status: String!
 }
 
@@ -500,11 +495,6 @@ input GetAvailableServicesDto {
   toDistrict: Int!
 }
 
-input GetUserVouchersInput {
-  activeOnly: Boolean = true
-  userId: String!
-}
-
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -571,8 +561,7 @@ type Mutation {
   createSystemConfigVariant(createSystemConfigVariantInput: CreateSystemConfigVariantInput!): SystemConfigVariantEntity!
   createUser(createUserInput: CreateUserDto!): UserEntity!
   createUserBank(createUserBankInput: CreateUserBankInput!): UserBankEntity!
-  createVoucher(createVoucherInput: CreateVoucherInput!): Voucher!
-  createVoucherForUser(createVoucherForUserInput: CreateVoucherForUserInput!): Voucher!
+  createVoucher(input: CreateVoucherInput!): VoucherEntity!
   deleteAddress(id: String!): AddressEntity!
   deleteCartItem(id: String!): CartItemEntity!
   deleteCategory(id: String!): CategoryEntity!
@@ -600,7 +589,6 @@ type Mutation {
   removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
   removeSystemConfigDiscount(id: String!): SystemConfigDiscountEntity!
   removeSystemConfigVariant(id: String!): SystemConfigVariantEntity!
-  removeVoucher(id: String!): Voucher!
   restoreCategory(id: String!): CategoryEntity!
   restoreProduct(id: String!): ProductEntity!
   sendEmail(to: String!): Boolean!
@@ -616,6 +604,7 @@ type Mutation {
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateFactoryProduct(data: UpdateFactoryProductInput!, factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
   updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransactionEntity!
+  updatePhoneNumber(updatePhoneNumberInput: UpdatePhoneNumberDto!): UserEntity!
   updateProduct(id: String!, input: UpdateProductDto!): ProductEntity!
   updateProductDesign(id: String!, input: UpdateProductDesignDto!): ProductDesignEntity!
   updateProductPositionType(input: UpdateProductPositionTypeDto!): ProductPositionTypeEntity!
@@ -626,7 +615,6 @@ type Mutation {
   updateSystemConfigVariant(updateSystemConfigVariantInput: UpdateSystemConfigVariantInput!): SystemConfigVariantEntity!
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   updateUserBank(id: String!, updateUserBankInput: UpdateUserBankInput!): UserBankEntity!
-  updateVoucher(updateVoucherInput: UpdateVoucherInput!): Voucher!
   uploadFile(file: Upload): FileUploadResponse!
 }
 
@@ -877,8 +865,12 @@ type QualityIssueWithFactory {
 type Query {
   address(id: String!): AddressEntity!
   addresses: [AddressEntity!]!
+  allPublicVouchers: [VoucherEntity!]!
+  allSystemVouchers: [VoucherEntity!]!
+  allVouchersOfUser: [VoucherEntity!]!
   availableServices(servicesInput: GetAvailableServicesDto!): [ShippingService!]!
   availableStaffForFactory: [UserEntity!]!
+  availableVouchers: [VoucherEntity!]!
   categories: [CategoryEntity!]!
   category(id: String!): CategoryEntity!
   designPosition(designId: ID!, productPositionTypeId: ID!): DesignPositionEntity!
@@ -911,7 +903,6 @@ type Query {
   getTemplateProductDesigns: [ProductDesignEntity!]!
   myNotifications: [NotificationEntity!]!
   myOrders: [OrderEntity!]!
-  myVouchers: [Voucher!]!
   notification(id: String!): NotificationEntity!
   notifications: [NotificationEntity!]!
   notificationsByUserId(isRead: Boolean): [NotificationEntity!]!
@@ -947,10 +938,8 @@ type Query {
   userBanks: [UserBankEntity!]!
   userBanksByUserId(id: String!): [UserBankEntity!]!
   userCartItems: [CartItemEntity!]!
-  userVouchers(getUserVouchersInput: GetUserVouchersInput!): [Voucher!]!
   users: [UserEntity!]!
-  voucher(id: String!): Voucher!
-  vouchers: [Voucher!]!
+  voucherById(id: String!): VoucherEntity!
   ward(wardCode: String!): Ward!
   wards(districtId: Int!): [Ward!]!
 }
@@ -1090,6 +1079,8 @@ type SystemConfigOrderEntity {
   shippingDays: Int!
   specializationScoreWeight: Float!
   type: String!
+  voucherBaseTypeForRefund: VoucherType!
+  voucherBaseValueForRefund: Int!
 }
 
 type SystemConfigVariantEntity {
@@ -1138,6 +1129,7 @@ enum TransactionType {
 input UpdateAddressInput {
   districtID: Float
   factoryId: String
+  formattedAddress: String
   provinceID: Float
   street: String
   wardCode: String
@@ -1202,6 +1194,10 @@ input UpdatePaymentTransactionInput {
   status: TransactionStatus
   transactionLog: String
   type: TransactionType
+}
+
+input UpdatePhoneNumberDto {
+  phoneNumber: String!
 }
 
 input UpdateProductDesignDto {
@@ -1270,6 +1266,8 @@ input UpdateSystemConfigOrderDto {
   reduceLegitPointIfReject: Int
   shippingDays: Int
   specializationScoreWeight: Float
+  voucherBaseTypeForRefund: VoucherType
+  voucherBaseValueForRefund: Int
 }
 
 input UpdateSystemConfigVariantInput {
@@ -1299,17 +1297,6 @@ input UpdateUserDto {
   phoneNumber: String
   role: String
   updatedBy: String
-}
-
-input UpdateVoucherInput {
-  code: String
-  endDate: DateTime
-  id: String!
-  minOrderValue: Int
-  startDate: DateTime
-  type: VoucherType
-  userId: String
-  value: Float
 }
 
 """The `Upload` scalar type represents a file upload."""
@@ -1356,27 +1343,38 @@ type VariantAttributes {
   sizes: [String!]!
 }
 
-type Voucher {
+type VoucherEntity {
   code: String!
   createdAt: DateTime!
-  endDate: DateTime!
+  description: String
   id: String!
   isActive: Boolean!
   isDeleted: Boolean!
+  isPublic: Boolean!
+  limitedUsage: Int
+  maxDiscountValue: Int
   minOrderValue: Int
-  startDate: DateTime!
   type: VoucherType!
   updatedAt: DateTime
-  usedAt: DateTime
+  usages: [VoucherUsageEntity!]
   user: UserEntity
-  userId: String!
-  value: Float!
+  userId: String
+  value: Int!
 }
 
-"""Type of voucher (fixed value or percentage)"""
 enum VoucherType {
   FIXED_VALUE
   PERCENTAGE
+}
+
+type VoucherUsageEntity {
+  id: ID!
+  orderId: String!
+  usedAt: DateTime!
+  user: UserEntity!
+  userId: String!
+  voucher: VoucherEntity!
+  voucherId: String!
 }
 
 type Ward {

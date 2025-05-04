@@ -333,8 +333,8 @@ class EnhancedFactoryStats {
     @Field(() => Int)
     total: number
 
-    @Field()
-    change: string
+    @Field(() => Int)
+    change: number
 
     @Field(() => ChangeType)
     changeType: ChangeType
@@ -345,8 +345,8 @@ class EnhancedOrderStats {
     @Field(() => Int)
     active: number
 
-    @Field()
-    change: string
+    @Field(() => Int)
+    change: number
 
     @Field(() => ChangeType)
     changeType: ChangeType
@@ -357,8 +357,8 @@ class EnhancedStaffStats {
     @Field(() => Int)
     total: number
 
-    @Field()
-    change: string
+    @Field(() => Int)
+    change: number
 
     @Field(() => ChangeType)
     changeType: ChangeType
@@ -366,11 +366,11 @@ class EnhancedStaffStats {
 
 @ObjectType()
 class EnhancedRevenueStats {
-    @Field()
-    monthly: string
+    @Field(() => Int)
+    monthly: number
 
-    @Field()
-    change: string
+    @Field(() => Int)
+    change: number
 
     @Field(() => ChangeType)
     changeType: ChangeType
@@ -526,11 +526,11 @@ class FactoryDetails {
     @Field()
     status: string
 
-    @Field()
-    productionCapacity: string
+    @Field(() => Int)
+    productionCapacity: number
 
-    @Field()
-    leadTime: string
+    @Field(() => Int)
+    leadTime: number
 }
 
 @ObjectType()
