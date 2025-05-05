@@ -40,6 +40,9 @@ export class UserEntity {
     @Field(() => Boolean)
     isDeleted: boolean
 
+    @Field(() => Boolean)
+    isVerified: boolean
+
     @Field(() => Date)
     createdAt: Date
 

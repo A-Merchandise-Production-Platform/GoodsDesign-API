@@ -5,7 +5,7 @@ export const envConfig = () => ({
     port: process.env.PORT || DEFAULT_PORT,
     app: {
         frontendUrl: process.env.APP_FRONTEND_URL || "http://localhost:3000",
-        backendUrl: process.env.APP_BACKEND_URL || "http://localhost:3000",
+        backendUrl: process.env.APP_BACKEND_URL || "http://localhost:3000"
     },
     jwt: {
         [TokenType.AccessToken]: {
@@ -19,7 +19,8 @@ export const envConfig = () => ({
     },
     redis: {
         url: process.env.REDIS_URL || "redis://localhost:6380",
-        ttl: process.env.REDIS_TTL || "604800" //60 * 60 * 24 * 7
+        ttl: process.env.REDIS_TTL || "604800", //60 * 60 * 24 * 7
+        otpTtl: process.env.REDIS_OTP_TTL || "300" //5 minutes
     },
     shipping: {
         token: process.env.GHN_TOKEN || "",
@@ -52,7 +53,7 @@ export const envConfig = () => ({
         maxFiles: process.env.UPLOAD_MAX_FILES || 1
     },
     resend: {
-        apiKey: process.env.RESEND_API_KEY || "",
+        apiKey: process.env.RESEND_API_KEY || ""
     }
 })
 

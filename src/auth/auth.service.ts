@@ -12,7 +12,8 @@ import { UserEntity } from "../users/entities/users.entity"
 import { LoginDto } from "./dto/login.dto"
 import { RefreshTokenDto } from "./dto/refresh-token.dto"
 import { RegisterDto } from "./dto/register.dto"
-import { MAIL_CONSTANT, MailService } from "src/mail"
+import { MAIL_CONSTANT, MailService, MailTemplateMap, MailTemplateType } from "src/mail"
+import { OtpService } from "@/otp/otp.service"
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,8 @@ export class AuthService {
         private jwtService: JwtService,
         private redisService: RedisService,
         private notificationsService: NotificationsService,
-        private mailService: MailService
+        private mailService: MailService,
+        private otpService: OtpService
     ) {}
 
     async validateUser(email: string, password: string): Promise<UserEntity> {
@@ -126,8 +128,10 @@ export class AuthService {
             this.mailService.sendSingleEmail({
                 from: MAIL_CONSTANT.FROM_EMAIL,
                 to: user.email,
-                subject: "Factory created",
-                html: `Factory ${factory.name} created successfully, update your factory profile for approval by admin`
+                subject: MailTemplateMap[MailTemplateType.FACTORY_CREATED].subject,
+                html: MailTemplateMap[MailTemplateType.FACTORY_CREATED].htmlGenerate({
+                    factoryName: factory.name
+                })
             })
 
             return new AuthResponseDto(
@@ -141,6 +145,10 @@ export class AuthService {
                 refreshToken
             )
         }
+
+        await this.otpService.createOTP({
+            email: registerDto.email
+        })
 
         return new AuthResponseDto(new UserEntity(user), accessToken, refreshToken)
     }
