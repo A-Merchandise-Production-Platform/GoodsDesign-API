@@ -1046,28 +1046,20 @@ export class OrdersService {
             await tx.orderDetail.update({
                 where: { id: checkQuality.orderDetailId },
                 data: {
-                    status:
-                        failedQuantity > 0
-                            ? OrderDetailStatus.REWORK_REQUIRED
-                            : OrderDetailStatus.DONE_CHECK_QUALITY,
+                    status: OrderDetailStatus.DONE_CHECK_QUALITY,
                     rejectedQty: failedQuantity,
                     completedQty: passedQuantity
                 }
             })
 
-            console.log("checkQuality", checkQuality.orderDetail.order.orderDetails)
-
             // Check if all order details have been checked
             const allDetailsChecked = checkQuality.orderDetail.order.orderDetails.every(
                 (detail) => {
-                    const detailCheckQualities = detail.checkQualities || []
-                    return detailCheckQualities.some((check) => {
-                        //if current check, skip
-                        if (check.id === checkQualityId) {
-                            return true
-                        }
-                        return check.status !== QualityCheckStatus.PENDING
-                    })
+                    if (detail.id === checkQuality.orderDetailId) {
+                        return true
+                    }
+                    // all order detail done check quality
+                    return detail.status === OrderDetailStatus.DONE_CHECK_QUALITY
                 }
             )
 
@@ -1090,33 +1082,29 @@ export class OrdersService {
                         }
                     })
 
-                    // check if any latest order detail failed quality check
                     hasFailedChecks = order.orderDetails.some((detail) => {
-                        const detailCheckQuality =
-                            detail.checkQualities[detail.checkQualities.length - 1]
-                        return detailCheckQuality.status === QualityCheckStatus.REJECTED
+                        //check order detail by createdAt
+                        return detail.rejectedQty > 0
                     })
                 }
-
                 if (hasFailedChecks) {
-                    // Update failed order details to REWORK_REQUIRED
-                    await tx.orderDetail.updateMany({
+                    //get all order detail failed
+                    const orderDetailsFailed = await tx.orderDetail.findMany({
                         where: {
                             orderId: checkQuality.orderDetail.order.id,
-                            checkQualities: {
-                                some: {
-                                    status: QualityCheckStatus.REJECTED
-                                }
-                            }
-                        },
-                        data: {
-                            status: OrderDetailStatus.REWORK_REQUIRED,
-                            completedQty: passedQuantity,
-                            rejectedQty: failedQuantity
+                            rejectedQty: { gt: 0 }
                         }
                     })
 
-                    // Update order status to REWORK_REQUIRED
+                    //update order detail status to REWORK_REQUIRED
+                    await tx.orderDetail.updateMany({
+                        where: {
+                            id: { in: orderDetailsFailed.map((detail) => detail.id) }
+                        },
+                        data: { status: OrderDetailStatus.REWORK_REQUIRED }
+                    })
+
+                    // // Update order status to REWORK_REQUIRED
                     await tx.order.update({
                         where: { id: checkQuality.orderDetail.order.id },
                         data: {
@@ -1154,8 +1142,6 @@ export class OrdersService {
                         },
                         data: {
                             status: OrderDetailStatus.READY_FOR_SHIPPING,
-                            completedQty: passedQuantity,
-                            rejectedQty: failedQuantity
                         }
                     })
 
@@ -1311,6 +1297,7 @@ export class OrdersService {
                 where: { id: orderId },
                 data: {
                     status: OrderStatus.REWORK_IN_PROGRESS,
+                    isDelayed: true,    
                     currentProgress: 45,
                     estimatedCheckQualityAt,
                     estimatedCompletionAt,
@@ -1324,17 +1311,11 @@ export class OrdersService {
                 }
             })
 
-            // Update order details status
-            await tx.orderDetail.updateMany({
+            //get order detail failed quality check
+            const orderDetailsFailed = await tx.orderDetail.findMany({
                 where: {
                     orderId: orderId,
-                    status: OrderDetailStatus.REWORK_REQUIRED
-                },
-                data: {
-                    status: OrderDetailStatus.REWORK_IN_PROGRESS,
-                    reworkTime: {
-                        increment: 1
-                    }
+                    rejectedQty: { gt: 0 }
                 }
             })
 
@@ -1349,7 +1330,7 @@ export class OrdersService {
             })
 
             // Create tasks and check qualities for rework
-            for (const orderDetail of order.orderDetails) {
+            for (const orderDetail of orderDetailsFailed) {
                 const task = await tx.task.create({
                     data: {
                         taskname: `Quality check for rework order ${orderId}`,
@@ -1361,6 +1342,11 @@ export class OrdersService {
                         status: TaskStatus.PENDING,
                         userId: factory.staff.id
                     }
+                })
+
+                await tx.orderDetail.update({
+                    where: { id: orderDetail.id },
+                    data: { status: OrderDetailStatus.REWORK_IN_PROGRESS }
                 })
 
                 await tx.checkQuality.create({
@@ -1442,85 +1428,85 @@ export class OrdersService {
                 estimatedCheckQualityAt.getTime() + systemConfig.shippingDays * 24 * 60 * 60 * 1000
             )
 
-            // Update order status
-            await tx.order.update({
-                where: { id: orderId },
-                data: {
-                    status: OrderStatus.REWORK_IN_PROGRESS,
-                    currentProgress: 45,
-                    estimatedCheckQualityAt,
-                    estimatedCompletionAt,
-                    orderProgressReports: {
-                        create: {
-                            reportDate: now,
-                            note: `Rework started by manager. Factory lost ${systemConfig.reduceLegitPointIfReject} legitimacy points.`,
-                            imageUrls: []
-                        }
+           // Update order status
+           await tx.order.update({
+            where: { id: orderId },
+            data: {
+                status: OrderStatus.REWORK_IN_PROGRESS,
+                isDelayed: true,    
+                currentProgress: 45,
+                estimatedCheckQualityAt,
+                estimatedCompletionAt,
+                orderProgressReports: {
+                    create: {
+                        reportDate: now,
+                        note: `Rework started by factory. Factory lost ${systemConfig.reduceLegitPointIfReject} legitimacy points.`,
+                        imageUrls: []
                     }
                 }
-            })
-
-            // Update order details status
-            await tx.orderDetail.updateMany({
-                where: {
-                    orderId: orderId,
-                    status: OrderDetailStatus.REWORK_REQUIRED
-                },
-                data: {
-                    status: OrderDetailStatus.REWORK_IN_PROGRESS,
-                    reworkTime: {
-                        increment: 1
-                    }
-                }
-            })
-
-            //get staff if from factoryId
-            const factory = await tx.factory.findFirst({
-                where: {
-                    factoryOwnerId: order.factoryId
-                },
-                include: {
-                    staff: true
-                }
-            })
-
-            // Create tasks and check qualities for rework
-            for (const orderDetail of order.orderDetails) {
-                const task = await tx.task.create({
-                    data: {
-                        taskname: `Quality check for rework order ${orderId}`,
-                        description: `Quality check for rework design ${orderDetail.designId}`,
-                        startDate: now,
-                        expiredTime: estimatedCheckQualityAt,
-                        taskType: TaskType.QUALITY_CHECK,
-                        orderId: order.id,
-                        status: TaskStatus.PENDING,
-                        userId: factory.staff.id
-                    }
-                })
-
-                await tx.checkQuality.create({
-                    data: {
-                        taskId: task.id,
-                        orderDetailId: orderDetail.id,
-                        totalChecked: orderDetail.rejectedQty,
-                        passedQuantity: 0,
-                        failedQuantity: 0,
-                        status: QualityCheckStatus.PENDING,
-                        checkedAt: now
-                    }
-                })
             }
+        })
 
-            // Notify customer about rework start
-            await this.notificationsService.create({
-                title: "Rework Started",
-                content: `The factory has started reworking your order #${orderId}.`,
-                userId: order.customer.id,
-                url: `/my-order/${orderId}`
+        //get order detail failed quality check
+        const orderDetailsFailed = await tx.orderDetail.findMany({
+            where: {
+                orderId: orderId,
+                rejectedQty: { gt: 0 }
+            }
+        })
+
+        //get staff if from factoryId
+        const factory = await tx.factory.findFirst({
+            where: {
+                factoryOwnerId: order.factoryId
+            },
+            include: {
+                staff: true
+            }
+        })
+
+        // Create tasks and check qualities for rework
+        for (const orderDetail of orderDetailsFailed) {
+            const task = await tx.task.create({
+                data: {
+                    taskname: `Quality check for rework order ${orderId}`,
+                    description: `Quality check for rework design ${orderDetail.designId}`,
+                    startDate: now,
+                    expiredTime: estimatedCheckQualityAt,
+                    taskType: TaskType.QUALITY_CHECK,
+                    orderId: order.id,
+                    status: TaskStatus.PENDING,
+                    userId: factory.staff.id
+                }
             })
 
-            return order
+            await tx.orderDetail.update({
+                where: { id: orderDetail.id },
+                data: { status: OrderDetailStatus.REWORK_IN_PROGRESS }
+            })
+
+            await tx.checkQuality.create({
+                data: {
+                    taskId: task.id,
+                    orderDetailId: orderDetail.id,
+                    totalChecked: orderDetail.rejectedQty,
+                    passedQuantity: 0,
+                    failedQuantity: 0,
+                    status: QualityCheckStatus.PENDING,
+                    checkedAt: now
+                }
+            })
+        }
+
+        // Notify customer about rework start
+        await this.notificationsService.create({
+            title: "Rework Started",
+            content: `The factory has started reworking your order #${orderId}.`,
+            userId: order.customer.id,
+            url: `/my-order/${orderId}`
+        })
+
+        return order
         })
     }
 
