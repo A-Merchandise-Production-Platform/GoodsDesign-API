@@ -1119,6 +1119,56 @@ export class OrdersService {
                         }
                     })
 
+                    // Get system config for order
+                    const systemConfig = await tx.systemConfigOrder.findUnique({
+                        where: { type: "SYSTEM_CONFIG_ORDER" }
+                    })
+
+                    if (!systemConfig) {
+                        throw new BadRequestException("System configuration not found")
+                    }
+
+                    // Check if any order detail has exceeded the rework limit
+                    const orderDetailsWithReworkCount = await tx.orderDetail.findMany({
+                        where: {
+                            orderId: checkQuality.orderDetail.order.id,
+                            status: OrderDetailStatus.REWORK_REQUIRED
+                        },
+                        select: {
+                            id: true,
+                            reworkTime: true
+                        }
+                    })
+
+                    const exceededReworkLimit = orderDetailsWithReworkCount.some(
+                        (detail) => detail.reworkTime >= systemConfig.limitReworkTimes
+                    )
+
+                    if (exceededReworkLimit) {
+                        await tx.order.update({
+                            where: { id: checkQuality.orderDetail.order.id },
+                            data: {
+                                status: OrderStatus.NEED_MANAGER_HANDLE_REWORK,
+                                orderProgressReports: {
+                                    create: {
+                                        reportDate: now,
+                                        note: `Order has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Manual intervention required.`,
+                                        imageUrls: []
+                                    }
+                                }
+                            }
+                        })
+
+                        // Create notification for managers
+                        await this.notificationsService.createForUsersByRoles({
+                            title: "Order Exceeded Rework Limit",
+                            content: `Order #${checkQuality.orderDetail.order.id} has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Manual intervention required.`,
+                            roles: ["MANAGER"],
+                            url: `/manager/orders/${checkQuality.orderDetail.order.id}`
+                        })
+
+                    }
+
                     // Notify factory about rework requirement
                     await this.notificationsService.create({
                         title: "Rework Required",
@@ -1346,7 +1396,7 @@ export class OrdersService {
 
                 await tx.orderDetail.update({
                     where: { id: orderDetail.id },
-                    data: { status: OrderDetailStatus.REWORK_IN_PROGRESS }
+                    data: { status: OrderDetailStatus.REWORK_IN_PROGRESS, reworkTime: { increment: 1 } }
                 })
 
                 await tx.checkQuality.create({
@@ -1482,7 +1532,7 @@ export class OrdersService {
 
             await tx.orderDetail.update({
                 where: { id: orderDetail.id },
-                data: { status: OrderDetailStatus.REWORK_IN_PROGRESS }
+                data: { status: OrderDetailStatus.REWORK_IN_PROGRESS, reworkTime: { increment: 1 } }
             })
 
             await tx.checkQuality.create({
