@@ -1,9 +1,8 @@
+import { AlgorithmService } from '@/algorithm/algorithm.service';
 import { NotificationsService } from '@/notifications/notifications.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { FactoryStatus, OrderStatus, PaymentStatus, TaskStatus, TaskType, OrderDetailStatus, Roles } from '@prisma/client';
-import { FactoryProductEntity } from 'src/factory-products/entities/factory-product.entity';
-import { FactoryEntity } from 'src/factory/entities/factory.entity';
+import { FactoryStatus, OrderDetailStatus, OrderStatus, PaymentStatus, Roles, TaskStatus, TaskType } from '@prisma/client';
 import { FactoryService } from 'src/factory/factory.service';
 import { PaymentTransactionService } from 'src/payment-transaction/payment-transaction.service';
 import { PrismaService } from 'src/prisma';
@@ -17,6 +16,7 @@ export class CronService {
     private prisma: PrismaService,
     private paymentTransactionService: PaymentTransactionService,
     private factoryService: FactoryService,
+    private algorithmService: AlgorithmService,
     private notificationsService: NotificationsService
   ) {}
 
@@ -166,7 +166,7 @@ export class CronService {
           const totalItems = order.orderDetails.reduce((sum, detail) => sum + detail.quantity, 0)
 
           // Find the best factory for this order, excluding previously rejecting factories
-          const selectedFactory = await this.findBestFactoryForVariants(uniqueVariantIds, order.id)
+          const selectedFactory = await this.algorithmService.findBestFactoryForVariants(uniqueVariantIds, order.id)
 
           if (!selectedFactory) {
               // Update order status to NEED_MANAGER_HANDLE
@@ -277,232 +277,6 @@ export class CronService {
       }
   }
 
-  private async findBestFactoryForVariants(variantIds: string[], orderId: string): Promise<FactoryEntity | null> {
-      try {
-          // Get previously rejecting factories for this order
-          const rejectedFactories = await this.prisma.rejectedOrder.findMany({
-              where: { orderId },
-              select: { factoryId: true }
-          })
-          const rejectedFactoryIds = rejectedFactories.map(rf => rf.factoryId)
-
-          // Find eligible factories that can produce all variants and haven't rejected this order
-          const factories = await this.prisma.factory.findMany({
-              where: {
-                  factoryStatus: FactoryStatus.APPROVED,
-                  factoryOwnerId: {
-                      notIn: rejectedFactoryIds
-                  },
-                  products: {
-                      some: {
-                          systemConfigVariantId: {
-                              in: variantIds
-                          }
-                      }
-                  }
-              },
-              include: {
-                  owner: true,
-                  products: {
-                      where: {
-                          systemConfigVariantId: {
-                              in: variantIds
-                          }
-                      }
-                  }
-              }
-          })
-
-          if (factories.length === 0) {
-              return null
-          }
-
-          // Get system configuration for legitimacy points threshold
-          const systemConfig = await this.prisma.systemConfigOrder.findFirst({
-              where: { type: "SYSTEM_CONFIG_ORDER" }
-          })
-
-          if (!systemConfig) {
-              return null
-          }
-
-          // Score each factory based on various factors
-          const factoryScores = await Promise.all(
-              factories.map(async (factory) => {
-                  // Check current workload (active orders)
-                  const activeOrders = await this.prisma.order.count({
-                      where: {
-                          factoryId: factory.factoryOwnerId,
-                          status: {
-                              in: [
-                                  OrderStatus.PENDING_ACCEPTANCE,
-                                  OrderStatus.IN_PRODUCTION
-                              ]
-                          }
-                      }
-                  })
-
-                  console.log('Debug factory scoring:', {
-                      factoryId: factory.factoryOwnerId,
-                      factoryName: factory.name,
-                      activeOrders,
-                  })
-
-                  // Calculate capacity availability (as a percentage)
-                  const totalCapacity = factory.maxPrintingCapacity
-                  const capacityScore = Math.max(0, (totalCapacity - activeOrders * 50) / totalCapacity)
-                  
-                  console.log('Capacity score:', {
-                      totalCapacity,
-                      activeOrders,
-                      capacityScore
-                  })
-
-                  // Check if factory can handle all variants
-                  const canHandleAllVariants = variantIds.every((variantId) =>
-                      factory.products.some((p) => p.systemConfigVariantId === variantId)
-                  )
-
-                  if (!canHandleAllVariants) {
-                      console.log('Factory cannot handle all variants')
-                      return { factory, score: 0 }
-                  }
-
-                  // Calculate lead time score (shorter is better)
-                  const leadTimeScore = factory.leadTime ? 1 / factory.leadTime : 0
-                  console.log('Lead time score:', {
-                      leadTime: factory.leadTime,
-                      leadTimeScore
-                  })
-
-                  // Calculate specialization score
-                  const specializationScore = this.calculateSpecializationScore(factory, variantIds, systemConfig)
-                  console.log('Specialization score:', {
-                      specializationScore
-                  })
-
-                  // Calculate legitimacy points score
-                  const maxLegitPoint = (systemConfig as any).maxLegitPoint || 100
-                  const legitPointScore = Math.min(1, factory.legitPoint / maxLegitPoint)
-                  console.log('Legitimacy score:', {
-                      legitPoint: factory.legitPoint,
-                      maxLegitPoint,
-                      legitPointScore
-                  })
-
-                  // Calculate production capacity score
-                  const productionCapacityScore = this.calculateProductionCapacityScore(factory, variantIds, systemConfig)
-                  console.log('Production capacity score:', {
-                      productionCapacityScore
-                  })
-
-                  // Get weights from system config with fallbacks
-                  const weights = {
-                      capacity: (systemConfig as any)?.capacityScoreWeight || 0.2,
-                      leadTime: (systemConfig as any)?.leadTimeScoreWeight || 0.15,
-                      specialization: (systemConfig as any)?.specializationScoreWeight || 0.15,
-                      legitPoint: (systemConfig as any)?.legitPointScoreWeight || 0.25,
-                      productionCapacity: (systemConfig as any)?.productionCapacityScoreWeight || 0.1
-                  }
-                  console.log('Weights:', weights)
-
-                  // Calculate final score
-                  const finalScore = 
-                      capacityScore * weights.capacity + 
-                      leadTimeScore * weights.leadTime + 
-                      specializationScore * weights.specialization + 
-                      legitPointScore * weights.legitPoint + 
-                      productionCapacityScore * weights.productionCapacity
-
-                  console.log('Final score components:', {
-                      capacityComponent: capacityScore * weights.capacity,
-                      leadTimeComponent: leadTimeScore * weights.leadTime,
-                      specializationComponent: specializationScore * weights.specialization,
-                      legitPointComponent: legitPointScore * weights.legitPoint,
-                      productionCapacityComponent: productionCapacityScore * weights.productionCapacity,
-                      finalScore
-                  })
-
-                  return { factory, score: finalScore }
-              })
-          )
-
-          console.log('Final factory scores:', factoryScores.map(fs => ({
-              factoryId: fs.factory.factoryOwnerId,
-              factoryName: fs.factory.name,
-              score: fs.score
-          })))
-
-          // Sort by score (highest first)
-          factoryScores.sort((a, b) => b.score - a.score)
-
-          // Return the best factory or null if none have a positive score
-          if (factoryScores[0]?.score > 0) {
-              return new FactoryEntity({
-                  ...factoryScores[0].factory,
-                  products: factoryScores[0].factory.products.map(
-                      (p) => new FactoryProductEntity(p)
-                  ),
-                  owner: new UserEntity(factoryScores[0].factory.owner)
-              })
-          }
-          return null
-      } catch (error) {
-          this.logger.error(`Error finding best factory: ${error.message}`)
-          return null
-      }
-  }
-
-  private calculateSpecializationScore(factory: any, variantIds: string[], systemConfig: any): number {
-      try {
-          // Calculate average production time as a measure of specialization
-          // Lower time means more specialized/efficient
-          const relevantProducts = factory.products.filter((p) =>
-              variantIds.includes(p.systemConfigVariantId)
-          )
-
-          if (relevantProducts.length === 0) return 0
-
-          const avgProductionTime =
-              relevantProducts.reduce(
-                  (sum, product) => sum + product.productionTimeInMinutes,
-                  0
-              ) / relevantProducts.length
-
-          // Convert to a score where lower time means higher score
-          // Using maxProductionTimeInMinutes from system config with fallback
-          const maxProductionTime = (systemConfig as any).maxProductionTimeInMinutes || 300
-          return Math.max(0, 1 - avgProductionTime / maxProductionTime)
-      } catch (error) {
-          this.logger.error(`Error calculating specialization score: ${error.message}`)
-          return 0
-      }
-  }
-
-  private calculateProductionCapacityScore(factory: any, variantIds: string[], systemConfig: any): number {
-      try {
-          // Get relevant factory products
-          const relevantProducts = factory.products.filter((p) =>
-              variantIds.includes(p.systemConfigVariantId)
-          )
-
-          if (relevantProducts.length === 0) return 0
-
-          // Calculate average production capacity
-          const avgProductionCapacity = relevantProducts.reduce(
-              (sum, product) => sum + product.productionCapacity,
-              0
-          ) / relevantProducts.length
-
-          // Normalize score (higher capacity = higher score)
-          // Using maxProductionCapacity from system config with fallback
-          const maxProductionCapacity = (systemConfig as any).maxProductionCapacity || 1000
-          return Math.min(1, avgProductionCapacity / maxProductionCapacity)
-      } catch (error) {
-          this.logger.error(`Error calculating production capacity score: ${error.message}`)
-          return 0
-      }
-  }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     name: "cleanupOldNotifications"

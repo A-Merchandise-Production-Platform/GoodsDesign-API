@@ -1,15 +1,17 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
+import { PrismaModule } from 'src/prisma';
 import { RedisModule } from '../redis/redis.module';
 import { ShippingResolver } from './shipping.resolver';
 import { ShippingService } from './shipping.service';
-import { PrismaModule } from 'src/prisma';
+import { AlgorithmModule } from '@/algorithm/algorithm.module';
 
 @Module({
   imports: [
     HttpModule,
     RedisModule,
-    PrismaModule
+    PrismaModule,
+    AlgorithmModule
   ],
   providers: [ShippingService, ShippingResolver],
   exports: [ShippingService]

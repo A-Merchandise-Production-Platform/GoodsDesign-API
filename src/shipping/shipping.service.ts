@@ -1,18 +1,20 @@
+import { AlgorithmService } from '@/algorithm/algorithm.service';
+import { FactoryEntity } from '@/factory/entities/factory.entity';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { envConfig } from 'src/dynamic-modules';
-import { RedisService } from 'src/redis/redis.service';
 import { lastValueFrom } from 'rxjs';
-import { Province, District, Ward, ShippingService as ShippingServiceModel, ShippingFee, ShippingOrder } from './models/shipping.model';
-import { 
-  formatProvinces, 
+import { envConfig } from 'src/dynamic-modules';
+import { PrismaService } from 'src/prisma';
+import { RedisService } from 'src/redis/redis.service';
+import { CalculateShippingFeeDto } from './dto/calculate-shipping-fee.dto';
+import { DistrictResponse, formatDistricts } from './dto/district.dto';
+import {
+  formatProvinces,
   ProvinceResponse,
 } from './dto/province.dto';
-import { DistrictResponse, formatDistricts } from './dto/district.dto';
-import { WardResponse } from './dto/ward.dto';
-import { formatWards } from './dto/ward.dto';
-import { CalculateShippingFeeDto } from './dto/calculate-shipping-fee.dto';
-import { PrismaService } from 'src/prisma';
+import { formatWards, WardResponse } from './dto/ward.dto';
+import { District, Province, ShippingFee, ShippingOrder, ShippingService as ShippingServiceModel, Ward } from './models/shipping.model';
+
 @Injectable()
 export class ShippingService {
   private readonly baseUrl: string;
@@ -31,7 +33,8 @@ export class ShippingService {
   constructor(
     private readonly httpService: HttpService,
     private readonly redisService: RedisService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly algorithmService: AlgorithmService
   ) {
     this.baseUrl = envConfig().shipping.baseUrl;
     this.token = envConfig().shipping.token;
@@ -305,10 +308,6 @@ export class ShippingService {
       orderAddress = address
     }
 
-    // Get province, district, and ward information
-    const province = await this.getProvince(orderAddress.provinceID);
-    const district = await this.getDistrict(orderAddress.districtID);
-    const ward = await this.getWard(orderAddress.wardCode);
 
     // Prepare items for shipping
     const items = order.orderDetails.map(detail => {
@@ -320,10 +319,10 @@ export class ShippingService {
         code: design.id,
         quantity: detail.quantity,
         price: detail.price,
-        length: 12, // Default values if not available
-        width: 12,
-        height: 12,
-        weight: 120,
+        weight: product?.weight || 120,
+        length: product?.length || 70,
+        width: product?.width || 30,
+        height: product?.height || 1,
         category: {
           level1: product?.categoryId || "Áo"
         }
@@ -332,6 +331,45 @@ export class ShippingService {
 
     // Calculate total weight (assuming each item is 1200g)
     const totalWeight = items.reduce((total, item) => total + (item.weight * item.quantity), 0);
+    const totalHeight = items.reduce((total, item) => total + (item.height * item.quantity), 0);
+
+    //get factory address
+    const factory = await this.prisma.factory.findFirst({
+      where: {
+        owner: {
+          id: order.factoryId
+        }
+      }
+    });
+
+    if(!factory) {
+      throw new Error(`Factory with ID ${order.customerId} not found`);
+    }
+    
+    const factoryAddress = await this.prisma.address.findFirst({
+      where: {
+        id: factory.addressId
+      }
+    });
+
+    if(!factoryAddress) {
+      throw new Error(`Factory address with ID ${factory.addressId} not found`);
+    }
+    
+    const fromProvince = await this.getProvince(factoryAddress.provinceID);
+    const fromDistrictName = await this.getDistrict(factoryAddress.districtID);
+    const fromWardName = await this.getWard(factoryAddress.wardCode);
+
+    const totalDimensions = items.reduce((acc, item) => {
+      // For multiple items, we need to consider how they'll be packed
+      // Here we're using a simple approach where we take the maximum dimensions
+      // and multiply length by quantity (assuming items are stacked lengthwise)
+      return {
+        length: Math.max(acc.length, item.length),
+        width: Math.max(acc.width, item.width),
+        height: Math.max(acc.height, item.height * item.quantity)
+      };
+    }, { length: 0, width: 0, height: 0 });
     
     const body = {
       payment_type_id: 2,
@@ -339,10 +377,10 @@ export class ShippingService {
       required_note: "KHONGCHOXEMHANG",
       from_name: "GoodsDesign",
       from_phone: "0981331633",
-      from_address: "72 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Vietnam", 
-      from_ward_name: "Phường 14",
-      from_district_name: "Quận 10",
-      from_province_name: "HCM",
+      from_address: factoryAddress.formattedAddress,
+      from_ward_name: fromWardName.wardName,
+      from_district_name: fromDistrictName.districtName,
+      from_province_name: fromProvince.provinceName,
       return_phone: "0332190444",
       return_address: "39 NTT",
       return_district_id: null,
@@ -350,22 +388,22 @@ export class ShippingService {
       client_order_code: order.id,
       to_name: customer.name || "Khách hàng",
       to_phone: customer.phoneNumber || "0902331633",
-      to_address: orderAddress.street,
-      to_ward_code: ward.wardCode,
-      to_district_id: district.districtId,
+      to_address: orderAddress.formattedAddress,
+      to_ward_code: orderAddress.wardCode,
+      to_district_id: orderAddress.districtID,
       cod_amount: 0,
       content: `Đơn hàng #${order.id} từ GoodsDesign`,
       weight: totalWeight,
-      length: 1,
-      width: 19,
-      height: 10,
+      length: totalDimensions.length > 150 ? 150 : totalDimensions.length,
+      width: totalDimensions.width > 150 ? 150 : totalDimensions.width,
+      height: totalDimensions.height > 150 ? 150 : totalDimensions.height,
       pick_station_id: 1444,
       deliver_station_id: null,
-      insurance_value: order.totalPrice,
+      insurance_value: 0,
       service_id: 0,
       service_type_id: 2,
       coupon: null,
-      pick_shift: [2],
+      pick_shift: [1],
       items: items
     };
 
@@ -398,5 +436,137 @@ export class ShippingService {
         station_pu: response.fee.station_pu
       }
     };
+  }
+
+  async calculateShippingCostAndFactoryForCart(cartIds: string[] = [], addressId: string): Promise<{
+    shippingFee: ShippingFee;
+    selectedFactory: FactoryEntity | null;
+  }> {
+    try {
+      // Get cart items with their details
+      const cartItems = await this.prisma.cartItem.findMany({
+        where: {
+          id: {
+            in: cartIds
+          }
+        },
+        include: {
+          design: {
+            include: {
+              designPositions: {
+                include: {
+                  positionType: {
+                    include: {
+                      product: true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          systemConfigVariant: true
+        }
+      });
+
+      if (cartItems.length === 0) {
+        throw new Error('No cart items found');
+      }
+
+      // Get shipping address
+      const shippingAddress = await this.prisma.address.findUnique({
+        where: { id: addressId }
+      });
+
+      if (!shippingAddress) {
+        throw new Error(`Shipping address with ID ${addressId} not found`);
+      }
+
+      // Extract variant IDs from cart items
+      const variantIds = cartItems.map(item => item.systemConfigVariantId);
+      const uniqueVariantIds = [...new Set(variantIds)];
+
+      // Use the algorithm service to find the best factory
+      const selectedFactory = await this.algorithmService.findBestFactoryForVariants(uniqueVariantIds);
+
+      if (!selectedFactory) {
+        throw new Error('No suitable factory found for the cart items');
+      }
+
+      const factoryAddress = selectedFactory.address
+
+      if (!factoryAddress) {
+        throw new Error('Factory address not found');
+      }
+
+      const fromDistrict = await this.getDistrict(factoryAddress.districtID);
+      const fromWard = await this.getWard(factoryAddress.wardCode);
+
+      const toDistrict = await this.getDistrict(shippingAddress.districtID);
+      const toWard = await this.getWard(shippingAddress.wardCode);
+
+      // Calculate total weight and dimensions
+      const items = cartItems?.map(item => {
+        const design = item.design;
+        const product = design.designPositions[0]?.positionType?.product;
+        
+        return {
+          quantity: item.quantity,
+          weight: product?.weight || 120,
+          length: product?.length || 70,
+          width: product?.width || 30,
+          height: product?.height || 1
+        };
+      });
+
+      const totalWeight = items.reduce((total, item) => total + (item.weight * item.quantity), 0);
+
+      // Calculate total dimensions
+      const totalDimensions = items.reduce((acc, item) => {
+        // For multiple items, we need to consider how they'll be packed
+        // Here we're using a simple approach where we take the maximum dimensions
+        // and multiply length by quantity (assuming items are stacked lengthwise)
+        return {
+          length: Math.max(acc.length, item.length),
+          width: Math.max(acc.width, item.width),
+          height: Math.max(acc.height, item.height * item.quantity)
+        };
+      }, { length: 0, width: 0, height: 0 });
+
+      // Get available shipping services
+      const availableServices = await this.getAvailableServices(
+        fromDistrict.districtId,
+        toDistrict.districtId
+      );
+
+      if (availableServices.length === 0) {
+        throw new Error('No shipping services available for this route');
+      }
+
+      // Use the first available service
+      const selectedService = availableServices[0];
+
+      console.log("totalDimensions", totalDimensions)
+
+      // Calculate shipping fee
+      const shippingFee = await this.calculateShippingFee({
+        serviceId: selectedService.serviceId,
+        serviceTypeId: selectedService.serviceTypeId,
+        fromDistrictId: fromDistrict.districtId,
+        fromWardCode: fromWard.wardCode,
+        toDistrictId: toDistrict.districtId,
+        toWardCode: toWard.wardCode,
+        weight: totalWeight,
+        length: totalDimensions.length,
+        width: totalDimensions.width,
+        height: totalDimensions.height
+      });
+
+      return {
+        shippingFee,
+        selectedFactory
+      };
+    } catch (error) {
+      throw new Error(`Error calculating shipping cost and factory: ${error.message}`);
+    }
   }
 } 
