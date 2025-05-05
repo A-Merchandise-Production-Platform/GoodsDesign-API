@@ -37,6 +37,7 @@ import { FactoryProductsModule } from "./factory-products/factory-products.modul
 import { OrdersModule } from "./orders/orders.module"
 import { UserBanksModule } from "src/user-banks/user-banks.module"
 import { VouchersModule } from './vouchers/vouchers.module';
+import { OtpModule } from './otp/otp.module';
 
 @Module({
     imports: [
@@ -86,7 +87,8 @@ import { VouchersModule } from './vouchers/vouchers.module';
         FactoryProductsModule,
         SystemConfigOrderModule,
         UserBanksModule,
-        VouchersModule
+        VouchersModule,
+        OtpModule
         // TestModule,
     ],
     controllers: [AppController],

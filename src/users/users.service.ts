@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     ConflictException,
     ForbiddenException,
     Injectable,
@@ -222,6 +223,27 @@ export class UsersService {
                 updatedAt: new Date(),
                 updatedBy: currentUser.id
             }
+        })
+
+        return this.toUserEntity(updatedUser)
+    }
+
+    async verifyEmail(email: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { email }
+        })
+
+        if (!user) {
+            throw new NotFoundException(`User with email ${email} not found`)
+        }
+
+        if (user.isVerified) {
+            throw new BadRequestException("Email already verified")
+        }
+
+        const updatedUser = await this.prisma.user.update({
+            where: { email },
+            data: { isVerified: true }
         })
 
         return this.toUserEntity(updatedUser)

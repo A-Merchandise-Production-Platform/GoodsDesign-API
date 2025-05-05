@@ -38,6 +38,7 @@ model User {
   deletedBy   String?
   deletedAt   DateTime?
   role        Roles
+  isVerified  Boolean   @default(false)
 
   addresses      Address[]
   bankAccounts   UserBank[]

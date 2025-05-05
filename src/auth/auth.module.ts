@@ -11,6 +11,7 @@ import { AuthService } from "./auth.service"
 import { RolesGuard } from "./guards"
 import { JwtStrategy } from "./strategies"
 import { MailModule } from "src/mail"
+import { OtpModule } from "@/otp/otp.module"
 
 @Module({
     imports: [
@@ -23,7 +24,8 @@ import { MailModule } from "src/mail"
         RedisModule,
         UsersModule,
         NotificationsModule,
-        MailModule
+        MailModule,
+        OtpModule
     ],
     providers: [AuthService, JwtStrategy, RolesGuard, AuthResolver],
     exports: [AuthService]

@@ -152,6 +152,10 @@ input CreateOrderInput {
   voucherId: String
 }
 
+input CreateOtpInput {
+  email: String!
+}
+
 input CreatePaymentTransactionInput {
   amount: Int!
   customerId: String!
@@ -548,6 +552,7 @@ type Mutation {
   createNotification(content: String!, title: String!, url: String, userId: String!): NotificationEntity!
   createNotificationForManyUsers(content: String!, title: String!, url: String, userIds: [String!]!): [NotificationEntity!]!
   createNotificationForUsersByRoles(content: String!, roles: [String!]!, title: String!, url: String): [NotificationEntity!]!
+  createOTP(createOtpInput: CreateOtpInput!): Otp!
   createOrder(createOrderInput: CreateOrderInput!): OrderEntity!
   createPayment(gateway: String!, paymentId: String!): String!
   createPaymentTransaction(input: CreatePaymentTransactionInput!): PaymentTransactionEntity!
@@ -589,6 +594,7 @@ type Mutation {
   removeSystemConfigBank(id: ID!): SystemConfigBankEntity!
   removeSystemConfigDiscount(id: String!): SystemConfigDiscountEntity!
   removeSystemConfigVariant(id: String!): SystemConfigVariantEntity!
+  resendOTP(email: String!): Boolean!
   restoreCategory(id: String!): CategoryEntity!
   restoreProduct(id: String!): ProductEntity!
   sendEmail(to: String!): Boolean!
@@ -616,6 +622,7 @@ type Mutation {
   updateUser(id: String!, updateUserInput: UpdateUserDto!): UserEntity!
   updateUserBank(id: String!, updateUserBankInput: UpdateUserBankInput!): UserBankEntity!
   uploadFile(file: Upload): FileUploadResponse!
+  verifyOTP(verifyOtpInput: VerifyOtpInput!): Boolean!
 }
 
 type MyStaffDashboardResponse {
@@ -767,6 +774,11 @@ type OrderWithFactory {
   totalPrice: Int!
 }
 
+type Otp {
+  code: String!
+  email: String!
+}
+
 type PaymentEntity {
   amount: Int!
   customer: UserEntity
@@ -892,6 +904,7 @@ type Query {
   getCartItem(id: String!): CartItemEntity!
   getCartItemCount: Float!
   getEnhancedManagerDashboard: EnhancedManagerDashboardResponse!
+  getExpiredTime(email: String!): DateTime!
   getFactoryById(factoryId: String!): FactoryEntity!
   getFactoryDetailDashboard(factoryId: String!): FactoryDetailDashboardResponse!
   getManagerDashboard: ManagerDashboardResponse!
@@ -1333,6 +1346,7 @@ type UserEntity {
   imageUrl: String
   isActive: Boolean!
   isDeleted: Boolean!
+  isVerified: Boolean!
   name: String
   ownedFactory: FactoryEntity
   phoneNumber: String
@@ -1346,6 +1360,11 @@ type VariantAttributes {
   colors: [String!]!
   models: [String!]!
   sizes: [String!]!
+}
+
+input VerifyOtpInput {
+  code: String!
+  email: String!
 }
 
 type VoucherEntity {
