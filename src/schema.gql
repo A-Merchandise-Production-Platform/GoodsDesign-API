@@ -762,6 +762,16 @@ type OrderEntity {
   updatedAt: DateTime
 }
 
+type OrderPriceDetailsResponse {
+  basePrice: Int!
+  discountPercentage: Float!
+  finalPrice: Int!
+  priceAfterDiscount: Int!
+  priceAfterVoucher: Int!
+  shippingPrice: Int!
+  voucher: VoucherEntity
+}
+
 type OrderProgressReportEntity {
   id: ID!
   imageUrls: [String!]
@@ -954,6 +964,7 @@ type Query {
   notifications: [NotificationEntity!]!
   notificationsByUserId(isRead: Boolean): [NotificationEntity!]!
   order(id: String!): OrderEntity!
+  orderPriceDetails(orderId: String!): OrderPriceDetailsResponse!
   orders: [OrderEntity!]!
   ordersByFactoryId(factoryId: String!): [OrderEntity!]!
   paymentTransaction(id: ID!): PaymentTransactionEntity

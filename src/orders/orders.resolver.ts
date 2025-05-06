@@ -13,12 +13,11 @@ import { OrderDetailEntity } from "./entities/order-detail.entity"
 import { OrderProgressReportEntity } from "./entities/order-progress-report.entity"
 import { OrderEntity } from "./entities/order.entity"
 import { OrdersService } from "./orders.service"
+import { OrderPriceDetailsResponse } from "./dto/order-price-details.response"
 
 @Resolver(() => OrderEntity)
 export class OrdersResolver {
-    constructor(
-        private readonly ordersService: OrdersService,
-    ) {}
+    constructor(private readonly ordersService: OrdersService) {}
 
     @Mutation(() => OrderEntity)
     @UseGuards(GraphqlJwtAuthGuard)
@@ -110,9 +109,7 @@ export class OrdersResolver {
 
     @Mutation(() => OrderEntity)
     @UseGuards(GraphqlJwtAuthGuard)
-    startReworkByManager(
-        @Args("orderId", { type: () => String }) orderId: string,
-    ) {
+    startReworkByManager(@Args("orderId", { type: () => String }) orderId: string) {
         return this.ordersService.startReworkByManager(orderId)
     }
 
@@ -179,31 +176,36 @@ export class OrdersResolver {
         @Args("reason", { type: () => String }) reason: string,
         @CurrentUser() user: UserEntity
     ) {
-        return this.ordersService.createRefundForOrder(orderId, reason);
+        return this.ordersService.createRefundForOrder(orderId, reason)
     }
 
     @Mutation(() => OrderEntity)
     @UseGuards(GraphqlJwtAuthGuard)
     assignFactoryToOrder(
-        @Args('orderId', { type: () => String }) orderId: string,
-        @Args('factoryId', { type: () => String }) factoryId: string,
+        @Args("orderId", { type: () => String }) orderId: string,
+        @Args("factoryId", { type: () => String }) factoryId: string,
         @CurrentUser() user: UserEntity
     ) {
         // Additional access control checks can be added here if necessary
-        return this.ordersService.assignFactoryToOrder(orderId, factoryId);
+        return this.ordersService.assignFactoryToOrder(orderId, factoryId)
     }
 
     @Query(() => [FactoryScoreResponse], { name: "factoryScoresForOrder" })
-    getFactoryScoresForOrder(
-        @Args("orderId", { type: () => String }) orderId: string,
-    ) {
-        return this.ordersService.calculateFactoryScoresForOrder(orderId);
+    getFactoryScoresForOrder(@Args("orderId", { type: () => String }) orderId: string) {
+        return this.ordersService.calculateFactoryScoresForOrder(orderId)
     }
 
     @Mutation(() => OrderEntity, { name: "speedUpOrder" })
-    speedUpOrder(
+    speedUpOrder(@Args("orderId", { type: () => String }) orderId: string) {
+        return this.ordersService.speedUpOrder(orderId)
+    }
+
+    @Query(() => OrderPriceDetailsResponse, { name: "orderPriceDetails" })
+    @UseGuards(GraphqlJwtAuthGuard)
+    getOrderPriceDetails(
         @Args("orderId", { type: () => String }) orderId: string,
+        @CurrentUser() user: UserEntity
     ) {
-        return this.ordersService.speedUpOrder(orderId);
+        return this.ordersService.getOrderPriceDetails(orderId)
     }
 }
