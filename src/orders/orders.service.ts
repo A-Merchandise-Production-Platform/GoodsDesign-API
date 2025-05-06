@@ -1143,7 +1143,7 @@ export class OrdersService {
                     })
 
                     const exceededReworkLimit = orderDetailsWithReworkCount.some(
-                        (detail) => detail.reworkTime >= systemConfig.limitReworkTimes
+                        (detail) => detail.reworkTime >= systemConfig.limitReworkTimes - 1
                     )
 
                     if (exceededReworkLimit) {
