@@ -762,6 +762,80 @@ type OrderEntity {
   updatedAt: DateTime
 }
 
+type OrderInfoDto {
+  client_id: Float!
+  client_order_code: String
+  cod_amount: Float!
+  cod_collect_date: String
+  cod_failed_amount: Float!
+  cod_failed_collect_date: String
+  cod_transfer_date: String
+  content: String!
+  converted_weight: Float!
+  coupon: String
+  created_client: Float!
+  created_date: String!
+  created_employee: Float!
+  created_ip: String!
+  created_source: String!
+  current_warehouse_id: Float!
+  custom_service_fee: Float!
+  deliver_station_id: Float
+  deliver_warehouse_id: Float!
+  employee_note: String
+  finish_date: String
+  from_address: String!
+  from_district_id: Float!
+  from_name: String!
+  from_phone: String!
+  from_ward_code: String!
+  height: Float!
+  insurance_value: Float!
+  is_cod_collected: Boolean!
+  is_cod_transferred: Boolean!
+  leadtime: String
+  length: Float!
+  log: [OrderLogDto!]
+  next_warehouse_id: Float!
+  note: String
+  order_code: String!
+  order_date: String!
+  order_value: Float!
+  payment_type_id: Float!
+  pick_station_id: Float
+  pick_warehouse_id: Float!
+  required_note: String!
+  return_address: String
+  return_district_id: Float
+  return_name: String
+  return_phone: String
+  return_ward_code: String
+  return_warehouse_id: Float!
+  service_id: Float!
+  service_type_id: Float!
+  shop_id: Float!
+  status: String!
+  tag: [String!]
+  to_address: String!
+  to_district_id: Float!
+  to_name: String!
+  to_phone: String!
+  to_ward_code: String!
+  updated_client: Float!
+  updated_date: String!
+  updated_employee: Float!
+  updated_ip: String!
+  updated_source: String!
+  updated_warehouse: Float!
+  weight: Float!
+  width: Float!
+}
+
+type OrderLogDto {
+  status: String!
+  updated_date: String!
+}
+
 type OrderProgressReportEntity {
   id: ID!
   imageUrls: [String!]
@@ -940,6 +1014,7 @@ type Query {
   getExpiredTime(email: String!): DateTime!
   getFactoryById(factoryId: String!): FactoryEntity!
   getFactoryDetailDashboard(factoryId: String!): FactoryDetailDashboardResponse!
+  getGiaoHangNhanhOrderInfo(orderCode: String!): OrderInfoDto!
   getManagerDashboard: ManagerDashboardResponse!
   getManagerOrderDashboard: ManagerOrderDashboardEntity!
   getMe: UserEntity!

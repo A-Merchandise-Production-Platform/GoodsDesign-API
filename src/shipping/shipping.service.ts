@@ -8,6 +8,7 @@ import { PrismaService } from 'src/prisma';
 import { RedisService } from 'src/redis/redis.service';
 import { CalculateShippingFeeDto } from './dto/calculate-shipping-fee.dto';
 import { DistrictResponse, formatDistricts } from './dto/district.dto';
+import { OrderInfoDto } from './dto/order-info.dto';
 import {
   formatProvinces,
   ProvinceResponse,
@@ -27,7 +28,8 @@ export class ShippingService {
     WARD: '/shiip/public-api/master-data/ward',
     AVAILABLE_SERVICES: '/shiip/public-api/v2/shipping-order/available-services',
     CALCULATE_FEE: '/shiip/public-api/v2/shipping-order/fee',
-    CREATE_ORDER: '/shiip/public-api/v2/shipping-order/create'
+    CREATE_ORDER: '/shiip/public-api/v2/shipping-order/create',
+    ORDER_INFO: '/shiip/public-api/v2/shipping-order/detail'
   };
 
   constructor(
@@ -416,6 +418,14 @@ export class ShippingService {
 
     console.log("response", response);
 
+    //update order with orderCode
+    await this.prisma.order.update({
+      where: {
+        id: orderId
+      },
+      data: { orderCode: response?.order_code || null }
+    });
+
     return {
       code: 200,
       message: "Success",
@@ -567,6 +577,21 @@ export class ShippingService {
       };
     } catch (error) {
       throw new Error(`Error calculating shipping cost and factory: ${error.message}`);
+    }
+  }
+
+  async getOrderInfo(orderCode: string): Promise<OrderInfoDto> {
+    try {
+      const response = await this.handleRequest<OrderInfoDto>(
+        this.ENDPOINTS.ORDER_INFO,
+        {},
+        'POST',
+        { order_code: orderCode }
+      );
+
+      return response;
+    } catch (error) {
+      throw new Error(`Error getting order info: ${error.message}`);
     }
   }
 } 
