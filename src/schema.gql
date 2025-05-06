@@ -463,6 +463,30 @@ type FactoryProgressReportType {
   reportDate: DateTime!
 }
 
+type FactoryScoreResponse {
+  factoryId: String!
+  factoryName: String!
+  scores: FactoryScores!
+  totalScore: Float!
+  weights: FactoryScoreWeights!
+}
+
+type FactoryScoreWeights {
+  capacity: Float!
+  leadTime: Float!
+  legitPoint: Float!
+  productionCapacity: Float!
+  specialization: Float!
+}
+
+type FactoryScores {
+  capacityScore: Float!
+  leadTimeScore: Float!
+  legitPointScore: Float!
+  productionCapacityScore: Float!
+  specializationScore: Float!
+}
+
 type FactoryStats {
   legitPoints: StatValue!
   monthlyRevenue: StatValue!
@@ -565,7 +589,7 @@ type Mutation {
   createProduct(input: CreateProductDto!): ProductEntity!
   createProductDesign(input: CreateProductDesignDto!): ProductDesignEntity!
   createProductPositionType(input: CreateProductPositionTypeDto!): ProductPositionTypeEntity!
-  createRefundForOrder(orderId: String!): OrderEntity!
+  createRefundForOrder(orderId: String!, reason: String!): OrderEntity!
   createShippingOrder(orderId: String!): ShippingOrder!
   createSystemConfigBank(input: CreateSystemConfigBankDto!): SystemConfigBankEntity!
   createSystemConfigDiscount(createDiscountInput: CreateSystemConfigDiscountDto!): SystemConfigDiscountEntity!
@@ -899,6 +923,7 @@ type Query {
   factoryOrders: [OrderEntity!]!
   factoryProduct(factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
   factoryProducts: [FactoryProductEntity!]!
+  factoryScoresForOrder(orderId: String!): [FactoryScoreResponse!]!
   findActiveTasksByStaffId(staffId: String!): [TaskEntity!]!
   findTasksByStaffId(staffId: String!): [TaskEntity!]!
   findTasksHistoryByStaffId(staffId: String!): [TaskEntity!]!

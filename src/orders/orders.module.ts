@@ -7,6 +7,7 @@ import { ShippingModule } from "src/shipping/shipping.module"
 import { VouchersModule } from "src/vouchers/vouchers.module"
 import { SystemConfigOrderModule } from "src/system-config-order/system-config-order.module"
 import { MailModule } from "@/mail"
+import { AlgorithmModule } from "@/algorithm/algorithm.module"
 @Module({
     imports: [
         PrismaModule,
@@ -14,7 +15,8 @@ import { MailModule } from "@/mail"
         ShippingModule,
         VouchersModule,
         SystemConfigOrderModule,
-        MailModule
+        MailModule,
+        AlgorithmModule
     ],
     providers: [OrdersResolver, OrdersService]
 })

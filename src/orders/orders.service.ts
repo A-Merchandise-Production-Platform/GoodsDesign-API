@@ -17,6 +17,8 @@ import { OrderProgressReportEntity } from "./entities/order-progress-report.enti
 import { VouchersService } from "src/vouchers/vouchers.service"
 import { SystemConfigOrderService } from "src/system-config-order/system-config-order.service"
 import { MailService } from "@/mail"
+import { AlgorithmService } from "@/algorithm/algorithm.service"
+import { FactoryScoreResponse } from "./dto/factory-scores.response"
 
 @Injectable()
 export class OrdersService {
@@ -26,7 +28,8 @@ export class OrdersService {
         private readonly shippingService: ShippingService,
         private readonly vouchersService: VouchersService,
         private readonly systemConfigOrderService: SystemConfigOrderService,
-        private readonly mailService: MailService
+        private readonly mailService: MailService,
+        private readonly algorithmService: AlgorithmService
     ) {}
 
     async create(createOrderInput: CreateOrderInput, userId: string) {
@@ -2088,7 +2091,7 @@ export class OrdersService {
         return this.findOne(orderId)
     }
 
-    async createRefundForOrder(orderId: string) {
+    async createRefundForOrder(orderId: string, reason: string = "") {
         return this.prisma.$transaction(async (tx) => {
             // Get the order with its payments
             const order = await tx.order.findUnique({
@@ -2156,8 +2159,8 @@ export class OrdersService {
                         orderProgressReports: {
                             create: {
                                 reportDate: new Date(),
-                                note: `Refund process initiated for amount ${totalPaidAmount}`,
-                                imageUrls: []
+                                note: `Refund process initiated for amount ${totalPaidAmount} ${reason ? `with reason: ${reason}` : ""}`,
+                                imageUrls: [],
                             }
                         }
                     }
@@ -2186,7 +2189,7 @@ export class OrdersService {
                         orderProgressReports: {
                             create: {
                                 reportDate: new Date(),
-                                note: `Refund process initiated for amount ${totalPaidAmount}`,
+                                note: `Refund process initiated for amount ${totalPaidAmount} ${reason ? `with reason: ${reason}` : ""}`,
                                 imageUrls: []
                             }
                         }
@@ -2238,5 +2241,9 @@ export class OrdersService {
             data: { factoryId: factoryId, status: OrderStatus.PENDING_ACCEPTANCE }
         })
         return order
+    }
+
+    async calculateFactoryScoresForOrder(orderId: string): Promise<FactoryScoreResponse[]> {
+        return this.algorithmService.calculateFactoryScoresForOrder(orderId);
     }
 }
