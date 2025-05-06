@@ -364,6 +364,8 @@ export class VouchersService {
             throw new BadRequestException("Voucher is deleted")
         }
 
+        console.log("voucher", voucher)
+
         // Check minimum order value
         if (voucher.minOrderValue && orderValue < voucher.minOrderValue) {
             throw new BadRequestException("Order amount is less than the minimum order value")
@@ -389,12 +391,49 @@ export class VouchersService {
             throw new BadRequestException("Invalid voucher type")
         }
 
+        console.log("discountAmount", discountAmount)
+
         // Calculate final price after discount
         const finalPrice = orderValue - discountAmount
+
+        console.log("finalPrice", finalPrice)
 
         return {
             originalPrice: orderValue,
             discountAmount: discountAmount,
+            finalPrice: finalPrice
+        }
+    }
+
+    async calculateVoucherDiscountWithoutValidation(voucherId: string, orderValue: number) {
+        const voucher = await this.prisma.voucher.findUnique({
+            where: { id: voucherId }
+        })
+
+        if (!voucher) {
+            throw new NotFoundException("Voucher not found")
+        }
+
+        let finalPrice = orderValue
+
+        if (voucher.type === VoucherType.PERCENTAGE) {
+            const discountAmount = (orderValue * voucher.value) / 100
+            // If maxDiscountValue is set, use it as the maximum discount amount
+            if (voucher.maxDiscountValue && discountAmount > voucher.maxDiscountValue) {
+                finalPrice = orderValue - voucher.maxDiscountValue
+            } else {
+                finalPrice = orderValue - discountAmount
+            }
+        } else if (voucher.type === VoucherType.FIXED_VALUE) {
+            finalPrice = orderValue - voucher.value
+        }
+
+        // Ensure final price is not negative
+        finalPrice = Math.max(0, finalPrice)
+
+        return {
+            originalPrice: orderValue,
+            discountAmount: orderValue - finalPrice,
             finalPrice: finalPrice
         }
     }
