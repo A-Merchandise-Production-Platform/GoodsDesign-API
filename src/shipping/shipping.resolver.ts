@@ -5,6 +5,7 @@ import { CalculateShippingCostAndFactoryDto } from './dto/calculate-shipping-cos
 import { District, Province, ShippingService as ShippingServiceModel, Ward, ShippingFee, ShippingOrder } from './models/shipping.model';
 import { ShippingCostAndFactoryResponse } from './models/shipping-cost-and-factory.model';
 import { ShippingService } from './shipping.service';
+import { OrderInfoDto } from './dto/order-info.dto';
 
 @Resolver()
 export class ShippingResolver {
@@ -73,5 +74,10 @@ export class ShippingResolver {
       input.cartIds,
       input.addressId,
     );
+  }
+
+  @Query(() => OrderInfoDto, { name: "getGiaoHangNhanhOrderInfo" })
+  async getGiaoHangNhanhOrderInfo(@Args('orderCode', { type: () => String }) orderCode: string) {
+    return this.shippingService.getOrderInfo(orderCode);
   }
 } 

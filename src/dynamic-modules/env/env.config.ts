@@ -54,6 +54,9 @@ export const envConfig = () => ({
     },
     resend: {
         apiKey: process.env.RESEND_API_KEY || ""
+    },
+    openai: {
+        apiKey: process.env.OPENAI_API_KEY || ""
     }
 })
 
