@@ -54,6 +54,9 @@ export class OrderEntity {
     @Field()
     isDelayed: boolean
 
+    @Field(() => String, { nullable: true })
+    orderCode?: string
+
     @Field(() => Int, { nullable: true })
     rating?: number
 

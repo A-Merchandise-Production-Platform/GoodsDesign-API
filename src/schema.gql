@@ -743,6 +743,7 @@ type OrderEntity {
   factoryId: String
   id: ID!
   isDelayed: Boolean!
+  orderCode: String
   orderDate: DateTime!
   orderDetails: [OrderDetailEntity!]
   orderProgressReports: [OrderProgressReportEntity!]
