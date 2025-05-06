@@ -2246,4 +2246,53 @@ export class OrdersService {
     async calculateFactoryScoresForOrder(orderId: string): Promise<FactoryScoreResponse[]> {
         return this.algorithmService.calculateFactoryScoresForOrder(orderId);
     }
+
+    async speedUpOrder(orderId: string) {
+        const now = new Date();
+        const newDeadline = new Date(now.getTime() + 3000); // Add 3 seconds for testing
+
+        return this.prisma.$transaction(async (tx) => {
+            // Get the order
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: {
+                    factory: true,
+                    customer: true
+                }
+            });
+
+            if (!order) {
+                throw new BadRequestException("Order not found");
+            }
+
+            if (order.status !== OrderStatus.PENDING_ACCEPTANCE) {
+                throw new BadRequestException("Order must be in PENDING_ACCEPTANCE status");
+            }
+
+            // Update order with new deadline
+            const updatedOrder = await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    acceptanceDeadline: newDeadline,
+                    orderProgressReports: {
+                        create: {
+                            reportDate: now,
+                            note: `Order acceptance deadline has been updated to ${newDeadline}`,
+                            imageUrls: []
+                        }
+                    }
+                }
+            });
+
+            // Notify factory about deadline change
+            await this.notificationsService.create({
+                title: "Order Acceptance Deadline Updated",
+                content: `The acceptance deadline for order #${orderId} has been updated. Please respond within the new deadline.`,
+                userId: order.factory.factoryOwnerId,
+                url: `/factory/orders/${orderId}`
+            });
+
+            return updatedOrder;
+        });
+    }
 }

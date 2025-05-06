@@ -346,7 +346,7 @@ export class CronService {
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR, {
+  @Cron(CronExpression.EVERY_5_SECONDS, {
     name: "checkPendingAcceptanceOrders"
   })
   async checkPendingAcceptanceOrders() {

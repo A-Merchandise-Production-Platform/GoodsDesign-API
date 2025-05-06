@@ -199,4 +199,11 @@ export class OrdersResolver {
     ) {
         return this.ordersService.calculateFactoryScoresForOrder(orderId);
     }
+
+    @Mutation(() => OrderEntity, { name: "speedUpOrder" })
+    speedUpOrder(
+        @Args("orderId", { type: () => String }) orderId: string,
+    ) {
+        return this.ordersService.speedUpOrder(orderId);
+    }
 }

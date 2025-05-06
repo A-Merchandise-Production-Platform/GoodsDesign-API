@@ -630,6 +630,7 @@ type Mutation {
   restoreProduct(id: String!): ProductEntity!
   sendEmail(to: String!): Boolean!
   shippedOrder(orderId: String!): OrderEntity!
+  speedUpOrder(orderId: String!): OrderEntity!
   startRework(orderId: String!): OrderEntity!
   startReworkByManager(orderId: String!): OrderEntity!
   toggleActiveCategory(id: String!): CategoryEntity!
