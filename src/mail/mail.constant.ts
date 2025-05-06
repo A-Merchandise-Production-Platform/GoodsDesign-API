@@ -7,6 +7,7 @@ export enum MailTemplateType {
   WELCOME = 'welcome',
   PASSWORD_RESET = 'password_reset',
   ORDER_CONFIRMATION = 'order_confirmation',
+  REFUND_INFORMATION = 'refund_information',
 };
 
 export type MailTemplateValue = {
@@ -31,6 +32,11 @@ export type MailTemplatePasswordReset = {
 export type MailTemplateOrderConfirmation = {
   orderId: string;
   trackingNumber: string;
+};
+
+export type MailTemplateRefundInformation = {
+  orderId: string;
+  amount: number;
 };
 
 
@@ -114,6 +120,32 @@ export const MailTemplateMap: Record<MailTemplateType, MailTemplateValue> = {
             <p>Your order ID: <strong>${orderId}</strong> has been confirmed.</p>
             <p>Tracking Number: <strong>${trackingNumber}</strong></p>
           </div>
+        </body>
+        </html>
+      `,
+    },
+    [MailTemplateType.REFUND_INFORMATION]: {
+      subject: '[GoodsDesign] Please fill in the information',
+      htmlGenerate: ({ orderId, amount }: MailTemplateRefundInformation) => `
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; }
+            .container { padding: 20px; }
+            h1 { color: #333; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>Please fill in the information</h1>
+            <p>Order ID: ${orderId}</p>
+            <p>Amount: ${amount} VND</p>
+          </div>
+          <p>Please fill in the information for refund order ${orderId}</p>
+          <p>Go to <a href="https://goodsdesign.uydev.id.vn/profile/payments">here</a> to fill in the information</p>
+          <p>Thank you for your understanding and support.</p>
+          <p>Best regards,</p>
+          <p>GoodsDesign Team</p>
         </body>
         </html>
       `,

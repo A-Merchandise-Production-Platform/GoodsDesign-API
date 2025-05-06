@@ -111,5 +111,21 @@ export class MailService {
         html: MailTemplateMap[MailTemplateType.INVOICE].htmlGenerate(invoiceParams),
       });
   }
-    
+
+  public async sendRefundInformationEmail(params: {
+    to: string;
+    orderId: string;
+    amount: number;
+  }) {
+    const { to, orderId, amount } = params;
+
+    return this.sendEmail(
+      {
+        from: MAIL_CONSTANT.FROM_EMAIL,
+        to,
+        subject: MailTemplateMap[MailTemplateType.REFUND_INFORMATION].subject,
+        html: MailTemplateMap[MailTemplateType.REFUND_INFORMATION].htmlGenerate(params),
+      }
+    );
+  }
 } 

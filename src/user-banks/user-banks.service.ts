@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common"
-import { UserBank } from "@prisma/client"
+import { OrderStatus, UserBank } from "@prisma/client"
 import { PrismaService } from "src/prisma"
 import { UserEntity } from "src/users"
 import { CreateUserBankInput } from "./dto/create-user-bank.input"
@@ -55,6 +55,17 @@ export class UserBanksService {
                 isDefault
             },
             include: this.getUserBankInclude()
+        })
+
+        // change all order status of this user from WAITING_FILL_INFORMATION to WAITING_FOR_REFUND
+        await this.prisma.order.updateMany({
+            where: {
+                customerId: user.id,
+                status: OrderStatus.WAITING_FILL_INFORMATION
+            },
+            data: {
+                status: OrderStatus.WAITING_FOR_REFUND
+            }
         })
 
         return this.transformUserBank(userBank)

@@ -16,6 +16,7 @@ import { ShippingService } from "src/shipping/shipping.service"
 import { OrderProgressReportEntity } from "./entities/order-progress-report.entity"
 import { VouchersService } from "src/vouchers/vouchers.service"
 import { SystemConfigOrderService } from "src/system-config-order/system-config-order.service"
+import { MailService } from "@/mail"
 
 @Injectable()
 export class OrdersService {
@@ -24,7 +25,8 @@ export class OrdersService {
         private readonly notificationsService: NotificationsService,
         private readonly shippingService: ShippingService,
         private readonly vouchersService: VouchersService,
-        private readonly systemConfigOrderService: SystemConfigOrderService
+        private readonly systemConfigOrderService: SystemConfigOrderService,
+        private readonly mailService: MailService
     ) {}
 
     async create(createOrderInput: CreateOrderInput, userId: string) {
@@ -2136,20 +2138,61 @@ export class OrdersService {
                 }
             })
 
-            // Update order status
-            const updatedOrder = await tx.order.update({
-                where: { id: orderId },
-                data: {
-                    status: OrderStatus.WAITING_FOR_REFUND,
-                    orderProgressReports: {
-                        create: {
-                            reportDate: new Date(),
-                            note: `Refund process initiated for amount ${totalPaidAmount}`,
-                            imageUrls: []
-                        }
-                    }
+            // check if user have userBank
+            const userBank = await tx.userBank.findFirst({
+                where: {
+                    userId: order.customerId
                 }
             })
+
+            let updatedOrder
+
+            if (!userBank) {
+                // Update order status
+                updatedOrder = await tx.order.update({
+                    where: { id: orderId },
+                    data: {
+                        status: OrderStatus.WAITING_FILL_INFORMATION,
+                        orderProgressReports: {
+                            create: {
+                                reportDate: new Date(),
+                                note: `Refund process initiated for amount ${totalPaidAmount}`,
+                                imageUrls: []
+                            }
+                        }
+                    }
+                })
+
+                // Notify customer about refund initiation
+                await this.notificationsService.create({
+                    title: "Please fill in the information",
+                    content: `Please fill in the information for refund order ${orderId}`,
+                    userId: order.customerId,
+                    url: `/profile/payments`
+                })
+
+                //send email to customer
+                await this.mailService.sendRefundInformationEmail({
+                    to: order.customer.email,
+                    orderId: order.id,
+                    amount: totalPaidAmount
+                })
+            }else{
+                // Update order status
+                updatedOrder = await tx.order.update({
+                    where: { id: orderId },
+                    data: {
+                        status: OrderStatus.WAITING_FOR_REFUND,
+                        orderProgressReports: {
+                            create: {
+                                reportDate: new Date(),
+                                note: `Refund process initiated for amount ${totalPaidAmount}`,
+                                imageUrls: []
+                            }
+                        }
+                    }
+                })
+            }
 
             // Notify customer about refund initiation
             await this.notificationsService.create({
