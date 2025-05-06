@@ -2249,7 +2249,7 @@ export class OrdersService {
 
     async speedUpOrder(orderId: string) {
         const now = new Date();
-        const newDeadline = new Date(now.getTime() + 3000); // Add 3 seconds for testing
+        const newDeadline = new Date(now.getTime() - 10000); // Add 3 seconds for testing
 
         return this.prisma.$transaction(async (tx) => {
             // Get the order
