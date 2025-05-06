@@ -6,14 +6,17 @@ import { NotificationsModule } from "src/notifications/notifications.module"
 import { ShippingModule } from "src/shipping/shipping.module"
 import { VouchersModule } from "src/vouchers/vouchers.module"
 import { SystemConfigOrderModule } from "src/system-config-order/system-config-order.module"
-
+import { MailModule } from "@/mail"
+import { AlgorithmModule } from "@/algorithm/algorithm.module"
 @Module({
     imports: [
         PrismaModule,
         NotificationsModule,
         ShippingModule,
         VouchersModule,
-        SystemConfigOrderModule
+        SystemConfigOrderModule,
+        MailModule,
+        AlgorithmModule
     ],
     providers: [OrdersResolver, OrdersService]
 })

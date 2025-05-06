@@ -16,6 +16,9 @@ import { ShippingService } from "src/shipping/shipping.service"
 import { OrderProgressReportEntity } from "./entities/order-progress-report.entity"
 import { VouchersService } from "src/vouchers/vouchers.service"
 import { SystemConfigOrderService } from "src/system-config-order/system-config-order.service"
+import { MailService } from "@/mail"
+import { AlgorithmService } from "@/algorithm/algorithm.service"
+import { FactoryScoreResponse } from "./dto/factory-scores.response"
 
 @Injectable()
 export class OrdersService {
@@ -24,7 +27,9 @@ export class OrdersService {
         private readonly notificationsService: NotificationsService,
         private readonly shippingService: ShippingService,
         private readonly vouchersService: VouchersService,
-        private readonly systemConfigOrderService: SystemConfigOrderService
+        private readonly systemConfigOrderService: SystemConfigOrderService,
+        private readonly mailService: MailService,
+        private readonly algorithmService: AlgorithmService
     ) {}
 
     async create(createOrderInput: CreateOrderInput, userId: string) {
@@ -1141,7 +1146,7 @@ export class OrdersService {
                     })
 
                     const exceededReworkLimit = orderDetailsWithReworkCount.some(
-                        (detail) => detail.reworkTime >= systemConfig.limitReworkTimes
+                        (detail) => detail.reworkTime >= systemConfig.limitReworkTimes - 1
                     )
 
                     if (exceededReworkLimit) {
@@ -2086,7 +2091,7 @@ export class OrdersService {
         return this.findOne(orderId)
     }
 
-    async createRefundForOrder(orderId: string) {
+    async createRefundForOrder(orderId: string, reason: string = "") {
         return this.prisma.$transaction(async (tx) => {
             // Get the order with its payments
             const order = await tx.order.findUnique({
@@ -2136,20 +2141,61 @@ export class OrdersService {
                 }
             })
 
-            // Update order status
-            const updatedOrder = await tx.order.update({
-                where: { id: orderId },
-                data: {
-                    status: OrderStatus.WAITING_FOR_REFUND,
-                    orderProgressReports: {
-                        create: {
-                            reportDate: new Date(),
-                            note: `Refund process initiated for amount ${totalPaidAmount}`,
-                            imageUrls: []
-                        }
-                    }
+            // check if user have userBank
+            const userBank = await tx.userBank.findFirst({
+                where: {
+                    userId: order.customerId
                 }
             })
+
+            let updatedOrder
+
+            if (!userBank) {
+                // Update order status
+                updatedOrder = await tx.order.update({
+                    where: { id: orderId },
+                    data: {
+                        status: OrderStatus.WAITING_FILL_INFORMATION,
+                        orderProgressReports: {
+                            create: {
+                                reportDate: new Date(),
+                                note: `Refund process initiated for amount ${totalPaidAmount} ${reason ? `with reason: ${reason}` : ""}`,
+                                imageUrls: [],
+                            }
+                        }
+                    }
+                })
+
+                // Notify customer about refund initiation
+                await this.notificationsService.create({
+                    title: "Please fill in the information",
+                    content: `Please fill in the information for refund order ${orderId}`,
+                    userId: order.customerId,
+                    url: `/profile/payments`
+                })
+
+                //send email to customer
+                await this.mailService.sendRefundInformationEmail({
+                    to: order.customer.email,
+                    orderId: order.id,
+                    amount: totalPaidAmount
+                })
+            }else{
+                // Update order status
+                updatedOrder = await tx.order.update({
+                    where: { id: orderId },
+                    data: {
+                        status: OrderStatus.WAITING_FOR_REFUND,
+                        orderProgressReports: {
+                            create: {
+                                reportDate: new Date(),
+                                note: `Refund process initiated for amount ${totalPaidAmount} ${reason ? `with reason: ${reason}` : ""}`,
+                                imageUrls: []
+                            }
+                        }
+                    }
+                })
+            }
 
             // Notify customer about refund initiation
             await this.notificationsService.create({
@@ -2195,5 +2241,58 @@ export class OrdersService {
             data: { factoryId: factoryId, status: OrderStatus.PENDING_ACCEPTANCE }
         })
         return order
+    }
+
+    async calculateFactoryScoresForOrder(orderId: string): Promise<FactoryScoreResponse[]> {
+        return this.algorithmService.calculateFactoryScoresForOrder(orderId);
+    }
+
+    async speedUpOrder(orderId: string) {
+        const now = new Date();
+        const newDeadline = new Date(now.getTime() - 10000); // Add 3 seconds for testing
+
+        return this.prisma.$transaction(async (tx) => {
+            // Get the order
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: {
+                    factory: true,
+                    customer: true
+                }
+            });
+
+            if (!order) {
+                throw new BadRequestException("Order not found");
+            }
+
+            if (order.status !== OrderStatus.PENDING_ACCEPTANCE) {
+                throw new BadRequestException("Order must be in PENDING_ACCEPTANCE status");
+            }
+
+            // Update order with new deadline
+            const updatedOrder = await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    acceptanceDeadline: newDeadline,
+                    orderProgressReports: {
+                        create: {
+                            reportDate: now,
+                            note: `Order acceptance deadline has been updated to ${newDeadline}`,
+                            imageUrls: []
+                        }
+                    }
+                }
+            });
+
+            // Notify factory about deadline change
+            await this.notificationsService.create({
+                title: "Order Acceptance Deadline Updated",
+                content: `The acceptance deadline for order #${orderId} has been updated. Please respond within the new deadline.`,
+                userId: order.factory.factoryOwnerId,
+                url: `/factory/orders/${orderId}`
+            });
+
+            return updatedOrder;
+        });
     }
 }

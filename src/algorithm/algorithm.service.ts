@@ -203,4 +203,134 @@ export class AlgorithmService {
             return 0;
         }
     }
+
+    async calculateFactoryScoresForOrder(orderId: string) {
+        try {
+            // Get the order with its details
+            const order = await this.prisma.order.findUnique({
+                where: { id: orderId },
+                include: {
+                    orderDetails: {
+                        include: {
+                            systemConfigVariant: true
+                        }
+                    }
+                }
+            });
+
+            if (!order) {
+                throw new Error('Order not found');
+            }
+
+            // Get variant IDs from order details
+            const variantIds = order.orderDetails.map(detail => detail.systemConfigVariantId);
+
+            // Get previously rejecting factories for this order
+            const rejectedFactories = await this.prisma.rejectedOrder.findMany({
+                where: { orderId },
+                select: { factoryId: true }
+            });
+            const rejectedFactoryIds = rejectedFactories.map(rf => rf.factoryId);
+
+            // Find eligible factories
+            const factories = await this.prisma.factory.findMany({
+                where: {
+                    factoryStatus: FactoryStatus.APPROVED,
+                    products: {
+                        some: {
+                            systemConfigVariantId: {
+                                in: variantIds
+                            }
+                        }
+                    }
+                },
+                include: {
+                    owner: true,
+                    products: {
+                        where: {
+                            systemConfigVariantId: {
+                                in: variantIds
+                            }
+                        }
+                    },
+                    address: true
+                }
+            });
+
+            // Get system configuration
+            const systemConfig = await this.prisma.systemConfigOrder.findFirst({
+                where: { type: "SYSTEM_CONFIG_ORDER" }
+            });
+
+            if (!systemConfig) {
+                throw new Error('System configuration not found');
+            }
+
+            // Calculate scores for each factory
+            const factoryScores = await Promise.all(
+                factories.map(async (factory) => {
+                    // Check current workload
+                    const activeOrders = await this.prisma.order.count({
+                        where: {
+                            factoryId: factory.factoryOwnerId,
+                            status: {
+                                in: [
+                                    OrderStatus.PENDING_ACCEPTANCE,
+                                    OrderStatus.IN_PRODUCTION
+                                ]
+                            }
+                        }
+                    });
+
+                    // Calculate individual scores
+                    const totalCapacity = factory.maxPrintingCapacity;
+                    const capacityScore = Math.max(0, (totalCapacity - activeOrders * 50) / totalCapacity);
+                    const leadTimeScore = factory.leadTime ? 1 / factory.leadTime : 0;
+                    const specializationScore = this.calculateSpecializationScore(factory, variantIds, systemConfig);
+                    const maxLegitPoint = (systemConfig as any).maxLegitPoint || 100;
+                    const legitPointScore = Math.min(1, factory.legitPoint / maxLegitPoint);
+                    const productionCapacityScore = this.calculateProductionCapacityScore(factory, variantIds, systemConfig);
+
+                    // Get weights from system config
+                    const weights = {
+                        capacity: (systemConfig as any)?.capacityScoreWeight || 0.2,
+                        leadTime: (systemConfig as any)?.leadTimeScoreWeight || 0.15,
+                        specialization: (systemConfig as any)?.specializationScoreWeight || 0.15,
+                        legitPoint: (systemConfig as any)?.legitPointScoreWeight || 0.25,
+                        productionCapacity: (systemConfig as any)?.productionCapacityScoreWeight || 0.1
+                    };
+
+                    // Calculate final score
+                    const totalScore = 
+                        capacityScore * weights.capacity + 
+                        leadTimeScore * weights.leadTime + 
+                        specializationScore * weights.specialization + 
+                        legitPointScore * weights.legitPoint + 
+                        productionCapacityScore * weights.productionCapacity;
+
+                    return {
+                        factoryId: factory.factoryOwnerId,
+                        factoryName: factory.name,
+                        scores: {
+                            capacityScore,
+                            leadTimeScore,
+                            specializationScore,
+                            legitPointScore,
+                            productionCapacityScore
+                        },
+                        weights,
+                        totalScore
+                    };
+                })
+            );
+
+            // Sort by total score (highest first)
+            factoryScores.sort((a, b) => b.totalScore - a.totalScore);
+
+            return factoryScores;
+        } catch (error) {
+            this.logger.error(`Error calculating factory scores: ${error.message}`);
+            throw error;
+        }
+    }
 }

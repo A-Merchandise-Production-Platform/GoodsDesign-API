@@ -3,12 +3,13 @@ export const MAIL_CONSTANT = {
 }
 
 export enum MailTemplateType {
-    INVOICE = "invoice",
-    WELCOME = "welcome",
-    PASSWORD_RESET = "password_reset",
-    ORDER_CONFIRMATION = "order_confirmation",
-    OTP = "otp",
-    FACTORY_CREATED = "factory_created"
+  INVOICE = 'invoice',
+  WELCOME = 'welcome',
+  PASSWORD_RESET = 'password_reset',
+  ORDER_CONFIRMATION = 'order_confirmation',
+  REFUND_INFORMATION = 'refund_information',
+  OTP = "otp",
+  FACTORY_CREATED = "factory_created"
 }
 
 export type MailTemplateValue = {
@@ -34,6 +35,11 @@ export type MailTemplateOrderConfirmation = {
     orderId: string
     trackingNumber: string
 }
+
+export type MailTemplateRefundInformation = {
+  orderId: string;
+  amount: number;
+};
 
 export type MailTemplateOtp = {
     otp: string
@@ -228,6 +234,27 @@ export const MailTemplateMap: Record<MailTemplateType, MailTemplateValue> = {
                 </ol>
                 
                 <p style="margin-top: 20px;">Thank you for shopping with GoodsDesign!</p>
+                
+                <p>Best regards,<br>The GoodsDesign Team</p>
+            `
+            return baseTemplate(content)
+        }
+    },
+    [MailTemplateType.REFUND_INFORMATION]: {
+        subject: '[GoodsDesign] Please fill in the information',
+        htmlGenerate: ({ orderId, amount }: MailTemplateRefundInformation) => {
+            const content = `
+                <h1 style="color: #333333; margin-bottom: 25px; font-weight: 600;">Please fill in the information</h1>
+                
+                <div style="background-color: #f8f9fa; border-left: 4px solid #4a6cf7; padding: 20px; margin: 25px 0; border-radius: 4px;">
+                    <p><strong>Order ID:</strong> ${orderId}</p>
+                    <p><strong>Amount:</strong> ${amount} VND</p>
+                </div>
+                
+                <p>Please fill in the information for refund order ${orderId}</p>
+                <p>Go to <a href="https://goodsdesign.uydev.id.vn/profile/payments" style="color: #4a6cf7; text-decoration: none;">here</a> to fill in the information</p>
+                
+                <p>Thank you for your understanding and support.</p>
                 
                 <p>Best regards,<br>The GoodsDesign Team</p>
             `

@@ -1,21 +1,24 @@
-import { UseGuards, BadRequestException } from "@nestjs/common"
+import { BadRequestException, UseGuards } from "@nestjs/common"
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql"
 import { CurrentUser } from "src/auth"
 import { UserEntity } from "src/users"
 import { GraphqlJwtAuthGuard } from "../auth/guards/graphql-jwt-auth.guard"
+import { AddOrderProgressReportInput } from "./dto/add-order-progress-report.input"
 import { CreateOrderInput } from "./dto/create-order.input"
 import { DoneCheckQualityInput } from "./dto/done-check-quality.input"
+import { FactoryScoreResponse } from "./dto/factory-scores.response"
 import { FeedbackOrderInput } from "./dto/feedback-order.input"
 import { CheckQualityEntity } from "./entities/check-quality.entity"
 import { OrderDetailEntity } from "./entities/order-detail.entity"
+import { OrderProgressReportEntity } from "./entities/order-progress-report.entity"
 import { OrderEntity } from "./entities/order.entity"
 import { OrdersService } from "./orders.service"
-import { OrderProgressReportEntity } from "./entities/order-progress-report.entity"
-import { AddOrderProgressReportInput } from "./dto/add-order-progress-report.input"
 
 @Resolver(() => OrderEntity)
 export class OrdersResolver {
-    constructor(private readonly ordersService: OrdersService) {}
+    constructor(
+        private readonly ordersService: OrdersService,
+    ) {}
 
     @Mutation(() => OrderEntity)
     @UseGuards(GraphqlJwtAuthGuard)
@@ -173,9 +176,10 @@ export class OrdersResolver {
     @UseGuards(GraphqlJwtAuthGuard)
     createRefundForOrder(
         @Args("orderId", { type: () => String }) orderId: string,
+        @Args("reason", { type: () => String }) reason: string,
         @CurrentUser() user: UserEntity
     ) {
-        return this.ordersService.createRefundForOrder(orderId);
+        return this.ordersService.createRefundForOrder(orderId, reason);
     }
 
     @Mutation(() => OrderEntity)
@@ -187,5 +191,19 @@ export class OrdersResolver {
     ) {
         // Additional access control checks can be added here if necessary
         return this.ordersService.assignFactoryToOrder(orderId, factoryId);
+    }
+
+    @Query(() => [FactoryScoreResponse], { name: "factoryScoresForOrder" })
+    getFactoryScoresForOrder(
+        @Args("orderId", { type: () => String }) orderId: string,
+    ) {
+        return this.ordersService.calculateFactoryScoresForOrder(orderId);
+    }
+
+    @Mutation(() => OrderEntity, { name: "speedUpOrder" })
+    speedUpOrder(
+        @Args("orderId", { type: () => String }) orderId: string,
+    ) {
+        return this.ordersService.speedUpOrder(orderId);
     }
 }
