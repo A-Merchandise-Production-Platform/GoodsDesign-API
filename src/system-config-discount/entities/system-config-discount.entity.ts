@@ -27,6 +27,9 @@ export class SystemConfigDiscountEntity {
     @Field()
     updatedAt: Date
 
+    @Field(() => String)
+    productId: string
+
     @Field(() => ProductEntity)
     product: ProductEntity
 

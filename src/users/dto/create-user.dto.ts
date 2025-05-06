@@ -35,10 +35,10 @@ export class CreateUserDto {
     @IsOptional()
     gender?: boolean
 
-    @Field(() => String, { nullable: true })
+    @Field(() => Date, { nullable: true })
     @IsDateString()
     @IsOptional()
-    dateOfBirth?: string
+    dateOfBirth?: Date
 
     @Field(() => String, { nullable: true })
     @IsString()

@@ -216,6 +216,7 @@ input CreateSystemConfigDiscountDto {
 input CreateSystemConfigVariantInput {
   color: String
   model: String
+  price: Int
   productId: String!
   size: String
 }
@@ -230,7 +231,7 @@ input CreateUserBankInput {
 
 """Create user input"""
 input CreateUserDto {
-  dateOfBirth: String
+  dateOfBirth: DateTime
   email: String!
   gender: Boolean = false
   imageUrl: String
@@ -1083,6 +1084,7 @@ type SystemConfigDiscountEntity {
   minQuantity: Float!
   name: String!
   product: ProductEntity!
+  productId: String!
   updatedAt: DateTime!
 }
 
@@ -1304,6 +1306,7 @@ input UpdateSystemConfigVariantInput {
   id: String!
   isActive: Boolean
   model: String
+  price: Int
   productId: String
   size: String
 }
@@ -1317,7 +1320,7 @@ input UpdateUserBankInput {
 
 """Update user input"""
 input UpdateUserDto {
-  dateOfBirth: String
+  dateOfBirth: DateTime
   email: String
   gender: Boolean = false
   imageUrl: String
