@@ -216,6 +216,7 @@ input CreateSystemConfigDiscountDto {
 input CreateSystemConfigVariantInput {
   color: String
   model: String
+  price: Float
   productId: String!
   size: String
 }
@@ -1329,6 +1330,7 @@ input UpdateSystemConfigVariantInput {
   id: String!
   isActive: Boolean
   model: String
+  price: Float
   productId: String
   size: String
 }

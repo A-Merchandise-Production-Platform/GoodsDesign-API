@@ -1,5 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsNumber } from 'class-validator';
 
 @InputType()
 export class CreateSystemConfigVariantInput {
@@ -22,4 +22,9 @@ export class CreateSystemConfigVariantInput {
   @IsOptional()
   @IsString()
   model?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsNumber()
+  price?: number;
 } 

@@ -12,6 +12,7 @@ import { UserEntity } from "./entities/users.entity"
 import { Roles } from "@prisma/client"
 import { UpdateProfileDto } from "src/users/dto/update-profile.dto"
 import { UpdatePhoneNumberDto } from "src/users/dto/update-phone-number.dto"
+import { hash } from "bcrypt"
 
 @Injectable()
 export class UsersService {
@@ -122,6 +123,11 @@ export class UsersService {
             throw new NotFoundException(`User with ID ${id} not found`)
         }
 
+        // hash password
+        if (updateUserDto.password) {
+            updateUserDto.password = await hash(updateUserDto.password, 10)
+        }
+
         const updatedUser = await this.prisma.user.update({
             where: { id },
             data: {
@@ -129,6 +135,7 @@ export class UsersService {
                 dateOfBirth: updateUserDto.dateOfBirth
                     ? new Date(updateUserDto.dateOfBirth)
                     : undefined,
+                password: updateUserDto.password,
                 updatedAt: new Date(),
                 updatedBy: currentUser.id
             }
