@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common"
+import { Injectable, BadRequestException } from "@nestjs/common"
 import { PrismaService } from "../prisma/prisma.service"
 import { CreateSystemConfigDiscountDto } from "./dto/create-system-config-discount.dto"
 import { UpdateSystemConfigDiscountDto } from "./dto/update-system-config-discount.dto"
@@ -8,7 +8,30 @@ import { SystemConfigDiscountEntity } from "./entities/system-config-discount.en
 export class SystemConfigDiscountService {
     constructor(private prisma: PrismaService) {}
 
+    private async validateDiscountMinQuantity(
+        productId: string,
+        minQuantity: number,
+        excludeDiscountId?: string
+    ): Promise<void> {
+        const existingDiscount = await this.prisma.systemConfigDiscount.findFirst({
+            where: {
+                productId,
+                minQuantity,
+                isDeleted: false,
+                ...(excludeDiscountId && { id: { not: excludeDiscountId } })
+            }
+        })
+
+        if (existingDiscount) {
+            throw new BadRequestException(
+                `A discount with minimum quantity ${minQuantity} already exists for this product`
+            )
+        }
+    }
+
     async create(createDto: CreateSystemConfigDiscountDto): Promise<SystemConfigDiscountEntity> {
+        await this.validateDiscountMinQuantity(createDto.productId, createDto.minQuantity)
+
         const discount = await this.prisma.systemConfigDiscount.create({
             data: createDto,
             include: {
@@ -50,6 +73,10 @@ export class SystemConfigDiscountService {
         id: string,
         updateDto: UpdateSystemConfigDiscountDto
     ): Promise<SystemConfigDiscountEntity> {
+        if (updateDto.minQuantity !== undefined) {
+            await this.validateDiscountMinQuantity(updateDto.productId, updateDto.minQuantity, id)
+        }
+
         const discount = await this.prisma.systemConfigDiscount.update({
             where: { id },
             data: updateDto,
