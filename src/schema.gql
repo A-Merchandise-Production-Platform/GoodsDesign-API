@@ -611,6 +611,7 @@ type Mutation {
   doneReworkForOrderDetails(orderDetailId: String!): OrderDetailEntity!
   duplicateProductDesign(id: ID!): ProductDesignEntity!
   feedbackOrder(input: FeedbackOrderInput!, orderId: String!): OrderEntity!
+  generateAndUploadImage(prompt: String!): FileUploadResponse!
   login(loginInput: LoginDto!): AuthResponseDto!
   logout: String!
   markNotificationAsRead(id: String!): NotificationEntity!

@@ -54,6 +54,20 @@ export class FileResolver {
     }
   }
 
+  @Mutation(() => FileUploadResponse)
+  async generateAndUploadImage(
+    @Args({ name: 'prompt', type: () => String }) prompt: string
+  ) {
+    try {
+      this.logger.log(`Generating image for prompt: ${prompt}`);
+      const url = await this.fileService.generateAndUploadImage(prompt);
+      return { url };
+    } catch (error) {
+      this.logger.error(`Failed to generate and upload image: ${error.message}`, error.stack);
+      throw new Error(`Failed to generate and upload image: ${error.message}`);
+    }
+  }
+
   private async streamToBuffer(stream: Readable): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
