@@ -19,6 +19,7 @@ interface UserSeedData {
     isActive: boolean
     role: Roles
     address: Address
+    isVerified: boolean
 }
 
 interface UsersData {
@@ -43,7 +44,8 @@ export const usersData: UsersData = {
                 wardCode: "21002",
                 street: "Lô Y Chung cư Ngô Gia Tự",
                 formattedAddress: "Lô Y Chung cư Ngô Gia Tự, Phường 2, Quận 10, Hồ Chí Minh"
-            }
+            },
+            isVerified: true
         },
         {
             id: "manager-id",
@@ -61,7 +63,8 @@ export const usersData: UsersData = {
                 wardCode: "21002",
                 street: "Lô Y Chung cư Ngô Gia Tự",
                 formattedAddress: "Lô Y Chung cư Ngô Gia Tự, Phường 2, Quận 10, Hồ Chí Minh"
-            }
+            },
+            isVerified: true
         },
         {
             id: "customer-id",
@@ -79,7 +82,8 @@ export const usersData: UsersData = {
                 wardCode: "20304",
                 street: "371 Đ. Điện Biên Phủ",
                 formattedAddress: "371 Đ. Điện Biên Phủ, Phường 4, Quận 3, Hồ Chí Minh"
-            }
+            },
+            isVerified: true
         },
         {
             id: "staff-id",
@@ -97,7 +101,8 @@ export const usersData: UsersData = {
                 wardCode: "21002",
                 street: "Lô Y Chung cư Ngô Gia Tự",
                 formattedAddress: "Lô Y Chung cư Ngô Gia Tự, Phường 2, Quận 10, Hồ Chí Minh"
-            }
+            },
+            isVerified: true
         },
         {
             id: "staff-id-1",
@@ -115,7 +120,8 @@ export const usersData: UsersData = {
                 wardCode: "21002",
                 street: "Lô Y Chung cư Ngô Gia Tự",
                 formattedAddress: "Lô Y Chung cư Ngô Gia Tự, Phường 2, Quận 10, Hồ Chí Minh"
-            }
+            },
+            isVerified: true
         },
         {
             id: "factory-id",
@@ -133,7 +139,8 @@ export const usersData: UsersData = {
                 wardCode: "21610",
                 street: "47 Nguyễn Huy Lượng",
                 formattedAddress: "47 Nguyễn Huy Lượng, Phường 14, Quận Bình Thạnh, Hồ Chí Minh"
-            }
+            },
+            isVerified: true
         },
         {
             id: "factory-id-1",
@@ -152,7 +159,8 @@ export const usersData: UsersData = {
                 street: "93/61 Đ. Nguyễn Đình Chiểu",
                 formattedAddress:
                     "93/61 Đ. Nguyễn Đình Chiểu, Phường 14, Quận Bình Thạnh, Hồ Chí Minh"
-            }
+            },
+            isVerified: true
         },
         {
             id: "factory-id-2",
@@ -170,7 +178,8 @@ export const usersData: UsersData = {
                 wardCode: "21002",
                 street: "Lô Y Chung cư Ngô Gia Tự",
                 formattedAddress: "Lô Y Chung cư Ngô Gia Tự, Phường 2, Quận 10, Hồ Chí Minh"
-            }
+            },
+            isVerified: true
         },
         {
             id: "staff-id-2",
@@ -188,7 +197,8 @@ export const usersData: UsersData = {
                 wardCode: "21002",
                 street: "Lô Y Chung cư Ngô Gia Tự",
                 formattedAddress: "Lô Y Chung cư Ngô Gia Tự, Phường 2, Quận 10, Hồ Chí Minh"
-            }
+            },
+            isVerified: true
         }
     ]
 }

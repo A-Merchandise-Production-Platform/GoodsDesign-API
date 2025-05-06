@@ -35,7 +35,8 @@ export const seedUsers = async (prisma: PrismaClient) => {
                             street: userData.address.street
                         }
                     ]
-                }
+                },
+                isVerified: userData.isVerified
             }
         })
 
