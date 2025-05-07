@@ -934,7 +934,7 @@ export class OrdersService {
                         title: "Quality Check Required",
                         content: `Please perform quality check for order #${orderDetail.order.id}`,
                         userId: task.userId,
-                        url: `/quality-checks/${task.id}`
+                        url: `/staff/tasks/${orderDetail.orderId}`
                     })
                 }
 
