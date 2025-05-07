@@ -250,11 +250,10 @@ export class ShippingService {
   }
 
   async createShippingOrder(orderId: string): Promise<ShippingOrder> {
+    // Get order with all necessary relations in a single query
     const order = await this.prisma.order.findUnique({
-      where: {
-        id: orderId
-      },
-      include: {  
+      where: { id: orderId },
+      include: {
         orderDetails: {
           include: {
             design: {
@@ -271,7 +270,17 @@ export class ShippingService {
               }
             }
           }
-        } 
+        },
+        customer: {
+          include: {
+            addresses: true
+          }
+        },
+        factory: {
+          include: {
+            address: true
+          }
+        }
       }
     });
 
@@ -279,37 +288,22 @@ export class ShippingService {
       throw new Error(`Order with ID ${orderId} not found`);
     }
 
-    // Get customer information
-    const customer = await this.prisma.user.findUnique({
-      where: {
-        id: order.customerId
-      }
-    });
-
-    if (!customer) {
+    if (!order.customer) {
       throw new Error(`Customer with ID ${order.customerId} not found`);
     }
-    let orderAddress = await this.prisma.address.findFirst({
-      where: {
-        userId: order.customerId
-      }
-    });
 
-    if(orderAddress == null) {
-      //check if user has address
-      const address = await this.prisma.address.findFirst({
-        where: {
-          userId: order.customerId
-        }
-      });
-      
-      if(!address) {
-        throw new Error(`Customer ${order.customerId} has no address`);
-      }
-
-      orderAddress = address
+    const orderAddress = order.customer.addresses[0];
+    if (!orderAddress) {
+      throw new Error(`Customer ${order.customerId} has no address`);
     }
 
+    if (!order.factory) {
+      throw new Error(`Factory with ID ${order.factoryId} not found`);
+    }
+
+    if (!order.factory.address) {
+      throw new Error(`Factory address not found`);
+    }
 
     // Prepare items for shipping
     const items = order.orderDetails.map(detail => {
@@ -331,55 +325,28 @@ export class ShippingService {
       };
     });
 
-    // Calculate total weight (assuming each item is 1200g)
+    // Calculate total weight and dimensions
     const totalWeight = items.reduce((total, item) => total + (item.weight * item.quantity), 0);
-    const totalHeight = items.reduce((total, item) => total + (item.height * item.quantity), 0);
+    const totalDimensions = items.reduce((acc, item) => ({
+      length: Math.max(acc.length, item.length),
+      width: Math.max(acc.width, item.width),
+      height: Math.max(acc.height, item.height * item.quantity)
+    }), { length: 0, width: 0, height: 0 });
 
-    //get factory address
-    const factory = await this.prisma.factory.findFirst({
-      where: {
-        owner: {
-          id: order.factoryId
-        }
-      }
-    });
+    // Get location information in parallel
+    const [fromProvince, fromDistrictName, fromWardName] = await Promise.all([
+      this.getProvince(order.factory.address.provinceID),
+      this.getDistrict(order.factory.address.districtID),
+      this.getWard(order.factory.address.wardCode)
+    ]);
 
-    if(!factory) {
-      throw new Error(`Factory with ID ${order.customerId} not found`);
-    }
-    
-    const factoryAddress = await this.prisma.address.findFirst({
-      where: {
-        id: factory.addressId
-      }
-    });
-
-    if(!factoryAddress) {
-      throw new Error(`Factory address with ID ${factory.addressId} not found`);
-    }
-    
-    const fromProvince = await this.getProvince(factoryAddress.provinceID);
-    const fromDistrictName = await this.getDistrict(factoryAddress.districtID);
-    const fromWardName = await this.getWard(factoryAddress.wardCode);
-
-    const totalDimensions = items.reduce((acc, item) => {
-      // For multiple items, we need to consider how they'll be packed
-      // Here we're using a simple approach where we take the maximum dimensions
-      // and multiply length by quantity (assuming items are stacked lengthwise)
-      return {
-        length: Math.max(acc.length, item.length),
-        width: Math.max(acc.width, item.width),
-        height: Math.max(acc.height, item.height * item.quantity)
-      };
-    }, { length: 0, width: 0, height: 0 });
-    
     const body = {
       payment_type_id: 2,
       note: `Đơn hàng #${order.id}`,
       required_note: "KHONGCHOXEMHANG",
       from_name: "GoodsDesign",
       from_phone: "0981331633",
-      from_address: factoryAddress.formattedAddress,
+      from_address: order.factory.address.formattedAddress,
       from_ward_name: fromWardName.wardName,
       from_district_name: fromDistrictName.districtName,
       from_province_name: fromProvince.provinceName,
@@ -388,8 +355,8 @@ export class ShippingService {
       return_district_id: null,
       return_ward_code: "",
       client_order_code: order.id,
-      to_name: customer.name || "Khách hàng",
-      to_phone: customer.phoneNumber || "0902331633",
+      to_name: order.customer.name || "Khách hàng",
+      to_phone: order.customer.phoneNumber || "0902331633",
       to_address: orderAddress.formattedAddress,
       to_ward_code: orderAddress.wardCode,
       to_district_id: orderAddress.districtID,
@@ -409,43 +376,43 @@ export class ShippingService {
       items: items
     };
 
-    const response = await this.handleRequest<any>(
-      this.ENDPOINTS.CREATE_ORDER,
-      {},
-      'POST',
-      body
-    );
+    try {
+      const response = await this.handleRequest<any>(
+        this.ENDPOINTS.CREATE_ORDER,
+        {},
+        'POST',
+        body
+      );
 
-    console.log("response", response);
+      // Update order with orderCode in a separate transaction
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { orderCode: response?.order_code || null }
+      });
 
-    //update order with orderCode
-    await this.prisma.order.update({
-      where: {
-        id: orderId
-      },
-      data: { orderCode: response?.order_code || null }
-    });
-
-    return {
-      code: 200,
-      message: "Success",
-      orderCode: response.order_code,
-      sortCode: response.sort_code,
-      transType: response.trans_type,
-      wardEncode: response.ward_encode,
-      districtEncode: response.district_encode,
-      expectedDeliveryTime: response.expected_delivery_time,
-      totalFee: response.total_fee,
-      fee: {
-        coupon: response.fee.coupon,
-        insurance: response.fee.insurance,
-        main_service: response.fee.main_service,
-        r2s: response.fee.r2s,
-        return: response.fee.return,
-        station_do: response.fee.station_do,
-        station_pu: response.fee.station_pu
-      }
-    };
+      return {
+        code: 200,
+        message: "Success",
+        orderCode: response.order_code,
+        sortCode: response.sort_code,
+        transType: response.trans_type,
+        wardEncode: response.ward_encode,
+        districtEncode: response.district_encode,
+        expectedDeliveryTime: response.expected_delivery_time,
+        totalFee: response.total_fee,
+        fee: {
+          coupon: response.fee.coupon,
+          insurance: response.fee.insurance,
+          main_service: response.fee.main_service,
+          r2s: response.fee.r2s,
+          return: response.fee.return,
+          station_do: response.fee.station_do,
+          station_pu: response.fee.station_pu
+        }
+      };
+    } catch (error) {
+      throw new Error(`Failed to create shipping order: ${error.message}`);
+    }
   }
 
   async calculateShippingCostAndFactoryForCart(cartIds: string[] = [], addressId: string): Promise<{
