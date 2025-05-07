@@ -148,24 +148,29 @@ export class OrdersService {
             })
 
             //using calculateShippingCostAndFactoryForCart for shipping fee and factory
-            const { shippingFee } = await this.shippingService.calculateShippingCostAndFactoryForCart(
-                createOrderInput.orderDetails.map((v) => v.cartItemId),
-                createOrderInput.addressId
-            )
+            const { shippingFee } =
+                await this.shippingService.calculateShippingCostAndFactoryForCart(
+                    createOrderInput.orderDetails.map((v) => v.cartItemId),
+                    createOrderInput.addressId
+                )
+
+            console.log("shippingFee", shippingFee)
 
             // Apply voucher if provided
-            let finalTotalPrice = totalOrderPrice + (shippingFee?.total || 0)
             if (createOrderInput.voucherId) {
                 try {
                     const { finalPrice } = await this.vouchersService.calculateVoucherDiscount(
                         createOrderInput.voucherId,
                         totalOrderPrice
                     )
-                    finalTotalPrice = finalPrice
+                    totalOrderPrice = finalPrice
                 } catch (error) {
+                    console.log("error", error)
                     throw new BadRequestException(error.message)
                 }
             }
+
+            const finalTotalPrice = totalOrderPrice + (shippingFee?.total || 0)
 
             // Calculate estimated times based on system config
             const now = new Date()
@@ -1171,7 +1176,6 @@ export class OrdersService {
                             roles: ["MANAGER"],
                             url: `/manager/orders/${checkQuality.orderDetail.order.id}`
                         })
-
                     }
 
                     // Notify factory about rework requirement
@@ -1196,7 +1200,7 @@ export class OrdersService {
                             orderId: checkQuality.orderDetail.order.id
                         },
                         data: {
-                            status: OrderDetailStatus.READY_FOR_SHIPPING,
+                            status: OrderDetailStatus.READY_FOR_SHIPPING
                         }
                     })
 
@@ -1352,7 +1356,7 @@ export class OrdersService {
                 where: { id: orderId },
                 data: {
                     status: OrderStatus.REWORK_IN_PROGRESS,
-                    isDelayed: true,    
+                    isDelayed: true,
                     currentProgress: 45,
                     estimatedCheckQualityAt,
                     estimatedCompletionAt,
@@ -1401,7 +1405,10 @@ export class OrdersService {
 
                 await tx.orderDetail.update({
                     where: { id: orderDetail.id },
-                    data: { status: OrderDetailStatus.REWORK_IN_PROGRESS, reworkTime: { increment: 1 } }
+                    data: {
+                        status: OrderDetailStatus.REWORK_IN_PROGRESS,
+                        reworkTime: { increment: 1 }
+                    }
                 })
 
                 await tx.checkQuality.create({
@@ -1483,85 +1490,88 @@ export class OrdersService {
                 estimatedCheckQualityAt.getTime() + systemConfig.shippingDays * 24 * 60 * 60 * 1000
             )
 
-           // Update order status
-           await tx.order.update({
-            where: { id: orderId },
-            data: {
-                status: OrderStatus.REWORK_IN_PROGRESS,
-                isDelayed: true,    
-                currentProgress: 45,
-                estimatedCheckQualityAt,
-                estimatedCompletionAt,
-                orderProgressReports: {
-                    create: {
-                        reportDate: now,
-                        note: `Rework started by factory. Factory lost ${systemConfig.reduceLegitPointIfReject} legitimacy points.`,
-                        imageUrls: []
+            // Update order status
+            await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    status: OrderStatus.REWORK_IN_PROGRESS,
+                    isDelayed: true,
+                    currentProgress: 45,
+                    estimatedCheckQualityAt,
+                    estimatedCompletionAt,
+                    orderProgressReports: {
+                        create: {
+                            reportDate: now,
+                            note: `Rework started by factory. Factory lost ${systemConfig.reduceLegitPointIfReject} legitimacy points.`,
+                            imageUrls: []
+                        }
                     }
                 }
-            }
-        })
+            })
 
-        //get order detail failed quality check
-        const orderDetailsFailed = await tx.orderDetail.findMany({
-            where: {
-                orderId: orderId,
-                rejectedQty: { gt: 0 }
-            }
-        })
-
-        //get staff if from factoryId
-        const factory = await tx.factory.findFirst({
-            where: {
-                factoryOwnerId: order.factoryId
-            },
-            include: {
-                staff: true
-            }
-        })
-
-        // Create tasks and check qualities for rework
-        for (const orderDetail of orderDetailsFailed) {
-            const task = await tx.task.create({
-                data: {
-                    taskname: `Quality check for rework order ${orderId}`,
-                    description: `Quality check for rework design ${orderDetail.designId}`,
-                    startDate: now,
-                    expiredTime: estimatedCheckQualityAt,
-                    taskType: TaskType.QUALITY_CHECK,
-                    orderId: order.id,
-                    status: TaskStatus.PENDING,
-                    userId: factory.staff.id
+            //get order detail failed quality check
+            const orderDetailsFailed = await tx.orderDetail.findMany({
+                where: {
+                    orderId: orderId,
+                    rejectedQty: { gt: 0 }
                 }
             })
 
-            await tx.orderDetail.update({
-                where: { id: orderDetail.id },
-                data: { status: OrderDetailStatus.REWORK_IN_PROGRESS, reworkTime: { increment: 1 } }
-            })
-
-            await tx.checkQuality.create({
-                data: {
-                    taskId: task.id,
-                    orderDetailId: orderDetail.id,
-                    totalChecked: orderDetail.rejectedQty,
-                    passedQuantity: 0,
-                    failedQuantity: 0,
-                    status: QualityCheckStatus.PENDING,
-                    checkedAt: now
+            //get staff if from factoryId
+            const factory = await tx.factory.findFirst({
+                where: {
+                    factoryOwnerId: order.factoryId
+                },
+                include: {
+                    staff: true
                 }
             })
-        }
 
-        // Notify customer about rework start
-        await this.notificationsService.create({
-            title: "Rework Started",
-            content: `The factory has started reworking your order #${orderId}.`,
-            userId: order.customer.id,
-            url: `/my-order/${orderId}`
-        })
+            // Create tasks and check qualities for rework
+            for (const orderDetail of orderDetailsFailed) {
+                const task = await tx.task.create({
+                    data: {
+                        taskname: `Quality check for rework order ${orderId}`,
+                        description: `Quality check for rework design ${orderDetail.designId}`,
+                        startDate: now,
+                        expiredTime: estimatedCheckQualityAt,
+                        taskType: TaskType.QUALITY_CHECK,
+                        orderId: order.id,
+                        status: TaskStatus.PENDING,
+                        userId: factory.staff.id
+                    }
+                })
 
-        return order
+                await tx.orderDetail.update({
+                    where: { id: orderDetail.id },
+                    data: {
+                        status: OrderDetailStatus.REWORK_IN_PROGRESS,
+                        reworkTime: { increment: 1 }
+                    }
+                })
+
+                await tx.checkQuality.create({
+                    data: {
+                        taskId: task.id,
+                        orderDetailId: orderDetail.id,
+                        totalChecked: orderDetail.rejectedQty,
+                        passedQuantity: 0,
+                        failedQuantity: 0,
+                        status: QualityCheckStatus.PENDING,
+                        checkedAt: now
+                    }
+                })
+            }
+
+            // Notify customer about rework start
+            await this.notificationsService.create({
+                title: "Rework Started",
+                content: `The factory has started reworking your order #${orderId}.`,
+                userId: order.customer.id,
+                url: `/my-order/${orderId}`
+            })
+
+            return order
         })
     }
 
@@ -1929,12 +1939,9 @@ export class OrdersService {
                 data: { status: OrderDetailStatus.SHIPPING }
             })
 
-            
-            try{
+            try {
                 // Create shipping third party task
-                await this.shippingService.createShippingOrder(
-                    orderId
-                )
+                await this.shippingService.createShippingOrder(orderId)
             } catch (error) {
                 console.log("Third party shipping error", error)
                 throw new BadRequestException("Third party shipping error: " + error.message)
@@ -2160,7 +2167,7 @@ export class OrdersService {
                             create: {
                                 reportDate: new Date(),
                                 note: `Refund process initiated for amount ${totalPaidAmount} ${reason ? `with reason: ${reason}` : ""}`,
-                                imageUrls: [],
+                                imageUrls: []
                             }
                         }
                     }
@@ -2180,7 +2187,7 @@ export class OrdersService {
                     orderId: order.id,
                     amount: totalPaidAmount
                 })
-            }else{
+            } else {
                 // Update order status
                 updatedOrder = await tx.order.update({
                     where: { id: orderId },
@@ -2244,12 +2251,12 @@ export class OrdersService {
     }
 
     async calculateFactoryScoresForOrder(orderId: string): Promise<FactoryScoreResponse[]> {
-        return this.algorithmService.calculateFactoryScoresForOrder(orderId);
+        return this.algorithmService.calculateFactoryScoresForOrder(orderId)
     }
 
     async speedUpOrder(orderId: string) {
-        const now = new Date();
-        const newDeadline = new Date(now.getTime() - 10000); // Add 3 seconds for testing
+        const now = new Date()
+        const newDeadline = new Date(now.getTime() - 10000) // Add 3 seconds for testing
 
         return this.prisma.$transaction(async (tx) => {
             // Get the order
@@ -2259,14 +2266,14 @@ export class OrdersService {
                     factory: true,
                     customer: true
                 }
-            });
+            })
 
             if (!order) {
-                throw new BadRequestException("Order not found");
+                throw new BadRequestException("Order not found")
             }
 
             if (order.status !== OrderStatus.PENDING_ACCEPTANCE) {
-                throw new BadRequestException("Order must be in PENDING_ACCEPTANCE status");
+                throw new BadRequestException("Order must be in PENDING_ACCEPTANCE status")
             }
 
             // Update order with new deadline
@@ -2282,7 +2289,7 @@ export class OrdersService {
                         }
                     }
                 }
-            });
+            })
 
             // Notify factory about deadline change
             await this.notificationsService.create({
@@ -2290,9 +2297,118 @@ export class OrdersService {
                 content: `The acceptance deadline for order #${orderId} has been updated. Please respond within the new deadline.`,
                 userId: order.factory.factoryOwnerId,
                 url: `/factory/orders/${orderId}`
-            });
+            })
 
-            return updatedOrder;
-        });
+            return updatedOrder
+        })
+    }
+
+    async getOrderPriceDetails(orderId: string) {
+        const order = await this.prisma.order.findUnique({
+            where: { id: orderId },
+            include: {
+                orderDetails: {
+                    include: {
+                        design: {
+                            include: {
+                                systemConfigVariant: {
+                                    include: {
+                                        product: {
+                                            include: {
+                                                discounts: true
+                                            }
+                                        }
+                                    }
+                                },
+                                designPositions: {
+                                    include: {
+                                        positionType: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                voucher: true
+            }
+        })
+
+        if (!order) {
+            throw new BadRequestException("Order not found")
+        }
+
+        // Calculate base price (before any discounts)
+        let basePrice = 0
+        let maxDiscountPercent = 0
+
+        // Group items by design to calculate quantity-based discounts
+        const designQuantities = new Map<string, number>()
+        order.orderDetails.forEach((detail) => {
+            const designId = detail.design.id
+            const currentQuantity = designQuantities.get(designId) || 0
+            designQuantities.set(designId, currentQuantity + detail.quantity)
+        })
+
+        // Calculate prices and find max discount
+        order.orderDetails.forEach((detail) => {
+            const design = detail.design
+
+            // Calculate item base price: variant price + sum of all position prices
+            const blankPrice = design.systemConfigVariant.price || 0
+            const positionPrices = design.designPositions.reduce((sum, position) => {
+                if (position.designJSON && Object.keys(position.designJSON).length > 0) {
+                    return sum + position.positionType.basePrice
+                }
+                return sum
+            }, 0)
+
+            const baseItemPrice = blankPrice + positionPrices
+            basePrice += baseItemPrice * detail.quantity
+
+            // Find max discount based on total quantity for this design
+            const discounts = design.systemConfigVariant.product.discounts || []
+            const totalDesignQuantity = designQuantities.get(design.id) || 0
+
+            for (const discount of discounts) {
+                if (
+                    totalDesignQuantity >= discount.minQuantity &&
+                    discount.discountPercent > maxDiscountPercent
+                ) {
+                    maxDiscountPercent = discount.discountPercent
+                }
+            }
+        })
+
+        // Calculate price after discount
+        const priceAfterDiscount = basePrice * (1 - maxDiscountPercent)
+
+        // Calculate price after voucher
+        let priceAfterVoucher = priceAfterDiscount
+        let voucherData = null
+
+        if (order.voucher) {
+            try {
+                const voucherResult =
+                    await this.vouchersService.calculateVoucherDiscountWithoutValidation(
+                        order.voucher.id,
+                        priceAfterDiscount
+                    )
+                priceAfterVoucher = voucherResult.finalPrice
+                voucherData = order.voucher
+            } catch (error) {
+                // If voucher calculation fails, continue without voucher
+                console.error("Voucher calculation failed:", error)
+            }
+        }
+
+        return {
+            basePrice,
+            discountPercentage: maxDiscountPercent * 100, // Convert to percentage
+            priceAfterDiscount,
+            voucher: voucherData,
+            priceAfterVoucher,
+            shippingPrice: order.shippingPrice,
+            finalPrice: priceAfterVoucher + order.shippingPrice
+        }
     }
 }
