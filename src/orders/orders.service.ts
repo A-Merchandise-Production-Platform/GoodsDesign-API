@@ -1114,7 +1114,6 @@ export class OrdersService {
                         data: {
                             status: OrderDetailStatus.REWORK_REQUIRED,
                             isRework: true,
-                            reworkTime: { increment: 1 }
                         }
                     })
 
@@ -1153,35 +1152,6 @@ export class OrdersService {
                             reworkTime: true
                         }
                     })
-
-                    const exceededReworkLimit = orderDetailsWithReworkCount.some(
-                        (detail) => detail.reworkTime >= systemConfig.limitReworkTimes
-                    )
-
-                    if (exceededReworkLimit) {
-                        await tx.order.update({
-                            where: { id: checkQuality.orderDetail.order.id },
-                            data: {
-                                status: OrderStatus.NEED_MANAGER_HANDLE_REWORK,
-                                orderProgressReports: {
-                                    create: {
-                                        reportDate: now,
-                                        note: `Order has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Manual intervention required.`,
-                                        imageUrls: []
-                                    }
-                                }
-                            }
-                        })
-
-                        // Create notification for managers
-                        await this.notificationsService.createForUsersByRoles({
-                            title: "Order Exceeded Rework Limit",
-                            content: `Order #${checkQuality.orderDetail.order.id} has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Manual intervention required.`,
-                            roles: ["MANAGER"],
-                            url: `/manager/orders/${checkQuality.orderDetail.order.id}`
-                        })
-                    }
-
                     // Notify factory about rework requirement
                     await this.notificationsService.create({
                         title: "Rework Required",
@@ -1197,6 +1167,8 @@ export class OrdersService {
                         userId: checkQuality.orderDetail.order.customer.id,
                         url: `/my-order/${checkQuality.orderDetail.order.id}`
                     })
+
+                    this.startRework(checkQuality.orderDetail.order.id, checkQuality.orderDetail.order.factoryId)
                 } else {
                     // Update all order details to READY_FOR_SHIPPING
                     await tx.orderDetail.updateMany({
