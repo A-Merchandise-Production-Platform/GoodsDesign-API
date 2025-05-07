@@ -36,7 +36,6 @@ export class CreateUserDto {
     gender?: boolean
 
     @Field(() => Date, { nullable: true })
-    @IsDateString()
     @IsOptional()
     dateOfBirth?: Date
 
