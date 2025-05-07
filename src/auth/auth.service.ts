@@ -134,6 +134,10 @@ export class AuthService {
                 })
             })
 
+            await this.otpService.createOTP({
+                email: registerDto.email
+            })
+
             return new AuthResponseDto(
                 new UserEntity({
                     ...user,

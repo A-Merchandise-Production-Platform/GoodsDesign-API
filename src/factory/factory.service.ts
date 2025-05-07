@@ -466,15 +466,6 @@ export class FactoryService {
             userId: factory.owner.id
         })
 
-        // Only send staff notification if status is not REJECTED and staffId exists
-        if (dto.status !== FactoryStatus.REJECTED && dto.staffId) {
-            await this.notificationsService.create({
-                title: "Factory Status Changed",
-                content: `You have been assigned to a factory ${factory.name}`,
-                userId: dto.staffId
-            })
-        }
-
         return new FactoryEntity({
             ...factory,
             formattedAddress
