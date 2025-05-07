@@ -386,15 +386,10 @@ export class ShippingService {
 
       console.log("response", response);
 
-      // Update order with orderCode in a separate transaction
-      await this.prisma.order.update({
-        where: { id: orderId },
-        data: { orderCode: response?.order_code || null }
-      });
-
       return {
         code: 200,
         message: "Success",
+        orderCode: response?.order_code || null
       };
     } catch (error) {
       throw new Error(`Failed to create shipping order: ${error.message}`);

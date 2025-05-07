@@ -1919,27 +1919,37 @@ export class OrdersService {
 
             try {
                 // Create shipping third party task
-                await this.shippingService.createShippingOrder(orderId)
+                const { orderCode } = await this.shippingService.createShippingOrder(orderId)
+
+                // Update order with orderCode
+                await tx.order.update({
+                    where: { id: orderId },
+                    data: { orderCode: orderCode }
+                })
             } catch (error) {
                 console.log("Third party shipping error", error)
-                throw new BadRequestException("Third party shipping error: " + error.message)
+                throw new BadRequestException("Third party shipping error: " + error?.message)
             }
 
-            // Notify factory about shipping status
-            await this.notificationsService.create({
-                title: "Order Ready for Shipping",
-                content: `Order #${orderId} has been marked as ready for shipping. Please prepare the shipment.`,
-                userId: order.factory.factoryOwnerId,
-                url: `/factory/orders/${orderId}`
-            })
+            try{
+                // Notify factory about shipping status
+                await this.notificationsService.create({
+                    title: "Order Ready for Shipping",
+                    content: `Order #${orderId} has been marked as ready for shipping. Please prepare the shipment.`,
+                    userId: order.factory.factoryOwnerId,
+                    url: `/factory/orders/${orderId}`
+                })
 
-            // Notify customer about shipping status
-            await this.notificationsService.create({
-                title: "Order Being Shipped",
-                content: `Your order #${orderId} is being prepared for shipping.`,
-                userId: order.customer.id,
-                url: `/my-order/${orderId}`
-            })
+                // Notify customer about shipping status
+                await this.notificationsService.create({
+                    title: "Order Being Shipped",
+                    content: `Your order #${orderId} is being prepared for shipping.`,
+                    userId: order.customer.id,
+                        url: `/my-order/${orderId}`
+                    })
+            } catch (error) {
+                console.log("Notification error", error)
+            }
 
             return updatedOrder
         })
