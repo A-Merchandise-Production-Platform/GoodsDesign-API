@@ -22,4 +22,8 @@ export class UpdateFactoryStatusDto {
     @Field(() => String)
     @IsString()
     staffId: string
+
+    @Field(() => String, { nullable: true })
+    @IsString()
+    statusNote?: string
 }

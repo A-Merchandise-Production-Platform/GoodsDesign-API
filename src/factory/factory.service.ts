@@ -27,7 +27,7 @@ export class FactoryService {
         private notificationsService: NotificationsService,
         private factoryProductsService: FactoryProductsService,
         private mailService: MailService,
-        private addressesService: AddressesService,
+        private addressesService: AddressesService
     ) {}
 
     async getAllFactories() {
@@ -45,35 +45,11 @@ export class FactoryService {
             throw new NotFoundException("No factories found")
         }
 
-        // Create an array of factories with formatted addresses
-        const factoriesWithFormattedAddresses = await Promise.all(
-            factories.map(async (factory) => {
-                let formattedAddress = null
-
-                if (factory.address) {
-                    try {
-                        const formatResult = await this.addressesService.formatAddress({
-                            provinceID: factory.address.provinceID,
-                            districtID: factory.address.districtID,
-                            wardCode: factory.address.wardCode,
-                            street: factory.address.street
-                        })
-                        formattedAddress = formatResult.text
-                    } catch (error) {
-                        this.logger.error(
-                            `Failed to format address for factory ${factory.factoryOwnerId}: ${error.message}`
-                        )
-                    }
-                }
-
-                return new FactoryEntity({
-                    ...factory,
-                    formattedAddress
-                })
+        return factories.map((factory) => {
+            return new FactoryEntity({
+                ...factory
             })
-        )
-
-        return factoriesWithFormattedAddresses
+        })
     }
 
     async updateFactoryInfo(userId: string, dto: UpdateFactoryInfoDto) {
@@ -213,7 +189,7 @@ export class FactoryService {
                         factoryId: userId,
                         systemConfigVariantId: variantId,
                         productionCapacity: updatedFactory.maxPrintingCapacity,
-                        productionTimeInMinutes: updatedFactory.leadTime || 1
+                        productionTimeInMinutes: dto.productionTimeInMinutes
                     })
                 }
             }
@@ -418,14 +394,14 @@ export class FactoryService {
         })
     }
 
-    private getMessageForFactoryStatusChange(status: FactoryStatus) {
+    private getMessageForFactoryStatusChange(status: FactoryStatus, statusNote: string) {
         switch (status) {
             case FactoryStatus.APPROVED:
-                return "Your factory has been approved and is now active"
+                return `Your factory has been approved and is now active. ${statusNote}`
             case FactoryStatus.SUSPENDED:
-                return "Your factory has been suspended and is no longer active"
+                return `Your factory has been suspended and is no longer active. ${statusNote}`
             case FactoryStatus.REJECTED:
-                return "Your factory has been rejected. Please update your factory information and resubmit for approval."
+                return `Your factory has been rejected. Please update your factory information and resubmit for approval. ${statusNote}`
         }
     }
 
@@ -439,7 +415,8 @@ export class FactoryService {
             data: {
                 factoryStatus: dto.status,
                 // If status is REJECTED, set isSubmitted to false so factory owner can update info
-                isSubmitted: dto.status === FactoryStatus.REJECTED ? false : undefined
+                isSubmitted: dto.status === FactoryStatus.REJECTED ? false : undefined,
+                statusNote: dto.statusNote
             },
             include: {
                 owner: true,
@@ -467,7 +444,7 @@ export class FactoryService {
 
         await this.notificationsService.create({
             title: "Factory Status Changed",
-            content: this.getMessageForFactoryStatusChange(dto.status),
+            content: this.getMessageForFactoryStatusChange(dto.status, dto.statusNote),
             userId: dto.factoryOwnerId
         })
 
@@ -480,12 +457,12 @@ export class FactoryService {
             from: MAIL_CONSTANT.FROM_EMAIL,
             to: factory.owner.email,
             subject: "Factory Status Changed",
-            html: this.getMessageForFactoryStatusChange(dto.status)
+            html: this.getMessageForFactoryStatusChange(dto.status, dto.statusNote)
         })
 
         await this.notificationsService.create({
             title: "Factory Status Changed",
-            content: `Your factory status has been changed to ${dto.status}`,
+            content: this.getMessageForFactoryStatusChange(dto.status, dto.statusNote),
             userId: factory.owner.id
         })
 

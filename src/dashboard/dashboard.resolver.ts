@@ -7,7 +7,6 @@ import { AllowedRoles } from "../auth/decorators/roles.decorator"
 import { DashboardService } from "./dashboard.service"
 import {
     AdminDashboardResponse,
-    EnhancedManagerDashboardResponse,
     FactoryDashboardResponse,
     FactoryDetailDashboardResponse,
     ManagerDashboardResponse,
@@ -31,12 +30,6 @@ export class DashboardResolver {
     @AllowedRoles(Roles.MANAGER, Roles.ADMIN)
     async getManagerDashboard(@CurrentUser() user: User) {
         return this.dashboardService.getManagerDashboard(user.id)
-    }
-
-    @Query(() => EnhancedManagerDashboardResponse)
-    @AllowedRoles(Roles.MANAGER, Roles.ADMIN)
-    async getEnhancedManagerDashboard(@CurrentUser() user: User) {
-        return this.dashboardService.getEnhancedManagerDashboard(user.id)
     }
 
     @Query(() => FactoryDashboardResponse)

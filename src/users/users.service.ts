@@ -23,6 +23,7 @@ export class UsersService {
     }
 
     async create(createUserDto: CreateUserDto, currentUser: UserEntity): Promise<UserEntity> {
+        console.log(createUserDto)
         const existingUser = await this.prisma.user.findFirst({
             where: {
                 OR: [{ email: createUserDto.email }, { phoneNumber: createUserDto.phoneNumber }]

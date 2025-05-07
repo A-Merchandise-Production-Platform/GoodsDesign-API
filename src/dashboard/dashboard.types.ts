@@ -1,5 +1,8 @@
-import { Field, Int, ObjectType, registerEnumType } from "@nestjs/graphql"
+import { Field, Int, ObjectType, registerEnumType, Float, ID } from "@nestjs/graphql"
 import { TaskEntity } from "src/tasks/entities/task.entity"
+import { FactoryEntity } from "src/factory/entities/factory.entity"
+import { Roles } from "@prisma/client"
+import { UserEntity } from "../users/entities/users.entity"
 
 export enum ActivityType {
     ORDER = "order",
@@ -52,8 +55,23 @@ class FactoryInfo {
     @Field()
     name: string
 
+    @Field({ nullable: true })
+    description: string
+
     @Field()
-    factoryStatus: string
+    status: string
+
+    @Field(() => UserEntity)
+    owner: UserEntity
+
+    @Field(() => Int)
+    legitPoint: number
+
+    @Field(() => Int)
+    leadTime: number
+
+    @Field(() => Int)
+    maxPrintingCapacity: number
 }
 
 @ObjectType()
@@ -174,84 +192,54 @@ class FactoryProgressReportType {
 }
 
 @ObjectType()
-export class AdminDashboardResponse {
-    @Field(() => Int)
-    totalSales: number
+class MonthlyRevenue {
+    @Field()
+    month: string
 
     @Field(() => Int)
-    totalSalesChange: number
-
-    @Field(() => ChangeType)
-    totalSalesChangeType: ChangeType
-
-    @Field(() => Int)
-    activeUsers: number
-
-    @Field(() => Int)
-    activeUsersChange: number
-
-    @Field(() => ChangeType)
-    activeUsersChangeType: ChangeType
-
-    @Field(() => Int)
-    totalProducts: number
-
-    @Field(() => Int)
-    totalProductsChange: number
-
-    @Field(() => ChangeType)
-    totalProductsChangeType: ChangeType
-
-    @Field(() => Int)
-    pendingOrders: number
-
-    @Field(() => Int)
-    pendingOrdersChange: number
-
-    @Field(() => ChangeType)
-    pendingOrdersChangeType: ChangeType
-
-    @Field(() => Int)
-    totalCustomers: number
-
-    @Field(() => Int)
-    totalOrders: number
-
-    @Field(() => Int)
-    totalRevenue: number
-
-    @Field(() => Int)
-    totalFactories: number
-
-    @Field(() => Int)
-    activeFactories: number
-
-    @Field(() => [OrderWithFactory])
-    recentOrders: OrderWithFactory[]
-
-    @Field(() => [FactoryPerformance])
-    factoryPerformance: FactoryPerformance[]
+    revenue: number
 }
 
 @ObjectType()
-export class ManagerDashboardResponse {
-    @Field(() => Int)
-    totalOrders: number
+class RecentUser {
+    @Field(() => ID)
+    id: string
 
+    @Field(() => String, { nullable: true })
+    name?: string
+
+    @Field(() => String, { nullable: true })
+    email?: string
+
+    @Field(() => String, { nullable: true })
+    imageUrl?: string
+
+    @Field(() => Roles)
+    role: Roles
+
+    @Field(() => Date)
+    createdAt: Date
+}
+
+@ObjectType()
+export class AdminDashboardResponse {
     @Field(() => Int)
-    pendingFactoryOrders: number
+    currentMonthRevenue: number
 
     @Field(() => Int)
     totalRevenue: number
 
-    @Field(() => [FactoryOrdersByStatus])
-    factoryOrdersByStatus: FactoryOrdersByStatus[]
+    @Field(() => Int)
+    totalActiveUsers: number
 
-    @Field(() => [FactoryOrderWithCustomer])
-    recentFactoryOrders: FactoryOrderWithCustomer[]
+    @Field(() => Int)
+    totalTemplates: number
 
-    @Field(() => [QualityIssueWithFactory])
-    qualityIssues: QualityIssueWithFactory[]
+    @Field(() => [MonthlyRevenue])
+    revenueByMonth: MonthlyRevenue[]
+
+    @Field(() => [RecentUser])
+    recentUsers: RecentUser[]
 }
 
 @ObjectType()
@@ -285,15 +273,6 @@ class FactoryStats {
 
     @Field(() => StatValue)
     qualityScore: StatValue
-}
-
-@ObjectType()
-class MonthlyRevenue {
-    @Field()
-    month: string
-
-    @Field(() => Int)
-    revenue: number
 }
 
 @ObjectType()
@@ -369,7 +348,7 @@ class EnhancedRevenueStats {
     @Field(() => Int)
     monthly: number
 
-    @Field(() => Int)
+    @Field(() => Float)
     change: number
 
     @Field(() => ChangeType)
@@ -416,15 +395,68 @@ class OrderStatusDetail {
 }
 
 @ObjectType()
-export class EnhancedManagerDashboardResponse {
-    @Field(() => DashboardStats)
-    stats: DashboardStats
+class ManagerDashboardStats {
+    @Field(() => Int)
+    totalFactories: number
 
-    @Field(() => [EnhancedFactoryPerformance])
-    factoryPerformance: EnhancedFactoryPerformance[]
+    @Field(() => Int)
+    totalStaffs: number
 
-    @Field(() => [OrderStatusDetail])
-    orderStatus: OrderStatusDetail[]
+    @Field(() => Int)
+    monthlyRevenue: number
+
+    @Field(() => [MonthlyRevenue])
+    revenueByMonth: MonthlyRevenue[]
+}
+@ObjectType()
+export class ManagerDashboardResponse {
+    @Field(() => Int)
+    totalOrders: number
+
+    @Field(() => Int)
+    pendingFactoryOrders: number
+
+    @Field(() => Int)
+    totalRevenue: number
+
+    @Field(() => [FactoryOrdersByStatus])
+    factoryOrdersByStatus: FactoryOrdersByStatus[]
+
+    @Field(() => [FactoryOrderWithCustomer])
+    recentFactoryOrders: FactoryOrderWithCustomer[]
+
+    @Field(() => [QualityIssueWithFactory])
+    qualityIssues: QualityIssueWithFactory[]
+
+    @Field(() => ManagerDashboardStats)
+    stats: ManagerDashboardStats
+
+    @Field(() => [TopFactory])
+    topFactories: TopFactory[]
+}
+
+@ObjectType()
+class TopFactory {
+    @Field()
+    id: string
+
+    @Field()
+    name: string
+
+    @Field(() => Int)
+    legitPoint: number
+
+    @Field(() => UserEntity)
+    owner: UserEntity
+}
+
+@ObjectType()
+class OrdersByMonth {
+    @Field()
+    month: string
+
+    @Field(() => Int)
+    count: number
 }
 
 @ObjectType()
@@ -461,6 +493,12 @@ export class FactoryDetailDashboardResponse {
 
     @Field(() => [FactoryOrderWithProgress])
     productionProgress: FactoryOrderWithProgress[]
+
+    @Field(() => FactoryInfo, { nullable: true })
+    factoryInfo: FactoryInfo | null
+
+    @Field(() => [OrdersByMonth])
+    ordersByMonth: OrdersByMonth[]
 }
 
 @ObjectType()

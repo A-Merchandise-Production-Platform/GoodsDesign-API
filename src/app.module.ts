@@ -36,8 +36,8 @@ import { SystemConfigDiscountModule } from "./system-config-discount/system-conf
 import { FactoryProductsModule } from "./factory-products/factory-products.module"
 import { OrdersModule } from "./orders/orders.module"
 import { UserBanksModule } from "src/user-banks/user-banks.module"
-import { VouchersModule } from './vouchers/vouchers.module';
-import { OtpModule } from './otp/otp.module';
+import { VouchersModule } from "./vouchers/vouchers.module"
+import { OtpModule } from "./otp/otp.module"
 
 @Module({
     imports: [
@@ -53,7 +53,7 @@ import { OtpModule } from './otp/otp.module';
                     embed: true
                 })
             ],
-            sortSchema: true,
+            sortSchema: true
         }),
         PrismaModule,
         UsersModule,
