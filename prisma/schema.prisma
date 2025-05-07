@@ -654,6 +654,4 @@ model VoucherUsage {
   voucher   Voucher @relation(fields: [voucherId], references: [id])
   user      User    @relation(fields: [userId], references: [id])
   order     Order   @relation(fields: [orderId], references: [id])
-
-  @@unique([voucherId, userId]) 
 }

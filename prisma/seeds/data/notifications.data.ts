@@ -52,7 +52,7 @@ export const notificationsData: NotificationData[] = [
         id: "notif005",
         title: "Quality Check Required",
         content: "Please review the quality check for order #ORD002.",
-        url: "/quality-checks/QC001",
+        url: "/staff/tasks/QC001",
         isRead: false,
         userId: usersData.users.find((user) => user.email === "staff@gmail.com")?.id || "",
         createdAt: new Date()

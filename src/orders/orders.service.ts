@@ -939,7 +939,7 @@ export class OrdersService {
                         title: "Quality Check Required",
                         content: `Please perform quality check for order #${orderDetail.order.id}`,
                         userId: task.userId,
-                        url: `/quality-checks/${task.id}`
+                        url: `/staff/tasks/${orderDetail.orderId}`
                     })
                 }
 
@@ -1111,7 +1111,10 @@ export class OrdersService {
                         where: {
                             id: { in: orderDetailsFailed.map((detail) => detail.id) }
                         },
-                        data: { status: OrderDetailStatus.REWORK_REQUIRED }
+                        data: {
+                            status: OrderDetailStatus.REWORK_REQUIRED,
+                            isRework: true,
+                        }
                     })
 
                     // // Update order status to REWORK_REQUIRED
@@ -1149,35 +1152,6 @@ export class OrdersService {
                             reworkTime: true
                         }
                     })
-
-                    const exceededReworkLimit = orderDetailsWithReworkCount.some(
-                        (detail) => detail.reworkTime >= systemConfig.limitReworkTimes - 1
-                    )
-
-                    if (exceededReworkLimit) {
-                        await tx.order.update({
-                            where: { id: checkQuality.orderDetail.order.id },
-                            data: {
-                                status: OrderStatus.NEED_MANAGER_HANDLE_REWORK,
-                                orderProgressReports: {
-                                    create: {
-                                        reportDate: now,
-                                        note: `Order has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Manual intervention required.`,
-                                        imageUrls: []
-                                    }
-                                }
-                            }
-                        })
-
-                        // Create notification for managers
-                        await this.notificationsService.createForUsersByRoles({
-                            title: "Order Exceeded Rework Limit",
-                            content: `Order #${checkQuality.orderDetail.order.id} has exceeded the maximum rework limit of ${systemConfig.limitReworkTimes}. Manual intervention required.`,
-                            roles: ["MANAGER"],
-                            url: `/manager/orders/${checkQuality.orderDetail.order.id}`
-                        })
-                    }
-
                     // Notify factory about rework requirement
                     await this.notificationsService.create({
                         title: "Rework Required",
@@ -1193,6 +1167,8 @@ export class OrdersService {
                         userId: checkQuality.orderDetail.order.customer.id,
                         url: `/my-order/${checkQuality.orderDetail.order.id}`
                     })
+
+                    this.startRework(checkQuality.orderDetail.order.id, checkQuality.orderDetail.order.factoryId)
                 } else {
                     // Update all order details to READY_FOR_SHIPPING
                     await tx.orderDetail.updateMany({
@@ -1407,6 +1383,7 @@ export class OrdersService {
                     where: { id: orderDetail.id },
                     data: {
                         status: OrderDetailStatus.REWORK_IN_PROGRESS,
+                        isRework: true,
                         reworkTime: { increment: 1 }
                     }
                 })
@@ -1546,6 +1523,7 @@ export class OrdersService {
                     where: { id: orderDetail.id },
                     data: {
                         status: OrderDetailStatus.REWORK_IN_PROGRESS,
+                        isRework: true,
                         reworkTime: { increment: 1 }
                     }
                 })
@@ -1941,27 +1919,37 @@ export class OrdersService {
 
             try {
                 // Create shipping third party task
-                await this.shippingService.createShippingOrder(orderId)
+                const { orderCode } = await this.shippingService.createShippingOrder(orderId)
+
+                // Update order with orderCode
+                await tx.order.update({
+                    where: { id: orderId },
+                    data: { orderCode: orderCode }
+                })
             } catch (error) {
                 console.log("Third party shipping error", error)
-                throw new BadRequestException("Third party shipping error: " + error.message)
+                throw new BadRequestException("Third party shipping error: " + error?.message)
             }
 
-            // Notify factory about shipping status
-            await this.notificationsService.create({
-                title: "Order Ready for Shipping",
-                content: `Order #${orderId} has been marked as ready for shipping. Please prepare the shipment.`,
-                userId: order.factory.factoryOwnerId,
-                url: `/factory/orders/${orderId}`
-            })
+            try{
+                // Notify factory about shipping status
+                await this.notificationsService.create({
+                    title: "Order Ready for Shipping",
+                    content: `Order #${orderId} has been marked as ready for shipping. Please prepare the shipment.`,
+                    userId: order.factory.factoryOwnerId,
+                    url: `/factory/orders/${orderId}`
+                })
 
-            // Notify customer about shipping status
-            await this.notificationsService.create({
-                title: "Order Being Shipped",
-                content: `Your order #${orderId} is being prepared for shipping.`,
-                userId: order.customer.id,
-                url: `/my-order/${orderId}`
-            })
+                // Notify customer about shipping status
+                await this.notificationsService.create({
+                    title: "Order Being Shipped",
+                    content: `Your order #${orderId} is being prepared for shipping.`,
+                    userId: order.customer.id,
+                        url: `/my-order/${orderId}`
+                    })
+            } catch (error) {
+                console.log("Notification error", error)
+            }
 
             return updatedOrder
         })
@@ -2410,5 +2398,178 @@ export class OrdersService {
             shippingPrice: order.shippingPrice,
             finalPrice: priceAfterVoucher + order.shippingPrice
         }
+    }
+
+    async transferOrderToFactory(orderId: string, newFactoryId: string) {
+        const now = new Date()
+
+        return this.prisma.$transaction(async (tx) => {
+            // Get the order with its details
+            const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: {
+                    factory: true,
+                    customer: true,
+                    orderDetails: true
+                }
+            })
+
+            if (!order) {
+                throw new BadRequestException("Order not found")
+            }
+
+            if (!order.factoryId) {
+                throw new BadRequestException("Order is not assigned to any factory")
+            }
+
+            if (order.factoryId === newFactoryId) {
+                throw new BadRequestException("Order is already assigned to this factory")
+            }
+
+            // Get system config for order
+            const systemConfig = await tx.systemConfigOrder.findUnique({
+                where: { type: "SYSTEM_CONFIG_ORDER" }
+            })
+
+            if (!systemConfig) {
+                throw new BadRequestException("System configuration not found")
+            }
+
+            // Calculate new deadlines based on system config
+            const estimatedCheckQualityAt = new Date(
+                now.getTime() + systemConfig.checkQualityTimesDays * 24 * 60 * 60 * 1000
+            )
+            const estimatedDoneProductionAt = new Date(
+                now.getTime() + systemConfig.shippingDays * 24 * 60 * 60 * 1000
+            )
+            const estimatedCompletionAt = new Date(
+                now.getTime() + (systemConfig.shippingDays + 2) * 24 * 60 * 60 * 1000
+            )
+
+            // Create rejected order record for the old factory
+            await tx.rejectedOrder.create({
+                data: {
+                    orderId,
+                    factoryId: order.factoryId,
+                    reason: "Order transferred to another factory",
+                    rejectedAt: now
+                }
+            })
+
+            // Update factory legit points for the old factory
+            await tx.factory.update({
+                where: { factoryOwnerId: order.factoryId },
+                data: {
+                    legitPoint: {
+                        decrement: systemConfig.reduceLegitPointIfReject
+                    }
+                }
+            })
+
+            // Get the new factory's staff
+            const newFactory = await tx.factory.findUnique({
+                where: { factoryOwnerId: newFactoryId },
+                include: {
+                    staff: true
+                }
+            })
+
+            if (!newFactory) {
+                throw new BadRequestException("New factory not found")
+            }
+
+            if (!newFactory.staff) {
+                throw new BadRequestException("New factory does not have assigned staff")
+            }
+
+            // Update order with new factory and status
+            const updatedOrder = await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    factoryId: newFactoryId,
+                    status: OrderStatus.PENDING_ACCEPTANCE,
+                    assignedAt: now,
+                    acceptanceDeadline: new Date(now.getTime() + systemConfig.acceptHoursForFactory * 60 * 60 * 1000),
+                    currentProgress: 10,
+                    isDelayed: true,
+                    estimatedCheckQualityAt,
+                    estimatedDoneProductionAt,
+                    estimatedCompletionAt,
+                    orderProgressReports: {
+                        create: {
+                            reportDate: now,
+                            note: `Order transferred from factory ${order.factoryId} to factory ${newFactoryId}`,
+                            imageUrls: []
+                        }
+                    }
+                }
+            })
+
+            // Update all order details back to PENDING
+            await tx.orderDetail.updateMany({
+                where: {
+                    orderId: orderId
+                },
+                data: {
+                    status: OrderDetailStatus.PENDING,
+                    completedQty: 0,
+                    rejectedQty: 0
+                }
+            })
+
+            // Create new tasks for the new factory's staff
+            for (const orderDetail of order.orderDetails) {
+                const task = await tx.task.create({
+                    data: {
+                        taskname: `Quality check for order ${orderId}`,
+                        description: `Quality check for design ${orderDetail.designId}`,
+                        startDate: now,
+                        expiredTime: estimatedCheckQualityAt,
+                        taskType: TaskType.QUALITY_CHECK,
+                        orderId: order.id,
+                        status: TaskStatus.PENDING,
+                        userId: newFactory.staff.id
+                    }
+                })
+
+                await tx.checkQuality.create({
+                    data: {
+                        taskId: task.id,
+                        orderDetailId: orderDetail.id,
+                        totalChecked: 0,
+                        passedQuantity: 0,
+                        failedQuantity: 0,
+                        status: QualityCheckStatus.PENDING,
+                        checkedAt: now
+                    }
+                })
+            }
+
+            // Notify old factory about transfer
+            await this.notificationsService.create({
+                title: "Order Transferred",
+                content: `Order #${orderId} has been transferred to another factory. Your factory has lost ${systemConfig.reduceLegitPointIfReject} legitimacy points.`,
+                userId: order.factory.factoryOwnerId,
+                url: `/factory/orders/${orderId}`
+            })
+
+            // Notify new factory about new order
+            await this.notificationsService.create({
+                title: "New Order Assignment",
+                content: `You have been assigned order #${orderId}. Please accept or reject within ${systemConfig.acceptHoursForFactory} hours.`,
+                userId: newFactoryId,
+                url: `/factory/orders/${orderId}`
+            })
+
+            // Notify customer about factory transfer
+            await this.notificationsService.create({
+                title: "Order Factory Changed",
+                content: `Your order #${orderId} has been transferred to a new factory.`,
+                userId: order.customer.id,
+                url: `/my-order/${orderId}`
+            })
+
+            return updatedOrder
+        })
     }
 }
