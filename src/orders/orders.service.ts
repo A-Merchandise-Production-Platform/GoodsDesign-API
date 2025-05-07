@@ -1111,7 +1111,11 @@ export class OrdersService {
                         where: {
                             id: { in: orderDetailsFailed.map((detail) => detail.id) }
                         },
-                        data: { status: OrderDetailStatus.REWORK_REQUIRED }
+                        data: {
+                            status: OrderDetailStatus.REWORK_REQUIRED,
+                            isRework: true,
+                            reworkTime: { increment: 1 }
+                        }
                     })
 
                     // // Update order status to REWORK_REQUIRED
@@ -1151,7 +1155,7 @@ export class OrdersService {
                     })
 
                     const exceededReworkLimit = orderDetailsWithReworkCount.some(
-                        (detail) => detail.reworkTime >= systemConfig.limitReworkTimes - 1
+                        (detail) => detail.reworkTime >= systemConfig.limitReworkTimes
                     )
 
                     if (exceededReworkLimit) {
@@ -1407,6 +1411,7 @@ export class OrdersService {
                     where: { id: orderDetail.id },
                     data: {
                         status: OrderDetailStatus.REWORK_IN_PROGRESS,
+                        isRework: true,
                         reworkTime: { increment: 1 }
                     }
                 })
@@ -1546,6 +1551,7 @@ export class OrdersService {
                     where: { id: orderDetail.id },
                     data: {
                         status: OrderDetailStatus.REWORK_IN_PROGRESS,
+                        isRework: true,
                         reworkTime: { increment: 1 }
                     }
                 })
