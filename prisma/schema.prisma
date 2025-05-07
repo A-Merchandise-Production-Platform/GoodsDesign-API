@@ -423,7 +423,7 @@ model Order {
   totalItems              Int
   updatedAt               DateTime?   @updatedAt
   totalProductionCost     Int?
-  voucherId               String?     @unique
+  voucherId               String? 
 
   currentProgress Int @default(0)
   delayReason     String?
@@ -640,7 +640,7 @@ model Voucher {
   userId          String?     
   
   user            User?        @relation(fields: [userId], references: [id])
-  order           Order?      
+  orders           Order[]   
   usages          VoucherUsage[]
 }
 
@@ -654,4 +654,6 @@ model VoucherUsage {
   voucher   Voucher @relation(fields: [voucherId], references: [id])
   user      User    @relation(fields: [userId], references: [id])
   order     Order   @relation(fields: [orderId], references: [id])
+
+  @@unique([voucherId, userId]) 
 }
