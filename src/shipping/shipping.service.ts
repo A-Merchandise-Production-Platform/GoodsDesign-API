@@ -244,6 +244,8 @@ export class ShippingService {
       body
     );
 
+    console.log("[calculateShippingFee] response: ", response)
+
     return {
       total: response.total,
     };

@@ -208,4 +208,13 @@ export class OrdersResolver {
     ) {
         return this.ordersService.getOrderPriceDetails(orderId)
     }
+
+    @Mutation(() => OrderEntity)
+    @UseGuards(GraphqlJwtAuthGuard)
+    transferOrderToFactory(
+        @Args("orderId", { type: () => String }) orderId: string,
+        @Args("newFactoryId", { type: () => String }) newFactoryId: string,
+    ) {
+        return this.ordersService.transferOrderToFactory(orderId, newFactoryId)
+    }
 }
