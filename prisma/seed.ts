@@ -15,7 +15,8 @@ import {
     seedSystemConfigVariants,
     seedNotifications,
     seedOrders,
-    seedVouchers
+    seedVouchers,
+    seedEvaluationCriteria
 } from "./seeds"
 
 const prisma = new PrismaClient()
@@ -88,6 +89,9 @@ async function main() {
         await seedDesignPositions(prisma)
         await seedFavoriteDesigns(prisma)
         await seedCartItems(prisma)
+
+        // Seed evaluation criteria (depends on products)
+        await seedEvaluationCriteria(prisma)
 
         // Seed orders
         await seedOrders(prisma)

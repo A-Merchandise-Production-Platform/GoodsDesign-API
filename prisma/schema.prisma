@@ -111,6 +111,7 @@ model Product {
   category      Category               @relation(fields: [categoryId], references: [id])
   positionTypes ProductPositionType[]
   discounts     SystemConfigDiscount[]
+  evaluationCriteria EvaluationCriteria[]
   variants      SystemConfigVariant[]
 }
 
@@ -429,6 +430,8 @@ model Order {
   delayReason     String?
   isDelayed       Boolean   @default(false)
 
+  customerWantedDate DateTime?
+
   // Quality rating
   rating        Int?
   ratingComment String?
@@ -465,6 +468,10 @@ model Order {
   tasks           Task[]
   rejectedHistory RejectedOrder[]
   voucherUsages   VoucherUsage[]
+  
+  //EvaluationCriteria[]
+
+  evaluationCriteria EvaluationCriteria[]
 }
 
 model OrderDetail {
@@ -656,4 +663,17 @@ model VoucherUsage {
   order     Order   @relation(fields: [orderId], references: [id])
 
   @@unique([voucherId, userId]) 
+}
+
+model EvaluationCriteria {
+  id          String   @id @default(uuid())
+  name        String   // Ví dụ: "Mực in chuẩn màu"
+  description String?  // Thêm mô tả nếu cần
+  isActive    Boolean  @default(true)
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime? @updatedAt
+  productId   String
+  product Product[]
+  order Order[] 
 }
