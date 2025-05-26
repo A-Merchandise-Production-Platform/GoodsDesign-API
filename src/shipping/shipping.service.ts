@@ -173,11 +173,21 @@ export class ShippingService {
 
   async getProvince(provinceId: number): Promise<Province | null> {
     try {
+      const cacheKey = `shipping:province:${provinceId}`;
+      const cached = await this.redisService.getCache(cacheKey);
+
+      if (cached) {
+        return JSON.parse(cached);
+      }
+
       const provinces = await this.getProvinces();
       const province = provinces.find(p => p.provinceId === provinceId);
+      
       if (!province) {
         throw new Error(`Province with ID ${provinceId} not found`);
       }
+
+      await this.redisService.setCache(cacheKey, JSON.stringify(province));
       return province;
     } catch (error) {
       return null;
@@ -185,12 +195,20 @@ export class ShippingService {
   }
 
   async getDistrict(districtId: number): Promise<District> {
+    const cacheKey = `shipping:district:${districtId}`;
+    const cached = await this.redisService.getCache(cacheKey);
+
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
     // Get all provinces to find the matching district
     const provinces = await this.getProvinces();
     for (const province of provinces) {
       const districts = await this.getDistricts(province.provinceId);
       const district = districts.find(d => d.districtId === districtId);
       if (district) {
+        await this.redisService.setCache(cacheKey, JSON.stringify(district));
         return district;
       }
     }
@@ -198,15 +216,14 @@ export class ShippingService {
   }
 
   async getWard(wardCode: string): Promise<Ward> {
-    // Check if wardCode is valid from redis
-    const cacheKey = `shipping:wards:${wardCode}`;
+    const cacheKey = `shipping:ward:${wardCode}`;
     const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
       return JSON.parse(cached);
     }
 
-    // Get all provinces and districts to find the matching war
+    // Get all provinces and districts to find the matching ward
     const provinces = await this.getProvinces();
     for (const province of provinces) {
       const districts = await this.getDistricts(province.provinceId);
@@ -214,6 +231,7 @@ export class ShippingService {
         const wards = await this.getWards(district.districtId);
         const ward = wards.find(w => w.wardCode === wardCode);
         if (ward) {
+          await this.redisService.setCache(cacheKey, JSON.stringify(ward));
           return ward;
         }
       }
