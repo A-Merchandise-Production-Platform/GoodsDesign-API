@@ -8,6 +8,7 @@ import { OrderProgressReportEntity } from "./order-progress-report.entity"
 import { RejectedOrderEntity } from "./rejected-order.entity"
 import { TaskEntity } from "../../tasks/entities/task.entity"
 import { PaymentEntity } from "./payment.entity"
+import { OrderEvaluationCriteriaEntity } from "./order-evaluation-criteria.entity"
 
 registerEnumType(OrderStatus, {
     name: "OrderStatus"
@@ -128,6 +129,9 @@ export class OrderEntity {
 
     @Field(() => [RejectedOrderEntity], { nullable: true })
     rejectedHistory?: RejectedOrderEntity[]
+
+    @Field(() => [OrderEvaluationCriteriaEntity], { nullable: true })
+    orderEvaluationCriteria?: OrderEvaluationCriteriaEntity[]
 
     constructor(partial: Partial<OrderEntity>) {
         Object.assign(this, partial)

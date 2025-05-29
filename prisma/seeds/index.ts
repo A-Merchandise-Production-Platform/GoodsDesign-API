@@ -15,3 +15,4 @@ export * from "./utils/system-config-variants.seed"
 export * from "./utils/users.seed"
 export * from "./utils/vouchers.seed"
 export * from "./utils/evaluation-criteria.seed"
+export * from './orderEvaluationCriteria'

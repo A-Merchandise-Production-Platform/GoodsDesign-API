@@ -127,6 +127,13 @@ input CreateCategoryDto {
   name: String!
 }
 
+input CreateEvaluationCriteriaInput {
+  description: String
+  isActive: Boolean! = true
+  name: String!
+  productId: String!
+}
+
 input CreateFactoryProductInput {
   factoryId: String!
   productionCapacity: Int!
@@ -140,6 +147,7 @@ input CreateOrderDetailInput {
 
 input CreateOrderInput {
   addressId: String!
+  evaluationCriteriaIds: [String!]
   orderDetails: [CreateOrderDetailInput!]!
   voucherId: String
 }
@@ -301,6 +309,18 @@ type EnhancedStaffStats {
   change: Int!
   changeType: ChangeType!
   total: Int!
+}
+
+type EvaluationCriteriaEntity {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  isActive: Boolean!
+  isDeleted: Boolean!
+  name: String!
+  product: ProductEntity!
+  productId: ID!
+  updatedAt: DateTime
 }
 
 type FactoryDashboardResponse {
@@ -556,6 +576,7 @@ type Mutation {
   createAddress(createAddressInput: CreateAddressInput!): AddressEntity!
   createCartItem(createCartItemInput: CreateCartItemDto!): CartItemEntity!
   createCategory(createCategoryInput: CreateCategoryDto!): CategoryEntity!
+  createEvaluationCriteria(createEvaluationCriteriaInput: CreateEvaluationCriteriaInput!): EvaluationCriteriaEntity!
   createFactoryProduct(data: CreateFactoryProductInput!): FactoryProductEntity!
   createNotification(content: String!, title: String!, url: String, userId: String!): NotificationEntity!
   createNotificationForManyUsers(content: String!, title: String!, url: String, userIds: [String!]!): [NotificationEntity!]!
@@ -597,6 +618,7 @@ type Mutation {
   refreshToken(refreshTokenInput: RefreshTokenDto!): AuthResponseDto!
   register(registerInput: RegisterDto!): AuthResponseDto!
   rejectOrder(orderId: String!, reason: String!): OrderEntity!
+  removeEvaluationCriteria(id: ID!): EvaluationCriteriaEntity!
   removePaymentTransaction(id: ID!): PaymentTransactionEntity!
   removeProductDesign(id: ID!): ProductDesignEntity!
   removeProductPositionType(id: ID!): ProductPositionTypeEntity!
@@ -618,6 +640,7 @@ type Mutation {
   updateCartItem(id: String!, updateCartItemInput: UpdateCartItemDto!): CartItemEntity!
   updateCategory(id: String!, updateCategoryInput: UpdateCategoryDto!): CategoryEntity!
   updateDesignPosition(input: UpdateDesignPositionDto!): DesignPositionEntity!
+  updateEvaluationCriteria(updateEvaluationCriteriaInput: UpdateEvaluationCriteriaInput!): EvaluationCriteriaEntity!
   updateFactoryInfo(updateFactoryInfoInput: UpdateFactoryInfoDto!): FactoryEntity!
   updateFactoryProduct(data: UpdateFactoryProductInput!, factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
   updatePaymentTransaction(id: ID!, input: UpdatePaymentTransactionInput!): PaymentTransactionEntity!
@@ -725,6 +748,7 @@ type OrderEntity {
   orderCode: String
   orderDate: DateTime!
   orderDetails: [OrderDetailEntity!]
+  orderEvaluationCriteria: [OrderEvaluationCriteriaEntity!]
   orderProgressReports: [OrderProgressReportEntity!]
   payments: [PaymentEntity!]
   ratedAt: DateTime
@@ -739,6 +763,15 @@ type OrderEntity {
   totalItems: Int!
   totalPrice: Int!
   totalProductionCost: Int
+  updatedAt: DateTime
+}
+
+type OrderEvaluationCriteriaEntity {
+  createdAt: DateTime!
+  evaluationCriteria: EvaluationCriteriaEntity!
+  evaluationCriteriaId: ID!
+  id: ID!
+  orderId: ID!
   updatedAt: DateTime
 }
 
@@ -978,6 +1011,8 @@ type Query {
   distinctVariantAttributes(productId: String!): VariantAttributes!
   district(districtId: Int!): District!
   districts(provinceId: Int!): [District!]!
+  evaluationCriteria(id: ID!): EvaluationCriteriaEntity!
+  evaluationCriteriaByProduct(productId: ID!): [EvaluationCriteriaEntity!]!
   factoryOrders: [OrderEntity!]!
   factoryProduct(factoryId: String!, systemConfigVariantId: String!): FactoryProductEntity!
   factoryProducts: [FactoryProductEntity!]!
@@ -1278,6 +1313,14 @@ input UpdateDesignPositionDto {
   designId: String!
   designJSON: JSON
   productPositionTypeId: String!
+}
+
+input UpdateEvaluationCriteriaInput {
+  description: String
+  id: ID!
+  isActive: Boolean
+  name: String
+  productId: String
 }
 
 """Update factory information input"""

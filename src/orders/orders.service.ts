@@ -33,8 +33,10 @@ export class OrdersService {
     ) {}
 
     async create(createOrderInput: CreateOrderInput, userId: string) {
+        const { orderDetails, evaluationCriteriaIds, ...orderData } = createOrderInput;
+
         // Validate order items
-        if (!createOrderInput.orderDetails.length) {
+        if (!orderDetails.length) {
             throw new BadRequestException("Order must contain at least one item")
         }
 
@@ -51,7 +53,7 @@ export class OrdersService {
             // Get cart items with all necessary relations
             const cartItems = await tx.cartItem.findMany({
                 where: {
-                    id: { in: createOrderInput.orderDetails.map((v) => v.cartItemId) },
+                    id: { in: orderDetails.map((v) => v.cartItemId) },
                     userId: userId
                 },
                 include: {
@@ -78,7 +80,7 @@ export class OrdersService {
             })
 
             // Validate that all requested cart items were found
-            if (cartItems.length !== createOrderInput.orderDetails.length) {
+            if (cartItems.length !== orderDetails.length) {
                 throw new BadRequestException("Some cart items were not found")
             }
 
@@ -150,17 +152,17 @@ export class OrdersService {
             //using calculateShippingCostAndFactoryForCart for shipping fee and factory
             const { shippingFee } =
                 await this.shippingService.calculateShippingCostAndFactoryForCart(
-                    createOrderInput.orderDetails.map((v) => v.cartItemId),
-                    createOrderInput.addressId
+                    orderDetails.map((v) => v.cartItemId),
+                    orderData.addressId
                 )
 
             console.log("shippingFee", shippingFee)
 
             // Apply voucher if provided
-            if (createOrderInput.voucherId) {
+            if (orderData.voucherId) {
                 try {
                     const { finalPrice } = await this.vouchersService.calculateVoucherDiscount(
-                        createOrderInput.voucherId,
+                        orderData.voucherId,
                         totalOrderPrice
                     )
                     totalOrderPrice = finalPrice
@@ -205,11 +207,11 @@ export class OrdersService {
                     customerId: userId,
                     status: OrderStatus.PENDING,
                     totalPrice: finalTotalPrice,
-                    addressId: createOrderInput.addressId,
+                    addressId: orderData.addressId,
                     shippingPrice: shippingFee?.total || 0,
                     orderDate: now,
                     totalItems: cartItems.length,
-                    voucherId: createOrderInput.voucherId,
+                    voucherId: orderData.voucherId,
                     estimatedCheckQualityAt,
                     estimatedDoneProductionAt,
                     estimatedCompletionAt,
@@ -231,9 +233,9 @@ export class OrdersService {
             })
 
             // If voucher was used, create the voucher usage record
-            if (createOrderInput.voucherId) {
+            if (orderData.voucherId) {
                 await this.vouchersService.createVoucherUsage(
-                    createOrderInput.voucherId,
+                    orderData.voucherId,
                     userId,
                     order.id,
                     tx
@@ -291,10 +293,20 @@ export class OrdersService {
             // Remove the ordered items from the cart
             await tx.cartItem.deleteMany({
                 where: {
-                    id: { in: createOrderInput.orderDetails.map((v) => v.cartItemId) },
+                    id: { in: orderDetails.map((v) => v.cartItemId) },
                     userId: userId
                 }
             })
+
+            // If evaluation criteria IDs are provided, create the relationships
+            if (evaluationCriteriaIds && evaluationCriteriaIds.length > 0) {
+                await tx.orderEvaluationCriteria.createMany({
+                    data: evaluationCriteriaIds.map(criteriaId => ({
+                        orderId: order.id,
+                        evaluationCriteriaId: criteriaId,
+                    })),
+                });
+            }
 
             return order
         })
@@ -590,6 +602,11 @@ export class OrdersService {
         const result = await this.prisma.order.findUnique({
             where: { id },
             include: {
+                evaluationCriteria: {
+                    include: {
+                        evaluationCriteria: true
+                    }
+                },
                 address: true,
                 customer: true,
                 factory: {

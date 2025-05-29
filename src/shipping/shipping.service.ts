@@ -240,6 +240,11 @@ export class ShippingService {
   }
 
   async calculateShippingFee(input: CalculateShippingFeeDto): Promise<ShippingFee> {
+    // return 20000
+    const r: ShippingFee ={
+      total: 20000,
+    } 
+    return r
     const body = {
       service_id: input.serviceId,
       service_type_id: input.serviceTypeId,

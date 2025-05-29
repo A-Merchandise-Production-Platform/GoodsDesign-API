@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common"
 import { VouchersService } from "./vouchers.service"
 import { VouchersResolver } from "./vouchers.resolver"
-import { PrismaModule } from "src/prisma"
 import { NotificationsModule } from "src/notifications/notifications.module"
+import { PrismaModule } from "@/prisma"
 
 @Module({
     imports: [PrismaModule, NotificationsModule],

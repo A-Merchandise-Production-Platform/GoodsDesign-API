@@ -38,6 +38,7 @@ import { OrdersModule } from "./orders/orders.module"
 import { UserBanksModule } from "src/user-banks/user-banks.module"
 import { VouchersModule } from "./vouchers/vouchers.module"
 import { OtpModule } from "./otp/otp.module"
+import { EvaluationCriteriaModule } from "./evaluation-criteria/evaluation-criteria.module"
 
 @Module({
     imports: [
@@ -88,7 +89,8 @@ import { OtpModule } from "./otp/otp.module"
         SystemConfigOrderModule,
         UserBanksModule,
         VouchersModule,
-        OtpModule
+        OtpModule,
+        EvaluationCriteriaModule
         // TestModule,
     ],
     controllers: [AppController],

@@ -469,9 +469,7 @@ model Order {
   rejectedHistory RejectedOrder[]
   voucherUsages   VoucherUsage[]
   
-  //EvaluationCriteria[]
-
-  evaluationCriteria EvaluationCriteria[]
+  evaluationCriteria OrderEvaluationCriteria[]
 }
 
 model OrderDetail {
@@ -674,6 +672,19 @@ model EvaluationCriteria {
   createdAt   DateTime @default(now())
   updatedAt   DateTime? @updatedAt
   productId   String
-  product Product[]
-  order Order[] 
+  product     Product  @relation(fields: [productId], references: [id])
+  orderEvaluations OrderEvaluationCriteria[]
+}
+
+model OrderEvaluationCriteria {
+  id                    String   @id @default(uuid())
+  orderId              String
+  evaluationCriteriaId String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime? @updatedAt
+
+  order              Order              @relation(fields: [orderId], references: [id])
+  evaluationCriteria EvaluationCriteria @relation(fields: [evaluationCriteriaId], references: [id])
+
+  @@unique([orderId, evaluationCriteriaId])
 }
