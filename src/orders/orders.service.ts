@@ -33,11 +33,20 @@ export class OrdersService {
     ) {}
 
     async create(createOrderInput: CreateOrderInput, userId: string) {
-        const { orderDetails, evaluationCriteriaIds, ...orderData } = createOrderInput;
+        const { orderDetails, evaluationCriteriaIds, ...orderData } = createOrderInput
 
         // Validate order items
         if (!orderDetails.length) {
             throw new BadRequestException("Order must contain at least one item")
+        }
+
+        // Validate evaluation criteria
+        if (
+            evaluationCriteriaIds &&
+            evaluationCriteriaIds.length >
+                (await this.systemConfigOrderService.findOne()).maxEvaluationCriteria
+        ) {
+            throw new BadRequestException("Evaluation criteria exceeds the maximum allowed")
         }
 
         // Get system config for order
@@ -301,11 +310,11 @@ export class OrdersService {
             // If evaluation criteria IDs are provided, create the relationships
             if (evaluationCriteriaIds && evaluationCriteriaIds.length > 0) {
                 await tx.orderEvaluationCriteria.createMany({
-                    data: evaluationCriteriaIds.map(criteriaId => ({
+                    data: evaluationCriteriaIds.map((criteriaId) => ({
                         orderId: order.id,
-                        evaluationCriteriaId: criteriaId,
-                    })),
-                });
+                        evaluationCriteriaId: criteriaId
+                    }))
+                })
             }
 
             return order
@@ -1130,7 +1139,7 @@ export class OrdersService {
                         },
                         data: {
                             status: OrderDetailStatus.REWORK_REQUIRED,
-                            isRework: true,
+                            isRework: true
                         }
                     })
 
@@ -1185,7 +1194,10 @@ export class OrdersService {
                         url: `/my-order/${checkQuality.orderDetail.order.id}`
                     })
 
-                    this.startRework(checkQuality.orderDetail.order.id, checkQuality.orderDetail.order.factoryId)
+                    this.startRework(
+                        checkQuality.orderDetail.order.id,
+                        checkQuality.orderDetail.order.factoryId
+                    )
                 } else {
                     // Update all order details to READY_FOR_SHIPPING
                     await tx.orderDetail.updateMany({
@@ -1948,7 +1960,7 @@ export class OrdersService {
                 throw new BadRequestException("Third party shipping error: " + error?.message)
             }
 
-            try{
+            try {
                 // Notify factory about shipping status
                 await this.notificationsService.create({
                     title: "Order Ready for Shipping",
@@ -1962,8 +1974,8 @@ export class OrdersService {
                     title: "Order Being Shipped",
                     content: `Your order #${orderId} is being prepared for shipping.`,
                     userId: order.customer.id,
-                        url: `/my-order/${orderId}`
-                    })
+                    url: `/my-order/${orderId}`
+                })
             } catch (error) {
                 console.log("Notification error", error)
             }
@@ -2506,7 +2518,9 @@ export class OrdersService {
                     factoryId: newFactoryId,
                     status: OrderStatus.PENDING_ACCEPTANCE,
                     assignedAt: now,
-                    acceptanceDeadline: new Date(now.getTime() + systemConfig.acceptHoursForFactory * 60 * 60 * 1000),
+                    acceptanceDeadline: new Date(
+                        now.getTime() + systemConfig.acceptHoursForFactory * 60 * 60 * 1000
+                    ),
                     currentProgress: 10,
                     isDelayed: true,
                     estimatedCheckQualityAt,

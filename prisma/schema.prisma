@@ -611,6 +611,9 @@ model SystemConfigOrder {
   voucherBaseTypeForRefund VoucherType @default(FIXED_VALUE)
   voucherBaseLimitedUsage Int @default(1)
   voucherBaseMaxDiscountValue Int @default(100000)
+
+  // Evaluation criteria
+  maxEvaluationCriteria Int @default(3)
 }
 
 model UserBank {

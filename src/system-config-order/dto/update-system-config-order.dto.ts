@@ -107,4 +107,9 @@ export class UpdateSystemConfigOrderDto {
     @IsNumber()
     @Min(1)
     voucherBaseMaxDiscountValue?: number
+
+    @Field(() => Int, { nullable: true })
+    @IsNumber()
+    @Min(1)
+    maxEvaluationCriteria?: number
 }
