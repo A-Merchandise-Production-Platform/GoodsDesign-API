@@ -71,6 +71,9 @@ export class SystemConfigOrderEntity {
     @Field(() => Int)
     voucherBaseMaxDiscountValue: number
 
+    @Field(() => Int)
+    maxEvaluationCriteria: number
+
     constructor(partial: Partial<SystemConfigOrderEntity>) {
         Object.assign(this, partial)
     }

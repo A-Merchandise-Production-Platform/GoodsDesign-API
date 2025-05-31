@@ -1225,6 +1225,7 @@ type SystemConfigOrderEntity {
   legitPointToSuspend: Int!
   limitFactoryRejectOrders: Int!
   limitReworkTimes: Int!
+  maxEvaluationCriteria: Int!
   maxLegitPoint: Int!
   maxProductionCapacity: Int!
   maxProductionTimeInMinutes: Int!
@@ -1432,6 +1433,7 @@ input UpdateSystemConfigOrderDto {
   legitPointToSuspend: Int
   limitFactoryRejectOrders: Int
   limitReworkTimes: Int
+  maxEvaluationCriteria: Int
   maxLegitPoint: Int
   maxProductionCapacity: Int
   maxProductionTimeInMinutes: Int
