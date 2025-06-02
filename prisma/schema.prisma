@@ -469,7 +469,7 @@ model Order {
   rejectedHistory RejectedOrder[]
   voucherUsages   VoucherUsage[]
   
-  evaluationCriteria OrderEvaluationCriteria[]
+  orderEvaluationCriteria OrderEvaluationCriteria[]
 }
 
 model OrderDetail {

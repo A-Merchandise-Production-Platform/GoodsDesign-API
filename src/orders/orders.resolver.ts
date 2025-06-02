@@ -36,7 +36,6 @@ export class OrdersResolver {
     @Query(() => [OrderEntity], { name: "myOrders" })
     @UseGuards(GraphqlJwtAuthGuard)
     findMyOrders(@CurrentUser() user: UserEntity) {
-        console.log("user", user)
         return this.ordersService.findByCustomerId(user.id)
     }
 
@@ -53,8 +52,10 @@ export class OrdersResolver {
     }
 
     @Query(() => OrderEntity, { name: "order" })
-    findOne(@Args("id", { type: () => String }) id: string) {
-        return this.ordersService.findOne(id)
+    async findOne(@Args("id", { type: () => String }) id: string) {
+        const result = await this.ordersService.findOne(id)
+        console.log("result 2", result)
+        return result
     }
 
     @Mutation(() => OrderEntity)
@@ -213,7 +214,7 @@ export class OrdersResolver {
     @UseGuards(GraphqlJwtAuthGuard)
     transferOrderToFactory(
         @Args("orderId", { type: () => String }) orderId: string,
-        @Args("newFactoryId", { type: () => String }) newFactoryId: string,
+        @Args("newFactoryId", { type: () => String }) newFactoryId: string
     ) {
         return this.ordersService.transferOrderToFactory(orderId, newFactoryId)
     }
