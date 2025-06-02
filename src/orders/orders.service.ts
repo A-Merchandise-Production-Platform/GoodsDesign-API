@@ -40,6 +40,7 @@ export class OrdersService {
             throw new BadRequestException("Order must contain at least one item")
         }
 
+        console.log("evaluationCriteriaIds", evaluationCriteriaIds)
         // Validate evaluation criteria
         if (
             evaluationCriteriaIds &&
@@ -308,6 +309,7 @@ export class OrdersService {
             })
 
             // If evaluation criteria IDs are provided, create the relationships
+            console.log("evaluationCriteriaIds", evaluationCriteriaIds)
             if (evaluationCriteriaIds && evaluationCriteriaIds.length > 0) {
                 await tx.orderEvaluationCriteria.createMany({
                     data: evaluationCriteriaIds.map((criteriaId) => ({
@@ -316,6 +318,7 @@ export class OrdersService {
                     }))
                 })
             }
+            console.log("order", order)
 
             return order
         })
@@ -608,14 +611,20 @@ export class OrdersService {
     }
 
     async findOne(id: string) {
+        console.log("id", id)
         const result = await this.prisma.order.findUnique({
             where: { id },
             include: {
-                evaluationCriteria: {
+                orderEvaluationCriteria: {
                     include: {
-                        evaluationCriteria: true
+                        evaluationCriteria: {
+                            include: {
+                                product: true
+                            }
+                        }
                     }
                 },
+
                 address: true,
                 customer: true,
                 factory: {
@@ -675,6 +684,8 @@ export class OrdersService {
                 }
             }
         })
+
+        console.log("result", result)
 
         return new OrderEntity(result)
     }
