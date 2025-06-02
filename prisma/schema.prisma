@@ -577,6 +577,19 @@ model CheckQuality {
 
   task        Task        @relation(fields: [taskId], references: [id])
   orderDetail OrderDetail @relation(fields: [orderDetailId], references: [id])
+  failedEvaluationCriteria CheckQualityFailedEvaluationCriteria[]
+}
+
+model CheckQualityFailedEvaluationCriteria {
+  id                    String   @id @default(uuid())
+  checkQualityId       String
+  evaluationCriteriaId String
+  createdAt            DateTime @default(now())
+
+  checkQuality       CheckQuality       @relation(fields: [checkQualityId], references: [id])
+  evaluationCriteria EvaluationCriteria @relation(fields: [evaluationCriteriaId], references: [id])
+
+  @@unique([checkQualityId, evaluationCriteriaId])
 }
 
 enum SystemConfigOrderType {
@@ -677,6 +690,7 @@ model EvaluationCriteria {
   productId   String
   product     Product  @relation(fields: [productId], references: [id])
   orderEvaluations OrderEvaluationCriteria[]
+  failedCheckQualities CheckQualityFailedEvaluationCriteria[]
 }
 
 model OrderEvaluationCriteria {

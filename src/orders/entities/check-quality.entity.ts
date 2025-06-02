@@ -2,6 +2,7 @@ import { Field, ID, ObjectType, Int, registerEnumType } from "@nestjs/graphql"
 import { QualityCheckStatus } from "@prisma/client"
 import { TaskEntity } from "../../tasks/entities/task.entity"
 import { OrderDetailEntity } from "./order-detail.entity"
+import { CheckQualityFailedEvaluationCriteriaEntity } from "./check-quality-failed-evaluation-criteria.entity"
 
 registerEnumType(QualityCheckStatus, {
     name: "QualityCheckStatus"
@@ -50,6 +51,9 @@ export class CheckQualityEntity {
 
     @Field(() => OrderDetailEntity, { nullable: true })
     orderDetail?: OrderDetailEntity
+
+    @Field(() => [CheckQualityFailedEvaluationCriteriaEntity], { nullable: true })
+    failedEvaluationCriteria?: CheckQualityFailedEvaluationCriteriaEntity[]
 
     constructor(partial: Partial<CheckQualityEntity>) {
         Object.assign(this, partial)
