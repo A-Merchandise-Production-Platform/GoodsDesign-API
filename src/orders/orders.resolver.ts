@@ -52,10 +52,8 @@ export class OrdersResolver {
     }
 
     @Query(() => OrderEntity, { name: "order" })
-    async findOne(@Args("id", { type: () => String }) id: string) {
-        const result = await this.ordersService.findOne(id)
-        console.log("result 2", result)
-        return result
+    findOne(@Args("id", { type: () => String }) id: string) {
+        return this.ordersService.findOne(id)
     }
 
     @Mutation(() => OrderEntity)
@@ -95,7 +93,8 @@ export class OrdersResolver {
             input.passedQuantity,
             input.failedQuantity,
             input.note,
-            input.imageUrls
+            input.imageUrls,
+            input.failedEvaluationCriteriaIds
         )
     }
 

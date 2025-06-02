@@ -350,6 +350,11 @@ export class OrdersService {
                                     include: {
                                         assignee: true
                                     }
+                                },
+                                failedEvaluationCriteria: {
+                                    include: {
+                                        evaluationCriteria: true
+                                    }
                                 }
                             }
                         },
@@ -420,6 +425,11 @@ export class OrdersService {
                                     include: {
                                         assignee: true
                                     }
+                                },
+                                failedEvaluationCriteria: {
+                                    include: {
+                                        evaluationCriteria: true
+                                    }
                                 }
                             }
                         },
@@ -488,6 +498,11 @@ export class OrdersService {
                                 task: {
                                     include: {
                                         assignee: true
+                                    }
+                                },
+                                failedEvaluationCriteria: {
+                                    include: {
+                                        evaluationCriteria: true
                                     }
                                 }
                             }
@@ -561,6 +576,11 @@ export class OrdersService {
                                 task: {
                                     include: {
                                         assignee: true
+                                    }
+                                },
+                                failedEvaluationCriteria: {
+                                    include: {
+                                        evaluationCriteria: true
                                     }
                                 }
                             }
@@ -647,6 +667,11 @@ export class OrdersService {
                                     include: {
                                         assignee: true
                                     }
+                                },
+                                failedEvaluationCriteria: {
+                                    include: {
+                                        evaluationCriteria: true
+                                    }
                                 }
                             }
                         },
@@ -684,8 +709,6 @@ export class OrdersService {
                 }
             }
         })
-
-        console.log("result", result)
 
         return new OrderEntity(result)
     }
@@ -999,7 +1022,8 @@ export class OrdersService {
         passedQuantity: number,
         failedQuantity: number,
         note?: string,
-        imageUrls?: string[]
+        imageUrls?: string[],
+        failedEvaluationCriteriaIds?: string[]
     ) {
         return this.prisma.$transaction(async (tx) => {
             const now = new Date()
@@ -1020,7 +1044,12 @@ export class OrdersService {
                                         }
                                     },
                                     tasks: true,
-                                    customer: true
+                                    customer: true,
+                                    orderEvaluationCriteria: {
+                                        include: {
+                                            evaluationCriteria: true
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1052,6 +1081,30 @@ export class OrdersService {
                 throw new BadRequestException("Total checked quantity does not match")
             }
 
+            // Validate failed evaluation criteria if provided and quality check failed
+            if (
+                failedQuantity > 0 &&
+                failedEvaluationCriteriaIds &&
+                failedEvaluationCriteriaIds.length > 0
+            ) {
+                // Get order's evaluation criteria IDs
+                const orderEvaluationCriteriaIds =
+                    checkQuality.orderDetail.order.orderEvaluationCriteria.map(
+                        (oec) => oec.evaluationCriteriaId
+                    )
+
+                // Check if all failed evaluation criteria belong to the order
+                const invalidCriteriaIds = failedEvaluationCriteriaIds.filter(
+                    (id) => !orderEvaluationCriteriaIds.includes(id)
+                )
+
+                if (invalidCriteriaIds.length > 0) {
+                    throw new BadRequestException(
+                        `Invalid evaluation criteria IDs: ${invalidCriteriaIds.join(", ")}. These criteria are not part of this order.`
+                    )
+                }
+            }
+
             // Update check quality
             const updatedCheckQuality = await tx.checkQuality.update({
                 where: { id: checkQualityId },
@@ -1070,6 +1123,20 @@ export class OrdersService {
                 }
             })
 
+            // Store failed evaluation criteria if quality check failed
+            if (
+                failedQuantity > 0 &&
+                failedEvaluationCriteriaIds &&
+                failedEvaluationCriteriaIds.length > 0
+            ) {
+                await tx.checkQualityFailedEvaluationCriteria.createMany({
+                    data: failedEvaluationCriteriaIds.map((criteriaId) => ({
+                        checkQualityId: checkQualityId,
+                        evaluationCriteriaId: criteriaId
+                    }))
+                })
+            }
+
             // Update task status to COMPLETED
             await tx.task.update({
                 where: { id: checkQuality.taskId },
@@ -1079,12 +1146,24 @@ export class OrdersService {
                 }
             })
 
-            // Create progress report
+            // Create progress report with failed evaluation criteria info
+            let progressNote = `Quality check completed for order detail ${checkQuality.orderDetailId}. Passed: ${passedQuantity}, Failed: ${failedQuantity}`
+            if (
+                failedQuantity > 0 &&
+                failedEvaluationCriteriaIds &&
+                failedEvaluationCriteriaIds.length > 0
+            ) {
+                const failedCriteriaNames = checkQuality.orderDetail.order.orderEvaluationCriteria
+                    .filter((oec) => failedEvaluationCriteriaIds.includes(oec.evaluationCriteriaId))
+                    .map((oec) => oec.evaluationCriteria.name)
+                progressNote += `. Failed criteria: ${failedCriteriaNames.join(", ")}`
+            }
+
             await tx.orderProgressReport.create({
                 data: {
                     orderId: checkQuality.orderDetail.order.id,
                     reportDate: now,
-                    note: `Quality check completed for order detail ${checkQuality.orderDetailId}. Passed: ${passedQuantity}, Failed: ${failedQuantity}`,
+                    note: progressNote,
                     imageUrls: imageUrls || []
                 }
             })
@@ -1255,7 +1334,19 @@ export class OrdersService {
                 }
             }
 
-            return updatedCheckQuality
+            // Return the check quality with failed evaluation criteria included
+            return await tx.checkQuality.findUnique({
+                where: { id: checkQualityId },
+                include: {
+                    task: true,
+                    orderDetail: true,
+                    failedEvaluationCriteria: {
+                        include: {
+                            evaluationCriteria: true
+                        }
+                    }
+                }
+            })
         })
     }
 
@@ -1868,6 +1959,11 @@ export class OrdersService {
                                 task: {
                                     include: {
                                         assignee: true
+                                    }
+                                },
+                                failedEvaluationCriteria: {
+                                    include: {
+                                        evaluationCriteria: true
                                     }
                                 }
                             }

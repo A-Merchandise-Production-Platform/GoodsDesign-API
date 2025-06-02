@@ -91,6 +91,7 @@ type CheckQualityEntity {
   checkedAt: DateTime!
   checkedBy: String
   createdAt: DateTime!
+  failedEvaluationCriteria: [CheckQualityFailedEvaluationCriteriaEntity!]
   failedQuantity: Int!
   id: ID!
   imageUrls: [String!]!
@@ -102,6 +103,14 @@ type CheckQualityEntity {
   task: TaskEntity
   taskId: String!
   totalChecked: Int!
+}
+
+type CheckQualityFailedEvaluationCriteriaEntity {
+  checkQualityId: ID!
+  createdAt: DateTime!
+  evaluationCriteria: EvaluationCriteriaEntity!
+  evaluationCriteriaId: ID!
+  id: ID!
 }
 
 """Create Address Input"""
@@ -281,6 +290,7 @@ type District {
 
 input DoneCheckQualityInput {
   checkQualityId: String!
+  failedEvaluationCriteriaIds: [String!]
   failedQuantity: Int!
   imageUrls: [String!]
   note: String
