@@ -245,33 +245,33 @@ export class ShippingService {
       total: 20000,
     } 
     return r
-    const body = {
-      service_id: input.serviceId,
-      service_type_id: input.serviceTypeId,
-      from_district_id: input.fromDistrictId,
-      from_ward_code: input.fromWardCode,
-      to_district_id: input.toDistrictId,
-      to_ward_code: input.toWardCode,
-      weight: input.weight,
-      length: input.length,
-      width: input.width,
-      height: input.height
-    };
+    // const body = {
+    //   service_id: input.serviceId,
+    //   service_type_id: input.serviceTypeId,
+    //   from_district_id: input.fromDistrictId,
+    //   from_ward_code: input.fromWardCode,
+    //   to_district_id: input.toDistrictId,
+    //   to_ward_code: input.toWardCode,
+    //   weight: input.weight,
+    //   length: input.length,
+    //   width: input.width,
+    //   height: input.height
+    // };
 
-    console.log(body)
+    // console.log(body)
 
-    const response = await this.handleRequest<any>(
-      this.ENDPOINTS.CALCULATE_FEE,
-      {},
-      'POST',
-      body
-    );
+    // const response = await this.handleRequest<any>(
+    //   this.ENDPOINTS.CALCULATE_FEE,
+    //   {},
+    //   'POST',
+    //   body
+    // );
 
-    console.log("[calculateShippingFee] response: ", response)
+    // console.log("[calculateShippingFee] response: ", response)
 
-    return {
-      total: response.total,
-    };
+    // return {
+    //   total: response.total,
+    // };
   }
 
   async createShippingOrder(orderId: string): Promise<ShippingOrder> {
