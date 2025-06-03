@@ -2063,8 +2063,8 @@ export class OrdersService {
                     data: { orderCode: orderCode }
                 })
             } catch (error) {
-                console.log("Third party shipping error", error)
-                throw new BadRequestException("Third party shipping error: " + error?.message)
+                console.log("Third party shipping error: Try again later")
+                throw new BadRequestException("Third party shipping error: Try again later")
             }
 
             try {
