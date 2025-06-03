@@ -328,7 +328,7 @@ type EvaluationCriteriaEntity {
   isActive: Boolean!
   isDeleted: Boolean!
   name: String!
-  product: ProductEntity!
+  product: ProductEntity
   productId: ID!
   updatedAt: DateTime
 }

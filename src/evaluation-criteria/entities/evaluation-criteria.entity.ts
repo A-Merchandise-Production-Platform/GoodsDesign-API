@@ -27,8 +27,8 @@ export class EvaluationCriteriaEntity {
     @Field(() => ID)
     productId: string
 
-    @Field(() => ProductEntity)
-    product: ProductEntity
+    @Field(() => ProductEntity, { nullable: true })
+    product?: ProductEntity
 
     constructor(partial: Partial<EvaluationCriteriaEntity>) {
         Object.assign(this, partial)
