@@ -23,9 +23,17 @@ export class FileResolver {
     
     try {
       const stream = file.createReadStream();
+      if (!stream) {
+        throw new Error('Failed to create read stream from file');
+      }
+      
       this.logger.log(`Stream created, readable length: ${stream.readableLength}`);
       
       const buffer = await this.streamToBuffer(stream);
+      if (!buffer || buffer.length === 0) {
+        throw new Error('Failed to create buffer from stream');
+      }
+      
       this.logger.log(`Buffer created, size: ${buffer.length} bytes`);
 
       const url = await this.fileService.uploadFile({
@@ -34,10 +42,15 @@ export class FileResolver {
         mimetype: file.mimetype,
       });
       
+      if (!url) {
+        throw new Error('No URL returned from file upload');
+      }
+      
       return { url };
     } catch (error) {
-      this.logger.error(`Failed to process file upload: ${error.message}`, error.stack);
-      throw error;
+      const errorMessage = error.message || 'Unknown error occurred';
+      this.logger.error(`Failed to process file upload: ${errorMessage}`, error.stack);
+      throw new Error(`Failed to process file upload: ${errorMessage}`);
     }
   }
 

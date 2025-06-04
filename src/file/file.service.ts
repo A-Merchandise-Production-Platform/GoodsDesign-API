@@ -50,20 +50,39 @@ export class FileService {
         throw new Error('File buffer is empty or undefined');
       }
 
-      const result = await cloudinary.uploader.upload(
-        `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
-        {
-          folder: 'files',
-          resource_type: 'auto',
-          timeout: 60000, // 60 seconds timeout for the upload
-        }
-      );
+      if (!file.mimetype) {
+        throw new Error('File mimetype is undefined');
+      }
+
+      // Validate Cloudinary configuration
+      if (!envConfig().cloudinary.cloudName || !envConfig().cloudinary.apiKey || !envConfig().cloudinary.apiSecret) {
+        throw new Error('Cloudinary configuration is incomplete');
+      }
+
+      const base64Data = file.buffer.toString('base64');
+      if (!base64Data) {
+        throw new Error('Failed to convert file buffer to base64');
+      }
+
+      const uploadData = `data:${file.mimetype};base64,${base64Data}`;
+      
+      const result = await cloudinary.uploader.upload(uploadData, {
+        folder: 'files',
+        resource_type: 'auto',
+        timeout: 60000, // 60 seconds timeout for the upload
+      });
+
+      if (!result || !result.secure_url) {
+        throw new Error('Cloudinary upload succeeded but no URL was returned');
+      }
 
       this.logger.log(`File uploaded successfully: ${result.secure_url}`);
       return result.secure_url;
     } catch (error) {
-      this.logger.error(`Failed to upload file: ${error.message}`, error.stack);
-      throw new Error(`Failed to upload file: ${error.message}`);
+      const errorMessage = error.message || 'Unknown error occurred';
+      const errorDetails = error.response?.body || error.stack || 'No additional details available';
+      this.logger.error(`Failed to upload file: ${errorMessage}`, errorDetails);
+      throw new Error(`Failed to upload file: ${errorMessage}`);
     }
   }
 
