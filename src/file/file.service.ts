@@ -3,6 +3,8 @@ import { v2 as cloudinary, ConfigOptions } from 'cloudinary';
 import { extractPublicId } from 'cloudinary-build-url';
 import OpenAI from 'openai';
 import { envConfig } from 'src/dynamic-modules';
+import { initializeApp } from 'firebase/app';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 interface UploadedFile {
   buffer: Buffer;
@@ -14,6 +16,7 @@ interface UploadedFile {
 export class FileService {
   private readonly logger = new Logger(FileService.name);
   private readonly openai: OpenAI;
+  private readonly storage;
 
   constructor() {
     const config: ConfigOptions = {
@@ -39,6 +42,20 @@ export class FileService {
     this.openai = new OpenAI({
       apiKey: envConfig().openai.apiKey,
     });
+
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyClWMBfKK-pABwkKFQWXyVgSEVcJHyJkmc",
+      authDomain: "koi-farm-shop-fd1ef.firebaseapp.com",
+      projectId: "koi-farm-shop-fd1ef",
+      storageBucket: "koi-farm-shop-fd1ef.appspot.com",
+      messagingSenderId: "669414724581",
+      appId: "1:669414724581:web:a4beefc16c67334d09d50c",
+      measurementId: "G-BEH6L3MXV0",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    this.storage = getStorage(app);
   }
 
   async uploadFile(file: UploadedFile): Promise<string> {
@@ -152,9 +169,23 @@ export class FileService {
       }
 
       // Convert base64 to buffer
-      // const buffer = Buffer.from(, 'base64');
-
-      return imageData;
+      const buffer = Buffer.from(imageData, 'base64');
+      
+      // Create a temporary file name
+      const randomName = Math.random().toString(36).substring(7);
+      const fileName = `generated_${randomName}.png`;
+      
+      // Create a reference to the storage location
+      const storageRef = ref(this.storage, `images-ai/${fileName}`);
+      
+      // Upload the buffer to Firebase Storage
+      const uploadTask = await uploadBytesResumable(storageRef, buffer);
+      
+      // Get the download URL
+      const downloadURL = await getDownloadURL(uploadTask.ref);
+      
+      this.logger.log(`Image uploaded successfully to Firebase Storage: ${downloadURL}`);
+      return downloadURL;
     } catch (error) {
       this.logger.error(`Failed to generate and upload image: ${error.message}`, error.stack);
       throw new Error(`Failed to generate and upload image: ${error.message}`);
