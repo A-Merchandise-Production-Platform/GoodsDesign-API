@@ -2,7 +2,7 @@ import { AlgorithmService } from '@/algorithm/algorithm.service';
 import { FactoryEntity } from '@/factory/entities/factory.entity';
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { lastValueFrom } from 'rxjs';
+import { async, lastValueFrom } from 'rxjs';
 import { envConfig } from 'src/dynamic-modules';
 import { PrismaService } from 'src/prisma';
 import { RedisService } from 'src/redis/redis.service';
@@ -141,12 +141,14 @@ export class ShippingService implements OnModuleInit {
 
       return formatProvinces(provinces);
     } catch (error) {
+      console.error("[getProvinces] error: ", error);
       return [];
     }
   }
 
   async getDistricts(provinceId: number): Promise<District[]> {
-    const cacheKey = `shipping:districts:${provinceId}`;
+    try{
+      const cacheKey = `shipping:districts:${provinceId}`;
     const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
@@ -164,12 +166,17 @@ export class ShippingService implements OnModuleInit {
       60 * 60 * 24 * 7
     );
 
-    return formatDistricts(districts);
+      return formatDistricts(districts);
+    } catch (error) {
+      console.error("[getDistricts] error: ", error);
+      return [];
+    }
   }
 
   async getWards(districtId: number): Promise<Ward[]> {
-    const cacheKey = `shipping:wards:${districtId}`;
-    const cached = await this.redisService.getCache(cacheKey);
+    try{
+      const cacheKey = `shipping:wards:${districtId}`;
+      const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
       return JSON.parse(cached);
@@ -190,11 +197,16 @@ export class ShippingService implements OnModuleInit {
       60 * 60 * 24 * 7
     );
 
-    return formatWards(wards);
+      return formatWards(wards);
+    } catch (error) {
+      console.error("[getWards] error: ", error);
+      return [];
+    }
   }
 
   async getAvailableServices(fromDistrict: number, toDistrict: number): Promise<ShippingServiceModel[]> {
-    const cacheKey = `shipping:services:${fromDistrict}:${toDistrict}`;
+    try{
+      const cacheKey = `shipping:services:${fromDistrict}:${toDistrict}`;
     const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
@@ -222,7 +234,11 @@ export class ShippingService implements OnModuleInit {
       60 * 60 * 24 * 7
     );
 
-    return formattedServices as unknown as ShippingServiceModel[];
+      return formattedServices as unknown as ShippingServiceModel[];
+    } catch (error) {
+      console.error("[getAvailableServices] error: ", error);
+      return [];
+    }
   }
 
   async getProvince(provinceId: number): Promise<Province | null> {
