@@ -23,8 +23,6 @@ export class ShippingService implements OnModuleInit {
   private readonly shopId: string;
   private readonly logger = new Logger(ShippingService.name);
 
-  
-
   private readonly ENDPOINTS = {
     PROVINCE: '/shiip/public-api/master-data/province',
     DISTRICT: '/shiip/public-api/master-data/district',
