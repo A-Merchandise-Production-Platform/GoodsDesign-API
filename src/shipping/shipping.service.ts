@@ -360,11 +360,16 @@ export class ShippingService {
     }), { length: 0, width: 0, height: 0 });
 
     // Get location information in parallel
-    const [fromProvince, fromDistrictName, fromWardName] = await Promise.all([
-      this.getProvince(order.factory.address.provinceID),
-      this.getDistrict(order.factory.address.districtID),
-      this.getWard(order.factory.address.wardCode)
-    ]);
+    // const [fromProvince, fromDistrictName, fromWardName] = await Promise.all([
+    //   this.getProvince(order.factory.address.provinceID),
+    //   this.getDistrict(order.factory.address.districtID),
+    //   this.getWard(order.factory.address.wardCode)
+    // ]);
+
+    const fromProvince = await this.getProvince(order.factory.address.provinceID);
+    const fromDistrictName = await this.getDistrict(order.factory.address.districtID);
+    const fromWardName = await this.getWard(order.factory.address.wardCode);
+
 
     const body = {
       payment_type_id: 2,
