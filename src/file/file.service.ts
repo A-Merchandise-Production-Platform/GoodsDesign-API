@@ -152,20 +152,9 @@ export class FileService {
       }
 
       // Convert base64 to buffer
-      const buffer = Buffer.from(imageData, 'base64');
+      // const buffer = Buffer.from(, 'base64');
 
-      // Upload to Cloudinary
-      const result = await cloudinary.uploader.upload(
-        `data:image/png;base64,${imageData}`,
-        {
-          folder: 'ai-generated',
-          resource_type: 'image',
-          timeout: 60000,
-        }
-      );
-
-      this.logger.log(`AI-generated image uploaded successfully: ${result.secure_url}`);
-      return result.secure_url;
+      return imageData;
     } catch (error) {
       this.logger.error(`Failed to generate and upload image: ${error.message}`, error.stack);
       throw new Error(`Failed to generate and upload image: ${error.message}`);
