@@ -59,6 +59,16 @@ export class OrdersService {
             throw new BadRequestException("System configuration not found")
         }
 
+        // validate expectedReceiveAt
+        if (orderData.expectedReceiveAt) {
+            if (
+                orderData.expectedReceiveAt <
+                new Date(Date.now() + systemConfig.minExpectedReceiveAt * 24 * 60 * 60 * 1000)
+            ) {
+                throw new BadRequestException("Expected receive at is too early")
+            }
+        }
+
         return this.prisma.$transaction(async (tx) => {
             // Get cart items with all necessary relations
             const cartItems = await tx.cartItem.findMany({
@@ -235,7 +245,8 @@ export class OrdersService {
                             note: "Order created",
                             imageUrls: []
                         }
-                    }
+                    },
+                    expectedReceiveAt: orderData.expectedReceiveAt
                 },
                 include: {
                     orderDetails: true

@@ -1,50 +1,50 @@
 import { Prisma } from "@prisma/client"
 
 type EvaluationCriteriaInput = {
-  name: string
-  description: string
-  isActive: boolean
+    name: string
+    description: string
+    isActive: boolean
 }
 
 export const evaluationCriteriaData: EvaluationCriteriaInput[] = [
-  {
-    name: "Mực in chuẩn màu",
-    description: "Kiểm tra độ chính xác của màu sắc in ấn",
-    isActive: true
-  },
-  {
-    name: "Độ bền màu",
-    description: "Kiểm tra khả năng giữ màu sau khi giặt",
-    isActive: true
-  },
-  {
-    name: "Chất lượng vải",
-    description: "Kiểm tra độ mềm mại và độ bền của vải",
-    isActive: true
-  },
-  {
-    name: "Đường may",
-    description: "Kiểm tra độ chính xác và độ bền của đường may",
-    isActive: true
-  },
-  {
-    name: "Kích thước sản phẩm",
-    description: "Kiểm tra độ chính xác của kích thước sản phẩm",
-    isActive: true
-  },
-  {
-    name: "Độ bền của hình in",
-    description: "Kiểm tra độ bền của hình in khi giặt và sử dụng",
-    isActive: true
-  },
-  {
-    name: "Chất lượng hoàn thiện",
-    description: "Kiểm tra các chi tiết hoàn thiện sản phẩm",
-    isActive: true
-  },
-  {
-    name: "Độ đồng đều của màu sắc",
-    description: "Kiểm tra độ đồng đều của màu sắc trên toàn bộ sản phẩm",
-    isActive: true
-  }
-] 
+    {
+        name: "Print color accuracy",
+        description: "Check the accuracy of print colors",
+        isActive: true
+    },
+    {
+        name: "Color fastness",
+        description: "Check color retention after washing",
+        isActive: true
+    },
+    {
+        name: "Fabric quality",
+        description: "Check softness and durability of fabric",
+        isActive: true
+    },
+    {
+        name: "Stitching quality",
+        description: "Check accuracy and durability of seams",
+        isActive: true
+    },
+    {
+        name: "Product dimensions",
+        description: "Check accuracy of product dimensions",
+        isActive: true
+    },
+    {
+        name: "Print durability",
+        description: "Check durability of prints during washing and use",
+        isActive: true
+    },
+    {
+        name: "Finishing quality",
+        description: "Check product finishing details",
+        isActive: true
+    },
+    {
+        name: "Color uniformity",
+        description: "Check color consistency across the entire product",
+        isActive: true
+    }
+]

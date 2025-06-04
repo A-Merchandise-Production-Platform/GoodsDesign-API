@@ -455,6 +455,7 @@ model Order {
   estimatedCheckQualityAt DateTime
   completedAt            DateTime?
   estimatedCompletionAt  DateTime
+  expectedReceiveAt      DateTime?
 
   addressId      String?
   address        Address?               @relation(fields: [addressId], references: [id])
@@ -627,6 +628,9 @@ model SystemConfigOrder {
 
   // Evaluation criteria
   maxEvaluationCriteria Int @default(3)
+
+  // min Expected Receive At, default will be 3 days
+  minExpectedReceiveAt Int @default(3)
 }
 
 model UserBank {

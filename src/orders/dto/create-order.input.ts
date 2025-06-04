@@ -1,5 +1,5 @@
 import { Field, InputType } from "@nestjs/graphql"
-import { IsNotEmpty, IsOptional, IsArray, IsString } from "class-validator"
+import { IsNotEmpty, IsOptional, IsArray, IsString, IsDate } from "class-validator"
 import { CreateOrderDetailInput } from "./create-order-detail.input"
 
 @InputType()
@@ -20,5 +20,10 @@ export class CreateOrderInput {
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
-    evaluationCriteriaIds?: string[];
+    evaluationCriteriaIds?: string[]
+
+    @Field(() => Date, { nullable: true })
+    @IsOptional()
+    @IsDate()
+    expectedReceiveAt?: Date
 }
