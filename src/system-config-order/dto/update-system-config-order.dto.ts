@@ -112,4 +112,9 @@ export class UpdateSystemConfigOrderDto {
     @IsNumber()
     @Min(1)
     maxEvaluationCriteria?: number
+
+    @Field(() => Int, { nullable: true })
+    @IsNumber()
+    @Min(1)
+    minExpectedReceiveAt?: number
 }

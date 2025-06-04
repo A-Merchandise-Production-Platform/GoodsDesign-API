@@ -157,6 +157,7 @@ input CreateOrderDetailInput {
 input CreateOrderInput {
   addressId: String!
   evaluationCriteriaIds: [String!]
+  expectedReceiveAt: DateTime
   orderDetails: [CreateOrderDetailInput!]!
   voucherId: String
 }
@@ -751,6 +752,7 @@ type OrderEntity {
   estimatedCompletionAt: DateTime!
   estimatedDoneProductionAt: DateTime!
   estimatedShippingAt: DateTime!
+  expectedReceiveAt: DateTime
   factory: FactoryEntity
   factoryId: String
   id: ID!
@@ -1239,6 +1241,7 @@ type SystemConfigOrderEntity {
   maxLegitPoint: Int!
   maxProductionCapacity: Int!
   maxProductionTimeInMinutes: Int!
+  minExpectedReceiveAt: Int!
   productionCapacityScoreWeight: Float!
   reduceLegitPointIfReject: Int!
   shippingDays: Int!
@@ -1447,6 +1450,7 @@ input UpdateSystemConfigOrderDto {
   maxLegitPoint: Int
   maxProductionCapacity: Int
   maxProductionTimeInMinutes: Int
+  minExpectedReceiveAt: Int
   productionCapacityScoreWeight: Float
   reduceLegitPointIfReject: Int
   shippingDays: Int
