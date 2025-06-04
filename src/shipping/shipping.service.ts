@@ -1,7 +1,7 @@
 import { AlgorithmService } from '@/algorithm/algorithm.service';
 import { FactoryEntity } from '@/factory/entities/factory.entity';
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
 import { envConfig } from 'src/dynamic-modules';
 import { PrismaService } from 'src/prisma';
@@ -21,6 +21,7 @@ export class ShippingService {
   private readonly baseUrl: string;
   private readonly token: string;
   private readonly shopId: string;
+  private readonly logger = new Logger(ShippingService.name);
 
   private readonly ENDPOINTS = {
     PROVINCE: '/shiip/public-api/master-data/province',
@@ -241,37 +242,37 @@ export class ShippingService {
 
   async calculateShippingFee(input: CalculateShippingFeeDto): Promise<ShippingFee> {
     // return 20000
-    const r: ShippingFee ={
-      total: 20000,
-    } 
-    return r
-    // const body = {
-    //   service_id: input.serviceId,
-    //   service_type_id: input.serviceTypeId,
-    //   from_district_id: input.fromDistrictId,
-    //   from_ward_code: input.fromWardCode,
-    //   to_district_id: input.toDistrictId,
-    //   to_ward_code: input.toWardCode,
-    //   weight: input.weight,
-    //   length: input.length,
-    //   width: input.width,
-    //   height: input.height
-    // };
+    // const r: ShippingFee ={
+    //   total: 20000,
+    // } 
+    // return r
+    const body = {
+      service_id: input.serviceId,
+      service_type_id: input.serviceTypeId,
+      from_district_id: input.fromDistrictId,
+      from_ward_code: input.fromWardCode,
+      to_district_id: input.toDistrictId,
+      to_ward_code: input.toWardCode,
+      weight: input.weight,
+      length: input.length,
+      width: input.width,
+      height: input.height
+    };
 
-    // console.log(body)
+    console.log(body)
 
-    // const response = await this.handleRequest<any>(
-    //   this.ENDPOINTS.CALCULATE_FEE,
-    //   {},
-    //   'POST',
-    //   body
-    // );
+    const response = await this.handleRequest<any>(
+      this.ENDPOINTS.CALCULATE_FEE,
+      {},
+      'POST',
+      body
+    );
 
-    // console.log("[calculateShippingFee] response: ", response)
+    console.log("[calculateShippingFee] response: ", response)
 
-    // return {
-    //   total: response.total,
-    // };
+    return {
+      total: response.total,
+    };
   }
 
   async createShippingOrder(orderId: string): Promise<ShippingOrder> {
@@ -425,70 +426,78 @@ export class ShippingService {
     shippingFee: ShippingFee;
     selectedFactory: FactoryEntity | null;
   }> {
+    const startTime = performance.now();
+    this.logger.log(`Starting shipping cost calculation for cart items: ${cartIds.join(', ')}`);
+
     try {
-      // Get cart items with their details
-      const cartItems = await this.prisma.cartItem.findMany({
-        where: {
-          id: {
-            in: cartIds
-          }
-        },
-        include: {
-          design: {
-            include: {
-              designPositions: {
-                include: {
-                  positionType: {
-                    include: {
-                      product: true
+      if (!cartIds.length) {
+        throw new Error('No cart items provided');
+      }
+
+      if (!addressId) {
+        throw new Error('No shipping address provided');
+      }
+
+      // Get cart items and shipping address in parallel
+      const [cartItems, shippingAddress] = await Promise.all([
+        this.prisma.cartItem.findMany({
+          where: { id: { in: cartIds } },
+          include: {
+            design: {
+              include: {
+                designPositions: {
+                  include: {
+                    positionType: {
+                      include: { product: true }
                     }
                   }
                 }
               }
-            }
-          },
-          systemConfigVariant: true
-        }
-      });
+            },
+            systemConfigVariant: true
+          }
+        }),
+        this.prisma.address.findUnique({
+          where: { id: addressId }
+        })
+      ]);
+
+      const queryTime = performance.now() - startTime;
+      this.logger.debug(`Database queries completed in ${queryTime.toFixed(2)}ms`);
 
       if (cartItems.length === 0) {
         throw new Error('No cart items found');
       }
 
-      // Get shipping address
-      const shippingAddress = await this.prisma.address.findUnique({
-        where: { id: addressId }
-      });
-
       if (!shippingAddress) {
         throw new Error(`Shipping address with ID ${addressId} not found`);
       }
 
-      // Extract variant IDs from cart items
-      const variantIds = cartItems.map(item => item.systemConfigVariantId);
-      const uniqueVariantIds = [...new Set(variantIds)];
+      // Extract variant IDs and find best factory
+      const variantIds = [...new Set(cartItems.map(item => item.systemConfigVariantId))];
+      this.logger.debug(`Processing ${variantIds.length} unique variants`);
 
-      // Use the algorithm service to find the best factory
-      const selectedFactory = await this.algorithmService.findBestFactoryForVariants(uniqueVariantIds);
-
+      const selectedFactory = await this.algorithmService.findBestFactoryForVariants(variantIds);
       if (!selectedFactory) {
         throw new Error('No suitable factory found for the cart items');
       }
 
-      const factoryAddress = selectedFactory.address
-
+      const factoryAddress = selectedFactory.address;
       if (!factoryAddress) {
         throw new Error('Factory address not found');
       }
 
+      // Get location information in parallel
       const fromDistrict = await this.getDistrict(factoryAddress.districtID);
       const fromWard = await this.getWard(factoryAddress.wardCode);
-
       const toDistrict = await this.getDistrict(shippingAddress.districtID);
       const toWard = await this.getWard(shippingAddress.wardCode);
 
-      // Calculate total weight and dimensions
-      const items = cartItems?.map(item => {
+      const locationTime = performance.now() - startTime - queryTime;
+      this.logger.debug(`Location data retrieved in ${locationTime.toFixed(2)}ms`);
+
+      // Calculate dimensions and weight
+      const items = cartItems.map(item => {
         const design = item.design;
         const product = design.designPositions[0]?.positionType?.product;
         
@@ -502,38 +511,16 @@ export class ShippingService {
       });
 
       const totalWeight = items.reduce((total, item) => total + (item.weight * item.quantity), 0);
-
-      // Calculate total dimensions
-      const totalDimensions = items.reduce((acc, item) => {
-        // For multiple items, we need to consider how they'll be packed
-        // Here we're using a simple approach where we take the maximum dimensions
-        // and multiply length by quantity (assuming items are stacked lengthwise)
-        return {
-          length: Math.max(acc.length, item.length),
-          width: Math.max(acc.width, item.width),
-          height: Math.max(acc.height, item.height * item.quantity)
-        };
-      }, { length: 0, width: 0, height: 0 });
-
-      // Get available shipping services
-      const availableServices = await this.getAvailableServices(
-        fromDistrict.districtId,
-        toDistrict.districtId
-      );
-
-      if (availableServices.length === 0) {
-        throw new Error('No shipping services available for this route');
-      }
-
-      // Use the first available service
-      const selectedService = availableServices[0];
-
-      console.log("totalDimensions", totalDimensions)
+      const totalDimensions = items.reduce((acc, item) => ({
+        length: Math.max(acc.length, item.length),
+        width: Math.max(acc.width, item.width),
+        height: Math.max(acc.height, item.height * item.quantity)
+      }), { length: 0, width: 0, height: 0 });
 
       // Calculate shipping fee
       const shippingFee = await this.calculateShippingFee({
-        serviceId: selectedService.serviceId,
-        serviceTypeId: selectedService.serviceTypeId,
+        serviceId: 53321,
+        serviceTypeId: 2,
         fromDistrictId: fromDistrict.districtId,
         fromWardCode: fromWard.wardCode,
         toDistrictId: toDistrict.districtId,
@@ -544,11 +531,19 @@ export class ShippingService {
         height: totalDimensions.height
       });
 
+      const totalTime = performance.now() - startTime;
+      this.logger.log(`Shipping cost calculation completed in ${totalTime.toFixed(2)}ms`);
+
       return {
         shippingFee,
         selectedFactory
       };
     } catch (error) {
+      const errorTime = performance.now() - startTime;
+      this.logger.error(
+        `Error calculating shipping cost (took ${errorTime.toFixed(2)}ms): ${error.message}`,
+        error.stack
+      );
       throw new Error(`Error calculating shipping cost and factory: ${error.message}`);
     }
   }
