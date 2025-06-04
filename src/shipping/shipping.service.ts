@@ -15,6 +15,7 @@ import {
 } from './dto/province.dto';
 import { formatWards, WardResponse } from './dto/ward.dto';
 import { District, Province, ShippingFee, ShippingOrder, ShippingService as ShippingServiceModel, Ward } from './models/shipping.model';
+import { timeout } from 'rxjs/operators';
 
 @Injectable()
 export class ShippingService implements OnModuleInit {
@@ -178,24 +179,36 @@ export class ShippingService implements OnModuleInit {
       const cacheKey = `shipping:wards:${districtId}`;
       const cached = await this.redisService.getCache(cacheKey);
 
-    if (cached) {
-      return JSON.parse(cached);
-    }
+      if (cached) {
+        return JSON.parse(cached);
+      }
 
-    const wards = await this.handleRequest<WardResponse[]>(
-      this.ENDPOINTS.WARD,
-      { district_id: districtId }
-    );
+      // Use httpService.get directly with timeout
+      let wards: WardResponse[] | null = null;
+      try {
+        const response = await lastValueFrom(
+          this.httpService.get(this.baseUrl + this.ENDPOINTS.WARD, {
+            headers: this.getHeaders(),
+            params: { district_id: districtId }
+          }).pipe(timeout(3000))
+        );
+        wards = response.data.data;
+      } catch (err) {
+        if (err.name === 'TimeoutError') {
+          return [];
+        }
+        throw err;
+      }
 
-    if (wards === null) {
-      return [];
-    }
+      if (wards === null) {
+        return [];
+      }
 
-    await this.redisService.setCache(
-      cacheKey,
-      JSON.stringify(formatWards(wards)),
-      60 * 60 * 24 * 7
-    );
+      await this.redisService.setCache(
+        cacheKey,
+        JSON.stringify(formatWards(wards)),
+        60 * 60 * 24 * 7
+      );
 
       return formatWards(wards);
     } catch (error) {

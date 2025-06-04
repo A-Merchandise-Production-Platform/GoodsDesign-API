@@ -1036,329 +1036,345 @@ export class OrdersService {
         imageUrls?: string[],
         failedEvaluationCriteriaIds?: string[]
     ) {
-        return this.prisma.$transaction(async (tx) => {
-            const now = new Date()
+        try {
+            return await this.prisma.$transaction(async (tx) => {
+                const now = new Date()
 
-            // Get the check quality with its task and order detail
-            const checkQuality = await tx.checkQuality.findUnique({
-                where: { id: checkQualityId },
-                include: {
-                    task: true,
-                    orderDetail: {
-                        include: {
-                            checkQualities: true,
-                            order: {
-                                include: {
-                                    orderDetails: {
-                                        include: {
-                                            checkQualities: true
-                                        }
-                                    },
-                                    tasks: true,
-                                    customer: true,
-                                    orderEvaluationCriteria: {
-                                        include: {
-                                            evaluationCriteria: true
+                // Get the check quality with its task and order detail
+                const checkQuality = await tx.checkQuality.findUnique({
+                    where: { id: checkQualityId },
+                    include: {
+                        task: true,
+                        orderDetail: {
+                            include: {
+                                checkQualities: true,
+                                order: {
+                                    include: {
+                                        orderDetails: {
+                                            include: {
+                                                checkQualities: true
+                                            }
+                                        },
+                                        tasks: true,
+                                        customer: true,
+                                        orderEvaluationCriteria: {
+                                            include: {
+                                                evaluationCriteria: true
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            })
-
-            if (!checkQuality) {
-                throw new BadRequestException("Check quality record not found")
-            }
-
-            if (checkQuality.task.userId !== staffId) {
-                throw new BadRequestException("This task is not assigned to you")
-            }
-
-            if (checkQuality.status !== QualityCheckStatus.PENDING) {
-                throw new BadRequestException("This quality check is not in PENDING status")
-            }
-
-            // Validate quantities
-            if (passedQuantity + failedQuantity > checkQuality.orderDetail.quantity) {
-                throw new BadRequestException(
-                    "Total checked quantity exceeds order detail quantity"
-                )
-            }
-
-            // Validate passed quantity + failed quantity == total checked quantity
-            if (passedQuantity + failedQuantity !== checkQuality.orderDetail.quantity) {
-                throw new BadRequestException("Total checked quantity does not match")
-            }
-
-            // Validate failed evaluation criteria if provided and quality check failed
-            if (
-                failedQuantity > 0 &&
-                failedEvaluationCriteriaIds &&
-                failedEvaluationCriteriaIds.length > 0
-            ) {
-                // Get order's evaluation criteria IDs
-                const orderEvaluationCriteriaIds =
-                    checkQuality.orderDetail.order.orderEvaluationCriteria.map(
-                        (oec) => oec.evaluationCriteriaId
-                    )
-
-                // Check if all failed evaluation criteria belong to the order
-                const invalidCriteriaIds = failedEvaluationCriteriaIds.filter(
-                    (id) => !orderEvaluationCriteriaIds.includes(id)
-                )
-
-                if (invalidCriteriaIds.length > 0) {
-                    throw new BadRequestException(
-                        `Invalid evaluation criteria IDs: ${invalidCriteriaIds.join(", ")}. These criteria are not part of this order.`
-                    )
-                }
-            }
-
-            // Update check quality
-            const updatedCheckQuality = await tx.checkQuality.update({
-                where: { id: checkQualityId },
-                data: {
-                    totalChecked: passedQuantity + failedQuantity,
-                    passedQuantity,
-                    failedQuantity,
-                    status:
-                        failedQuantity > 0
-                            ? QualityCheckStatus.REJECTED
-                            : QualityCheckStatus.APPROVED,
-                    note,
-                    imageUrls: imageUrls || [],
-                    checkedAt: now,
-                    checkedBy: staffId
-                }
-            })
-
-            // Store failed evaluation criteria if quality check failed
-            if (
-                failedQuantity > 0 &&
-                failedEvaluationCriteriaIds &&
-                failedEvaluationCriteriaIds.length > 0
-            ) {
-                await tx.checkQualityFailedEvaluationCriteria.createMany({
-                    data: failedEvaluationCriteriaIds.map((criteriaId) => ({
-                        checkQualityId: checkQualityId,
-                        evaluationCriteriaId: criteriaId
-                    }))
                 })
-            }
 
-            // Update task status to COMPLETED
-            await tx.task.update({
-                where: { id: checkQuality.taskId },
-                data: {
-                    status: TaskStatus.COMPLETED,
-                    completedDate: now
+                if (!checkQuality) {
+                    throw new BadRequestException("Check quality record not found")
                 }
-            })
 
-            // Create progress report with failed evaluation criteria info
-            let progressNote = `Quality check completed for order detail ${checkQuality.orderDetailId}. Passed: ${passedQuantity}, Failed: ${failedQuantity}`
-            if (
-                failedQuantity > 0 &&
-                failedEvaluationCriteriaIds &&
-                failedEvaluationCriteriaIds.length > 0
-            ) {
-                const failedCriteriaNames = checkQuality.orderDetail.order.orderEvaluationCriteria
-                    .filter((oec) => failedEvaluationCriteriaIds.includes(oec.evaluationCriteriaId))
-                    .map((oec) => oec.evaluationCriteria.name)
-                progressNote += `. Failed criteria: ${failedCriteriaNames.join(", ")}`
-            }
-
-            await tx.orderProgressReport.create({
-                data: {
-                    orderId: checkQuality.orderDetail.order.id,
-                    reportDate: now,
-                    note: progressNote,
-                    imageUrls: imageUrls || []
+                if (checkQuality.task.userId !== staffId) {
+                    throw new BadRequestException("This task is not assigned to you")
                 }
-            })
 
-            // Update current order detail status based on check result
-            await tx.orderDetail.update({
-                where: { id: checkQuality.orderDetailId },
-                data: {
-                    status: OrderDetailStatus.DONE_CHECK_QUALITY,
-                    rejectedQty: failedQuantity,
-                    completedQty: passedQuantity
+                if (checkQuality.status !== QualityCheckStatus.PENDING) {
+                    throw new BadRequestException("This quality check is not in PENDING status")
                 }
-            })
 
-            // Check if all order details have been checked
-            const allDetailsChecked = checkQuality.orderDetail.order.orderDetails.every(
-                (detail) => {
-                    if (detail.id === checkQuality.orderDetailId) {
-                        return true
-                    }
-                    // all order detail done check quality
-                    return detail.status === OrderDetailStatus.DONE_CHECK_QUALITY
-                }
-            )
-
-            if (allDetailsChecked) {
-                let hasFailedChecks: boolean = false
-                // Check if any order details failed quality check
-                if (failedQuantity > 0) {
-                    hasFailedChecks = true
-                } else {
-                    const order = await tx.order.findFirst({
-                        where: {
-                            id: checkQuality.orderDetail.order.id
-                        },
-                        include: {
-                            orderDetails: {
-                                include: {
-                                    checkQualities: true
-                                }
-                            }
-                        }
-                    })
-
-                    hasFailedChecks = order.orderDetails.some((detail) => {
-                        //check order detail by createdAt
-                        return detail.rejectedQty > 0
-                    })
-                }
-                if (hasFailedChecks) {
-                    //get all order detail failed
-                    const orderDetailsFailed = await tx.orderDetail.findMany({
-                        where: {
-                            orderId: checkQuality.orderDetail.order.id,
-                            rejectedQty: { gt: 0 }
-                        }
-                    })
-
-                    //update order detail status to REWORK_REQUIRED
-                    await tx.orderDetail.updateMany({
-                        where: {
-                            id: { in: orderDetailsFailed.map((detail) => detail.id) }
-                        },
-                        data: {
-                            status: OrderDetailStatus.REWORK_REQUIRED,
-                            isRework: true
-                        }
-                    })
-
-                    // // Update order status to REWORK_REQUIRED
-                    await tx.order.update({
-                        where: { id: checkQuality.orderDetail.order.id },
-                        data: {
-                            status: OrderStatus.REWORK_REQUIRED,
-                            orderProgressReports: {
-                                create: {
-                                    reportDate: now,
-                                    note: "Some items failed quality check. Rework required.",
-                                    imageUrls: []
-                                }
-                            }
-                        }
-                    })
-
-                    // Get system config for order
-                    const systemConfig = await tx.systemConfigOrder.findUnique({
-                        where: { type: "SYSTEM_CONFIG_ORDER" }
-                    })
-
-                    if (!systemConfig) {
-                        throw new BadRequestException("System configuration not found")
-                    }
-
-                    // Check if any order detail has exceeded the rework limit
-                    const orderDetailsWithReworkCount = await tx.orderDetail.findMany({
-                        where: {
-                            orderId: checkQuality.orderDetail.order.id,
-                            status: OrderDetailStatus.REWORK_REQUIRED
-                        },
-                        select: {
-                            id: true,
-                            reworkTime: true
-                        }
-                    })
-                    // Notify factory about rework requirement
-                    await this.notificationsService.create({
-                        title: "Rework Required",
-                        content: `Some items in order #${checkQuality.orderDetail.order.id} failed quality check. Rework is required.`,
-                        userId: checkQuality.orderDetail.order.factoryId,
-                        url: `/factory/orders/${checkQuality.orderDetail.order.id}`
-                    })
-
-                    // Notify customer about quality check results
-                    await this.notificationsService.create({
-                        title: "Quality Check Results",
-                        content: `Some items in your order #${checkQuality.orderDetail.order.id} failed quality check. The factory will perform rework.`,
-                        userId: checkQuality.orderDetail.order.customer.id,
-                        url: `/my-order/${checkQuality.orderDetail.order.id}`
-                    })
-
-                    this.startRework(
-                        checkQuality.orderDetail.order.id,
-                        checkQuality.orderDetail.order.factoryId
+                // Validate quantities
+                if (passedQuantity + failedQuantity > checkQuality.orderDetail.quantity) {
+                    throw new BadRequestException(
+                        "Total checked quantity exceeds order detail quantity"
                     )
-                } else {
-                    // Update all order details to READY_FOR_SHIPPING
-                    await tx.orderDetail.updateMany({
-                        where: {
-                            orderId: checkQuality.orderDetail.order.id
-                        },
-                        data: {
-                            status: OrderDetailStatus.READY_FOR_SHIPPING
-                        }
-                    })
+                }
 
-                    // Update order status to READY_FOR_SHIPPING
-                    await tx.order.update({
-                        where: { id: checkQuality.orderDetail.order.id },
-                        data: {
-                            status: OrderStatus.READY_FOR_SHIPPING,
-                            currentProgress: 70,
-                            doneCheckQualityAt: now,
-                            orderProgressReports: {
-                                create: {
-                                    reportDate: now,
-                                    note: "All items passed quality check. Ready for shipping.",
-                                    imageUrls: []
-                                }
-                            }
-                        }
-                    })
+                if (passedQuantity + failedQuantity !== checkQuality.orderDetail.quantity) {
+                    throw new BadRequestException("Total checked quantity does not match")
+                }
 
-                    // Notify factory about shipping preparation
-                    await this.notificationsService.create({
-                        title: "Ready for Shipping",
-                        content: `Order #${checkQuality.orderDetail.order.id} has passed quality check and is ready for shipping.`,
-                        userId: checkQuality.orderDetail.order.factoryId,
-                        url: `/factory/orders/${checkQuality.orderDetail.order.id}`
-                    })
+                // Validate failed evaluation criteria if provided and quality check failed
+                if (
+                    failedQuantity > 0 &&
+                    failedEvaluationCriteriaIds &&
+                    failedEvaluationCriteriaIds.length > 0
+                ) {
+                    // Get order's evaluation criteria IDs
+                    const orderEvaluationCriteriaIds =
+                        checkQuality.orderDetail.order.orderEvaluationCriteria.map(
+                            (oec) => oec.evaluationCriteriaId
+                        )
 
-                    // Notify customer about quality check results
-                    await this.notificationsService.create({
-                        title: "Quality Check Completed",
-                        content: `All items in your order #${checkQuality.orderDetail.order.id} have passed quality check and are ready for shipping.`,
-                        userId: checkQuality.orderDetail.order.customer.id,
-                        url: `/my-order/${checkQuality.orderDetail.order.id}`
+                    // Check if all failed evaluation criteria belong to the order
+                    const invalidCriteriaIds = failedEvaluationCriteriaIds.filter(
+                        (id) => !orderEvaluationCriteriaIds.includes(id)
+                    )
+
+                    if (invalidCriteriaIds.length > 0) {
+                        throw new BadRequestException(
+                            `Invalid evaluation criteria IDs: ${invalidCriteriaIds.join(", ")}. These criteria are not part of this order.`
+                        )
+                    }
+                }
+
+                // Update check quality
+                const updatedCheckQuality = await tx.checkQuality.update({
+                    where: { id: checkQualityId },
+                    data: {
+                        totalChecked: passedQuantity + failedQuantity,
+                        passedQuantity,
+                        failedQuantity,
+                        status:
+                            failedQuantity > 0
+                                ? QualityCheckStatus.REJECTED
+                                : QualityCheckStatus.APPROVED,
+                        note,
+                        imageUrls: imageUrls || [],
+                        checkedAt: now,
+                        checkedBy: staffId
+                    }
+                })
+
+                // Store failed evaluation criteria if quality check failed
+                if (
+                    failedQuantity > 0 &&
+                    failedEvaluationCriteriaIds &&
+                    failedEvaluationCriteriaIds.length > 0
+                ) {
+                    await tx.checkQualityFailedEvaluationCriteria.createMany({
+                        data: failedEvaluationCriteriaIds.map((criteriaId) => ({
+                            checkQualityId: checkQualityId,
+                            evaluationCriteriaId: criteriaId
+                        }))
                     })
                 }
-            }
 
-            // Return the check quality with failed evaluation criteria included
-            return await tx.checkQuality.findUnique({
-                where: { id: checkQualityId },
-                include: {
-                    task: true,
-                    orderDetail: true,
-                    failedEvaluationCriteria: {
-                        include: {
-                            evaluationCriteria: true
+                // Update task status to COMPLETED
+                await tx.task.update({
+                    where: { id: checkQuality.taskId },
+                    data: {
+                        status: TaskStatus.COMPLETED,
+                        completedDate: now
+                    }
+                })
+
+                // Create progress report with failed evaluation criteria info
+                let progressNote = `Quality check completed for order detail ${checkQuality.orderDetailId}. Passed: ${passedQuantity}, Failed: ${failedQuantity}`
+                if (
+                    failedQuantity > 0 &&
+                    failedEvaluationCriteriaIds &&
+                    failedEvaluationCriteriaIds.length > 0
+                ) {
+                    const failedCriteriaNames = checkQuality.orderDetail.order.orderEvaluationCriteria
+                        .filter((oec) => failedEvaluationCriteriaIds.includes(oec.evaluationCriteriaId))
+                        .map((oec) => oec.evaluationCriteria.name)
+                    progressNote += `. Failed criteria: ${failedCriteriaNames.join(", ")}`
+                }
+
+                try {
+                    await tx.orderProgressReport.create({
+                        data: {
+                            orderId: checkQuality.orderDetail.order.id,
+                            reportDate: now,
+                            note: progressNote,
+                            imageUrls: imageUrls || []
+                        }
+                    })
+                } catch (err) {
+                    console.error("Failed to create order progress report:", err)
+                }
+
+                // Update current order detail status based on check result
+                await tx.orderDetail.update({
+                    where: { id: checkQuality.orderDetailId },
+                    data: {
+                        status: OrderDetailStatus.DONE_CHECK_QUALITY,
+                        rejectedQty: failedQuantity,
+                        completedQty: passedQuantity
+                    }
+                })
+
+                // Check if all order details have been checked
+                const allDetailsChecked = checkQuality.orderDetail.order.orderDetails.every(
+                    (detail) => {
+                        if (detail.id === checkQuality.orderDetailId) {
+                            return true
+                        }
+                        // all order detail done check quality
+                        return detail.status === OrderDetailStatus.DONE_CHECK_QUALITY
+                    }
+                )
+
+                if (allDetailsChecked) {
+                    let hasFailedChecks: boolean = false
+                    // Check if any order details failed quality check
+                    if (failedQuantity > 0) {
+                        hasFailedChecks = true
+                    } else {
+                        const order = await tx.order.findFirst({
+                            where: {
+                                id: checkQuality.orderDetail.order.id
+                            },
+                            include: {
+                                orderDetails: {
+                                    include: {
+                                        checkQualities: true
+                                    }
+                                }
+                            }
+                        })
+                        hasFailedChecks = order.orderDetails.some((detail) => {
+                            return detail.rejectedQty > 0
+                        })
+                    }
+                    if (hasFailedChecks) {
+                        //get all order detail failed
+                        const orderDetailsFailed = await tx.orderDetail.findMany({
+                            where: {
+                                orderId: checkQuality.orderDetail.order.id,
+                                rejectedQty: { gt: 0 }
+                            }
+                        })
+                        //update order detail status to REWORK_REQUIRED
+                        await tx.orderDetail.updateMany({
+                            where: {
+                                id: { in: orderDetailsFailed.map((detail) => detail.id) }
+                            },
+                            data: {
+                                status: OrderDetailStatus.REWORK_REQUIRED,
+                                isRework: true
+                            }
+                        })
+                        // // Update order status to REWORK_REQUIRED
+                        await tx.order.update({
+                            where: { id: checkQuality.orderDetail.order.id },
+                            data: {
+                                status: OrderStatus.REWORK_REQUIRED,
+                                orderProgressReports: {
+                                    create: {
+                                        reportDate: now,
+                                        note: "Some items failed quality check. Rework required.",
+                                        imageUrls: []
+                                    }
+                                }
+                            }
+                        })
+                        // Get system config for order
+                        const systemConfig = await tx.systemConfigOrder.findUnique({
+                            where: { type: "SYSTEM_CONFIG_ORDER" }
+                        })
+                        if (!systemConfig) {
+                            throw new BadRequestException("System configuration not found")
+                        }
+                        // Check if any order detail has exceeded the rework limit
+                        await tx.orderDetail.findMany({
+                            where: {
+                                orderId: checkQuality.orderDetail.order.id,
+                                status: OrderDetailStatus.REWORK_REQUIRED
+                            },
+                            select: {
+                                id: true,
+                                reworkTime: true
+                            }
+                        })
+                        // Notify factory about rework requirement
+                        try {
+                            await this.notificationsService.create({
+                                title: "Rework Required",
+                                content: `Some items in order #${checkQuality.orderDetail.order.id} failed quality check. Rework is required.`,
+                                userId: checkQuality.orderDetail.order.factoryId,
+                                url: `/factory/orders/${checkQuality.orderDetail.order.id}`
+                            })
+                        } catch (err) {
+                            console.error("Failed to notify factory about rework:", err)
+                        }
+                        // Notify customer about quality check results
+                        try {
+                            await this.notificationsService.create({
+                                title: "Quality Check Results",
+                                content: `Some items in your order #${checkQuality.orderDetail.order.id} failed quality check. The factory will perform rework.`,
+                                userId: checkQuality.orderDetail.order.customer.id,
+                                url: `/my-order/${checkQuality.orderDetail.order.id}`
+                            })
+                        } catch (err) {
+                            console.error("Failed to notify customer about quality check results:", err)
+                        }
+                        try {
+                            await this.startRework(
+                                checkQuality.orderDetail.order.id,
+                                checkQuality.orderDetail.order.factoryId
+                            )
+                        } catch (err) {
+                            console.error("Failed to start rework:", err)
+                        }
+                    } else {
+                        // Update all order details to READY_FOR_SHIPPING
+                        await tx.orderDetail.updateMany({
+                            where: {
+                                orderId: checkQuality.orderDetail.order.id
+                            },
+                            data: {
+                                status: OrderDetailStatus.READY_FOR_SHIPPING
+                            }
+                        })
+                        // Update order status to READY_FOR_SHIPPING
+                        await tx.order.update({
+                            where: { id: checkQuality.orderDetail.order.id },
+                            data: {
+                                status: OrderStatus.READY_FOR_SHIPPING,
+                                currentProgress: 70,
+                                doneCheckQualityAt: now,
+                                orderProgressReports: {
+                                    create: {
+                                        reportDate: now,
+                                        note: "All items passed quality check. Ready for shipping.",
+                                        imageUrls: []
+                                    }
+                                }
+                            }
+                        })
+                        // Notify factory about shipping preparation
+                        try {
+                            await this.notificationsService.create({
+                                title: "Ready for Shipping",
+                                content: `Order #${checkQuality.orderDetail.order.id} has passed quality check and is ready for shipping.`,
+                                userId: checkQuality.orderDetail.order.factoryId,
+                                url: `/factory/orders/${checkQuality.orderDetail.order.id}`
+                            })
+                        } catch (err) {
+                            console.error("Failed to notify factory about ready for shipping:", err)
+                        }
+                        // Notify customer about quality check results
+                        try {
+                            await this.notificationsService.create({
+                                title: "Quality Check Completed",
+                                content: `All items in your order #${checkQuality.orderDetail.order.id} have passed quality check and are ready for shipping.`,
+                                userId: checkQuality.orderDetail.order.customer.id,
+                                url: `/my-order/${checkQuality.orderDetail.order.id}`
+                            })
+                        } catch (err) {
+                            console.error("Failed to notify customer about quality check completed:", err)
                         }
                     }
                 }
+
+                // Return the check quality with failed evaluation criteria included
+                return await tx.checkQuality.findUnique({
+                    where: { id: checkQualityId },
+                    include: {
+                        task: true,
+                        orderDetail: true,
+                        failedEvaluationCriteria: {
+                            include: {
+                                evaluationCriteria: true
+                            }
+                        }
+                    }
+                })
             })
-        })
+        } catch (error) {
+            console.error("Error in doneCheckQuality:", error)
+            throw new BadRequestException(error.message || "An error occurred during quality check.")
+        }
     }
 
     async startRework(orderId: string, factoryId: string) {
