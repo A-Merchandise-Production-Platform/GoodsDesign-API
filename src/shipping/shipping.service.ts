@@ -1,7 +1,7 @@
 import { AlgorithmService } from '@/algorithm/algorithm.service';
 import { FactoryEntity } from '@/factory/entities/factory.entity';
 import { HttpService } from '@nestjs/axios';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
 import { envConfig } from 'src/dynamic-modules';
 import { PrismaService } from 'src/prisma';
@@ -17,11 +17,13 @@ import { formatWards, WardResponse } from './dto/ward.dto';
 import { District, Province, ShippingFee, ShippingOrder, ShippingService as ShippingServiceModel, Ward } from './models/shipping.model';
 
 @Injectable()
-export class ShippingService {
+export class ShippingService implements OnModuleInit {
   private readonly baseUrl: string;
   private readonly token: string;
   private readonly shopId: string;
   private readonly logger = new Logger(ShippingService.name);
+
+  
 
   private readonly ENDPOINTS = {
     PROVINCE: '/shiip/public-api/master-data/province',
@@ -42,6 +44,55 @@ export class ShippingService {
     this.baseUrl = envConfig().shipping.baseUrl;
     this.token = envConfig().shipping.token;
     this.shopId = envConfig().shipping.shopId;
+  }
+  async onModuleInit() {
+    this.logger.log('Initializing shipping service cache...');
+    
+    try {
+      // Cache provinces
+      const provincesCacheKey = 'shipping:provinces';
+      const provincesCached = await this.redisService.getCache(provincesCacheKey);
+      if (!provincesCached) {
+        this.logger.log('Caching provinces data...');
+        await this.getProvinces();
+        this.logger.log('Provinces data cached successfully');
+      } else {
+        this.logger.log('Provinces data already cached');
+      }
+
+      // Cache districts for all provinces
+      const provinces = await this.getProvinces();
+      this.logger.log(`Caching districts for ${provinces.length} provinces...`);
+      for (const province of provinces) {
+        const districtsCacheKey = `shipping:districts:${province.provinceId}`;
+        const districtsCached = await this.redisService.getCache(districtsCacheKey);
+        if (!districtsCached) {
+          await this.getDistricts(province.provinceId);
+          this.logger.debug(`Cached districts for province ${province.provinceName}`);
+        }
+      }
+      this.logger.log('Districts data cached successfully');
+
+      // Cache wards for all districts
+      this.logger.log('Caching wards data...');
+      for (const province of provinces) {
+        const districts = await this.getDistricts(province.provinceId);
+        for (const district of districts) {
+          const wardsCacheKey = `shipping:wards:${district.districtId}`;
+          const wardsCached = await this.redisService.getCache(wardsCacheKey);
+          if (!wardsCached) {
+            await this.getWards(district.districtId);
+            this.logger.debug(`Cached wards for district ${district.districtName}`);
+          }
+        }
+      }
+      this.logger.log('Wards data cached successfully');
+
+      this.logger.log('Shipping service cache initialization completed');
+    } catch (error) {
+      this.logger.error('Error initializing shipping service cache:', error);
+      throw error;
+    }
   }
 
   private getHeaders() {
@@ -87,7 +138,8 @@ export class ShippingService {
       await this.redisService.setCache(
         cacheKey,
         JSON.stringify(formatProvinces(provinces)),
-      );
+        60 * 60 * 24 * 7
+      ); // 7 days
 
       return formatProvinces(provinces);
     } catch (error) {
@@ -111,6 +163,7 @@ export class ShippingService {
     await this.redisService.setCache(
       cacheKey,
       JSON.stringify(formatDistricts(districts)),
+      60 * 60 * 24 * 7
     );
 
     return formatDistricts(districts);
@@ -136,6 +189,7 @@ export class ShippingService {
     await this.redisService.setCache(
       cacheKey,
       JSON.stringify(formatWards(wards)),
+      60 * 60 * 24 * 7
     );
 
     return formatWards(wards);
@@ -167,6 +221,7 @@ export class ShippingService {
     await this.redisService.setCache(
       cacheKey,
       JSON.stringify(formattedServices),
+      60 * 60 * 24 * 7
     );
 
     return formattedServices as unknown as ShippingServiceModel[];
@@ -188,7 +243,7 @@ export class ShippingService {
         throw new Error(`Province with ID ${provinceId} not found`);
       }
 
-      await this.redisService.setCache(cacheKey, JSON.stringify(province));
+      await this.redisService.setCache(cacheKey, JSON.stringify(province), 60 * 60 * 24 * 7);
       return province;
     } catch (error) {
       return null;
@@ -209,7 +264,7 @@ export class ShippingService {
       const districts = await this.getDistricts(province.provinceId);
       const district = districts.find(d => d.districtId === districtId);
       if (district) {
-        await this.redisService.setCache(cacheKey, JSON.stringify(district));
+        await this.redisService.setCache(cacheKey, JSON.stringify(district), 60 * 60 * 24 * 7);
         return district;
       }
     }
@@ -232,7 +287,7 @@ export class ShippingService {
         const wards = await this.getWards(district.districtId);
         const ward = wards.find(w => w.wardCode === wardCode);
         if (ward) {
-          await this.redisService.setCache(cacheKey, JSON.stringify(ward));
+          await this.redisService.setCache(cacheKey, JSON.stringify(ward), 60 * 60 * 24 * 7);
           return ward;
         }
       }
