@@ -43,60 +43,75 @@ export class FileService {
 
   async uploadFile(file: UploadedFile): Promise<string> {
     try {
-      this.logger.log(`Starting file upload: ${file.originalname} (${file.mimetype})`);
-      this.logger.log(`File buffer size: ${file.buffer?.length || 0} bytes`);
+      this.logger.log(`[FileUpload] Starting file upload process`);
+      this.logger.log(`[FileUpload] File details - Name: ${file.originalname}, Type: ${file.mimetype}, Size: ${file.buffer?.length || 0} bytes`);
       
       if (!file.buffer || file.buffer.length === 0) {
+        this.logger.error('[FileUpload] Error: File buffer is empty or undefined');
         throw new Error('File buffer is empty or undefined');
       }
 
       if (!file.mimetype) {
+        this.logger.error('[FileUpload] Error: File mimetype is undefined');
         throw new Error('File mimetype is undefined');
       }
 
       // Validate Cloudinary configuration
-      if (!envConfig().cloudinary.cloudName || !envConfig().cloudinary.apiKey || !envConfig().cloudinary.apiSecret) {
+      this.logger.log('[FileUpload] Validating Cloudinary configuration');
+      const cloudinaryConfig = envConfig().cloudinary;
+      this.logger.log(`[FileUpload] Cloudinary config - CloudName: ${cloudinaryConfig.cloudName ? 'Set' : 'Not Set'}, APIKey: ${cloudinaryConfig.apiKey ? 'Set' : 'Not Set'}, APISecret: ${cloudinaryConfig.apiSecret ? 'Set' : 'Not Set'}`);
+      
+      if (!cloudinaryConfig.cloudName || !cloudinaryConfig.apiKey || !cloudinaryConfig.apiSecret) {
+        this.logger.error('[FileUpload] Error: Cloudinary configuration is incomplete');
         throw new Error('Cloudinary configuration is incomplete');
       }
 
+      this.logger.log('[FileUpload] Converting file buffer to base64');
       const base64Data = file.buffer.toString('base64');
       if (!base64Data) {
+        this.logger.error('[FileUpload] Error: Failed to convert file buffer to base64');
         throw new Error('Failed to convert file buffer to base64');
       }
+      this.logger.log(`[FileUpload] Base64 conversion successful, length: ${base64Data.length}`);
 
       const uploadData = `data:${file.mimetype};base64,${base64Data}`;
       
       // Generate a unique public_id based on filename and timestamp
       const timestamp = new Date().getTime();
       const publicId = `${file.originalname.split('.')[0]}_${timestamp}`;
+      this.logger.log(`[FileUpload] Generated public_id: ${publicId}`);
 
+      this.logger.log('[FileUpload] Initiating Cloudinary upload');
       const result = await cloudinary.uploader.upload(uploadData, {
         public_id: publicId,
         folder: 'files',
         resource_type: 'auto',
         timeout: 60000, // 60 seconds timeout for the upload
       }).catch((error) => {
-        this.logger.error('Cloudinary upload error:', error);
+        this.logger.error('[FileUpload] Cloudinary upload error:', error);
         throw new Error(`Cloudinary upload failed: ${error.message}`);
       });
 
       if (!result || !result.secure_url) {
+        this.logger.error('[FileUpload] Error: Cloudinary upload succeeded but no URL was returned');
         throw new Error('Cloudinary upload succeeded but no URL was returned');
       }
+      this.logger.log(`[FileUpload] Cloudinary upload successful, received URL: ${result.secure_url}`);
 
       // Optimize the URL for delivery
+      this.logger.log('[FileUpload] Optimizing URL for delivery');
       const optimizedUrl = cloudinary.url(result.public_id, {
         fetch_format: 'auto',
         quality: 'auto',
         secure: true
       });
 
-      this.logger.log(`File uploaded successfully: ${optimizedUrl}`);
+      this.logger.log(`[FileUpload] File upload process completed successfully. Final URL: ${optimizedUrl}`);
       return optimizedUrl;
     } catch (error) {
       const errorMessage = error.message || 'Unknown error occurred';
       const errorDetails = error.response?.body || error.stack || 'No additional details available';
-      this.logger.error(`Failed to upload file: ${errorMessage}`, errorDetails);
+      this.logger.error(`[FileUpload] Failed to upload file: ${errorMessage}`, errorDetails);
       throw new Error(`Failed to upload file: ${errorMessage}`);
     }
   }
