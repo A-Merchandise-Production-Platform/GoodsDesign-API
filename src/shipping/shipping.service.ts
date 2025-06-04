@@ -1,8 +1,8 @@
 import { AlgorithmService } from '@/algorithm/algorithm.service';
 import { FactoryEntity } from '@/factory/entities/factory.entity';
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
-import { lastValueFrom } from 'rxjs';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { async, lastValueFrom } from 'rxjs';
 import { envConfig } from 'src/dynamic-modules';
 import { PrismaService } from 'src/prisma';
 import { RedisService } from 'src/redis/redis.service';
@@ -17,10 +17,11 @@ import { formatWards, WardResponse } from './dto/ward.dto';
 import { District, Province, ShippingFee, ShippingOrder, ShippingService as ShippingServiceModel, Ward } from './models/shipping.model';
 
 @Injectable()
-export class ShippingService {
+export class ShippingService implements OnModuleInit {
   private readonly baseUrl: string;
   private readonly token: string;
   private readonly shopId: string;
+  private readonly logger = new Logger(ShippingService.name);
 
   private readonly ENDPOINTS = {
     PROVINCE: '/shiip/public-api/master-data/province',
@@ -41,6 +42,55 @@ export class ShippingService {
     this.baseUrl = envConfig().shipping.baseUrl;
     this.token = envConfig().shipping.token;
     this.shopId = envConfig().shipping.shopId;
+  }
+  async onModuleInit() {
+    this.logger.log('Initializing shipping service cache...');
+    
+    try {
+      // Cache provinces
+      const provincesCacheKey = 'shipping:provinces';
+      const provincesCached = await this.redisService.getCache(provincesCacheKey);
+      if (!provincesCached) {
+        this.logger.log('Caching provinces data...');
+        await this.getProvinces();
+        this.logger.log('Provinces data cached successfully');
+      } else {
+        this.logger.log('Provinces data already cached');
+      }
+
+      // Cache districts for all provinces
+      const provinces = await this.getProvinces();
+      this.logger.log(`Caching districts for ${provinces.length} provinces...`);
+      for (const province of provinces) {
+        const districtsCacheKey = `shipping:districts:${province.provinceId}`;
+        const districtsCached = await this.redisService.getCache(districtsCacheKey);
+        if (!districtsCached) {
+          await this.getDistricts(province.provinceId);
+          this.logger.debug(`Cached districts for province ${province.provinceName}`);
+        }
+      }
+      this.logger.log('Districts data cached successfully');
+
+      // Cache wards for all districts
+      this.logger.log('Caching wards data...');
+      for (const province of provinces) {
+        const districts = await this.getDistricts(province.provinceId);
+        for (const district of districts) {
+          const wardsCacheKey = `shipping:wards:${district.districtId}`;
+          const wardsCached = await this.redisService.getCache(wardsCacheKey);
+          if (!wardsCached) {
+            await this.getWards(district.districtId);
+            this.logger.debug(`Cached wards for district ${district.districtName}`);
+          }
+        }
+      }
+      this.logger.log('Wards data cached successfully');
+
+      this.logger.log('Shipping service cache initialization completed');
+    } catch (error) {
+      this.logger.error('Error initializing shipping service cache:', error);
+      throw error;
+    }
   }
 
   private getHeaders() {
@@ -86,16 +136,19 @@ export class ShippingService {
       await this.redisService.setCache(
         cacheKey,
         JSON.stringify(formatProvinces(provinces)),
-      );
+        60 * 60 * 24 * 7
+      ); // 7 days
 
       return formatProvinces(provinces);
     } catch (error) {
+      console.error("[getProvinces] error: ", error);
       return [];
     }
   }
 
   async getDistricts(provinceId: number): Promise<District[]> {
-    const cacheKey = `shipping:districts:${provinceId}`;
+    try{
+      const cacheKey = `shipping:districts:${provinceId}`;
     const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
@@ -110,14 +163,20 @@ export class ShippingService {
     await this.redisService.setCache(
       cacheKey,
       JSON.stringify(formatDistricts(districts)),
+      60 * 60 * 24 * 7
     );
 
-    return formatDistricts(districts);
+      return formatDistricts(districts);
+    } catch (error) {
+      console.error("[getDistricts] error: ", error);
+      return [];
+    }
   }
 
   async getWards(districtId: number): Promise<Ward[]> {
-    const cacheKey = `shipping:wards:${districtId}`;
-    const cached = await this.redisService.getCache(cacheKey);
+    try{
+      const cacheKey = `shipping:wards:${districtId}`;
+      const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
       return JSON.parse(cached);
@@ -135,13 +194,19 @@ export class ShippingService {
     await this.redisService.setCache(
       cacheKey,
       JSON.stringify(formatWards(wards)),
+      60 * 60 * 24 * 7
     );
 
-    return formatWards(wards);
+      return formatWards(wards);
+    } catch (error) {
+      console.error("[getWards] error: ", error);
+      return [];
+    }
   }
 
   async getAvailableServices(fromDistrict: number, toDistrict: number): Promise<ShippingServiceModel[]> {
-    const cacheKey = `shipping:services:${fromDistrict}:${toDistrict}`;
+    try{
+      const cacheKey = `shipping:services:${fromDistrict}:${toDistrict}`;
     const cached = await this.redisService.getCache(cacheKey);
 
     if (cached) {
@@ -166,9 +231,14 @@ export class ShippingService {
     await this.redisService.setCache(
       cacheKey,
       JSON.stringify(formattedServices),
+      60 * 60 * 24 * 7
     );
 
-    return formattedServices as unknown as ShippingServiceModel[];
+      return formattedServices as unknown as ShippingServiceModel[];
+    } catch (error) {
+      console.error("[getAvailableServices] error: ", error);
+      return [];
+    }
   }
 
   async getProvince(provinceId: number): Promise<Province | null> {
@@ -187,7 +257,7 @@ export class ShippingService {
         throw new Error(`Province with ID ${provinceId} not found`);
       }
 
-      await this.redisService.setCache(cacheKey, JSON.stringify(province));
+      await this.redisService.setCache(cacheKey, JSON.stringify(province), 60 * 60 * 24 * 7);
       return province;
     } catch (error) {
       return null;
@@ -208,7 +278,7 @@ export class ShippingService {
       const districts = await this.getDistricts(province.provinceId);
       const district = districts.find(d => d.districtId === districtId);
       if (district) {
-        await this.redisService.setCache(cacheKey, JSON.stringify(district));
+        await this.redisService.setCache(cacheKey, JSON.stringify(district), 60 * 60 * 24 * 7);
         return district;
       }
     }
@@ -231,7 +301,7 @@ export class ShippingService {
         const wards = await this.getWards(district.districtId);
         const ward = wards.find(w => w.wardCode === wardCode);
         if (ward) {
-          await this.redisService.setCache(cacheKey, JSON.stringify(ward));
+          await this.redisService.setCache(cacheKey, JSON.stringify(ward), 60 * 60 * 24 * 7);
           return ward;
         }
       }
@@ -241,10 +311,10 @@ export class ShippingService {
 
   async calculateShippingFee(input: CalculateShippingFeeDto): Promise<ShippingFee> {
     // return 20000
-    const r: ShippingFee ={
-      total: 20000,
-    } 
-    return r
+    // const r: ShippingFee ={
+    //   total: 20000,
+    // } 
+    // return r
     const body = {
       service_id: input.serviceId,
       service_type_id: input.serviceTypeId,
@@ -359,11 +429,16 @@ export class ShippingService {
     }), { length: 0, width: 0, height: 0 });
 
     // Get location information in parallel
-    const [fromProvince, fromDistrictName, fromWardName] = await Promise.all([
-      this.getProvince(order.factory.address.provinceID),
-      this.getDistrict(order.factory.address.districtID),
-      this.getWard(order.factory.address.wardCode)
-    ]);
+    // const [fromProvince, fromDistrictName, fromWardName] = await Promise.all([
+    //   this.getProvince(order.factory.address.provinceID),
+    //   this.getDistrict(order.factory.address.districtID),
+    //   this.getWard(order.factory.address.wardCode)
+    // ]);
+
+    const fromProvince = await this.getProvince(order.factory.address.provinceID);
+    const fromDistrictName = await this.getDistrict(order.factory.address.districtID);
+    const fromWardName = await this.getWard(order.factory.address.wardCode);
+
 
     const body = {
       payment_type_id: 2,
@@ -425,23 +500,28 @@ export class ShippingService {
     shippingFee: ShippingFee;
     selectedFactory: FactoryEntity | null;
   }> {
+    const startTime = performance.now();
+    this.logger.log(`Starting shipping cost calculation for cart items: ${cartIds.join(', ')}`);
+
     try {
-      // Get cart items with their details
+      if (!cartIds.length) {
+        throw new Error('No cart items provided');
+      }
+
+      if (!addressId) {
+        throw new Error('No shipping address provided');
+      }
+
+      // Get cart items and shipping address in parallel
       const cartItems = await this.prisma.cartItem.findMany({
-        where: {
-          id: {
-            in: cartIds
-          }
-        },
+        where: { id: { in: cartIds } },
         include: {
           design: {
             include: {
               designPositions: {
                 include: {
                   positionType: {
-                    include: {
-                      product: true
-                    }
+                    include: { product: true }
                   }
                 }
               }
@@ -449,46 +529,48 @@ export class ShippingService {
           },
           systemConfigVariant: true
         }
-      });
+      })
+      
+      const shippingAddress = await this.prisma.address.findUnique({
+        where: { id: addressId }
+      })
+
+      const queryTime = performance.now() - startTime;
+      this.logger.debug(`Database queries completed in ${queryTime.toFixed(2)}ms`);
 
       if (cartItems.length === 0) {
         throw new Error('No cart items found');
       }
 
-      // Get shipping address
-      const shippingAddress = await this.prisma.address.findUnique({
-        where: { id: addressId }
-      });
-
       if (!shippingAddress) {
         throw new Error(`Shipping address with ID ${addressId} not found`);
       }
 
-      // Extract variant IDs from cart items
-      const variantIds = cartItems.map(item => item.systemConfigVariantId);
-      const uniqueVariantIds = [...new Set(variantIds)];
+      // Extract variant IDs and find best factory
+      const variantIds = [...new Set(cartItems.map(item => item.systemConfigVariantId))];
+      this.logger.debug(`Processing ${variantIds.length} unique variants`);
 
-      // Use the algorithm service to find the best factory
-      const selectedFactory = await this.algorithmService.findBestFactoryForVariants(uniqueVariantIds);
-
+      const selectedFactory = await this.algorithmService.findBestFactoryForVariants(variantIds);
       if (!selectedFactory) {
         throw new Error('No suitable factory found for the cart items');
       }
 
-      const factoryAddress = selectedFactory.address
-
+      const factoryAddress = selectedFactory.address;
       if (!factoryAddress) {
         throw new Error('Factory address not found');
       }
 
+      // Get location information in parallel
       const fromDistrict = await this.getDistrict(factoryAddress.districtID);
       const fromWard = await this.getWard(factoryAddress.wardCode);
-
       const toDistrict = await this.getDistrict(shippingAddress.districtID);
       const toWard = await this.getWard(shippingAddress.wardCode);
 
-      // Calculate total weight and dimensions
-      const items = cartItems?.map(item => {
+      const locationTime = performance.now() - startTime - queryTime;
+      this.logger.debug(`Location data retrieved in ${locationTime.toFixed(2)}ms`);
+
+      // Calculate dimensions and weight
+      const items = cartItems.map(item => {
         const design = item.design;
         const product = design.designPositions[0]?.positionType?.product;
         
@@ -502,38 +584,16 @@ export class ShippingService {
       });
 
       const totalWeight = items.reduce((total, item) => total + (item.weight * item.quantity), 0);
-
-      // Calculate total dimensions
-      const totalDimensions = items.reduce((acc, item) => {
-        // For multiple items, we need to consider how they'll be packed
-        // Here we're using a simple approach where we take the maximum dimensions
-        // and multiply length by quantity (assuming items are stacked lengthwise)
-        return {
-          length: Math.max(acc.length, item.length),
-          width: Math.max(acc.width, item.width),
-          height: Math.max(acc.height, item.height * item.quantity)
-        };
-      }, { length: 0, width: 0, height: 0 });
-
-      // Get available shipping services
-      const availableServices = await this.getAvailableServices(
-        fromDistrict.districtId,
-        toDistrict.districtId
-      );
-
-      if (availableServices.length === 0) {
-        throw new Error('No shipping services available for this route');
-      }
-
-      // Use the first available service
-      const selectedService = availableServices[0];
-
-      console.log("totalDimensions", totalDimensions)
+      const totalDimensions = items.reduce((acc, item) => ({
+        length: Math.max(acc.length, item.length),
+        width: Math.max(acc.width, item.width),
+        height: Math.max(acc.height, item.height * item.quantity)
+      }), { length: 0, width: 0, height: 0 });
 
       // Calculate shipping fee
       const shippingFee = await this.calculateShippingFee({
-        serviceId: selectedService.serviceId,
-        serviceTypeId: selectedService.serviceTypeId,
+        serviceId: 53321,
+        serviceTypeId: 2,
         fromDistrictId: fromDistrict.districtId,
         fromWardCode: fromWard.wardCode,
         toDistrictId: toDistrict.districtId,
@@ -544,11 +604,19 @@ export class ShippingService {
         height: totalDimensions.height
       });
 
+      const totalTime = performance.now() - startTime;
+      this.logger.log(`Shipping cost calculation completed in ${totalTime.toFixed(2)}ms`);
+
       return {
         shippingFee,
         selectedFactory
       };
     } catch (error) {
+      const errorTime = performance.now() - startTime;
+      this.logger.error(
+        `Error calculating shipping cost (took ${errorTime.toFixed(2)}ms): ${error.message}`,
+        error.stack
+      );
       throw new Error(`Error calculating shipping cost and factory: ${error.message}`);
     }
   }
