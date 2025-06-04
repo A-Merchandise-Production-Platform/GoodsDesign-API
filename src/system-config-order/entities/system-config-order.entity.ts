@@ -74,6 +74,9 @@ export class SystemConfigOrderEntity {
     @Field(() => Int)
     maxEvaluationCriteria: number
 
+    @Field(() => Int)
+    minExpectedReceiveAt: number
+
     constructor(partial: Partial<SystemConfigOrderEntity>) {
         Object.assign(this, partial)
     }

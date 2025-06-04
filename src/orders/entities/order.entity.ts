@@ -133,6 +133,9 @@ export class OrderEntity {
     @Field(() => [OrderEvaluationCriteriaEntity], { nullable: true })
     orderEvaluationCriteria?: OrderEvaluationCriteriaEntity[]
 
+    @Field(() => Date, { nullable: true })
+    expectedReceiveAt?: Date
+
     constructor(partial: Partial<OrderEntity>) {
         Object.assign(this, partial)
     }
