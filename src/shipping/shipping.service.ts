@@ -444,28 +444,27 @@ export class ShippingService {
       }
 
       // Get cart items and shipping address in parallel
-      const [cartItems, shippingAddress] = await Promise.all([
-        this.prisma.cartItem.findMany({
-          where: { id: { in: cartIds } },
-          include: {
-            design: {
-              include: {
-                designPositions: {
-                  include: {
-                    positionType: {
-                      include: { product: true }
-                    }
+      const cartItems = await this.prisma.cartItem.findMany({
+        where: { id: { in: cartIds } },
+        include: {
+          design: {
+            include: {
+              designPositions: {
+                include: {
+                  positionType: {
+                    include: { product: true }
                   }
                 }
               }
-            },
-            systemConfigVariant: true
-          }
-        }),
-        this.prisma.address.findUnique({
-          where: { id: addressId }
-        })
-      ]);
+            }
+          },
+          systemConfigVariant: true
+        }
+      })
+      
+      const shippingAddress = await this.prisma.address.findUnique({
+        where: { id: addressId }
+      })
 
       const queryTime = performance.now() - startTime;
       this.logger.debug(`Database queries completed in ${queryTime.toFixed(2)}ms`);
