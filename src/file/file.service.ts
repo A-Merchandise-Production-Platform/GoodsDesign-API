@@ -66,18 +66,33 @@ export class FileService {
 
       const uploadData = `data:${file.mimetype};base64,${base64Data}`;
       
+      // Generate a unique public_id based on filename and timestamp
+      const timestamp = new Date().getTime();
+      const publicId = `${file.originalname.split('.')[0]}_${timestamp}`;
+
       const result = await cloudinary.uploader.upload(uploadData, {
+        public_id: publicId,
         folder: 'files',
         resource_type: 'auto',
         timeout: 60000, // 60 seconds timeout for the upload
+      }).catch((error) => {
+        this.logger.error('Cloudinary upload error:', error);
+        throw new Error(`Cloudinary upload failed: ${error.message}`);
       });
 
       if (!result || !result.secure_url) {
         throw new Error('Cloudinary upload succeeded but no URL was returned');
       }
 
-      this.logger.log(`File uploaded successfully: ${result.secure_url}`);
-      return result.secure_url;
+      // Optimize the URL for delivery
+      const optimizedUrl = cloudinary.url(result.public_id, {
+        fetch_format: 'auto',
+        quality: 'auto',
+        secure: true
+      });
+
+      this.logger.log(`File uploaded successfully: ${optimizedUrl}`);
+      return optimizedUrl;
     } catch (error) {
       const errorMessage = error.message || 'Unknown error occurred';
       const errorDetails = error.response?.body || error.stack || 'No additional details available';
