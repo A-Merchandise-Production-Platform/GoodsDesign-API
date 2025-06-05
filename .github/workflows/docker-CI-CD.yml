@@ -33,21 +33,21 @@ jobs:
       #     cache-from: type=gha
       #     cache-to: type=gha,mode=max
 
-  migration:
-    name: Migration Database
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-      - name: Setup Node
-        uses: actions/setup-node@v3
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-      - name: Apply all pending migrations to the database
-        # run:  npx prisma migrate deploy
-        run: npx prisma migrate reset -f && npx prisma db seed
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  # migration:
+  #   name: Migration Database
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repo
+  #       uses: actions/checkout@v3
+  #     - name: Setup Node
+  #       uses: actions/setup-node@v3
+  #     - name: Install dependencies
+  #       run: npm install --legacy-peer-deps
+  #     - name: Apply all pending migrations to the database
+  #       # run:  npx prisma migrate deploy
+  #       run: npx prisma migrate reset -f && npx prisma db seed
+  #       env:
+  #         DATABASE_URL: ${{ secrets.DATABASE_URL }}
   
   # deploy:
   #   name: Deploying to VPS
